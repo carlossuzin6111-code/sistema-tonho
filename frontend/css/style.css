@@ -1729,6 +1729,37 @@ body.dark-theme .metric-item {
   .student-detail-modal {
     height: 100vh;
   }
+
+  .app-header {
+    padding: 10px 14px;
+  }
+  
+  .app-header .logo-text {
+    font-size: 1.25rem;
+    letter-spacing: -0.5px;
+  }
+  
+  .app-header .logo-icon {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .header-left {
+    gap: 8px;
+  }
+  
+  .logo-container {
+    gap: 6px;
+  }
+  
+  .role-badge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+  }
+  
+  .header-right {
+    gap: 8px;
+  }
 }
 
 /* Tabs Visibility */
