@@ -1,4 +1,4 @@
-const { query } = require('../database');
+const db = require('../database');
 
 // Create a new exercise (Personal Trainer only)
 async function createExercise(req, res) {
@@ -10,15 +10,17 @@ async function createExercise(req, res) {
   }
 
   try {
-    const result = await query.run(`
-      INSERT INTO exercises (personal_id, name, gif_url, description)
-      VALUES (?, ?, ?, ?)
-    `, [personalId, name, gifUrl || null, description || null]);
+    const [insertedId] = await db('exercises').insert({
+      personal_id: personalId,
+      name,
+      gif_url: gifUrl || null,
+      description: description || null
+    });
 
     res.status(201).json({
       message: 'Exercise created successfully',
       exercise: {
-        id: result.id,
+        id: insertedId,
         name,
         gifUrl: gifUrl || null,
         description: description || null
@@ -40,20 +42,14 @@ async function getExercises(req, res) {
 
     if (role === 'student') {
       // Find the personal trainer for this student
-      const profile = await query.get(
-        'SELECT personal_id FROM student_profiles WHERE student_id = ?',
-        [userId]
-      );
+      const profile = await db('student_profiles').select('personal_id').where('student_id', userId).first();
       if (!profile) {
         return res.status(404).json({ error: 'No personal trainer linked to this student profile' });
       }
       personalId = profile.personal_id;
     }
 
-    const exercises = await query.all(
-      'SELECT * FROM exercises WHERE personal_id = ? ORDER BY name ASC',
-      [personalId]
-    );
+    const exercises = await db('exercises').where('personal_id', personalId).orderBy('name', 'asc');
 
     res.status(200).json(exercises);
   } catch (err) {
@@ -69,7 +65,7 @@ async function deleteExercise(req, res) {
 
   try {
     // Verify ownership
-    const exercise = await query.get('SELECT * FROM exercises WHERE id = ?', [exerciseId]);
+    const exercise = await db('exercises').where('id', exerciseId).first();
     if (!exercise) {
       return res.status(404).json({ error: 'Exercise not found' });
     }
@@ -78,7 +74,7 @@ async function deleteExercise(req, res) {
       return res.status(403).json({ error: 'Access denied: you do not own this exercise' });
     }
 
-    await query.run('DELETE FROM exercises WHERE id = ?', [exerciseId]);
+    await db('exercises').where('id', exerciseId).del();
     res.status(200).json({ message: 'Exercise deleted successfully' });
   } catch (err) {
     console.error('Delete exercise error:', err.message);

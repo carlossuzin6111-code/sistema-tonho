@@ -1,178 +1,116 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const fs = require('fs');
+const knex = require('knex');
+const config = require('../knexfile');
 
-const dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'database.sqlite');
+const env = process.env.NODE_ENV || 'development';
+const db = knex(config[env]);
 
-// Ensure database directory exists
-const dbDir = path.dirname(dbPath);
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
-}
-
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Error opening database:', err.message);
-  } else {
-    console.log('Connected to SQLite database at:', dbPath);
-    initializeDatabase();
-  }
-});
-
-// Helper functions for modern async/await syntax
-const query = {
-  run(sql, params = []) {
-    return new Promise((resolve, reject) => {
-      db.run(sql, params, function (err) {
-        if (err) reject(err);
-        else resolve({ id: this.lastID, changes: this.changes });
+async function initializeDatabase() {
+  try {
+    // 1. users
+    const hasUsers = await db.schema.hasTable('users');
+    if (!hasUsers) {
+      await db.schema.createTable('users', table => {
+        table.increments('id').primary();
+        table.string('name').notNullable();
+        table.string('email').unique().notNullable();
+        table.string('password_hash').notNullable();
+        table.string('role').notNullable(); // 'personal' or 'student'
+        table.timestamps(true, true);
       });
-    });
-  },
-
-  get(sql, params = []) {
-    return new Promise((resolve, reject) => {
-      db.get(sql, params, (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
-  },
-
-  all(sql, params = []) {
-    return new Promise((resolve, reject) => {
-      db.all(sql, params, (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
-  }
-};
-
-function initializeDatabase() {
-  db.serialize(async () => {
-    try {
-      // 1. Create users table
-      await query.run(`
-        CREATE TABLE IF NOT EXISTS users (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT NOT NULL,
-          email TEXT UNIQUE NOT NULL,
-          password_hash TEXT NOT NULL,
-          role TEXT CHECK(role IN ('personal', 'student')) NOT NULL,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-
-      // 2. Create student_profiles table
-      await query.run(`
-        CREATE TABLE IF NOT EXISTS student_profiles (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          student_id INTEGER UNIQUE NOT NULL,
-          personal_id INTEGER NOT NULL,
-          height REAL,
-          target_weight REAL,
-          birth_date TEXT,
-          FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
-          FOREIGN KEY (personal_id) REFERENCES users(id) ON DELETE CASCADE
-        )
-      `);
-
-      // 3. Create workouts table
-      await query.run(`
-        CREATE TABLE IF NOT EXISTS workouts (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          student_id INTEGER NOT NULL,
-          personal_id INTEGER NOT NULL,
-          name TEXT NOT NULL,
-          description TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
-          FOREIGN KEY (personal_id) REFERENCES users(id) ON DELETE CASCADE
-        )
-      `);
-
-      // 4. Create workout_exercises table
-      await query.run(`
-        CREATE TABLE IF NOT EXISTS workout_exercises (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          workout_id INTEGER NOT NULL,
-          name TEXT NOT NULL,
-          sets INTEGER NOT NULL,
-          reps TEXT NOT NULL,
-          weight TEXT,
-          rest_time TEXT,
-          notes TEXT,
-          FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE
-        )
-      `);
-
-      // 4.1. Create exercises table
-      await query.run(`
-        CREATE TABLE IF NOT EXISTS exercises (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          personal_id INTEGER NOT NULL,
-          name TEXT NOT NULL,
-          gif_url TEXT,
-          description TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (personal_id) REFERENCES users(id) ON DELETE CASCADE
-        )
-      `);
-
-      // 4.2. Alter workout_exercises to add exercise_id
-      try {
-        await query.run(`
-          ALTER TABLE workout_exercises ADD COLUMN exercise_id INTEGER REFERENCES exercises(id) ON DELETE SET NULL
-        `);
-        console.log('Column exercise_id added successfully or already exists in workout_exercises.');
-      } catch (err) {
-        // Ignore "duplicate column name" error in SQLite
-        if (!err.message.includes('duplicate column name') && !err.message.includes('already exists')) {
-          console.error('Error adding exercise_id column:', err.message);
-        }
-      }
-
-      // 5. Create measurements table
-      await query.run(`
-        CREATE TABLE IF NOT EXISTS measurements (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          student_id INTEGER NOT NULL,
-          weight REAL NOT NULL,
-          chest REAL,
-          waist REAL,
-          hips REAL,
-          biceps_l REAL,
-          biceps_r REAL,
-          thigh_l REAL,
-          thigh_r REAL,
-          recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
-        )
-      `);
-
-      // 6. Create chat_messages table
-      await query.run(`
-        CREATE TABLE IF NOT EXISTS chat_messages (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          sender_id INTEGER NOT NULL,
-          receiver_id INTEGER NOT NULL,
-          message TEXT NOT NULL,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          read_status INTEGER DEFAULT 0,
-          FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
-          FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
-        )
-      `);
-
-      console.log('Database tables initialized successfully.');
-    } catch (err) {
-      console.error('Error initializing database tables:', err.message);
     }
-  });
+
+    // 2. student_profiles
+    const hasStudentProfiles = await db.schema.hasTable('student_profiles');
+    if (!hasStudentProfiles) {
+      await db.schema.createTable('student_profiles', table => {
+        table.increments('id').primary();
+        table.integer('student_id').unique().notNullable().references('id').inTable('users').onDelete('CASCADE');
+        table.integer('personal_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
+        table.float('height');
+        table.float('target_weight');
+        table.string('birth_date');
+      });
+    }
+
+    // 3. workouts
+    const hasWorkouts = await db.schema.hasTable('workouts');
+    if (!hasWorkouts) {
+      await db.schema.createTable('workouts', table => {
+        table.increments('id').primary();
+        table.integer('student_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
+        table.integer('personal_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
+        table.string('name').notNullable();
+        table.text('description');
+        table.timestamps(true, true);
+      });
+    }
+
+    // 4. exercises
+    const hasExercises = await db.schema.hasTable('exercises');
+    if (!hasExercises) {
+      await db.schema.createTable('exercises', table => {
+        table.increments('id').primary();
+        table.integer('personal_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
+        table.string('name').notNullable();
+        table.string('gif_url');
+        table.text('description');
+        table.timestamps(true, true);
+      });
+    }
+
+    // 5. workout_exercises
+    const hasWorkoutExercises = await db.schema.hasTable('workout_exercises');
+    if (!hasWorkoutExercises) {
+      await db.schema.createTable('workout_exercises', table => {
+        table.increments('id').primary();
+        table.integer('workout_id').notNullable().references('id').inTable('workouts').onDelete('CASCADE');
+        table.integer('exercise_id').references('id').inTable('exercises').onDelete('SET NULL');
+        table.string('name').notNullable();
+        table.integer('sets').notNullable();
+        table.string('reps').notNullable();
+        table.string('weight');
+        table.string('rest_time');
+        table.text('notes');
+      });
+    }
+
+    // 6. measurements
+    const hasMeasurements = await db.schema.hasTable('measurements');
+    if (!hasMeasurements) {
+      await db.schema.createTable('measurements', table => {
+        table.increments('id').primary();
+        table.integer('student_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
+        table.float('weight').notNullable();
+        table.float('chest');
+        table.float('waist');
+        table.float('hips');
+        table.float('biceps_l');
+        table.float('biceps_r');
+        table.float('thigh_l');
+        table.float('thigh_r');
+        table.timestamp('recorded_at').defaultTo(db.fn.now());
+      });
+    }
+
+    // 7. chat_messages
+    const hasChatMessages = await db.schema.hasTable('chat_messages');
+    if (!hasChatMessages) {
+      await db.schema.createTable('chat_messages', table => {
+        table.increments('id').primary();
+        table.integer('sender_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
+        table.integer('receiver_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
+        table.text('message').notNullable();
+        table.timestamp('created_at').defaultTo(db.fn.now());
+        table.integer('read_status').defaultTo(0);
+      });
+    }
+
+    console.log('Database tables initialized successfully via Knex.');
+  } catch (err) {
+    console.error('Error initializing database tables via Knex:', err.message);
+  }
 }
 
-module.exports = {
-  db,
-  query
-};
+initializeDatabase();
+
+module.exports = db;

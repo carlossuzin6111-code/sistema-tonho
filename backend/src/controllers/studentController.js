@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const { query } = require('../database');
+const db = require('../database');
 
 // Create a new student (Personal Trainer only)
 async function createStudent(req, res) {
@@ -12,7 +12,7 @@ async function createStudent(req, res) {
 
   try {
     // Check if email exists
-    const existingUser = await query.get('SELECT id FROM users WHERE email = ?', [email]);
+    const existingUser = await db('users').select('id').where('email', email).first();
     if (existingUser) {
       return res.status(400).json({ error: 'Email already registered' });
     }
@@ -22,17 +22,21 @@ async function createStudent(req, res) {
     const passwordHash = await bcrypt.hash(password, salt);
 
     // Insert student user
-    const userResult = await query.run(
-      'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
-      [name, email, passwordHash, 'student']
-    );
-    const studentId = userResult.id;
+    const [studentId] = await db('users').insert({
+      name,
+      email,
+      password_hash: passwordHash,
+      role: 'student'
+    });
 
     // Create student profile
-    await query.run(
-      'INSERT INTO student_profiles (student_id, personal_id, height, target_weight, birth_date) VALUES (?, ?, ?, ?, ?)',
-      [studentId, personalId, height || null, targetWeight || null, birthDate || null]
-    );
+    await db('student_profiles').insert({
+      student_id: studentId,
+      personal_id: personalId,
+      height: height || null,
+      target_weight: targetWeight || null,
+      birth_date: birthDate || null
+    });
 
     res.status(201).json({
       message: 'Student account created successfully',
@@ -54,25 +58,14 @@ async function getStudents(req, res) {
   const personalId = req.user.id;
 
   try {
-    // Fetch all students belonging to this Personal
-    // Also join users to get the student's name, email
-    // And get their latest measurement (weight) and unread messages from them
-    const students = await query.all(`
-      SELECT 
-        u.id, 
-        u.name, 
-        u.email, 
-        sp.height, 
-        sp.target_weight, 
-        sp.birth_date,
-        (SELECT weight FROM measurements WHERE student_id = u.id ORDER BY recorded_at DESC LIMIT 1) as latest_weight,
-        (SELECT recorded_at FROM measurements WHERE student_id = u.id ORDER BY recorded_at DESC LIMIT 1) as latest_weight_date,
-        (SELECT COUNT(*) FROM chat_messages WHERE sender_id = u.id AND receiver_id = ? AND read_status = 0) as unread_messages
-      FROM users u
-      JOIN student_profiles sp ON u.id = sp.student_id
-      WHERE sp.personal_id = ?
-      ORDER BY u.name ASC
-    `, [personalId, personalId]);
+    const students = await db('users as u')
+      .join('student_profiles as sp', 'u.id', 'sp.student_id')
+      .select('u.id', 'u.name', 'u.email', 'sp.height', 'sp.target_weight', 'sp.birth_date')
+      .select(db.raw('(SELECT weight FROM measurements WHERE student_id = u.id ORDER BY recorded_at DESC LIMIT 1) as latest_weight'))
+      .select(db.raw('(SELECT recorded_at FROM measurements WHERE student_id = u.id ORDER BY recorded_at DESC LIMIT 1) as latest_weight_date'))
+      .select(db.raw('(SELECT COUNT(*) FROM chat_messages WHERE sender_id = u.id AND receiver_id = ? AND read_status = 0) as unread_messages', [personalId]))
+      .where('sp.personal_id', personalId)
+      .orderBy('u.name', 'asc');
 
     res.status(200).json(students);
   } catch (err) {
@@ -88,61 +81,37 @@ async function getStudentDetails(req, res) {
   const userRole = req.user.role;
 
   try {
-    // Verify permissions: Personal must own the profile, Student must be the profile
     if (userRole === 'student' && userId.toString() !== studentId.toString()) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
     if (userRole === 'personal') {
-      const profile = await query.get(
-        'SELECT id FROM student_profiles WHERE student_id = ? AND personal_id = ?',
-        [studentId, userId]
-      );
+      const profile = await db('student_profiles').select('id').where({student_id: studentId, personal_id: userId}).first();
       if (!profile) {
         return res.status(403).json({ error: 'Access denied: student not linked to this personal' });
       }
     }
 
-    // Fetch user and profile details
-    const student = await query.get(`
-      SELECT 
-        u.id, 
-        u.name, 
-        u.email, 
-        sp.height, 
-        sp.target_weight, 
-        sp.birth_date,
-        sp.personal_id
-      FROM users u
-      JOIN student_profiles sp ON u.id = sp.student_id
-      WHERE u.id = ?
-    `, [studentId]);
+    const student = await db('users as u')
+      .join('student_profiles as sp', 'u.id', 'sp.student_id')
+      .select('u.id', 'u.name', 'u.email', 'sp.height', 'sp.target_weight', 'sp.birth_date', 'sp.personal_id')
+      .where('u.id', studentId)
+      .first();
 
     if (!student) {
       return res.status(404).json({ error: 'Student not found' });
     }
 
-    // Fetch measurements history
-    const measurements = await query.all(
-      'SELECT * FROM measurements WHERE student_id = ? ORDER BY recorded_at DESC',
-      [studentId]
-    );
+    const measurements = await db('measurements').where('student_id', studentId).orderBy('recorded_at', 'desc');
 
-    // Fetch active workouts
-    const workouts = await query.all(
-      'SELECT * FROM workouts WHERE student_id = ? ORDER BY created_at DESC',
-      [studentId]
-    );
+    const workouts = await db('workouts').where('student_id', studentId).orderBy('created_at', 'desc');
 
-    // For each workout, fetch exercises with GIF and technical description
     for (let i = 0; i < workouts.length; i++) {
-      workouts[i].exercises = await query.all(`
-        SELECT we.*, ex.gif_url, ex.description as exercise_description 
-        FROM workout_exercises we
-        LEFT JOIN exercises ex ON we.exercise_id = ex.id
-        WHERE we.workout_id = ? 
-        ORDER BY we.id ASC
-      `, [workouts[i].id]);
+      workouts[i].exercises = await db('workout_exercises as we')
+        .leftJoin('exercises as ex', 'we.exercise_id', 'ex.id')
+        .select('we.*', 'ex.gif_url', 'ex.description as exercise_description')
+        .where('we.workout_id', workouts[i].id)
+        .orderBy('we.id', 'asc');
     }
 
     res.status(200).json({
@@ -173,37 +142,28 @@ async function addMeasurement(req, res) {
   }
 
   try {
-    // If Personal, verify they own this student
     if (userRole === 'personal') {
-      const profile = await query.get(
-        'SELECT id FROM student_profiles WHERE student_id = ? AND personal_id = ?',
-        [targetStudentId, userId]
-      );
+      const profile = await db('student_profiles').select('id').where({student_id: targetStudentId, personal_id: userId}).first();
       if (!profile) {
         return res.status(403).json({ error: 'Access denied: student not linked to this personal' });
       }
     }
 
-    // Insert measurement
-    const result = await query.run(`
-      INSERT INTO measurements (
-        student_id, weight, chest, waist, hips, biceps_l, biceps_r, thigh_l, thigh_r
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
-      targetStudentId,
+    const [measurementId] = await db('measurements').insert({
+      student_id: targetStudentId,
       weight,
-      chest || null,
-      waist || null,
-      hips || null,
-      bicepsL || null,
-      bicepsR || null,
-      thighL || null,
-      thighR || null
-    ]);
+      chest: chest || null,
+      waist: waist || null,
+      hips: hips || null,
+      biceps_l: bicepsL || null,
+      biceps_r: bicepsR || null,
+      thigh_l: thighL || null,
+      thigh_r: thighR || null
+    });
 
     res.status(201).json({
       message: 'Measurements recorded successfully',
-      measurementId: result.id
+      measurementId
     });
   } catch (err) {
     console.error('Add measurement error:', err.message);
@@ -222,21 +182,14 @@ async function getMeasurements(req, res) {
   }
 
   try {
-    // If Personal, verify they own this student
     if (userRole === 'personal') {
-      const profile = await query.get(
-        'SELECT id FROM student_profiles WHERE student_id = ? AND personal_id = ?',
-        [studentId, userId]
-      );
+      const profile = await db('student_profiles').select('id').where({student_id: studentId, personal_id: userId}).first();
       if (!profile) {
         return res.status(403).json({ error: 'Access denied: student not linked to this personal' });
       }
     }
 
-    const measurements = await query.all(
-      'SELECT * FROM measurements WHERE student_id = ? ORDER BY recorded_at DESC',
-      [studentId]
-    );
+    const measurements = await db('measurements').where('student_id', studentId).orderBy('recorded_at', 'desc');
 
     res.status(200).json(measurements);
   } catch (err) {
@@ -261,21 +214,15 @@ async function resetPassword(req, res) {
   }
 
   try {
-    // Verify they own this student
-    const profile = await query.get(
-      'SELECT id FROM student_profiles WHERE student_id = ? AND personal_id = ?',
-      [studentId, personalId]
-    );
+    const profile = await db('student_profiles').select('id').where({student_id: studentId, personal_id: personalId}).first();
     if (!profile) {
       return res.status(403).json({ error: 'Access denied: student not linked to this personal' });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(newPassword, salt);
 
-    // Update password
-    await query.run('UPDATE users SET password_hash = ? WHERE id = ?', [passwordHash, studentId]);
+    await db('users').where('id', studentId).update({password_hash: passwordHash});
 
     res.status(200).json({ message: 'Senha redefinida com sucesso' });
   } catch (err) {

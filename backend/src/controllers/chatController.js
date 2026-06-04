@@ -1,4 +1,4 @@
-const { query } = require('../database');
+const db = require('../database');
 
 // In-memory mapping of active SSE clients for real-time messaging
 // Key: userId (integer or string), Value: Set of express response objects
@@ -27,7 +27,7 @@ async function getMessages(req, res) {
 
   // If student, the only chat they have is with their Personal Trainer
   if (userRole === 'student') {
-    const profile = await query.get('SELECT personal_id FROM student_profiles WHERE student_id = ?', [userId]);
+    const profile = await db('student_profiles').select('personal_id').where('student_id', userId).first();
     if (!profile) {
       return res.status(404).json({ error: 'Personal Trainer profile not found' });
     }
@@ -40,18 +40,19 @@ async function getMessages(req, res) {
 
   try {
     // Mark messages sent by target to me as read
-    await query.run(
-      'UPDATE chat_messages SET read_status = 1 WHERE sender_id = ? AND receiver_id = ? AND read_status = 0',
-      [targetId, userId]
-    );
+    await db('chat_messages')
+      .where({ sender_id: targetId, receiver_id: userId, read_status: 0 })
+      .update({ read_status: 1 });
 
     // Fetch chat history between current user and target user
-    const messages = await query.all(`
-      SELECT * FROM chat_messages 
-      WHERE (sender_id = ? AND receiver_id = ?) 
-         OR (sender_id = ? AND receiver_id = ?)
-      ORDER BY created_at ASC
-    `, [userId, targetId, targetId, userId]);
+    const messages = await db('chat_messages')
+      .where(function() {
+        this.where('sender_id', userId).andWhere('receiver_id', targetId);
+      })
+      .orWhere(function() {
+        this.where('sender_id', targetId).andWhere('receiver_id', userId);
+      })
+      .orderBy('created_at', 'asc');
 
     res.status(200).json(messages);
   } catch (err) {
@@ -73,7 +74,7 @@ async function sendMessage(req, res) {
   try {
     // If student, resolve their Personal Trainer ID
     if (userRole === 'student') {
-      const profile = await query.get('SELECT personal_id FROM student_profiles WHERE student_id = ?', [senderId]);
+      const profile = await db('student_profiles').select('personal_id').where('student_id', senderId).first();
       if (!profile) {
         return res.status(400).json({ error: 'No Personal Trainer linked to this student' });
       }
@@ -85,13 +86,14 @@ async function sendMessage(req, res) {
     }
 
     // Insert message into database
-    const result = await query.run(
-      'INSERT INTO chat_messages (sender_id, receiver_id, message) VALUES (?, ?, ?)',
-      [senderId, receiverId, message]
-    );
+    const [insertedId] = await db('chat_messages').insert({
+      sender_id: senderId,
+      receiver_id: receiverId,
+      message
+    });
 
     const newMessage = {
-      id: result.id,
+      id: insertedId,
       sender_id: senderId,
       receiver_id: receiverId,
       message,

@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { query } = require('../database');
+const db = require('../database');
 const { JWT_SECRET } = require('../middleware/auth');
 
 const fs = require('fs');
@@ -30,7 +30,7 @@ async function registerPersonal(req, res) {
 
   try {
     // Check if email already exists
-    const existingUser = await query.get('SELECT id FROM users WHERE email = ?', [email]);
+    const existingUser = await db('users').select('id').where('email', email).first();
     if (existingUser) {
       return res.status(400).json({ error: 'Email already registered' });
     }
@@ -40,10 +40,12 @@ async function registerPersonal(req, res) {
     const passwordHash = await bcrypt.hash(password, salt);
 
     // Insert user
-    const result = await query.run(
-      'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
-      [name, email, passwordHash, 'personal']
-    );
+    const [insertedId] = await db('users').insert({
+      name,
+      email,
+      password_hash: passwordHash,
+      role: 'personal'
+    });
 
     // Generate token
     const token = jwt.sign(
@@ -55,7 +57,7 @@ async function registerPersonal(req, res) {
     res.status(201).json({
       message: 'Personal Trainer registered successfully',
       token,
-      user: { id: result.id, name, email, role: 'personal' }
+      user: { id: insertedId, name, email, role: 'personal' }
     });
   } catch (err) {
     console.error('Registration error:', err.message);
@@ -72,7 +74,7 @@ async function login(req, res) {
 
   try {
     // Find user
-    const user = await query.get('SELECT * FROM users WHERE email = ?', [email]);
+    const user = await db('users').where('email', email).first();
     if (!user) {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
@@ -103,7 +105,10 @@ async function login(req, res) {
 
 async function getMe(req, res) {
   try {
-    const user = await query.get('SELECT id, name, email, role, created_at FROM users WHERE id = ?', [req.user.id]);
+    const user = await db('users')
+      .select('id', 'name', 'email', 'role', 'created_at')
+      .where('id', req.user.id)
+      .first();
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }

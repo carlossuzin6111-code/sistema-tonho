@@ -20,8 +20,6 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Serve static frontend files
-app.use(express.static(path.join(__dirname, 'public')));
 
 // --- API ROUTES ---
 
@@ -57,10 +55,7 @@ app.get('/api/chat/stream', authenticateToken, chatController.handleChatStream);
 app.get('/api/chat/:userId?', authenticateToken, chatController.getMessages);
 app.post('/api/chat', authenticateToken, chatController.sendMessage);
 
-// Fallback to SPA index.html for any other route
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// Removed fallback to SPA index.html, handled by Nginx now
 
 // Start Server
 app.listen(PORT, '0.0.0.0', () => {
