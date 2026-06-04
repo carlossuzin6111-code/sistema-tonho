@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
+  <title>FitLife Sync - Personal Trainer & Alunos</title>
+  <meta name="description" content="Portal moderno de acompanhamento fitness para personal trainers e alunos. Conectando treinos, medidas e comunicação instantânea.">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons for premium modern icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Beautiful styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Background decorative glows -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast hidden">
+    <div class="toast-content">
+      <i data-lucide="info" id="toast-icon"></i>
+      <span id="toast-message">Mensagem de alerta</span>
+    </div>
+  </div>
+
+  <!-- 1. TELA DE LOGIN / REGISTRO (UNAUTHENTICATED) -->
+  <main id="login-screen" class="screen-container">
+    <div class="login-card glass">
+      <div class="login-header">
+        <div class="logo-container">
+          <i data-lucide="dumbbell" class="logo-icon text-gradient"></i>
+          <span class="logo-text text-gradient">FitLife Sync</span>
+        </div>
+        <p class="login-subtitle">Conectando treinos, medidas e evolução em tempo real</p>
+      </div>
+
+      <!-- Auth Switch Tabs -->
+      <div class="auth-tabs">
+        <button id="tab-btn-login" class="auth-tab-btn active" onclick="switchAuthTab('login')">Entrar</button>
+        <button id="tab-btn-register" class="auth-tab-btn" onclick="switchAuthTab('register')">Criar Conta Personal</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+        <div class="input-group">
+          <label for="login-email"><i data-lucide="mail"></i> E-mail</label>
+          <input type="email" id="login-email" required placeholder="seuemail@exemplo.com">
+        </div>
+        <div class="input-group">
+          <label for="login-password"><i data-lucide="lock"></i> Senha</label>
+          <input type="password" id="login-password" required placeholder="Sua senha de acesso">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full btn-glow">
+          <span>Acessar Painel</span> <i data-lucide="arrow-right"></i>
+        </button>
+      </form>
+
+      <!-- Register Form (Only Personal) -->
+      <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)">
+        <div class="input-group">
+          <label for="reg-name"><i data-lucide="user"></i> Nome Completo</label>
+          <input type="text" id="reg-name" placeholder="Ex: Professor Silva">
+        </div>
+        <div class="input-group">
+          <label for="reg-email"><i data-lucide="mail"></i> E-mail Profissional</label>
+          <input type="email" id="reg-email" placeholder="nome@personal.com">
+        </div>
+        <div class="input-group">
+          <label for="reg-password"><i data-lucide="lock"></i> Senha Segura</label>
+          <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres">
+        </div>
+        <div class="input-group">
+          <label for="reg-access-key"><i data-lucide="key"></i> Chave de Acesso (Access Key)</label>
+          <input type="text" id="reg-access-key" required placeholder="Insira sua chave convite">
+        </div>
+        <div class="info-alert">
+          <i data-lucide="shield-check"></i>
+          <span>O cadastro direto é exclusivo para <strong>Personal Trainers</strong> com uma Access Key válida.</span>
+        </div>
+        <button type="submit" class="btn btn-accent btn-full btn-glow">
+          <span>Cadastrar-se como Personal</span> <i data-lucide="user-plus"></i>
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <!-- 2. TELA PRINCIPAL DO APLICATIVO (AUTHENTICATED) -->
+  <div id="app-screen" class="screen-container hidden">
+    <!-- Navigation Bar -->
+    <header class="app-header glass">
+      <div class="header-left">
+        <div class="logo-container">
+          <i data-lucide="dumbbell" class="logo-icon text-gradient"></i>
+          <span class="logo-text text-gradient">FitLife Sync</span>
+        </div>
+        <span id="user-role-badge" class="role-badge">Personal</span>
+      </div>
+
+      <div class="header-right">
+        <div class="user-profile-info">
+          <div class="avatar" id="header-avatar">P</div>
+          <div class="profile-meta hide-mobile">
+            <span class="profile-name" id="header-user-name">Nome do Usuário</span>
+            <span class="profile-email" id="header-user-email">email@exemplo.com</span>
+          </div>
+        </div>
+        <button class="btn-icon" onclick="toggleTheme()" title="Alterar Tema" style="margin-right: 5px;">
+          <i id="theme-toggle-icon" data-lucide="sun"></i>
+        </button>
+        <button class="btn-icon btn-logout" onclick="logout()" title="Sair da Conta">
+          <i data-lucide="log-out"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTAINER PRINCIPAL DO PERSONAL -->
+    <main id="personal-dashboard" class="dashboard-layout hidden">
+      <!-- Sidebar / Navegação Lateral -->
+      <aside class="sidebar glass">
+        <nav class="sidebar-nav">
+          <button id="nav-p-students" class="nav-item active" onclick="switchPersonalTab('students')">
+            <i data-lucide="users"></i> <span>Meus Alunos</span>
+          </button>
+          <button id="nav-p-create" class="nav-item" onclick="switchPersonalTab('create')">
+            <i data-lucide="user-plus"></i> <span>Cadastrar Aluno</span>
+          </button>
+          <button id="nav-p-chat" class="nav-item" onclick="switchPersonalTab('chat')">
+            <i data-lucide="message-square"></i> <span>Chat Central</span>
+            <span id="global-unread-badge" class="badge-count hidden">0</span>
+          </button>
+          <button id="nav-p-exercises" class="nav-item" onclick="switchPersonalTab('exercises')">
+            <i data-lucide="dumbbell"></i> <span>Meus Exercícios</span>
+          </button>
+        </nav>
+      </aside>
+
+      <!-- Área de Conteúdo do Personal -->
+      <section class="dashboard-content">
+        <!-- Aba 1: Lista de Alunos -->
+        <div id="tab-p-students" class="tab-pane active">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Alunos Matriculados</h1>
+              <p class="section-subtitle">Gerencie fichas de treino, medidas corporais e evolução física.</p>
+            </div>
+            <div class="stats-mini-grid hide-mobile">
+              <div class="stat-mini glass">
+                <span class="stat-mini-label">Total Alunos</span>
+                <span class="stat-mini-value" id="stat-total-students">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Students Grid -->
+          <div id="students-grid" class="grid grid-3">
+            <!-- Dynamic student cards go here -->
+            <div class="loading-placeholder">
+              <div class="spinner"></div>
+              <span>Carregando sua lista de alunos...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aba 2: Cadastrar Aluno -->
+        <div id="tab-p-create" class="tab-pane">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Cadastrar Novo Aluno</h1>
+              <p class="section-subtitle">Crie a conta de acesso para seu aluno. Ele poderá acessar o próprio painel com estas credenciais.</p>
+            </div>
+          </div>
+
+          <div class="form-container-card glass">
+            <form id="create-student-form" onsubmit="handleCreateStudent(event)">
+              <div class="grid grid-2">
+                <div class="input-group">
+                  <label for="new-student-name"><i data-lucide="user"></i> Nome Completo do Aluno *</label>
+                  <input type="text" id="new-student-name" required placeholder="Ex: Carlos Suzini">
+                </div>
+                <div class="input-group">
+                  <label for="new-student-email"><i data-lucide="mail"></i> E-mail (Acesso do Aluno) *</label>
+                  <input type="email" id="new-student-email" required placeholder="carlos@exemplo.com">
+                </div>
+              </div>
+
+              <div class="grid grid-2">
+                <div class="input-group">
+                  <label for="new-student-password"><i data-lucide="lock"></i> Senha Provisória *</label>
+                  <input type="password" id="new-student-password" required placeholder="Mínimo 6 caracteres">
+                </div>
+                <div class="input-group">
+                  <label for="new-student-birth"><i data-lucide="calendar"></i> Data de Nascimento</label>
+                  <input type="date" id="new-student-birth">
+                </div>
+              </div>
+
+              <div class="grid grid-2">
+                <div class="input-group">
+                  <label for="new-student-height"><i data-lucide="ruler"></i> Altura (m)</label>
+                  <input type="number" id="new-student-height" step="0.01" min="1.00" max="2.50" placeholder="Ex: 1.75">
+                </div>
+                <div class="input-group">
+                  <label for="new-student-target"><i data-lucide="target"></i> Peso Meta (kg)</label>
+                  <input type="number" id="new-student-target" step="0.1" min="30" max="200" placeholder="Ex: 80.0">
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-glow">
+                <i data-lucide="user-plus"></i> <span>Criar Conta do Aluno</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Aba 3: Chat Central do Personal -->
+        <div id="tab-p-chat" class="tab-pane">
+          <div class="chat-container glass">
+            <!-- Chat Sidebar: Alunos com quem conversar -->
+            <div class="chat-sidebar">
+              <h2 class="chat-sidebar-title">Alunos</h2>
+              <div id="chat-students-list" class="chat-threads-list">
+                <!-- Dynamic threads go here -->
+              </div>
+            </div>
+
+            <!-- Chat Window -->
+            <div class="chat-window" id="personal-chat-window">
+              <!-- Default state (no student selected) -->
+              <div class="chat-empty-state" id="personal-chat-empty">
+                <i data-lucide="message-square" class="chat-empty-icon text-gradient"></i>
+                <h3>Sua Central de Mensagens</h3>
+                <p>Selecione um aluno na barra lateral para iniciar a conversa em tempo real.</p>
+              </div>
+
+              <!-- Active Chat Area -->
+              <div class="chat-active-area hidden" id="personal-chat-active">
+                <div class="chat-active-header">
+                  <button class="btn-icon hide-desktop btn-chat-back" onclick="closeChatThreadMobile()" style="margin-right: 10px;">
+                    <i data-lucide="arrow-left"></i>
+                  </button>
+                  <div class="avatar" id="chat-active-avatar">A</div>
+                  <div>
+                    <h3 id="chat-active-name">Nome do Aluno</h3>
+                    <span class="status-online"><span class="dot"></span> Ativo no chat</span>
+                  </div>
+                </div>
+                <!-- Messages List -->
+                <div class="chat-messages" id="personal-chat-messages">
+                  <!-- Messages dynamically loaded here -->
+                </div>
+                <!-- Input Area -->
+                <form class="chat-input-form" onsubmit="sendPersonalChatMessage(event)">
+                  <input type="text" id="personal-chat-input" placeholder="Digite uma mensagem para o aluno..." autocomplete="off">
+                  <button type="submit" class="btn-chat-send btn-glow">
+                    <i data-lucide="send"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aba 4: Biblioteca/Catálogo de Exercícios do Personal -->
+        <div id="tab-p-exercises" class="tab-pane">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Biblioteca de Exercícios</h1>
+              <p class="section-subtitle">Crie e gerencie seus exercícios personalizados com instruções e GIFs ilustrativos.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openCreateCatalogExerciseModal()">
+              <i data-lucide="plus"></i> <span>Novo Exercício</span>
+            </button>
+          </div>
+
+          <div id="exercises-catalog-list" class="grid grid-2">
+            <!-- Dynamically populated from JS -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+
+    <!-- CONTAINER PRINCIPAL DO ALUNO -->
+    <main id="student-dashboard" class="dashboard-layout hidden">
+      <!-- Sidebar / Navegação Lateral -->
+      <aside class="sidebar glass">
+        <nav class="sidebar-nav">
+          <button id="nav-s-workouts" class="nav-item active" onclick="switchStudentTab('workouts')">
+            <i data-lucide="dumbbell"></i> <span>Meus Treinos</span>
+          </button>
+          <button id="nav-s-measurements" class="nav-item" onclick="switchStudentTab('measurements')">
+            <i data-lucide="ruler"></i> <span>Minhas Medidas</span>
+          </button>
+          <button id="nav-s-chat" class="nav-item" onclick="switchStudentTab('chat')">
+            <i data-lucide="message-square"></i> <span>Chat com Personal</span>
+            <span id="student-unread-badge" class="badge-count hidden">0</span>
+          </button>
+        </nav>
+      </aside>
+
+      <!-- Área de Conteúdo do Aluno -->
+      <section class="dashboard-content">
+        <!-- Aba 1: Treinos do Aluno -->
+        <div id="tab-s-workouts" class="tab-pane active">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Minha Ficha de Treinos</h1>
+              <p class="section-subtitle">Veja a lista de treinos que seu personal organizou para você hoje.</p>
+            </div>
+          </div>
+
+          <div id="student-workouts-container" class="workouts-list-container">
+            <!-- Workouts and exercises will be loaded here dynamically -->
+          </div>
+        </div>
+
+        <!-- Aba 2: Medidas do Aluno -->
+        <div id="tab-s-measurements" class="tab-pane">
+          <div class="section-header">
+            <div>
+              <h1 class="section-title">Evolução e Medidas</h1>
+              <p class="section-subtitle">Acompanhe seu progresso físico através de avaliações e gráficos de evolução registrados pelo seu Personal.</p>
+            </div>
+          </div>
+
+          <!-- Progress Charts and Metrics Grid -->
+          <div class="grid grid-2">
+            <!-- Left Card: Weight Chart -->
+            <div class="chart-card glass">
+              <h3 class="card-title"><i data-lucide="trending-down"></i> Histórico de Peso</h3>
+              <div class="chart-container-svg" id="weight-chart-container">
+                <!-- SVG Chart will be drawn here -->
+                <p class="no-data-msg">Nenhum dado de peso disponível. Registre sua primeira medida!</p>
+              </div>
+            </div>
+
+            <!-- Right Card: Latest Metrics -->
+            <div class="metrics-summary glass">
+              <h3 class="card-title"><i data-lucide="ruler"></i> Última Avaliação</h3>
+              <div class="metrics-grid" id="latest-metrics-grid">
+                <!-- Dynamically loaded latest metrics -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Full Measurements Table -->
+          <div class="table-container glass">
+            <h3 class="card-title"><i data-lucide="history"></i> Histórico Completo de Medições</h3>
+            <table class="data-table" id="measurements-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Peso (kg)</th>
+                  <th>Tórax (cm)</th>
+                  <th>Cintura (cm)</th>
+                  <th>Quadril (cm)</th>
+                  <th>Bíceps E / D (cm)</th>
+                  <th>Coxa E / D (cm)</th>
+                </tr>
+              </thead>
+              <tbody id="measurements-table-body">
+                <!-- Row data loaded dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Aba 3: Chat do Aluno -->
+        <div id="tab-s-chat" class="tab-pane">
+          <div class="chat-container glass single-window-chat">
+            <div class="chat-window">
+              <div class="chat-active-header">
+                <div class="avatar" id="student-chat-trainer-avatar">P</div>
+                <div>
+                  <h3 id="student-chat-trainer-name">Personal Trainer</h3>
+                  <span class="status-online"><span class="dot"></span> Online</span>
+                </div>
+              </div>
+              <div class="chat-messages" id="student-chat-messages">
+                <!-- Dynamic messages loaded here -->
+              </div>
+              <form class="chat-input-form" onsubmit="sendStudentChatMessage(event)">
+                <input type="text" id="student-chat-input" placeholder="Tire dúvidas, mande feedbacks de treinos..." autocomplete="off">
+                <button type="submit" class="btn-chat-send btn-glow">
+                  <i data-lucide="send"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+  </div>
+
+  <!-- ================= MODAIS DO SISTEMA ================= -->
+
+  <!-- MODAL 1: DETALHES DO ALUNO (Visualização do Personal) -->
+  <div id="modal-student-detail" class="modal-overlay">
+    <div class="modal-content glass student-detail-modal">
+      <button class="modal-close" onclick="closeModal('modal-student-detail')"><i data-lucide="x"></i></button>
+      <div class="modal-header-profile">
+        <div class="avatar-large" id="modal-sd-avatar">A</div>
+        <div class="modal-profile-info">
+          <h2 id="modal-sd-name" class="text-gradient">Nome do Aluno</h2>
+          <p id="modal-sd-email">aluno@email.com</p>
+          <div class="meta-tags">
+            <span class="meta-tag"><i data-lucide="ruler"></i> Altura: <strong id="modal-sd-height">-</strong></span>
+            <span class="meta-tag"><i data-lucide="target"></i> Meta: <strong id="modal-sd-target">-</strong></span>
+            <span class="meta-tag"><i data-lucide="calendar"></i> Idade: <strong id="modal-sd-age">-</strong></span>
+          </div>
+          <button class="btn btn-sm" style="margin-top: 10px; background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid var(--danger);" onclick="promptResetPassword()">
+            <i data-lucide="key"></i> Redefinir Senha do Aluno
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabs Inside Student Detail Modal -->
+      <div class="modal-subtabs">
+        <button id="modal-tab-workouts" class="modal-subtab active" onclick="switchModalSubtab('workouts')">Ficha de Treino</button>
+        <button id="modal-tab-metrics" class="modal-subtab" onclick="switchModalSubtab('metrics')">Medidas e Evolução</button>
+      </div>
+
+      <div class="modal-body-scroll">
+        <!-- Subtab Workouts -->
+        <div id="modal-subpane-workouts" class="modal-subpane active">
+          <div class="subpane-actions">
+            <h3>Treinos Prescritos</h3>
+            <button class="btn btn-accent btn-sm" onclick="openCreateWorkoutModal()">
+              <i data-lucide="plus"></i> <span>Criar Ficha de Treino</span>
+            </button>
+          </div>
+          <div id="modal-workouts-list" class="workouts-list-container">
+            <!-- Dynamic workouts listed here with options to delete workout and add/delete exercises -->
+          </div>
+        </div>
+
+        <!-- Subtab Metrics -->
+        <div id="modal-subpane-metrics" class="modal-subpane">
+          <div class="subpane-actions" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <h3>Evolução Física do Aluno</h3>
+            <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-measurement')">
+              <i data-lucide="plus"></i> <span>Lançar Medidas</span>
+            </button>
+          </div>
+          <div class="grid grid-2">
+            <div class="chart-card glass">
+              <h3 class="card-title">Evolução do Peso</h3>
+              <div class="chart-container-svg" id="modal-weight-chart-container">
+                <!-- SVG weight chart -->
+              </div>
+            </div>
+            <div class="metrics-summary glass">
+              <h3 class="card-title">Último Acompanhamento</h3>
+              <div class="metrics-grid" id="modal-latest-metrics-grid">
+                <!-- Latest metrics lists -->
+              </div>
+            </div>
+          </div>
+          <div class="table-container glass mt-4">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Peso (kg)</th>
+                  <th>Tórax (cm)</th>
+                  <th>Cintura (cm)</th>
+                  <th>Quadril (cm)</th>
+                  <th>Bíceps E/D</th>
+                  <th>Coxa E/D</th>
+                </tr>
+              </thead>
+              <tbody id="modal-measurements-table-body">
+                <!-- History table -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: CRIAR NOVO TREINO (Personal -> Aluno) -->
+  <div id="modal-create-workout" class="modal-overlay">
+    <div class="modal-content glass modal-small">
+      <button class="modal-close" onclick="closeModal('modal-create-workout')"><i data-lucide="x"></i></button>
+      <h2 class="modal-title"><i data-lucide="plus-circle"></i> Nova Ficha de Treino</h2>
+      <form id="create-workout-form" onsubmit="handleCreateWorkoutSubmit(event)">
+        <div class="input-group">
+          <label for="workout-name">Nome do Treino *</label>
+          <input type="text" id="workout-name" required placeholder="Ex: Treino A - Hipertrofia Peito">
+        </div>
+        <div class="input-group">
+          <label for="workout-description">Foco ou Observação</label>
+          <input type="text" id="workout-description" placeholder="Ex: Foco em cadência e amplitude de movimento">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Criar Treino</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: ADICIONAR EXERCÍCIO AO TREINO (Personal) -->
+  <div id="modal-add-exercise" class="modal-overlay">
+    <div class="modal-content glass modal-small">
+      <button class="modal-close" onclick="closeModal('modal-add-exercise')"><i data-lucide="x"></i></button>
+      <h2 class="modal-title"><i data-lucide="plus"></i> Adicionar Exercício</h2>
+      <form id="add-exercise-form" onsubmit="handleAddExerciseSubmit(event)">
+        <div class="input-group">
+          <label for="ex-select"><i data-lucide="dumbbell"></i> Escolher da Biblioteca *</label>
+          <select id="ex-select" onchange="handleExerciseSelectChange(this)" required>
+            <!-- dynamically loaded -->
+          </select>
+        </div>
+        <div class="input-group hidden" id="ex-custom-name-group">
+          <label for="ex-name"><i data-lucide="edit-3"></i> Nome do Exercício Customizado *</label>
+          <input type="text" id="ex-name" placeholder="Ex: Supino Reto com Barra">
+        </div>
+        <div class="grid grid-2">
+          <div class="input-group">
+            <label for="ex-sets">Séries *</label>
+            <input type="number" id="ex-sets" required min="1" max="15" value="4">
+          </div>
+          <div class="input-group">
+            <label for="ex-reps">Repetições *</label>
+            <input type="text" id="ex-reps" required placeholder="Ex: 12 ou 10-12 ou Falha">
+          </div>
+        </div>
+        <div class="grid grid-2">
+          <div class="input-group">
+            <label for="ex-weight">Carga (kg)</label>
+            <input type="text" id="ex-weight" placeholder="Ex: 25kg cada lado">
+          </div>
+          <div class="input-group">
+            <label for="ex-rest">Descanso (s)</label>
+            <input type="text" id="ex-rest" placeholder="Ex: 60s">
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="ex-notes">Instrução Técnica</label>
+          <input type="text" id="ex-notes" placeholder="Ex: Manter escapulas travadas">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Adicionar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 4: REGISTRAR MEDIDAS (Aluno) -->
+  <div id="modal-add-measurement" class="modal-overlay">
+    <div class="modal-content glass modal-medium">
+      <button class="modal-close" onclick="closeModal('modal-add-measurement')"><i data-lucide="x"></i></button>
+      <h2 class="modal-title"><i data-lucide="ruler"></i> Lançar Minhas Medidas</h2>
+      <p class="modal-subtitle">Preencha os campos abaixo. O peso é obrigatório, os demais campos ajudam seu personal a ver sua evolução física.</p>
+      
+      <form id="add-measurement-form" onsubmit="handleAddMeasurementSubmit(event)">
+        <div class="grid grid-3">
+          <div class="input-group">
+            <label for="meas-weight">Peso (kg) *</label>
+            <input type="number" id="meas-weight" required step="0.1" placeholder="Ex: 78.4">
+          </div>
+          <div class="input-group">
+            <label for="meas-chest">Tórax (cm)</label>
+            <input type="number" id="meas-chest" step="0.1" placeholder="Ex: 98">
+          </div>
+          <div class="input-group">
+            <label for="meas-waist">Cintura (cm)</label>
+            <input type="number" id="meas-waist" step="0.1" placeholder="Ex: 82">
+          </div>
+        </div>
+
+        <div class="grid grid-3">
+          <div class="input-group">
+            <label for="meas-hips">Quadril (cm)</label>
+            <input type="number" id="meas-hips" step="0.1" placeholder="Ex: 104">
+          </div>
+          <div class="input-group">
+            <label for="meas-biceps-l">Bíceps Esq. (cm)</label>
+            <input type="number" id="meas-biceps-l" step="0.1" placeholder="Ex: 34">
+          </div>
+          <div class="input-group">
+            <label for="meas-biceps-r">Bíceps Dir. (cm)</label>
+            <input type="number" id="meas-biceps-r" step="0.1" placeholder="Ex: 34.5">
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="input-group">
+            <label for="meas-thigh-l">Coxa Esq. (cm)</label>
+            <input type="number" id="meas-thigh-l" step="0.1" placeholder="Ex: 58">
+          </div>
+          <div class="input-group">
+            <label for="meas-thigh-r">Coxa Dir. (cm)</label>
+            <input type="number" id="meas-thigh-r" step="0.1" placeholder="Ex: 58.5">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">Gravar Registro</button>
+      </form>
+    </div>
+  </div>
+  <!-- MODAL 5: POPUP DE EXECUÇÃO DO EXERCÍCIO (Aluno/Personal) -->
+  <div id="modal-exercise-execution" class="modal-overlay">
+    <div class="modal-content glass modal-medium">
+      <button class="modal-close" onclick="closeModal('modal-exercise-execution')"><i data-lucide="x"></i></button>
+      <h2 class="modal-title" id="execution-modal-title"><i data-lucide="play-circle"></i> Execução do Exercício</h2>
+      <p class="modal-subtitle">Siga as instruções técnicas abaixo para a execução do movimento.</p>
+      
+      <div class="execution-gif-container">
+        <img src="" id="execution-modal-gif" alt="GIF da Execução" class="execution-gif" />
+      </div>
+      
+      <div class="execution-instructions" id="execution-modal-instructions">
+        Nenhuma orientação técnica cadastrada para este exercício.
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 6: CADASTRAR EXERCÍCIO NO CATÁLOGO (Personal) -->
+  <div id="modal-create-catalog-exercise" class="modal-overlay">
+    <div class="modal-content glass modal-medium">
+      <button class="modal-close" onclick="closeModal('modal-create-catalog-exercise')"><i data-lucide="x"></i></button>
+      <h2 class="modal-title"><i data-lucide="plus-circle"></i> Criar Exercício</h2>
+      <p class="modal-subtitle">Adicione um novo exercício à sua biblioteca pessoal para poder associá-lo a qualquer treino.</p>
+      
+      <form id="create-catalog-exercise-form" onsubmit="handleCreateCatalogExerciseSubmit(event)">
+        <div class="input-group">
+          <label for="cat-ex-name"><i data-lucide="edit-2"></i> Nome do Exercício *</label>
+          <input type="text" id="cat-ex-name" required placeholder="Ex: Cadeira Extensora Unilateral">
+        </div>
+        
+        <div class="grid grid-2">
+          <div class="input-group">
+            <label for="cat-ex-gif-url"><i data-lucide="link"></i> Link do GIF (.gif, .png, .jpg)</label>
+            <input type="url" id="cat-ex-gif-url" placeholder="https://exemplo.com/video.gif" oninput="handleCatalogGifUrlInput()">
+          </div>
+          <div class="input-group">
+            <label for="cat-ex-gif-file"><i data-lucide="upload-cloud"></i> Ou Enviar Arquivo GIF/Imagem</label>
+            <input type="file" id="cat-ex-gif-file" accept="image/gif, image/png, image/jpeg" onchange="handleCatalogGifFileSelect(this)">
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label for="cat-ex-description"><i data-lucide="book-open"></i> Orientações Técnicas (Execução e Postura)</label>
+          <textarea id="cat-ex-description" rows="3" placeholder="Ex: Realize a extensão máxima dos joelhos de forma controlada, mantendo o abdômen contraído."></textarea>
+        </div>
+        
+        <!-- Hidden inputs for Base64 -->
+        <input type="hidden" id="cat-ex-base64" />
+        
+        <button type="submit" class="btn btn-primary btn-full">Salvar Exercício na Biblioteca</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/personal.js"></script>
+  <script src="js/student.js"></script>
+</body>
+</html>

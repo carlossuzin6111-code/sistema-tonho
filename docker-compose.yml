@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fitlife_app
+    ports:
+      - "3000:3000"
+    volumes:
+      - db-data:/app/data
+    environment:
+      - PORT=3000
+      - NODE_ENV=development
+      - JWT_SECRET=fitlife_sync_super_secret_key_123
+      - DB_PATH=/app/data/database.sqlite
+    restart: always
+
+volumes:
+  db-data:

@@ -1,0 +1,234 @@
+/* 
+ * mobile.css - PWA Lovable Architecture
+ * Este CSS é exclusivo para a versão de celular (mobile.html).
+ * Ele sobreescreve layouts do desktop para garantir uma hierarquia nativa.
+ */
+
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden !important; /* Bloqueia scroll no root, imitando app nativo */
+  background-color: var(--bg-primary); /* Cream background */
+  touch-action: pan-y; /* Previne zoom e bounce lateral */
+}
+
+/* Tela de login ocupa tudo */
+#login-screen {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* O container principal do aplicativo autenticado */
+#app-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Ocultar cabeçalho desktop */
+.app-header.desktop-only {
+  display: none !important;
+}
+
+/* Header fixo do celular */
+.mobile-header {
+  flex: 0 0 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  background-color: rgba(247, 244, 237, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-passive);
+  z-index: 20;
+}
+body.dark-theme .mobile-header {
+  background-color: rgba(18, 18, 16, 0.95);
+}
+
+.mobile-header .logo-text {
+  font-size: 1.2rem;
+  letter-spacing: -0.5px;
+}
+
+/* Container de Dashboards do personal e aluno */
+.mobile-dashboard-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Área rolável do conteúdo */
+.mobile-content-area {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+  padding-bottom: 24px;
+  -webkit-overflow-scrolling: touch; /* Smooth scroll no iOS */
+}
+
+/* Barra inferior de navegação */
+.mobile-bottom-nav {
+  flex: 0 0 65px;
+  background-color: rgba(247, 244, 237, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border-passive);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: env(safe-area-inset-bottom); /* Suporte a iPhone Notch */
+  z-index: 20;
+}
+body.dark-theme .mobile-bottom-nav {
+  background-color: rgba(18, 18, 16, 0.95);
+}
+
+.mobile-nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.mobile-nav-btn.active {
+  color: var(--text-main);
+  transform: scale(1.05);
+}
+
+.mobile-nav-btn i {
+  width: 24px;
+  height: 24px;
+}
+
+/* Modais Forçados a 100vh no Mobile */
+.modal-overlay {
+  background: var(--bg-primary); /* Fundo sólido para fullscreen */
+  padding: 0 !important;
+}
+
+.modal-content {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  border-radius: 0 !important;
+  border: none !important;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1);
+}
+
+.modal-overlay.active .modal-content {
+  transform: translateY(0);
+}
+
+/* Chat adaptado para tela única */
+.chat-container {
+  height: 100%;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+.chat-messages {
+  padding: 10px;
+}
+.chat-input-form {
+  padding: 10px;
+  border-top: 1px solid var(--border-passive);
+}
+
+/* Menu Lateral (Hamburger Drawer) */
+.mobile-drawer-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(28, 28, 28, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.mobile-drawer-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-drawer-panel {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 280px;
+  background: var(--bg-primary);
+  z-index: 101;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  border-right: 1px solid var(--border-passive);
+}
+.mobile-drawer-overlay.active .mobile-drawer-panel {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.drawer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.drawer-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-main);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+.drawer-nav-btn.active {
+  background: rgba(28, 28, 28, 0.04);
+  border-color: var(--border-passive);
+  font-weight: 600;
+}
+.drawer-nav-btn i {
+  width: 20px;
+  height: 20px;
+}
+
+/* Ocultar barra lateral desktop que possa ter sobrado */
+.sidebar, .dashboard-layout {
+  display: block;
+}
