@@ -1621,10 +1621,6 @@ body.dark-theme .metric-item {
 }
 
 @media (max-width: 768px) {
-  body {
-    overscroll-behavior-y: none; /* PWA Feel */
-  }
-
   .form-container-card {
     padding: 20px 16px;
   }
