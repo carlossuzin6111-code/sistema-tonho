@@ -715,10 +715,14 @@ app.post('/api/chat', authenticateToken, chatController.sendMessage);
 // Removed fallback to SPA index.html, handled by Nginx now
 
 // Start Server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`=========================================`);
-  console.log(`  FITLIFE SYNC SERVER RUNNING`);
-  console.log(`  Local:   http://localhost:${PORT}`);
-  console.log(`  Environment: ${process.env.NODE_ENV || 'production'}`);
-  console.log(`=========================================`);
-});
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`=========================================`);
+    console.log(`  FITLIFE SYNC SERVER RUNNING`);
+    console.log(`  Local:   http://localhost:${PORT}`);
+    console.log(`  Environment: ${process.env.NODE_ENV || 'production'}`);
+    console.log(`=========================================`);
+  });
+}
+
+module.exports = app;
