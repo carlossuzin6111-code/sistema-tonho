@@ -111,18 +111,47 @@
         </div>
 
         <div id="tab-p-create" class="tab-pane">
-          <h1 class="section-title" style="font-size: 24px;">Cadastrar Aluno</h1>
-          <form id="create-student-form" onsubmit="handleCreateStudent(event)">
-            <div class="input-group"><label for="new-student-name">Nome</label><input type="text" id="new-student-name" required></div>
-            <div class="input-group"><label for="new-student-email">E-mail</label><input type="email" id="new-student-email" required></div>
-            <div class="input-group"><label for="new-student-password">Senha Provisória</label><input type="password" id="new-student-password" required></div>
-            <div class="grid grid-2">
-              <div class="input-group"><label for="new-student-height">Altura</label><input type="number" id="new-student-height" step="0.01"></div>
-              <div class="input-group"><label for="new-student-target">Meta (kg)</label><input type="number" id="new-student-target" step="0.1"></div>
-            </div>
-            <div class="input-group"><label for="new-student-birth">Nascimento</label><input type="date" id="new-student-birth"></div>
-            <button type="submit" class="btn btn-primary btn-full">Criar Conta</button>
-          </form>
+          <h1 class="section-title" style="font-size: 24px; margin-bottom: 16px;">Cadastrar Aluno</h1>
+          <div class="form-container-card glass">
+            <form id="create-student-form" onsubmit="handleCreateStudent(event)">
+              <div class="grid grid-2">
+                <div class="input-group">
+                  <label for="new-student-name"><i data-lucide="user"></i> Nome Completo do Aluno *</label>
+                  <input type="text" id="new-student-name" required placeholder="Ex: Carlos Suzini">
+                </div>
+                <div class="input-group">
+                  <label for="new-student-email"><i data-lucide="mail"></i> E-mail (Acesso do Aluno) *</label>
+                  <input type="email" id="new-student-email" required placeholder="carlos@exemplo.com">
+                </div>
+              </div>
+
+              <div class="grid grid-2">
+                <div class="input-group">
+                  <label for="new-student-password"><i data-lucide="lock"></i> Senha Provisória *</label>
+                  <input type="password" id="new-student-password" required placeholder="Mínimo 6 caracteres">
+                </div>
+                <div class="input-group">
+                  <label for="new-student-birth"><i data-lucide="calendar"></i> Data de Nascimento</label>
+                  <input type="date" id="new-student-birth">
+                </div>
+              </div>
+
+              <div class="grid grid-2">
+                <div class="input-group">
+                  <label for="new-student-height"><i data-lucide="ruler"></i> Altura (m)</label>
+                  <input type="number" id="new-student-height" step="0.01" min="1.00" max="2.50" placeholder="Ex: 1.75">
+                </div>
+                <div class="input-group">
+                  <label for="new-student-target"><i data-lucide="target"></i> Peso Meta (kg)</label>
+                  <input type="number" id="new-student-target" step="0.1" min="30" max="200" placeholder="Ex: 80.0">
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-full">
+                <i data-lucide="user-plus"></i> <span>Criar Conta do Aluno</span>
+              </button>
+            </form>
+          </div>
         </div>
 
         <div id="tab-p-chat" class="tab-pane">

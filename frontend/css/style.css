@@ -236,6 +236,13 @@ body.dark-theme .btn-accent:hover {
   border-color: var(--border-active);
 }
 
+.form-container-card {
+  width: 100%;
+  max-width: 1000px;
+  margin-bottom: 24px;
+  padding: 32px;
+}
+
 /* Inputs & Forms */
 .input-group {
   margin-bottom: 16px;
@@ -1616,6 +1623,10 @@ body.dark-theme .metric-item {
 @media (max-width: 768px) {
   body {
     overscroll-behavior-y: none; /* PWA Feel */
+  }
+
+  .form-container-card {
+    padding: 20px 16px;
   }
 
   .dashboard-layout {
