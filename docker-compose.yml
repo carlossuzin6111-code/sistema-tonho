@@ -22,10 +22,10 @@ services:
     volumes:
       - db-data:/app/data
     environment:
-      - PORT=3000
-      - NODE_ENV=development
-      - JWT_SECRET=fitlife_sync_super_secret_key_123
-      - DB_PATH=/app/data/database.sqlite
+      - PORT=${PORT:-3000}
+      - NODE_ENV=${NODE_ENV:-development}
+      - JWT_SECRET=${JWT_SECRET:-fitlife_sync_super_secret_key_123}
+      - DB_PATH=${DB_PATH:-/app/data/database.sqlite}
     restart: always
 
   cloudflared:
