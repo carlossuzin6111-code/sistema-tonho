@@ -49,7 +49,7 @@ async function registerPersonal(req, res) {
 
     // Generate token
     const token = jwt.sign(
-      { id: result.id, name, email, role: 'personal' },
+      { id: insertedId, name, email, role: 'personal' },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
