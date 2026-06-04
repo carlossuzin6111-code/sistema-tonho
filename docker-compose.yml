@@ -28,5 +28,15 @@ services:
       - DB_PATH=/app/data/database.sqlite
     restart: always
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: fitlife_tunnel
+    restart: always
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    command: tunnel --no-autoupdate run
+    depends_on:
+      - web
+
 volumes:
   db-data:
