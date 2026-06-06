@@ -277,6 +277,26 @@
             </button>
           </div>
 
+          <!-- Search Bar -->
+          <div class="search-bar-container glass" style="margin-bottom: 24px;">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="exercise-search-input" class="search-bar-input" placeholder="Buscar exercícios pelo nome..." oninput="handleExerciseSearch()" />
+          </div>
+
+          <!-- Priority / Favorites Section -->
+          <div id="exercises-priority-section" class="priority-section hidden">
+            <div class="priority-section-header">
+              <div class="priority-title-container">
+                <i data-lucide="star" class="priority-icon"></i>
+                <h3 class="priority-title">Exercícios Prioritários</h3>
+              </div>
+              <p class="priority-subtitle">Arraste os cards para ordenar. Esta ordem aparecerá no topo ao prescrever treinos.</p>
+            </div>
+            <div id="exercises-priority-list" class="grid grid-2 sortable-container">
+              <!-- Dynamically populated from JS -->
+            </div>
+          </div>
+
           <div id="exercises-catalog-list" class="grid grid-2">
             <!-- Dynamically populated from JS -->
           </div>

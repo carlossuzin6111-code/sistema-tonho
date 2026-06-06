@@ -4,6 +4,7 @@ let personalStudents = [];
 let selectedStudentId = null;
 let activeWorkoutId = null;
 let activeChatStudentId = null;
+let exerciseCatalogList = [];
 
 // Renders the list of students in the Personal Dashboard
 async function loadPersonalStudents() {
@@ -530,13 +531,63 @@ async function openAddExercise(workoutId) {
     const list = await API.get('/catalog/exercises');
     select.innerHTML = '<option value="">-- Selecionar da Biblioteca --</option>';
     
-    list.forEach(ex => {
+    // Split and sort exercises
+    const prioritized = list.filter(ex => ex.is_favorite || ex.is_custom);
+    const others = list.filter(ex => !ex.is_favorite && !ex.is_custom);
+
+    // Sort prioritized list using the same ordering rules as the track
+    prioritized.sort((a, b) => {
+      const aOrder = (a.display_order !== null && a.display_order !== undefined) ? a.display_order : 999999;
+      const bOrder = (b.display_order !== null && b.display_order !== undefined) ? b.display_order : 999999;
+      
+      if (aOrder !== bOrder) {
+        return aOrder - bOrder;
+      }
+      
+      if (a.is_favorite && b.is_favorite) {
+        return new Date(b.favorited_at || 0) - new Date(a.favorited_at || 0);
+      }
+      if (a.is_favorite) return -1;
+      if (b.is_favorite) return 1;
+      
+      if (a.is_custom && b.is_custom) {
+        return b.id - a.id;
+      }
+      if (a.is_custom) return -1;
+      if (b.is_custom) return 1;
+      
+      return 0;
+    });
+
+    // Sort other exercises alphabetically
+    others.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Render grouped options
+    if (prioritized.length > 0) {
+      const optGroupPrioritized = document.createElement('optgroup');
+      optGroupPrioritized.label = "★ Exercícios Prioritários / Favoritos";
+      
+      prioritized.forEach(ex => {
+        const option = document.createElement('option');
+        option.value = ex.id;
+        option.textContent = ex.name;
+        option.setAttribute('data-name', ex.name);
+        optGroupPrioritized.appendChild(option);
+      });
+      select.appendChild(optGroupPrioritized);
+    }
+
+    const optGroupOthers = document.createElement('optgroup');
+    optGroupOthers.label = "Biblioteca Geral";
+    
+    others.forEach(ex => {
       const option = document.createElement('option');
       option.value = ex.id;
       option.textContent = ex.name;
       option.setAttribute('data-name', ex.name);
-      select.appendChild(option);
+      optGroupOthers.appendChild(option);
     });
+    select.appendChild(optGroupOthers);
 
     const customOption = document.createElement('option');
     customOption.value = 'custom';
@@ -832,49 +883,15 @@ async function loadPersonalExercises() {
 
   try {
     const list = await API.get('/catalog/exercises');
-    container.innerHTML = '';
+    exerciseCatalogList = list;
 
-    if (list.length === 0) {
-      container.innerHTML = `
-        <div class="chat-empty-state glass" style="grid-column: 1 / -1; padding: 40px;">
-          <i data-lucide="dumbbell" class="chat-empty-icon" style="width: 40px; height: 40px;"></i>
-          <h3>Sua biblioteca está vazia</h3>
-          <p>Cadastre seu primeiro exercício personalizado clicando no botão "Novo Exercício".</p>
-        </div>
-      `;
-      lucide.createIcons();
-      return;
+    // Reset search query input on load
+    const searchInput = document.getElementById('exercise-search-input');
+    if (searchInput) {
+      searchInput.value = '';
     }
 
-    list.forEach(ex => {
-      const card = document.createElement('div');
-      card.className = 'exercise-db-card glass';
-
-      const thumb = ex.gif_url 
-        ? `<img src="${ex.gif_url}" class="exercise-thumb" alt="Exercício" />`
-        : `<div class="exercise-thumb" style="display:flex; align-items:center; justify-content:center;"><i data-lucide="dumbbell" style="width:18px; color:var(--text-muted);"></i></div>`;
-
-      const descText = ex.description ? ex.description : 'Sem orientações técnicas cadastradas.';
-
-      card.innerHTML = `
-        <div class="exercise-db-info">
-          ${thumb}
-          <div class="exercise-db-details">
-            <h4>${ex.name}</h4>
-            <p>${descText}</p>
-          </div>
-        </div>
-        <div style="display:flex; gap:6px;">
-          ${ex.gif_url ? `<button class="btn btn-tertiary btn-sm" onclick="openExerciseExecutionModal('${ex.name.replace(/'/g, "\\'")}', '${ex.gif_url}', '${descText.replace(/'/g, "\\'")}')" title="Testar Popup"><i data-lucide="eye"></i></button>` : ''}
-          <button class="btn btn-danger btn-sm" onclick="deleteCatalogExercise(${ex.id})" title="Excluir da Biblioteca">
-            <i data-lucide="trash-2"></i>
-          </button>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-
-    lucide.createIcons();
+    renderPersonalExercises();
   } catch (err) {
     container.innerHTML = `
       <div class="info-alert" style="grid-column: 1 / -1; border-color: var(--danger); background: rgba(239, 68, 68, 0.05); color: var(--danger);">
@@ -883,6 +900,243 @@ async function loadPersonalExercises() {
       </div>
     `;
     lucide.createIcons();
+  }
+}
+
+function renderPersonalExercises() {
+  renderPriorityExercises();
+  renderCatalogExercisesGrid();
+}
+
+function renderPriorityExercises() {
+  const prioritySection = document.getElementById('exercises-priority-section');
+  const priorityList = document.getElementById('exercises-priority-list');
+  
+  const prioritized = exerciseCatalogList.filter(ex => ex.is_favorite || ex.is_custom);
+  
+  if (prioritized.length === 0) {
+    prioritySection.classList.add('hidden');
+    priorityList.innerHTML = '';
+    return;
+  }
+  
+  prioritySection.classList.remove('hidden');
+  priorityList.innerHTML = '';
+  
+  // Sort prioritized: display_order ASC (if present), then favorited_at DESC, then custom/newest ID DESC
+  prioritized.sort((a, b) => {
+    const aOrder = (a.display_order !== null && a.display_order !== undefined) ? a.display_order : 999999;
+    const bOrder = (b.display_order !== null && b.display_order !== undefined) ? b.display_order : 999999;
+    
+    if (aOrder !== bOrder) {
+      return aOrder - bOrder;
+    }
+    
+    if (a.is_favorite && b.is_favorite) {
+      return new Date(b.favorited_at || 0) - new Date(a.favorited_at || 0);
+    }
+    if (a.is_favorite) return -1;
+    if (b.is_favorite) return 1;
+    
+    if (a.is_custom && b.is_custom) {
+      return b.id - a.id;
+    }
+    if (a.is_custom) return -1;
+    if (b.is_custom) return 1;
+    
+    return 0;
+  });
+  
+  prioritized.forEach(ex => {
+    const card = document.createElement('div');
+    card.className = 'exercise-db-card priority-card glass';
+    card.setAttribute('draggable', 'true');
+    card.setAttribute('data-id', ex.id);
+    
+    const thumb = ex.gif_url 
+      ? `<img src="${ex.gif_url}" class="exercise-thumb" alt="Exercício" />`
+      : `<div class="exercise-thumb" style="display:flex; align-items:center; justify-content:center;"><i data-lucide="dumbbell" style="width:18px; color:var(--text-muted);"></i></div>`;
+      
+    const descText = ex.description ? ex.description : 'Sem orientações técnicas cadastradas.';
+    
+    card.innerHTML = `
+      <div class="exercise-db-info">
+        <i data-lucide="grip-vertical" class="drag-handle" title="Arraste para ordenar" style="margin-right: 8px;"></i>
+        ${thumb}
+        <div class="exercise-db-details">
+          <h4>${ex.name}</h4>
+          <p>${descText}</p>
+        </div>
+      </div>
+      <button class="btn-favorite" onclick="toggleExerciseFavorite(${ex.id}, event)" title="Desfavoritar">
+        <i data-lucide="star" class="star-icon ${ex.is_favorite ? 'filled' : ''}"></i>
+      </button>
+      <div style="display:flex; gap:6px;">
+        ${ex.gif_url ? `<button class="btn btn-tertiary btn-sm" onclick="openExerciseExecutionModal('${ex.name.replace(/'/g, "\\'")}', '${ex.gif_url}', '${descText.replace(/'/g, "\\'")}')" title="Testar Popup"><i data-lucide="eye"></i></button>` : ''}
+        <button class="btn btn-danger btn-sm" onclick="deleteCatalogExercise(${ex.id})" title="Excluir da Biblioteca">
+          <i data-lucide="trash-2"></i>
+        </button>
+      </div>
+    `;
+    priorityList.appendChild(card);
+  });
+  
+  lucide.createIcons();
+  setupPriorityDragAndDrop();
+}
+
+function renderCatalogExercisesGrid() {
+  const container = document.getElementById('exercises-catalog-list');
+  const searchInput = document.getElementById('exercise-search-input');
+  const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+  
+  let filtered = exerciseCatalogList;
+  if (query) {
+    filtered = exerciseCatalogList.filter(ex => ex.name.toLowerCase().includes(query));
+  }
+  
+  container.innerHTML = '';
+  
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="chat-empty-state glass" style="grid-column: 1 / -1; padding: 40px;">
+        <i data-lucide="dumbbell" class="chat-empty-icon" style="width: 40px; height: 40px;"></i>
+        <h3>Nenhum exercício encontrado</h3>
+        <p>Tente buscar por outro nome ou termo.</p>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+  
+  // Sort normal grid list alphabetically
+  filtered.sort((a, b) => a.name.localeCompare(b.name));
+  
+  filtered.forEach(ex => {
+    const card = document.createElement('div');
+    card.className = 'exercise-db-card glass';
+    
+    const thumb = ex.gif_url 
+      ? `<img src="${ex.gif_url}" class="exercise-thumb" alt="Exercício" />`
+      : `<div class="exercise-thumb" style="display:flex; align-items:center; justify-content:center;"><i data-lucide="dumbbell" style="width:18px; color:var(--text-muted);"></i></div>`;
+      
+    const descText = ex.description ? ex.description : 'Sem orientações técnicas cadastradas.';
+    
+    card.innerHTML = `
+      <div class="exercise-db-info">
+        ${thumb}
+        <div class="exercise-db-details">
+          <h4>${ex.name}</h4>
+          <p>${descText}</p>
+        </div>
+      </div>
+      <button class="btn-favorite" onclick="toggleExerciseFavorite(${ex.id}, event)" title="${ex.is_favorite ? 'Remover dos Favoritos' : 'Adicionar aos Favoritos'}">
+        <i data-lucide="star" class="star-icon ${ex.is_favorite ? 'filled' : ''}"></i>
+      </button>
+      <div style="display:flex; gap:6px;">
+        ${ex.gif_url ? `<button class="btn btn-tertiary btn-sm" onclick="openExerciseExecutionModal('${ex.name.replace(/'/g, "\\'")}', '${ex.gif_url}', '${descText.replace(/'/g, "\\'")}')" title="Testar Popup"><i data-lucide="eye"></i></button>` : ''}
+        <button class="btn btn-danger btn-sm" onclick="deleteCatalogExercise(${ex.id})" title="Excluir da Biblioteca">
+          <i data-lucide="trash-2"></i>
+        </button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+  
+  lucide.createIcons();
+}
+
+function handleExerciseSearch() {
+  renderCatalogExercisesGrid();
+}
+
+async function toggleExerciseFavorite(id, event) {
+  if (event) event.stopPropagation();
+  
+  try {
+    const res = await API.patch(`/catalog/exercises/${id}/favorite`);
+    showToast(res.message === 'Exercise favorited' ? 'Adicionado aos favoritos!' : 'Removido dos favoritos!', 'success');
+    
+    const ex = exerciseCatalogList.find(e => e.id === id);
+    if (ex) {
+      ex.is_favorite = res.is_favorite;
+      ex.favorited_at = res.is_favorite ? new Date().toISOString() : null;
+    }
+    
+    renderPersonalExercises();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+function setupPriorityDragAndDrop() {
+  const list = document.getElementById('exercises-priority-list');
+  let draggedItem = null;
+
+  list.querySelectorAll('.priority-card').forEach(item => {
+    item.addEventListener('dragstart', (e) => {
+      draggedItem = item;
+      e.dataTransfer.effectAllowed = 'move';
+      item.classList.add('dragging');
+    });
+
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      draggedItem = null;
+      saveNewPriorityOrder();
+    });
+
+    item.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    item.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      if (item !== draggedItem) {
+        item.classList.add('drag-over');
+      }
+    });
+
+    item.addEventListener('dragleave', () => {
+      item.classList.remove('drag-over');
+    });
+
+    item.addEventListener('drop', (e) => {
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      
+      if (item !== draggedItem) {
+        const allItems = [...list.querySelectorAll('.priority-card')];
+        const draggedIndex = allItems.indexOf(draggedItem);
+        const targetIndex = allItems.indexOf(item);
+        
+        if (draggedIndex < targetIndex) {
+          list.insertBefore(draggedItem, item.nextSibling);
+        } else {
+          list.insertBefore(draggedItem, item);
+        }
+      }
+    });
+  });
+}
+
+async function saveNewPriorityOrder() {
+  const list = document.getElementById('exercises-priority-list');
+  const cards = [...list.querySelectorAll('.priority-card')];
+  const ids = cards.map(c => parseInt(c.getAttribute('data-id')));
+  
+  try {
+    await API.put('/catalog/exercises/reorder', { ids });
+    
+    // Sync local list order positions
+    ids.forEach((id, index) => {
+      const ex = exerciseCatalogList.find(e => e.id === id);
+      if (ex) {
+        ex.display_order = index;
+      }
+    });
+  } catch (err) {
+    showToast('Erro ao salvar nova ordenação: ' + err.message, 'error');
   }
 }
 

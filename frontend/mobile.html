@@ -182,6 +182,22 @@
             <h1 class="section-title" style="font-size: 24px;">Exercícios</h1>
             <button class="btn btn-primary btn-sm" onclick="openCreateCatalogExerciseModal()"><i data-lucide="plus"></i></button>
           </div>
+          <!-- Search Bar -->
+          <div class="search-bar-container glass" style="margin-bottom: 16px;">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="exercise-search-input" class="search-bar-input" placeholder="Buscar exercícios..." oninput="handleExerciseSearch()" />
+          </div>
+          <!-- Priority Section -->
+          <div id="exercises-priority-section" class="priority-section hidden" style="margin-bottom:16px;">
+            <div class="priority-section-header">
+              <div class="priority-title-container">
+                <i data-lucide="star" class="priority-icon"></i>
+                <h3 class="priority-title">Prioritários</h3>
+              </div>
+              <p class="priority-subtitle">Arraste para ordenar.</p>
+            </div>
+            <div id="exercises-priority-list" class="grid grid-2 sortable-container"></div>
+          </div>
           <div id="exercises-catalog-list" class="grid grid-2"></div>
         </div>
       </div>

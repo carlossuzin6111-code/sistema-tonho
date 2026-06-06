@@ -1057,7 +1057,8 @@ body.dark-theme .pedagogical-table th {
 
 /* Exercise Database tab list items */
 .exercise-db-card {
-  padding: 16px;
+  position: relative;
+  padding: 16px 48px 16px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1081,12 +1082,147 @@ body.dark-theme .pedagogical-table th {
 .exercise-db-details h4 {
   font-size: 0.95rem;
   font-weight: 600;
+  padding-right: 8px;
 }
 
 .exercise-db-details p {
   font-size: 0.8rem;
   color: var(--text-muted);
   margin-top: 2px;
+}
+
+/* Search Bar styling */
+.search-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-passive);
+  border-radius: 9999px;
+  transition: var(--transition-smooth);
+}
+.search-bar-container:focus-within {
+  border-color: var(--border-active);
+  box-shadow: var(--focus-shadow);
+}
+.search-icon {
+  color: var(--text-muted);
+  width: 18px;
+  height: 18px;
+}
+.search-bar-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+.search-bar-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Floating Favorite Star styling */
+.btn-favorite {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-passive);
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  z-index: 2;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.btn-favorite:hover {
+  border-color: var(--border-active);
+  color: var(--text-main);
+  transform: scale(1.1);
+}
+.btn-favorite .star-icon {
+  width: 14px;
+  height: 14px;
+  transition: var(--transition-smooth);
+}
+.btn-favorite .star-icon.filled {
+  fill: #eab308;
+  color: #eab308;
+}
+
+/* Priority / Favorites Section styling */
+.priority-section {
+  background-color: rgba(28, 28, 28, 0.02);
+  border: 1px dashed var(--border-passive);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  transition: var(--transition-smooth);
+}
+body.dark-theme .priority-section {
+  background-color: rgba(245, 242, 235, 0.02);
+}
+.priority-section-header {
+  margin-bottom: 14px;
+}
+.priority-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.priority-icon {
+  width: 16px;
+  height: 16px;
+  color: #eab308;
+  fill: #eab308;
+}
+.priority-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.priority-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Priority Draggable Card adjustment */
+.priority-card {
+  cursor: grab;
+  user-select: none;
+}
+.priority-card:active {
+  cursor: grabbing;
+}
+.priority-card.dragging {
+  opacity: 0.4;
+  border-style: dashed;
+  transform: scale(0.98);
+}
+.priority-card.drag-over {
+  border-color: var(--text-main);
+  box-shadow: var(--focus-shadow);
+  transform: translateY(-1px);
+}
+.drag-handle {
+  color: var(--text-muted);
+  opacity: 0.4;
+  cursor: grab;
+  width: 14px;
+  height: 14px;
+  transition: var(--transition-fast);
+}
+.priority-card:hover .drag-handle {
+  opacity: 0.8;
 }
 
 /* Execution Modal Popup styles */

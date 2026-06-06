@@ -55,6 +55,10 @@ async function initializeDatabase() {
         table.string('gif_url');
         table.text('description');
         table.boolean('is_translated').defaultTo(false);
+        table.boolean('is_favorite').defaultTo(false);
+        table.timestamp('favorited_at').nullable();
+        table.integer('display_order').nullable();
+        table.boolean('is_custom').defaultTo(false);
         table.timestamps(true, true);
       });
     } else {
@@ -62,6 +66,16 @@ async function initializeDatabase() {
       if (!hasIsTranslated) {
         await db.schema.alterTable('exercises', table => {
           table.boolean('is_translated').defaultTo(false);
+        });
+      }
+
+      const hasIsFavorite = await db.schema.hasColumn('exercises', 'is_favorite');
+      if (!hasIsFavorite) {
+        await db.schema.alterTable('exercises', table => {
+          table.boolean('is_favorite').defaultTo(false);
+          table.timestamp('favorited_at').nullable();
+          table.integer('display_order').nullable();
+          table.boolean('is_custom').defaultTo(false);
         });
       }
     }
