@@ -47,6 +47,11 @@ async function registerPersonal(req, res) {
       role: 'personal'
     });
 
+    // Seed default exercises for the new personal trainer
+    if (db.seedDefaultExercisesForPersonal) {
+      await db.seedDefaultExercisesForPersonal(db, insertedId);
+    }
+
     // Generate token
     const token = jwt.sign(
       { id: insertedId, name, email, role: 'personal' },
