@@ -1955,3 +1955,283 @@ body.dark-theme .metric-item {
     padding: 12px;
   }
 }
+
+/* ==========================================================================
+   MEUS EXERCÍCIOS — BIBLIOTECA (search, cards, favoritos, drag & drop)
+   ========================================================================== */
+
+/* ---- Search Bar ---- */
+.search-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-passive);
+  background: var(--bg-secondary);
+  transition: var(--transition-smooth);
+}
+
+.search-bar-container:focus-within {
+  border-color: var(--border-active);
+  box-shadow: var(--focus-shadow);
+}
+
+.search-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.search-bar-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.search-bar-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ---- Exercise Catalog Card ---- */
+.exercise-db-card {
+  position: relative;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-passive);
+  background: var(--bg-secondary);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: var(--transition-smooth);
+  overflow: visible;
+}
+
+.exercise-db-card:hover {
+  border-color: var(--border-active);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  transform: translateY(-1px);
+}
+
+.exercise-db-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.exercise-thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--bg-tertiary);
+  flex-shrink: 0;
+  border: 1px solid var(--border-passive);
+}
+
+.exercise-db-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.exercise-db-details h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.exercise-db-details p {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---- Favorite Star Button (floating top-right) ---- */
+.btn-favorite {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--bg-primary);
+  border: 1.5px solid var(--border-passive);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: var(--transition-smooth);
+  padding: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.btn-favorite:hover {
+  background: #fefce8;
+  border-color: #eab308;
+  transform: scale(1.12);
+  box-shadow: 0 2px 8px rgba(234,179,8,0.2);
+}
+
+.star-icon {
+  width: 15px;
+  height: 15px;
+  color: var(--text-muted);
+  transition: var(--transition-smooth);
+  fill: transparent;
+}
+
+.star-icon.filled {
+  color: #eab308;
+  fill: #eab308;
+}
+
+/* ---- Drag Handle (inside priority cards) ---- */
+.drag-handle {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  cursor: grab;
+  flex-shrink: 0;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.priority-card:hover .drag-handle {
+  opacity: 1;
+}
+
+/* ---- Priority / Favorites Section ---- */
+.priority-section {
+  border: 2px dashed var(--border-passive);
+  border-radius: 14px;
+  padding: 18px;
+  background: var(--bg-primary);
+  margin-bottom: 28px;
+  transition: border-color 0.2s;
+}
+
+.priority-section:has(.priority-card) {
+  border-color: rgba(234, 179, 8, 0.35);
+}
+
+.priority-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.priority-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.priority-icon {
+  width: 18px;
+  height: 18px;
+  color: #eab308;
+  fill: #eab308;
+}
+
+.priority-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.priority-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ---- Priority Card variant (inside sortable area) ---- */
+.priority-card {
+  border-color: rgba(234, 179, 8, 0.3) !important;
+  background: var(--bg-secondary) !important;
+}
+
+/* ---- Drag & Drop State ---- */
+.dragging {
+  opacity: 0.45;
+  transform: scale(0.97);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.drag-over {
+  border-color: #eab308 !important;
+  background: #fefce8 !important;
+  box-shadow: 0 0 0 2px rgba(234,179,8,0.25);
+}
+
+/* ---- Sortable container ---- */
+.sortable-container {
+  min-height: 60px;
+}
+
+/* ---- Empty state for priority section ---- */
+.priority-empty-hint {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+/* Dark theme overrides for exercise components */
+body.dark-theme .exercise-db-card {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.1);
+}
+
+body.dark-theme .exercise-db-card:hover {
+  border-color: rgba(255,255,255,0.25);
+}
+
+body.dark-theme .search-bar-container {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.12);
+}
+
+body.dark-theme .btn-favorite {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.15);
+}
+
+body.dark-theme .btn-favorite:hover {
+  background: rgba(234,179,8,0.12);
+}
+
+body.dark-theme .priority-section {
+  background: rgba(255,255,255,0.02);
+  border-color: rgba(255,255,255,0.1);
+}
+
+body.dark-theme .drag-over {
+  background: rgba(234,179,8,0.08) !important;
+}
+
