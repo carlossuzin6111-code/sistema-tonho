@@ -11,6 +11,11 @@ const applicationTables = [
   'chat_messages'
 ];
 
+const migrations = [
+  '202607140001_initial_schema.js',
+  '202607140002_add_query_indexes.js'
+];
+
 function createDatabase() {
   return knex(config.test);
 }
@@ -31,7 +36,7 @@ describe('database migrations', () => {
     const [batch, appliedMigrations] = await db.migrate.latest();
 
     expect(batch).toBe(1);
-    expect(appliedMigrations).toEqual(['202607140001_initial_schema.js']);
+    expect(appliedMigrations).toEqual(migrations);
 
     for (const table of applicationTables) {
       await expect(db.schema.hasTable(table)).resolves.toBe(true);
@@ -79,7 +84,7 @@ describe('database migrations', () => {
       description: 'Must survive the baseline migration',
       is_translated: 0
     });
-    expect(await db('knex_migrations').pluck('name')).toEqual(['202607140001_initial_schema.js']);
+    expect(await db('knex_migrations').pluck('name')).toEqual(migrations);
   });
 
   test('rolls back the application schema in reverse dependency order', async () => {
@@ -89,7 +94,7 @@ describe('database migrations', () => {
     const [batch, rolledBackMigrations] = await db.migrate.rollback();
 
     expect(batch).toBe(1);
-    expect(rolledBackMigrations).toEqual(['202607140001_initial_schema.js']);
+    expect(rolledBackMigrations).toEqual([...migrations].reverse());
     for (const table of applicationTables) {
       await expect(db.schema.hasTable(table)).resolves.toBe(false);
     }
