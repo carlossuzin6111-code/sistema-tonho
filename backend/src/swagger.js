@@ -25,13 +25,29 @@ const options = {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT',
-          description: 'Insira o token JWT recebido no login.'
+          description: 'Compatibilidade para clientes não-browser que gerenciam seu próprio JWT.'
+        },
+        cookieAuth: {
+          type: 'apiKey',
+          in: 'cookie',
+          name: 'fitlife_session',
+          description: 'Sessão HttpOnly usada automaticamente pelo navegador.'
+        },
+        csrfToken: {
+          type: 'apiKey',
+          in: 'header',
+          name: 'X-CSRF-Token',
+          description: 'Obrigatório em mutações autenticadas por cookie.'
         }
       }
     },
     security: [
       {
         bearerAuth: []
+      },
+      {
+        cookieAuth: [],
+        csrfToken: []
       }
     ]
   },

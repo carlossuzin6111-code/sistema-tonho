@@ -1,7 +1,6 @@
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const db = require('../database');
-const { JWT_SECRET } = require('../middleware/auth');
+const { clearSessionCookies, setSessionCookies } = require('../services/sessionService');
 
 const fs = require('fs');
 const path = require('path');
@@ -52,17 +51,12 @@ async function registerPersonal(req, res) {
       await db.seedDefaultExercisesForPersonal(db, insertedId);
     }
 
-    // Generate token
-    const token = jwt.sign(
-      { id: insertedId, name, email, role: 'personal' },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const user = { id: insertedId, name, email, role: 'personal' };
+    setSessionCookies(res, user);
 
     res.status(201).json({
       message: 'Personal Trainer registered successfully',
-      token,
-      user: { id: insertedId, name, email, role: 'personal' }
+      user
     });
   } catch (err) {
     console.error('Registration error:', err.message);
@@ -90,22 +84,21 @@ async function login(req, res) {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
 
-    // Generate token
-    const token = jwt.sign(
-      { id: user.id, name: user.name, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    setSessionCookies(res, user);
 
     res.status(200).json({
       message: 'Login successful',
-      token,
       user: { id: user.id, name: user.name, email: user.email, role: user.role }
     });
   } catch (err) {
     console.error('Login error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
+}
+
+function logout(req, res) {
+  clearSessionCookies(res);
+  return res.status(200).json({ message: 'Logout successful' });
 }
 
 async function getMe(req, res) {
@@ -127,5 +120,6 @@ async function getMe(req, res) {
 module.exports = {
   registerPersonal,
   login,
+  logout,
   getMe
 };

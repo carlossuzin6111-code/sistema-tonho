@@ -163,7 +163,7 @@ async function handleLogin(event) {
 
   try {
     const data = await API.post('/auth/login', { email, password });
-    API.saveSession(data.token, data.user);
+    API.saveSession(data.user);
     showToast('Login realizado com sucesso!', 'success');
     setupAppShell(data.user);
   } catch (err) {
@@ -186,7 +186,7 @@ async function handleRegister(event) {
 
   try {
     const data = await API.post('/auth/register', { name, email, password, accessKey });
-    API.saveSession(data.token, data.user);
+    API.saveSession(data.user);
     showToast('Conta criada com sucesso!', 'success');
     setupAppShell(data.user);
   } catch (err) {
@@ -196,21 +196,19 @@ async function handleRegister(event) {
 
 // Check session on load
 async function checkAuthSession() {
-  const token = API.getToken();
   const cachedUser = API.getCurrentUser();
 
-  if (token && cachedUser) {
+  if (cachedUser) {
     setupAppShell(cachedUser);
-    // Silent verify token validity with /auth/me
-    try {
-      const verifiedUser = await API.get('/auth/me');
-      // Update cache
-      localStorage.setItem('fitlife_user', JSON.stringify(verifiedUser));
-    } catch (err) {
-      console.warn('Session expired or invalid, logging out.', err.message);
-      logout();
-    }
-  } else {
+  }
+
+  try {
+    const verifiedUser = await API.get('/auth/me');
+    API.saveSession(verifiedUser);
+    if (!cachedUser) setupAppShell(verifiedUser);
+  } catch (err) {
+    console.warn('Session expired or invalid.', err.message);
+    API.clearSession();
     showLoginScreen();
   }
 }
@@ -252,10 +250,16 @@ function showLoginScreen() {
   API.disconnectChatStream();
 }
 
-function logout() {
-  API.clearSession();
-  showLoginScreen();
-  showToast('Sessão encerrada.', 'info');
+async function logout() {
+  try {
+    await API.post('/auth/logout', {});
+  } catch (err) {
+    console.warn('Server logout failed; clearing local cache.', err.message);
+  } finally {
+    API.clearSession();
+    showLoginScreen();
+    showToast('Sessão encerrada.', 'info');
+  }
 }
 
 // SSE Real-Time connection orchestrator

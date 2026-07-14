@@ -1,7 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { authenticateToken, requireRole } = require('./middleware/auth');
+const {
+  authenticateToken,
+  csrfProtection,
+  optionalAuthentication,
+  requireRole
+} = require('./middleware/auth');
 const setupSwagger = require('./swagger');
 
 // Import controllers
@@ -20,6 +25,8 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(optionalAuthentication);
+app.use(csrfProtection);
 
 // Setup Swagger UI API documentation
 setupSwagger(app);
@@ -79,7 +86,7 @@ app.post('/api/auth/register', authController.registerPersonal);
  * /auth/login:
  *   post:
  *     summary: Realiza o login de um usuário (Personal ou Aluno)
- *     description: Autentica o usuário pelo e-mail e senha, retornando o token JWT correspondente.
+ *     description: Autentica o usuário e cria uma sessão em cookie HttpOnly acompanhada de proteção CSRF.
  *     tags:
  *       - Autenticação
  *     requestBody:
@@ -109,12 +116,14 @@ app.post('/api/auth/register', authController.registerPersonal);
  */
 app.post('/api/auth/login', authController.login);
 
+app.post('/api/auth/logout', authenticateToken, authController.logout);
+
 /**
  * @openapi
  * /auth/me:
  *   get:
  *     summary: Obtém os dados do usuário autenticado atual
- *     description: Retorna as informações do usuário associadas ao token JWT fornecido no cabeçalho Authorization.
+ *     description: Retorna as informações do usuário associado à sessão por cookie ou a um token Bearer de cliente não-browser.
  *     tags:
  *       - Autenticação
  *     security:
