@@ -43,3 +43,15 @@ Esta versão traz mudanças profundas na base do projeto visando escalabilidade,
    ```
    http://localhost:3000
    ```
+
+## Testes do backend
+
+Use o lockfile para instalar também as dependências de desenvolvimento e executar a mesma suíte usada no CI:
+
+```bash
+cd backend
+npm ci
+npm test
+```
+
+Os testes usam SQLite em memória, aguardam a criação do schema e não iniciam o worker externo de tradução.

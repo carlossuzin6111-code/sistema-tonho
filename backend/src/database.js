@@ -121,10 +121,13 @@ async function initializeDatabase() {
       await seedDefaultExercisesForPersonal(db, personal.id);
     }
 
-    // Start background translation worker asynchronously
-    startBackgroundTranslation(db);
+    // Tests must stay deterministic and must not depend on external translation calls.
+    if (env !== 'test') {
+      startBackgroundTranslation(db);
+    }
   } catch (err) {
     console.error('Error initializing database tables via Knex:', err.message);
+    throw err;
   }
 }
 
@@ -239,7 +242,7 @@ async function translateSingleText(text) {
   }
 }
 
-initializeDatabase();
+db.ready = initializeDatabase();
 
 db.seedDefaultExercisesForPersonal = seedDefaultExercisesForPersonal;
 
