@@ -121,10 +121,6 @@ async function initializeDatabase() {
       await seedDefaultExercisesForPersonal(db, personal.id);
     }
 
-    // Tests must stay deterministic and must not depend on external translation calls.
-    if (env !== 'test') {
-      startBackgroundTranslation(db);
-    }
   } catch (err) {
     console.error('Error initializing database tables via Knex:', err.message);
     throw err;
@@ -165,80 +161,6 @@ async function seedDefaultExercisesForPersonal(dbConnection, personalId) {
     }
   } catch (err) {
     console.error(`Error seeding exercises for personal ${personalId}:`, err.message);
-  }
-}
-
-async function startBackgroundTranslation(dbConnection) {
-  console.log('Background exercise translator worker started...');
-  while (true) {
-    try {
-      const ex = await dbConnection('exercises')
-        .where('is_translated', false)
-        .orWhereNull('is_translated')
-        .first();
-
-      if (!ex) {
-        await new Promise(resolve => setTimeout(resolve, 15000));
-        continue;
-      }
-
-      const query = `${ex.name} ||| ${ex.description}`;
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=pt&dt=t&q=${encodeURIComponent(query)}`;
-
-      const res = await fetch(url);
-      if (!res.ok) {
-        if (res.status === 429) {
-          console.warn('Translate API rate limit hit in background. Sleeping for 15 seconds...');
-          await new Promise(resolve => setTimeout(resolve, 15000));
-          continue;
-        }
-        throw new Error(`HTTP error ${res.status}`);
-      }
-
-      const json = await res.json();
-      const translated = json[0].map(x => x[0]).join('');
-      const parts = translated.split(' ||| ').map(x => x.trim());
-
-      if (parts.length === 2) {
-        await dbConnection('exercises')
-          .where('id', ex.id)
-          .update({
-            name: parts[0],
-            description: parts[1],
-            is_translated: true
-          });
-        console.log(`[Translator] Translated exercise: "${ex.name}" -> "${parts[0]}"`);
-      } else {
-        const transName = await translateSingleText(ex.name);
-        const transDesc = await translateSingleText(ex.description);
-        await dbConnection('exercises')
-          .where('id', ex.id)
-          .update({
-            name: transName || ex.name,
-            description: transDesc || ex.description,
-            is_translated: true
-          });
-        console.log(`[Translator fallback] Translated exercise: "${ex.name}" -> "${transName}"`);
-      }
-    } catch (err) {
-      console.error('[Translator Error] Failed translating exercise:', err.message);
-      await new Promise(resolve => setTimeout(resolve, 5000));
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 800));
-  }
-}
-
-async function translateSingleText(text) {
-  if (!text) return '';
-  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=pt&dt=t&q=${encodeURIComponent(text)}`;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return text;
-    const json = await res.json();
-    return json[0].map(x => x[0]).join('').trim();
-  } catch (err) {
-    return text;
   }
 }
 

@@ -54,4 +54,17 @@ npm ci
 npm test
 ```
 
-Os testes usam SQLite em memória, aguardam a criação do schema e não iniciam o worker externo de tradução.
+Os testes usam SQLite em memória e aguardam a criação do schema.
+
+### Worker de tradução
+
+O tradutor de exercícios roda em um processo separado da API. No Docker Compose, o serviço `translation-worker` compartilha somente o volume do banco com `app`; uma falha ou indisponibilidade do provedor externo não derruba o servidor HTTP.
+
+Para executar localmente, inicialize a API ou o banco e depois rode:
+
+```bash
+cd backend
+npm run worker:translate
+```
+
+O worker aceita `SIGINT` e `SIGTERM`, libera o item ativo e encerra a conexão com o banco. Reservas usam `is_translated = 2` e expiram após `TRANSLATION_CLAIM_TIMEOUT_MS` (cinco minutos por padrão), impedindo que duas instâncias traduzam o mesmo exercício. Os intervalos podem ser configurados com `TRANSLATION_POLL_INTERVAL_MS`, `TRANSLATION_WORK_INTERVAL_MS` e `TRANSLATION_RETRY_DELAY_MS`.

@@ -9,7 +9,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node src/index.js",
-    "test": "jest --runInBand --detectOpenHandles"
+    "test": "jest --runInBand --detectOpenHandles",
+    "worker:translate": "node src/workers/runTranslationWorker.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
