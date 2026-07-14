@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Backend API for Personal Trainer and Student Management System",
   "main": "src/index.js",
+  "engines": {
+    "node": ">=20.17.0"
+  },
   "scripts": {
     "start": "node src/index.js",
     "dev": "node src/index.js",
@@ -14,7 +17,7 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.2.10",
-    "sqlite3": "^5.1.7",
+    "sqlite3": "^6.0.1",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1"
   },
