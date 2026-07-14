@@ -2,32 +2,24 @@ process.env.NODE_ENV = 'test';
 const request = require('supertest');
 const app = require('../index');
 const db = require('../database');
-const fs = require('fs');
 const http = require('http');
+const { hashAccessKey } = require('../services/accessKeyService');
 
-// Save original fs functions to prevent polluting host files
-const originalReadFileSync = fs.readFileSync;
-const originalWriteFileSync = fs.writeFileSync;
+const testAccessKey = 'key_for_testing';
 
 let server;
+let testAccessKeyId;
+
+async function insertAccessKey(accessKey) {
+  const [id] = await db('registration_keys').insert({
+    key_hash: hashAccessKey(accessKey)
+  });
+  return id;
+}
 
 beforeAll(async () => {
-  // Mock keys_aut.json read/write to avoid consuming actual keys
-  fs.readFileSync = jest.fn((filePath, options) => {
-    if (filePath.endsWith('keys_aut.json')) {
-      return JSON.stringify({ valid_keys: ['key_for_testing'] });
-    }
-    return originalReadFileSync(filePath, options);
-  });
-  
-  fs.writeFileSync = jest.fn((filePath, data, options) => {
-    if (filePath.endsWith('keys_aut.json')) {
-      return; // Mock write, do not persist to host filesystem
-    }
-    return originalWriteFileSync(filePath, data, options);
-  });
-
   await db.ready;
+  testAccessKeyId = await insertAccessKey(testAccessKey);
 
   // Start temporary HTTP server on port 3001 for SSE tests
   await new Promise(resolve => {
@@ -36,10 +28,6 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  // Restore original fs functions
-  fs.readFileSync = originalReadFileSync;
-  fs.writeFileSync = originalWriteFileSync;
-  
   // Close Knex connection to prevent leaks
   await db.destroy();
 
@@ -93,13 +81,70 @@ describe('FitLife Sync API Integration Tests', () => {
           name: 'Test Personal',
           email: 'test_personal@fitlife.com',
           password: 'password123',
-          accessKey: 'key_for_testing'
+          accessKey: testAccessKey
         });
       expect(res.statusCode).toBe(201);
       expect(res.body).toHaveProperty('message', 'Personal Trainer registered successfully');
       expect(res.body).toHaveProperty('token');
       expect(res.body.user).toHaveProperty('email', 'test_personal@fitlife.com');
       expect(res.body.user).toHaveProperty('role', 'personal');
+
+      const storedKey = await db('registration_keys').where({ id: testAccessKeyId }).first();
+      expect(storedKey.key_hash).toBe(hashAccessKey(testAccessKey));
+      expect(storedKey.key_hash).not.toContain(testAccessKey);
+      expect(storedKey.used_at).not.toBeNull();
+      expect(storedKey.used_by).toBe(res.body.user.id);
+    });
+
+    test('Should not consume an access key when the email is already registered', async () => {
+      const accessKey = 'duplicate_email_key_for_testing';
+      const accessKeyId = await insertAccessKey(accessKey);
+
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          name: 'Duplicate Personal',
+          email: 'test_personal@fitlife.com',
+          password: 'password123',
+          accessKey
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body).toHaveProperty('error', 'Email already registered');
+      const storedKey = await db('registration_keys').where({ id: accessKeyId }).first();
+      expect(storedKey.used_at).toBeNull();
+      expect(storedKey.used_by).toBeNull();
+    });
+
+    test('Should allow only one registration when the same key is submitted concurrently', async () => {
+      const accessKey = 'concurrent_key_for_testing';
+      const accessKeyId = await insertAccessKey(accessKey);
+
+      const responses = await Promise.all([
+        request(app).post('/api/auth/register').send({
+          name: 'Concurrent Personal A',
+          email: 'concurrent-a@fitlife.com',
+          password: 'password123',
+          accessKey
+        }),
+        request(app).post('/api/auth/register').send({
+          name: 'Concurrent Personal B',
+          email: 'concurrent-b@fitlife.com',
+          password: 'password123',
+          accessKey
+        })
+      ]);
+
+      expect(responses.map(response => response.statusCode).sort()).toEqual([201, 403]);
+
+      const createdUsers = await db('users')
+        .select('id')
+        .whereIn('email', ['concurrent-a@fitlife.com', 'concurrent-b@fitlife.com']);
+      expect(createdUsers).toHaveLength(1);
+
+      const storedKey = await db('registration_keys').where({ id: accessKeyId }).first();
+      expect(storedKey.used_at).not.toBeNull();
+      expect(storedKey.used_by).toBe(createdUsers[0].id);
     });
 
     test('Should fail login with incorrect password', async () => {

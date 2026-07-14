@@ -29,6 +29,17 @@ npm run migrate:rollback
 
 Defina `NODE_ENV` para selecionar o ambiente do `knexfile.js` e `DB_PATH` para indicar o arquivo SQLite em desenvolvimento ou produção. O rollback remove as tabelas da aplicação e deve ser usado somente com backup e autorização do responsável pelos dados.
 
+#### Chaves de cadastro
+
+As chaves de cadastro são geradas com 256 bits de entropia criptográfica, armazenadas no banco somente como hashes SHA-256 e consumidas na mesma transação que cria o personal. Para gerar uma chave:
+
+```bash
+cd backend
+npm run access-key:create
+```
+
+O valor é exibido uma única vez. Armazene-o em um canal seguro e não o inclua em commits, logs ou tickets. As chaves do antigo `keys_aut.json` não são importadas automaticamente: como foram versionadas, devem ser revogadas e substituídas por novas chaves após alinhamento com o mantenedor.
+
 ### 3. Layout PWA Móvel Híbrido (Drawer Sidebar)
 - **Roteamento Inteligente:** O arquivo `index.html` agora roteia o usuário de forma autônoma: Desktop vai para `desktop.html`, Smartphone vai para `mobile.html`.
 - **Isolamento Completo (Sem Vazamento de Estilos):** Sem uso de `@media` queries mirabolantes. O layout mobile é independente, possuindo:
