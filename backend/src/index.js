@@ -12,7 +12,7 @@ const chatController = require('./controllers/chatController');
 const exerciseController = require('./controllers/exerciseController');
 
 // Initialize database
-require('./database');
+const db = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -716,13 +716,21 @@ app.post('/api/chat', authenticateToken, chatController.sendMessage);
 
 // Start Server
 if (require.main === module) {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`=========================================`);
-    console.log(`  FITLIFE SYNC SERVER RUNNING`);
-    console.log(`  Local:   http://localhost:${PORT}`);
-    console.log(`  Environment: ${process.env.NODE_ENV || 'production'}`);
-    console.log(`=========================================`);
-  });
+  db.ready
+    .then(() => {
+      app.listen(PORT, '0.0.0.0', () => {
+        console.log(`=========================================`);
+        console.log(`  FITLIFE SYNC SERVER RUNNING`);
+        console.log(`  Local:   http://localhost:${PORT}`);
+        console.log(`  Environment: ${process.env.NODE_ENV || 'production'}`);
+        console.log(`=========================================`);
+      });
+    })
+    .catch(async error => {
+      console.error('Server startup aborted because the database could not be migrated:', error.message);
+      await db.destroy();
+      process.exitCode = 1;
+    });
 }
 
 module.exports = app;

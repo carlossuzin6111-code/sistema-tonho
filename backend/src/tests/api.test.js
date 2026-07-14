@@ -11,7 +11,7 @@ const originalWriteFileSync = fs.writeFileSync;
 
 let server;
 
-beforeAll((done) => {
+beforeAll(async () => {
   // Mock keys_aut.json read/write to avoid consuming actual keys
   fs.readFileSync = jest.fn((filePath, options) => {
     if (filePath.endsWith('keys_aut.json')) {
@@ -27,8 +27,12 @@ beforeAll((done) => {
     return originalWriteFileSync(filePath, data, options);
   });
 
+  await db.ready;
+
   // Start temporary HTTP server on port 3001 for SSE tests
-  server = app.listen(3001, done);
+  await new Promise(resolve => {
+    server = app.listen(3001, resolve);
+  });
 });
 
 afterAll(async () => {
