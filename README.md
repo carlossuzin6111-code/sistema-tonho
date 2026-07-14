@@ -43,3 +43,15 @@ Esta versão traz mudanças profundas na base do projeto visando escalabilidade,
    ```
    http://localhost:3000
    ```
+
+## Segurança HTTP
+
+O backend aplica headers defensivos, limita o corpo JSON e restringe tentativas
+malsucedidas de login/cadastro. Por padrão, chamadas sem cabeçalho `Origin`
+(mesma origem, CLI e integrações servidor-servidor) continuam permitidas; para
+autorizar um frontend em outra origem, defina `CORS_ORIGINS` com uma lista
+separada por vírgulas.
+
+As opções `JSON_BODY_LIMIT`, `AUTH_RATE_LIMIT_WINDOW_MS`,
+`AUTH_RATE_LIMIT_MAX` e `TRUST_PROXY_HOPS` podem ser ajustadas no ambiente. O
+limite configurado no backend não deve superar `client_max_body_size` no Nginx.

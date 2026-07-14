@@ -78,6 +78,21 @@ describe('FitLife Sync API Integration Tests', () => {
   let exerciseId = null;
   let workoutExerciseId = null;
 
+  describe('HTTP Security', () => {
+    test('Should apply headers and omit CORS for an untrusted origin', async () => {
+      const res = await request(app)
+        .get('/api/auth/me')
+        .set('Origin', 'https://untrusted.example');
+
+      expect(res.statusCode).toBe(401);
+      expect(res.headers['x-content-type-options']).toBe('nosniff');
+      expect(res.headers['x-frame-options']).toBe('DENY');
+      expect(res.headers['permissions-policy']).toBe('camera=(), microphone=(), geolocation=()');
+      expect(res.headers['access-control-allow-origin']).toBeUndefined();
+      expect(res.headers['x-powered-by']).toBeUndefined();
+    });
+  });
+
   // ==========================================
   // 1. AUTENTICAÇÃO
   // ==========================================
