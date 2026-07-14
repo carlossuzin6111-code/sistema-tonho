@@ -1,45 +1,134 @@
-# Sistema do Tonho (FitLife Sync) 🏋️‍♂️
+# FitLife Sync
 
-Aplicativo web completo para gerenciamento de treinos entre Personal Trainers e Alunos.
+Sistema web para acompanhamento de alunos por personal trainers. O projeto reúne
+cadastro, medidas corporais, catálogo de exercícios, montagem de treinos e chat
+em tempo real.
 
-## 🚀 O que mudou nesta nova versão? (Refatoração de Arquitetura)
+> Estado atual: MVP funcional. A aplicação ainda possui limitações de segurança,
+> persistência e escalabilidade que precisam ser tratadas antes de um uso em
+> produção com dados reais.
 
-Esta versão traz mudanças profundas na base do projeto visando escalabilidade, velocidade e modularidade. Deixamos de ser um monolito simples em Node.js para nos tornarmos uma aplicação PWA robusta baseada em microsserviços via Docker.
+## Funcionalidades
 
-### 1. Separação de Frontend e Backend (Gateway Nginx)
-- **Frontend Independente:** Todos os arquivos HTML, CSS e JS que rodam no navegador foram movidos para a pasta `/frontend`.
-- **Nginx Proxy Reverso:** O aplicativo agora roda atrás de um servidor Nginx de alta performance (na porta 3000). O Nginx cuida de servir os arquivos estáticos e redireciona qualquer requisição de API invisivelmente para o backend Node.js através da rota `/api`.
-- **Prevenção de CORS:** Essa arquitetura evita dores de cabeça com bloqueios de CORS, além de permitir o funcionamento de Server-Sent Events (SSE) limpos para o chat em tempo real.
+- Autenticação JWT com perfis `personal` e `student`.
+- Cadastro e acompanhamento de alunos vinculados a um personal.
+- Histórico de medidas corporais.
+- Catálogo de exercícios e fichas de treino.
+- Chat com atualização em tempo real por Server-Sent Events (SSE).
+- Interfaces desktop e mobile em HTML, CSS e JavaScript.
+- Documentação OpenAPI disponibilizada pela própria API.
 
-### 2. Abstração de Banco de Dados com Knex.js
-- **Adeus Strings SQL Manuais:** Todas as 5 rotas (`auth`, `student`, `workout`, `exercise` e `chat`) foram refatoradas para usar o *Query Builder* do **Knex.js**.
-- **Multi-DB Ready:** O sistema ainda está rodando o prático banco local `SQLite` (via `backend/knexfile.js`), mas agora a estrutura do código está 100% pronta para migrar para bancos de dados mais potentes como `PostgreSQL` ou `MySQL` mudando apenas algumas linhas de configuração.
-- **Migração de Respostas:** O Knex encapsula e protege contra injeções SQL e normaliza as devoluções (arrays de IDs ao inserir, métodos padronizados `.first()`, `.del()`, etc).
+## Arquitetura atual
 
-### 3. Layout PWA Móvel Híbrido (Drawer Sidebar)
-- **Roteamento Inteligente:** O arquivo `index.html` agora roteia o usuário de forma autônoma: Desktop vai para `desktop.html`, Smartphone vai para `mobile.html`.
-- **Isolamento Completo (Sem Vazamento de Estilos):** Sem uso de `@media` queries mirabolantes. O layout mobile é independente, possuindo:
-  - Header fixo
-  - **Menu Lateral (Drawer):** Um menu hambúrguer animado que desliza com efeito Glassmorphism para melhor navegação.
-  - Menu Inferior (Bottom Navigation) ajustado à área segura dos iPhones (`safe-area-inset-bottom`).
+O FitLife Sync é um **monólito modular conteinerizado**, não uma arquitetura de
+microsserviços. Há uma única aplicação Node.js/Express responsável por todas as
+regras de negócio e um Nginx que serve o frontend e encaminha `/api` ao backend.
 
-## 🛠️ Tecnologias Utilizadas
-- **Node.js** (Backend API)
-- **Express.js** (Rotas da API)
-- **Knex.js** (ORM e Query Builder)
-- **SQLite3** (Banco de dados de desenvolvimento)
-- **Nginx** (Web Server / Proxy Reverso)
-- **Docker Compose** (Orquestração de Containeres)
-- **HTML5/CSS3/Vanilla JS** (Frontend)
+| Componente | Responsabilidade |
+|---|---|
+| `frontend/` | Interfaces estáticas desktop e mobile |
+| Nginx | Arquivos estáticos, proxy reverso e suporte ao SSE |
+| Express | Autenticação, alunos, medidas, treinos, exercícios e chat |
+| Knex + SQLite | Acesso e persistência dos dados |
+| Cloudflare Tunnel | Exposição externa opcional do Nginx |
 
-## 📦 Como rodar localmente
+O uso do Knex reduz o acoplamento das consultas, mas a aplicação está configurada
+e testada apenas com SQLite. Migrar para PostgreSQL ou MySQL exige revisar schema,
+migrations, tipos e retornos de inserção.
 
-1. Tenha o Docker Desktop instalado e aberto.
-2. Na raiz do projeto, rode:
+Veja a descrição detalhada em [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Estrutura do repositório
+
+```text
+.
+├── backend/
+│   ├── src/controllers/   # Regras das áreas funcionais
+│   ├── src/middleware/    # Autenticação e autorização
+│   ├── src/tests/         # Testes de integração
+│   ├── src/database.js    # Bootstrap do schema, seed e tradutor
+│   └── knexfile.js        # Conexões Knex por ambiente
+├── frontend/
+│   ├── css/
+│   ├── js/
+│   ├── desktop.html
+│   ├── mobile.html
+│   └── index.html         # Seleção da interface por dispositivo
+├── docker-compose.yml
+└── nginx.conf
+```
+
+## Executar com Docker
+
+Pré-requisitos: Docker Desktop ou Docker Engine com Docker Compose.
+
+1. Copie `.env.example` para `.env` e substitua todos os valores de exemplo.
+2. Inicie o frontend, Nginx e backend:
+
    ```bash
-   docker-compose up -d --build
+   docker compose up -d --build web app
    ```
-3. O Nginx subirá na porta 3000. Acesse no navegador:
-   ```
-   http://localhost:3000
-   ```
+
+3. Acesse `http://localhost:3000`.
+
+Para iniciar também o túnel, defina `TUNNEL_TOKEN` no `.env` e execute:
+
+```bash
+docker compose up -d --build
+```
+
+Nunca versione o `.env`, tokens do túnel, chaves de cadastro ou bancos com dados
+operacionais.
+
+## Executar e testar o backend localmente
+
+```bash
+cd backend
+npm ci
+npm test
+npm start
+```
+
+O backend usa a porta `3000` por padrão. Se o Nginx já estiver nessa porta,
+configure outra porta no ambiente antes de executar o processo local.
+
+Na branch principal atual, a inicialização da API também inicia o tradutor em
+segundo plano. Esse worker pode manter um handle aberto após os testes; trate isso
+como uma limitação conhecida, não como motivo para ocultar falhas da suíte.
+
+## Endereços úteis
+
+- Aplicação via Nginx: `http://localhost:3000`
+- Swagger UI: `http://localhost:3000/api/api-docs`
+- Especificação OpenAPI: `http://localhost:3000/api/swagger.json`
+
+## Variáveis de ambiente
+
+| Variável | Uso | Padrão atual |
+|---|---|---|
+| `PORT` | Porta interna do backend | `3000` |
+| `NODE_ENV` | Ambiente do Node.js | `development` no Compose |
+| `JWT_SECRET` | Assinatura dos tokens JWT | Deve ser substituído por segredo forte |
+| `DB_PATH` | Caminho do arquivo SQLite | `/app/data/database.sqlite` no Compose |
+| `TUNNEL_TOKEN` | Credencial do Cloudflare Tunnel | Sem valor seguro padrão |
+
+## Limitações conhecidas da versão atual
+
+- O schema é criado durante a inicialização, sem migrations versionadas reais.
+- O tradutor de exercícios roda em loop dentro do processo HTTP.
+- O armazenamento e o transporte do JWT no frontend precisam de hardening.
+- SQLite atende ao MVP, mas limita concorrência e escala horizontal.
+- O frontend é responsivo, porém não possui manifest ou service worker; portanto,
+  ainda não é uma PWA instalável.
+- O túnel torna a aplicação pública e só deve ser habilitado em ambiente
+  devidamente protegido.
+
+## Codificação de texto
+
+Arquivos de texto devem ser salvos em UTF-8 com finais de linha LF. As regras
+estão em `.editorconfig` e `.gitattributes`. No Windows PowerShell 5.1, use
+`Get-Content arquivo -Encoding UTF8` para evitar que texto UTF-8 seja exibido
+como mojibake.
+
+Para diagnóstico de acesso pela rede local, consulte
+[mobile_access_troubleshooting.md](mobile_access_troubleshooting.md).
