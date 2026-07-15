@@ -1,7 +1,15 @@
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fitlife_sync_super_secret_key_123';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
+
+if (Buffer.byteLength(JWT_SECRET, 'utf8') < 32) {
+  throw new Error('JWT_SECRET must contain at least 32 bytes');
+}
 const SESSION_COOKIE = 'fitlife_session';
 const CSRF_COOKIE = 'fitlife_csrf';
 const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;

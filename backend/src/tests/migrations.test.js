@@ -14,12 +14,8 @@ const applicationTables = [
 
 const migrations = [
   '202607140001_initial_schema.js',
+  '202607140002_add_query_indexes.js',
   '202607140003_create_registration_keys.js'
-];
-
-const migrations = [
-  '202607140001_initial_schema.js',
-  '202607140002_add_query_indexes.js'
 ];
 
 function createDatabase() {

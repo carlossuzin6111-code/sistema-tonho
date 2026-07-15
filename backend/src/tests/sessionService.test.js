@@ -1,3 +1,5 @@
+process.env.JWT_SECRET = 'test-only-jwt-secret-with-at-least-32-bytes';
+
 const {
   CSRF_COOKIE,
   SESSION_COOKIE,

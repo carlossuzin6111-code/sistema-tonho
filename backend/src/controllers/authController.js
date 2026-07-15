@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const db = require('../database');
-const { JWT_SECRET } = require('../middleware/auth');
 const { findUnusedAccessKeyId } = require('../services/accessKeyService');
+const { clearSessionCookies, setSessionCookies } = require('../services/sessionService');
 
 class RegistrationError extends Error {
   constructor(code) {
