@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Backend API for Personal Trainer and Student Management System",
   "main": "src/index.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node src/index.js",
     "dev": "node src/index.js",
@@ -25,5 +28,8 @@
   "devDependencies": {
     "jest": "^30.4.2",
     "supertest": "^7.2.2"
+  },
+  "allowScripts": {
+    "sqlite3@5.1.7": true
   }
 }
