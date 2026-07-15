@@ -34,7 +34,7 @@ setupSwagger(app);
  * /auth/register:
  *   post:
  *     summary: Registra um novo Personal Trainer
- *     description: Cria uma nova conta de Personal Trainer. Requer uma chave de acesso válida contida no arquivo keys_aut.json do servidor.
+ *     description: Cria uma nova conta de Personal Trainer. Requer uma chave de acesso válida, não utilizada e armazenada com hash no banco.
  *     tags:
  *       - Autenticação
  *     requestBody:
