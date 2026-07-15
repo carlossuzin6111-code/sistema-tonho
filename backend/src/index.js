@@ -671,6 +671,8 @@ app.get('/api/chat/stream', authenticateToken, chatController.handleChatStream);
  *     responses:
  *       200:
  *         description: Histórico ou lista de conversas.
+ *       403:
+ *         description: Usuário sem permissão para acessar esta conversa.
  *       500:
  *         description: Erro interno do servidor.
  */
@@ -707,6 +709,8 @@ app.get('/api/chat/:userId?', authenticateToken, chatController.getMessages);
  *         description: Mensagem enviada com sucesso.
  *       400:
  *         description: Destinatário ou mensagem ausentes.
+ *       403:
+ *         description: Usuário sem permissão para enviar mensagem ao destinatário.
  *       500:
  *         description: Erro interno do servidor.
  */
