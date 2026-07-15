@@ -29,6 +29,25 @@ services:
       - DB_PATH=${DB_PATH:-/app/data/database.sqlite}
     restart: always
 
+  translation-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fitlife_translation_worker
+    command: npm run worker:translate
+    volumes:
+      - db-data:/app/data
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - DB_PATH=${DB_PATH:-/app/data/database.sqlite}
+      - TRANSLATION_POLL_INTERVAL_MS=${TRANSLATION_POLL_INTERVAL_MS:-15000}
+      - TRANSLATION_WORK_INTERVAL_MS=${TRANSLATION_WORK_INTERVAL_MS:-800}
+      - TRANSLATION_RETRY_DELAY_MS=${TRANSLATION_RETRY_DELAY_MS:-5000}
+      - TRANSLATION_CLAIM_TIMEOUT_MS=${TRANSLATION_CLAIM_TIMEOUT_MS:-300000}
+    depends_on:
+      - app
+    restart: always
+
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: fitlife_tunnel
