@@ -52,42 +52,34 @@ async function loadPersonalStudents() {
       const weightVal = student.latest_weight ? `${student.latest_weight} kg` : 'N/A';
       const heightVal = student.height ? `${student.height} m` : 'N/A';
 
-      // Unread message badge
-      const unreadBadge = student.unread_messages > 0 
-        ? `<div class="badge-unread-chat">${student.unread_messages}</div>` 
-        : '';
+      if (student.unread_messages > 0) {
+        card.appendChild(SafeDOM.el('div', { className: 'badge-unread-chat', text: student.unread_messages }));
+      }
 
-      card.innerHTML = `
-        ${unreadBadge}
-        <div class="student-card-header">
-          <div class="avatar">${student.name.charAt(0).toUpperCase()}</div>
-          <div>
-            <h3>${student.name}</h3>
-            <p>${student.email}</p>
-          </div>
-        </div>
+      const studentName = String(student.name ?? '');
+      card.appendChild(SafeDOM.el('div', { className: 'student-card-header' }, [
+        SafeDOM.el('div', { className: 'avatar', text: studentName.charAt(0).toUpperCase() }),
+        SafeDOM.el('div', {}, [
+          SafeDOM.el('h3', { text: studentName }),
+          SafeDOM.el('p', { text: student.email })
+        ])
+      ]));
 
-        <div class="student-stats-row">
-          <div class="student-stat">
-            <span class="student-stat-title">Peso Atual</span>
-            <span class="student-stat-value">${weightVal}</span>
-          </div>
-          <div class="student-stat">
-            <span class="student-stat-title">Altura</span>
-            <span class="student-stat-value">${heightVal}</span>
-          </div>
-          <div class="student-stat">
-            <span class="student-stat-title">Idade</span>
-            <span class="student-stat-value">${ageText}</span>
-          </div>
-        </div>
+      const stat = (label, value) => SafeDOM.el('div', { className: 'student-stat' }, [
+        SafeDOM.el('span', { className: 'student-stat-title', text: label }),
+        SafeDOM.el('span', { className: 'student-stat-value', text: value })
+      ]);
+      card.appendChild(SafeDOM.el('div', { className: 'student-stats-row' }, [
+        stat('Peso Atual', weightVal),
+        stat('Altura', heightVal),
+        stat('Idade', ageText)
+      ]));
 
-        <div class="student-card-actions">
-          <button class="btn btn-primary btn-full btn-sm" onclick="openStudentDetails(${student.id})">
-            <i data-lucide="eye"></i> Acompanhar Aluno
-          </button>
-        </div>
-      `;
+      const detailsButton = SafeDOM.el('button', {
+        className: 'btn btn-primary btn-full btn-sm',
+        on: { click: () => openStudentDetails(student.id) }
+      }, [SafeDOM.icon('eye'), ' Acompanhar Aluno']);
+      card.appendChild(SafeDOM.el('div', { className: 'student-card-actions' }, [detailsButton]));
 
       grid.appendChild(card);
     });
@@ -103,12 +95,8 @@ async function loadPersonalStudents() {
 
     lucide.createIcons();
   } catch (err) {
-    grid.innerHTML = `
-      <div class="info-alert" style="grid-column: 1 / -1; border-color: var(--danger); background: rgba(239, 68, 68, 0.05); color: var(--danger);">
-        <i data-lucide="alert-circle"></i>
-        <span>Erro ao carregar lista de alunos: ${err.message}</span>
-      </div>
-    `;
+    SafeDOM.clear(grid);
+    grid.appendChild(SafeDOM.errorAlert('Erro ao carregar lista de alunos: ', err.message, { gridColumn: '1 / -1' }));
     lucide.createIcons();
   }
 }
@@ -233,76 +221,69 @@ function renderPersonalStudentWorkouts(workouts) {
     const card = document.createElement('div');
     card.className = 'workout-card glass';
 
-    let exercisesRows = '';
-    if (workout.exercises.length === 0) {
-      exercisesRows = `
-        <div class="no-data-msg" style="padding: 10px;">
-          Nenhum exercício cadastrado nesta ficha.
-        </div>
-      `;
-    } else {
-      workout.exercises.forEach(ex => {
-        const weightText = ex.weight ? ex.weight : 'N/A';
-        const restText = ex.rest_time ? ex.rest_time : 'N/A';
-        const noteText = ex.notes ? `<div class="exercise-notes">${ex.notes}</div>` : '';
-        
-        const executionBtn = ex.gif_url 
-          ? `<button class="btn-pill-action" onclick="openExerciseExecutionModal('${ex.name.replace(/'/g, "\\'")}', '${ex.gif_url}', '${(ex.exercise_description || '').replace(/'/g, "\\'")}')" style="margin-left: 8px;"><i data-lucide="play-circle"></i> Execução</button>` 
-          : '';
-
-        exercisesRows += `
-          <div class="exercise-row">
-            <div class="exercise-row-info">
-              <div>
-                <span class="exercise-name">${ex.name}</span>${executionBtn}
-                ${noteText}
-              </div>
-              <div class="exercise-stats">
-                <div class="exercise-stat-box">
-                  <span class="exercise-stat-label">Séries</span>
-                  <span class="exercise-stat-value">${ex.sets}</span>
-                </div>
-                <div class="exercise-stat-box">
-                  <span class="exercise-stat-label">Reps</span>
-                  <span class="exercise-stat-value">${ex.reps}</span>
-                </div>
-                <div class="exercise-stat-box">
-                  <span class="exercise-stat-label">Carga</span>
-                  <span class="exercise-stat-value">${weightText}</span>
-                </div>
-                <div class="exercise-stat-box">
-                  <span class="exercise-stat-label">Pausa</span>
-                  <span class="exercise-stat-value">${restText}</span>
-                </div>
-              </div>
-            </div>
-            <button class="btn-icon text-danger" onclick="deletePersonalExercise(${ex.id})" title="Remover Exercício">
-              <i data-lucide="trash-2"></i>
-            </button>
-          </div>
-        `;
-      });
+    const titleBlock = SafeDOM.el('div', {}, [
+      SafeDOM.el('span', { className: 'workout-title', text: workout.name })
+    ]);
+    if (workout.description) {
+      titleBlock.appendChild(SafeDOM.el('p', { className: 'workout-desc', text: workout.description }));
     }
 
-    card.innerHTML = `
-      <div class="workout-header">
-        <div>
-          <span class="workout-title">${workout.name}</span>
-          ${workout.description ? `<p class="workout-desc">${workout.description}</p>` : ''}
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <button class="btn btn-accent btn-sm" onclick="openAddExercise(${workout.id})">
-            <i data-lucide="plus"></i> Exercício
-          </button>
-          <button class="btn btn-danger btn-sm" onclick="deletePersonalWorkout(${workout.id})">
-            <i data-lucide="trash-2"></i> Excluir Treino
-          </button>
-        </div>
-      </div>
-      <div class="exercises-list">
-        ${exercisesRows}
-      </div>
-    `;
+    const addButton = SafeDOM.el('button', {
+      className: 'btn btn-accent btn-sm',
+      on: { click: () => openAddExercise(workout.id) }
+    }, [SafeDOM.icon('plus'), ' Exercício']);
+    const deleteButton = SafeDOM.el('button', {
+      className: 'btn btn-danger btn-sm',
+      on: { click: () => deletePersonalWorkout(workout.id) }
+    }, [SafeDOM.icon('trash-2'), ' Excluir Treino']);
+    card.appendChild(SafeDOM.el('div', { className: 'workout-header' }, [
+      titleBlock,
+      SafeDOM.el('div', { style: { display: 'flex', gap: '8px' } }, [addButton, deleteButton])
+    ]));
+
+    const exercisesList = SafeDOM.el('div', { className: 'exercises-list' });
+    if (workout.exercises.length === 0) {
+      exercisesList.appendChild(SafeDOM.el('div', {
+        className: 'no-data-msg',
+        text: 'Nenhum exercício cadastrado nesta ficha.',
+        style: { padding: '10px' }
+      }));
+    } else {
+      workout.exercises.forEach(ex => {
+        const nameBlock = SafeDOM.el('div', {}, [
+          SafeDOM.el('span', { className: 'exercise-name', text: ex.name })
+        ]);
+        if (ex.gif_url) {
+          nameBlock.appendChild(SafeDOM.el('button', {
+            className: 'btn-pill-action',
+            style: { marginLeft: '8px' },
+            on: { click: () => openExerciseExecutionModal(ex.name, ex.gif_url, ex.exercise_description || '') }
+          }, [SafeDOM.icon('play-circle'), ' Execução']));
+        }
+        if (ex.notes) nameBlock.appendChild(SafeDOM.el('div', { className: 'exercise-notes', text: ex.notes }));
+
+        const stat = (label, value) => SafeDOM.el('div', { className: 'exercise-stat-box' }, [
+          SafeDOM.el('span', { className: 'exercise-stat-label', text: label }),
+          SafeDOM.el('span', { className: 'exercise-stat-value', text: value })
+        ]);
+        const info = SafeDOM.el('div', { className: 'exercise-row-info' }, [
+          nameBlock,
+          SafeDOM.el('div', { className: 'exercise-stats' }, [
+            stat('Séries', ex.sets),
+            stat('Reps', ex.reps),
+            stat('Carga', ex.weight || 'N/A'),
+            stat('Pausa', ex.rest_time || 'N/A')
+          ])
+        ]);
+        const removeButton = SafeDOM.el('button', {
+          className: 'btn-icon text-danger',
+          attrs: { title: 'Remover Exercício' },
+          on: { click: () => deletePersonalExercise(ex.id) }
+        }, [SafeDOM.icon('trash-2')]);
+        exercisesList.appendChild(SafeDOM.el('div', { className: 'exercise-row' }, [info, removeButton]));
+      });
+    }
+    card.appendChild(exercisesList);
 
     listContainer.appendChild(card);
   });
@@ -331,39 +312,27 @@ function renderPersonalStudentMeasurements(measurements) {
   measurements.forEach(m => {
     const row = document.createElement('tr');
     const dateFormatted = new Date(m.recorded_at).toLocaleDateString('pt-BR');
-    
-    row.innerHTML = `
-      <td>${dateFormatted}</td>
-      <td style="font-weight:600; color:var(--accent-secondary);">${m.weight} kg</td>
-      <td>${m.chest ? `${m.chest} cm` : '-'}</td>
-      <td>${m.waist ? `${m.waist} cm` : '-'}</td>
-      <td>${m.hips ? `${m.hips} cm` : '-'}</td>
-      <td>${m.biceps_l || '-'} / ${m.biceps_r || '-'}</td>
-      <td>${m.thigh_l || '-'} / ${m.thigh_r || '-'}</td>
-    `;
+    SafeDOM.appendChildren(row, [
+      SafeDOM.el('td', { text: dateFormatted }),
+      SafeDOM.el('td', { text: `${m.weight} kg`, style: { fontWeight: '600', color: 'var(--accent-secondary)' } }),
+      SafeDOM.el('td', { text: m.chest ? `${m.chest} cm` : '-' }),
+      SafeDOM.el('td', { text: m.waist ? `${m.waist} cm` : '-' }),
+      SafeDOM.el('td', { text: m.hips ? `${m.hips} cm` : '-' }),
+      SafeDOM.el('td', { text: `${m.biceps_l || '-'} / ${m.biceps_r || '-'}` }),
+      SafeDOM.el('td', { text: `${m.thigh_l || '-'} / ${m.thigh_r || '-'}` })
+    ]);
     tbody.appendChild(row);
   });
 
   // Load latest metrics preview
   const latest = measurements[0];
-  metricsGrid.innerHTML = `
-    <div class="metric-item">
-      <span class="metric-label">Peso</span>
-      <span class="metric-value">${latest.weight} kg</span>
-    </div>
-    <div class="metric-item">
-      <span class="metric-label">Cintura</span>
-      <span class="metric-value">${latest.waist ? `${latest.waist} cm` : '-'}</span>
-    </div>
-    <div class="metric-item">
-      <span class="metric-label">Tórax</span>
-      <span class="metric-value">${latest.chest ? `${latest.chest} cm` : '-'}</span>
-    </div>
-    <div class="metric-item">
-      <span class="metric-label">Quadril</span>
-      <span class="metric-value">${latest.hips ? `${latest.hips} cm` : '-'}</span>
-    </div>
-  `;
+  SafeDOM.clear(metricsGrid);
+  SafeDOM.appendChildren(metricsGrid, [
+    SafeDOM.metricItem('Peso', `${latest.weight} kg`),
+    SafeDOM.metricItem('Cintura', latest.waist ? `${latest.waist} cm` : '-'),
+    SafeDOM.metricItem('Tórax', latest.chest ? `${latest.chest} cm` : '-'),
+    SafeDOM.metricItem('Quadril', latest.hips ? `${latest.hips} cm` : '-')
+  ]);
 
   // Plot chart data
   // Reverse measurements to get chronological order for plotting
@@ -380,8 +349,13 @@ function plotSvgChart(containerId, dataPoints) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  if (dataPoints.length === 0) {
-    container.innerHTML = `<p class="no-data-msg">Nenhum dado disponível para plotagem.</p>`;
+  const normalizedPoints = dataPoints
+    .map(point => ({ label: String(point.label ?? ''), value: Number(point.value) }))
+    .filter(point => Number.isFinite(point.value));
+
+  if (normalizedPoints.length === 0) {
+    SafeDOM.clear(container);
+    container.appendChild(SafeDOM.el('p', { className: 'no-data-msg', text: 'Nenhum dado disponível para plotagem.' }));
     return;
   }
 
@@ -393,7 +367,7 @@ function plotSvgChart(containerId, dataPoints) {
   const chartHeight = height - padding * 2;
 
   // Extract min and max values to scale chart
-  const weights = dataPoints.map(d => d.value);
+  const weights = normalizedPoints.map(d => d.value);
   let maxVal = Math.max(...weights);
   let minVal = Math.min(...weights);
   
@@ -403,8 +377,8 @@ function plotSvgChart(containerId, dataPoints) {
   const valRange = maxVal - minVal;
 
   // Calculate coordinates
-  const coords = dataPoints.map((d, index) => {
-    const x = padding + (index / Math.max(1, dataPoints.length - 1)) * chartWidth;
+  const coords = normalizedPoints.map((d, index) => {
+    const x = padding + (index / Math.max(1, normalizedPoints.length - 1)) * chartWidth;
     const y = padding + chartHeight - ((d.value - minVal) / (valRange || 1)) * chartHeight;
     return { x, y, label: d.label, val: d.value };
   });
@@ -418,66 +392,51 @@ function plotSvgChart(containerId, dataPoints) {
   // Build area under the line path
   const areaD = `${pathD} L ${coords[coords.length - 1].x} ${padding + chartHeight} L ${coords[0].x} ${padding + chartHeight} Z`;
 
+  const svg = SafeDOM.svgEl('svg', {
+    class: 'chart-svg',
+    viewBox: `0 0 ${width} ${height}`,
+    width: '100%',
+    height: '100%'
+  });
+
   // Draw grid lines
-  let gridLines = '';
   const gridSteps = 3;
   for (let i = 0; i <= gridSteps; i++) {
     const y = padding + (i / gridSteps) * chartHeight;
     const val = maxVal - (i / gridSteps) * valRange;
-    gridLines += `
-      <line class="chart-grid-line" x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}" />
-      <text class="chart-axis-text" x="${padding - 5}" y="${y + 3}" text-anchor="end">${val.toFixed(1)}</text>
-    `;
+    svg.appendChild(SafeDOM.svgEl('line', {
+      class: 'chart-grid-line', x1: padding, y1: y, x2: width - padding, y2: y
+    }));
+    svg.appendChild(SafeDOM.svgEl('text', {
+      class: 'chart-axis-text', x: padding - 5, y: y + 3, 'text-anchor': 'end'
+    }, val.toFixed(1)));
   }
 
+  svg.appendChild(SafeDOM.svgEl('path', { class: 'chart-area', d: areaD }));
+  svg.appendChild(SafeDOM.svgEl('path', { class: 'chart-line', d: pathD }));
+
+  // Interactive dots
+  coords.forEach(coord => {
+    const circle = SafeDOM.svgEl('circle', {
+      class: 'chart-dot', cx: coord.x, cy: coord.y, r: 4, 'data-val': coord.val
+    });
+    circle.appendChild(SafeDOM.svgEl('title', {}, `${coord.label}: ${coord.val} kg`));
+    svg.appendChild(circle);
+  });
+
   // Draw x-axis labels
-  let labels = '';
   // Avoid rendering too many labels if array is huge
-  const labelInterval = Math.max(1, Math.ceil(dataPoints.length / 5));
+  const labelInterval = Math.max(1, Math.ceil(normalizedPoints.length / 5));
   coords.forEach((coord, i) => {
     if (i % labelInterval === 0 || i === coords.length - 1) {
-      labels += `
-        <text class="chart-axis-text" x="${coord.x}" y="${height - 10}" text-anchor="middle">${coord.label}</text>
-      `;
+      svg.appendChild(SafeDOM.svgEl('text', {
+        class: 'chart-axis-text', x: coord.x, y: height - 10, 'text-anchor': 'middle'
+      }, coord.label));
     }
   });
 
-  // Interactive dots
-  let dots = '';
-  coords.forEach(coord => {
-    dots += `
-      <circle class="chart-dot" cx="${coord.cx || coord.x}" cy="${coord.cy || coord.y}" r="4" data-val="${coord.val}" title="${coord.val} kg">
-        <title>${coord.label}: ${coord.val} kg</title>
-      </circle>
-    `;
-  });
-
-  // Construct final SVG
-  container.innerHTML = `
-    <svg class="chart-svg" viewBox="0 0 ${width} ${height}" width="100%" height="100%">
-      <defs>
-        <linearGradient id="chart-gradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="var(--accent-primary)" stop-opacity="0.3"/>
-          <stop offset="100%" stop-color="var(--accent-primary)" stop-opacity="0"/>
-        </linearGradient>
-      </defs>
-      
-      <!-- Grid -->
-      ${gridLines}
-      
-      <!-- Area Under Chart -->
-      <path class="chart-area" d="${areaD}" />
-      
-      <!-- Line Path -->
-      <path class="chart-line" d="${pathD}" />
-      
-      <!-- Dots -->
-      ${dots}
-      
-      <!-- Labels -->
-      ${labels}
-    </svg>
-  `;
+  SafeDOM.clear(container);
+  container.appendChild(svg);
 }
 
 // Workout & Exercises API Triggers
@@ -651,24 +610,31 @@ async function loadPersonalChatThreads() {
       const thread = document.createElement('div');
       thread.className = `chat-thread-item ${activeChatStudentId === student.id ? 'active' : ''}`;
       thread.onclick = () => openPersonalChatThread(student.id, student.name);
-
-      const unreadBadge = student.unread_messages > 0 
-        ? `<span class="badge-count" style="margin-left: 10px;">${student.unread_messages}</span>` 
-        : '';
-
-      thread.innerHTML = `
-        <div class="avatar">${student.name.charAt(0).toUpperCase()}</div>
-        <div class="thread-details">
-          <div class="thread-name">${student.name}</div>
-          <div class="thread-preview">Ver histórico de conversa...</div>
-        </div>
-        ${unreadBadge}
-      `;
+      const studentName = String(student.name ?? '');
+      SafeDOM.appendChildren(thread, [
+        SafeDOM.el('div', { className: 'avatar', text: studentName.charAt(0).toUpperCase() }),
+        SafeDOM.el('div', { className: 'thread-details' }, [
+          SafeDOM.el('div', { className: 'thread-name', text: studentName }),
+          SafeDOM.el('div', { className: 'thread-preview', text: 'Ver histórico de conversa...' })
+        ])
+      ]);
+      if (student.unread_messages > 0) {
+        thread.appendChild(SafeDOM.el('span', {
+          className: 'badge-count',
+          text: student.unread_messages,
+          style: { marginLeft: '10px' }
+        }));
+      }
       list.appendChild(thread);
     });
 
   } catch (err) {
-    list.innerHTML = `<p class="no-data-msg" style="color:var(--danger);">${err.message}</p>`;
+    SafeDOM.clear(list);
+    list.appendChild(SafeDOM.el('p', {
+      className: 'no-data-msg',
+      text: err.message,
+      style: { color: 'var(--danger)' }
+    }));
   }
 }
 
@@ -707,12 +673,9 @@ async function openPersonalChatThread(studentId, studentName) {
       `;
     } else {
       messages.forEach(msg => {
-        const bubble = document.createElement('div');
         const isMe = msg.sender_id.toString() !== studentId.toString();
-        bubble.className = `chat-bubble ${isMe ? 'sent' : 'received'}`;
-        
         const time = new Date(msg.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        bubble.innerHTML = `${msg.message} <span class="chat-time">${time}</span>`;
+        const bubble = SafeDOM.chatBubble(msg.message, time, isMe ? 'sent' : 'received');
         chatMessagesBox.appendChild(bubble);
       });
     }
@@ -761,12 +724,9 @@ function appendPersonalLiveMessage(message) {
     const emptyMsg = chatMessagesBox.querySelector('.no-data-msg');
     if (emptyMsg) emptyMsg.remove();
 
-    const bubble = document.createElement('div');
     const isMe = message.sender_id.toString() !== activeChatStudentId.toString();
-    bubble.className = `chat-bubble ${isMe ? 'sent' : 'received'}`;
-    
     const time = new Date(message.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    bubble.innerHTML = `${message.message} <span class="chat-time">${time}</span>`;
+    const bubble = SafeDOM.chatBubble(message.message, time, isMe ? 'sent' : 'received');
     chatMessagesBox.appendChild(bubble);
     chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
 
@@ -849,39 +809,47 @@ async function loadPersonalExercises() {
     list.forEach(ex => {
       const card = document.createElement('div');
       card.className = 'exercise-db-card glass';
-
-      const thumb = ex.gif_url 
-        ? `<img src="${ex.gif_url}" class="exercise-thumb" alt="Exercício" />`
-        : `<div class="exercise-thumb" style="display:flex; align-items:center; justify-content:center;"><i data-lucide="dumbbell" style="width:18px; color:var(--text-muted);"></i></div>`;
-
       const descText = ex.description ? ex.description : 'Sem orientações técnicas cadastradas.';
+      const image = SafeDOM.el('img', {
+        className: 'exercise-thumb',
+        attrs: { alt: 'Exercício' }
+      });
+      const hasSafeImage = SafeDOM.setSafeImageSource(image, ex.gif_url);
+      const thumb = hasSafeImage
+        ? image
+        : SafeDOM.el('div', {
+            className: 'exercise-thumb',
+            style: { display: 'flex', alignItems: 'center', justifyContent: 'center' }
+          }, [SafeDOM.icon('dumbbell')]);
 
-      card.innerHTML = `
-        <div class="exercise-db-info">
-          ${thumb}
-          <div class="exercise-db-details">
-            <h4>${ex.name}</h4>
-            <p>${descText}</p>
-          </div>
-        </div>
-        <div style="display:flex; gap:6px;">
-          ${ex.gif_url ? `<button class="btn btn-tertiary btn-sm" onclick="openExerciseExecutionModal('${ex.name.replace(/'/g, "\\'")}', '${ex.gif_url}', '${descText.replace(/'/g, "\\'")}')" title="Testar Popup"><i data-lucide="eye"></i></button>` : ''}
-          <button class="btn btn-danger btn-sm" onclick="deleteCatalogExercise(${ex.id})" title="Excluir da Biblioteca">
-            <i data-lucide="trash-2"></i>
-          </button>
-        </div>
-      `;
+      const info = SafeDOM.el('div', { className: 'exercise-db-info' }, [
+        thumb,
+        SafeDOM.el('div', { className: 'exercise-db-details' }, [
+          SafeDOM.el('h4', { text: ex.name }),
+          SafeDOM.el('p', { text: descText })
+        ])
+      ]);
+      const actions = SafeDOM.el('div', { style: { display: 'flex', gap: '6px' } });
+      if (hasSafeImage) {
+        actions.appendChild(SafeDOM.el('button', {
+          className: 'btn btn-tertiary btn-sm',
+          attrs: { title: 'Testar Popup' },
+          on: { click: () => openExerciseExecutionModal(ex.name, ex.gif_url, descText) }
+        }, [SafeDOM.icon('eye')]));
+      }
+      actions.appendChild(SafeDOM.el('button', {
+        className: 'btn btn-danger btn-sm',
+        attrs: { title: 'Excluir da Biblioteca' },
+        on: { click: () => deleteCatalogExercise(ex.id) }
+      }, [SafeDOM.icon('trash-2')]));
+      SafeDOM.appendChildren(card, [info, actions]);
       container.appendChild(card);
     });
 
     lucide.createIcons();
   } catch (err) {
-    container.innerHTML = `
-      <div class="info-alert" style="grid-column: 1 / -1; border-color: var(--danger); background: rgba(239, 68, 68, 0.05); color: var(--danger);">
-        <i data-lucide="alert-circle"></i>
-        <span>Erro ao carregar catálogo: ${err.message}</span>
-      </div>
-    `;
+    SafeDOM.clear(container);
+    container.appendChild(SafeDOM.errorAlert('Erro ao carregar catálogo: ', err.message, { gridColumn: '1 / -1' }));
     lucide.createIcons();
   }
 }
