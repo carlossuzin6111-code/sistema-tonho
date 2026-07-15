@@ -12,7 +12,7 @@ const originalWriteFileSync = fs.writeFileSync;
 
 let server;
 
-beforeAll((done) => {
+beforeAll(async () => {
   // Mock keys_aut.json read/write to avoid consuming actual keys
   fs.readFileSync = jest.fn((filePath, options) => {
     if (filePath.endsWith('keys_aut.json')) {
@@ -28,8 +28,13 @@ beforeAll((done) => {
     return originalWriteFileSync(filePath, data, options);
   });
 
-  // Start temporary HTTP server on port 3001 for SSE tests
-  server = app.listen(3001, done);
+  await db.ready;
+
+  // Let the operating system select a free port for SSE tests.
+  await new Promise((resolve, reject) => {
+    server = app.listen(0, '127.0.0.1', resolve);
+    server.once('error', reject);
+  });
 });
 
 afterAll(async () => {
@@ -37,13 +42,13 @@ afterAll(async () => {
   fs.readFileSync = originalReadFileSync;
   fs.writeFileSync = originalWriteFileSync;
   
-  // Close Knex connection to prevent leaks
-  await db.destroy();
-
   // Close the temporary server
   if (server) {
     await new Promise((resolve) => server.close(resolve));
   }
+
+  // Close Knex connection to prevent leaks
+  await db.destroy();
 });
 
 describe('FitLife Sync API Integration Tests', () => {
@@ -525,8 +530,8 @@ describe('FitLife Sync API Integration Tests', () => {
 
     test('Should open real-time SSE chat connection', (done) => {
       http.get({
-        hostname: 'localhost',
-        port: 3001,
+        hostname: '127.0.0.1',
+        port: server.address().port,
         path: '/api/chat/stream',
         headers: {
           'Authorization': `Bearer ${studentToken}`
