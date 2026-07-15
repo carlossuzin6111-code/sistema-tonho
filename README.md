@@ -16,6 +16,30 @@ Esta versão traz mudanças profundas na base do projeto visando escalabilidade,
 - **Multi-DB Ready:** O sistema ainda está rodando o prático banco local `SQLite` (via `backend/knexfile.js`), mas agora a estrutura do código está 100% pronta para migrar para bancos de dados mais potentes como `PostgreSQL` ou `MySQL` mudando apenas algumas linhas de configuração.
 - **Migração de Respostas:** O Knex encapsula e protege contra injeções SQL e normaliza as devoluções (arrays de IDs ao inserir, métodos padronizados `.first()`, `.del()`, etc).
 
+#### Migrations do banco
+
+O schema é versionado em `backend/src/db/migrations`. A aplicação executa automaticamente as migrations pendentes antes de abrir a porta HTTP. Para operar manualmente:
+
+```bash
+cd backend
+npm run migrate
+npm run migrate:status
+npm run migrate:rollback
+```
+
+Defina `NODE_ENV` para selecionar o ambiente do `knexfile.js` e `DB_PATH` para indicar o arquivo SQLite em desenvolvimento ou produção. O rollback remove as tabelas da aplicação e deve ser usado somente com backup e autorização do responsável pelos dados.
+
+#### Chaves de cadastro
+
+As chaves de cadastro são geradas com 256 bits de entropia criptográfica, armazenadas no banco somente como hashes SHA-256 e consumidas na mesma transação que cria o personal. Para gerar uma chave:
+
+```bash
+cd backend
+npm run access-key:create
+```
+
+O valor é exibido uma única vez. Armazene-o em um canal seguro e não o inclua em commits, logs ou tickets. As chaves do antigo `keys_aut.json` não são importadas automaticamente: como foram versionadas, devem ser revogadas e substituídas por novas chaves após alinhamento com o mantenedor.
+
 ### 3. Layout PWA Móvel Híbrido (Drawer Sidebar)
 - **Roteamento Inteligente:** O arquivo `index.html` agora roteia o usuário de forma autônoma: Desktop vai para `desktop.html`, Smartphone vai para `mobile.html`.
 - **Isolamento Completo (Sem Vazamento de Estilos):** Sem uso de `@media` queries mirabolantes. O layout mobile é independente, possuindo:
@@ -44,14 +68,17 @@ Esta versão traz mudanças profundas na base do projeto visando escalabilidade,
    http://localhost:3000
    ```
 
-## Segurança HTTP
+## Configuração segura antes de iniciar
 
-O backend aplica headers defensivos, limita o corpo JSON e restringe tentativas
-malsucedidas de login/cadastro. Por padrão, chamadas sem cabeçalho `Origin`
-(mesma origem, CLI e integrações servidor-servidor) continuam permitidas; para
-autorizar um frontend em outra origem, defina `CORS_ORIGINS` com uma lista
-separada por vírgulas.
+1. Copie `.env.example` para `.env`.
+2. Gere um segredo JWT aleatório com pelo menos 32 bytes. Por exemplo:
+   ```bash
+   openssl rand -base64 48
+   ```
+3. Preencha `JWT_SECRET` no `.env` com o valor gerado. A aplicação recusa segredos ausentes ou menores que 32 bytes. Não reutilize o antigo valor padrão.
+4. Copie `backend/keys_aut.example.json` para `backend/keys_aut.json` e adicione somente as chaves de cadastro necessárias ao ambiente local.
+5. Mantenha `.env`, `backend/keys_aut.json` e bancos SQLite fora do Git. Esses arquivos já estão listados no `.gitignore` e no `.dockerignore`.
 
-As opções `JSON_BODY_LIMIT`, `AUTH_RATE_LIMIT_WINDOW_MS`,
-`AUTH_RATE_LIMIT_MAX` e `TRUST_PROXY_HOPS` podem ser ajustadas no ambiente. O
-limite configurado no backend não deve superar `client_max_body_size` no Nginx.
+O Docker Compose monta `backend/keys_aut.json` no container sem incorporá-lo à imagem. Crie o arquivo antes de executar `docker-compose up`.
+
+Se o segredo padrão ou as chaves anteriormente versionadas tiverem sido usados, eles devem ser rotacionados pelo mantenedor. A remoção do histórico Git exige coordenação separada e não deve ser feita em uma contribuição comum sem aprovação explícita.
