@@ -1,4 +1,5 @@
 process.env.NODE_ENV = 'test';
+process.env.JWT_SECRET = 'test-only-jwt-secret-with-at-least-32-bytes';
 const request = require('supertest');
 const app = require('../index');
 const db = require('../database');

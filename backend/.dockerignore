@@ -1,2 +1,8 @@
 node_modules
 data
+.env
+keys_aut.json
+*.sqlite
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
