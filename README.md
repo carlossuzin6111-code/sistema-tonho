@@ -56,3 +56,18 @@ Defina `NODE_ENV` para selecionar o ambiente do `knexfile.js` e `DB_PATH` para i
    ```
    http://localhost:3000
    ```
+
+## Configuração segura antes de iniciar
+
+1. Copie `.env.example` para `.env`.
+2. Gere um segredo JWT aleatório com pelo menos 32 bytes. Por exemplo:
+   ```bash
+   openssl rand -base64 48
+   ```
+3. Preencha `JWT_SECRET` no `.env` com o valor gerado. A aplicação recusa segredos ausentes ou menores que 32 bytes. Não reutilize o antigo valor padrão.
+4. Copie `backend/keys_aut.example.json` para `backend/keys_aut.json` e adicione somente as chaves de cadastro necessárias ao ambiente local.
+5. Mantenha `.env`, `backend/keys_aut.json` e bancos SQLite fora do Git. Esses arquivos já estão listados no `.gitignore` e no `.dockerignore`.
+
+O Docker Compose monta `backend/keys_aut.json` no container sem incorporá-lo à imagem. Crie o arquivo antes de executar `docker-compose up`.
+
+Se o segredo padrão ou as chaves anteriormente versionadas tiverem sido usados, eles devem ser rotacionados pelo mantenedor. A remoção do histórico Git exige coordenação separada e não deve ser feita em uma contribuição comum sem aprovação explícita.

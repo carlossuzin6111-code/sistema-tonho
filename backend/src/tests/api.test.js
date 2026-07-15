@@ -1,4 +1,5 @@
 process.env.NODE_ENV = 'test';
+process.env.JWT_SECRET = 'test-only-jwt-secret-with-at-least-32-bytes';
 const request = require('supertest');
 const app = require('../index');
 const db = require('../database');
@@ -29,9 +30,10 @@ beforeAll(async () => {
 
   await db.ready;
 
-  // Start temporary HTTP server on port 3001 for SSE tests
-  await new Promise(resolve => {
-    server = app.listen(3001, resolve);
+  // Let the operating system select a free port for SSE tests.
+  await new Promise((resolve, reject) => {
+    server = app.listen(0, '127.0.0.1', resolve);
+    server.once('error', reject);
   });
 });
 
@@ -40,19 +42,23 @@ afterAll(async () => {
   fs.readFileSync = originalReadFileSync;
   fs.writeFileSync = originalWriteFileSync;
   
-  // Close Knex connection to prevent leaks
-  await db.destroy();
-
   // Close the temporary server
   if (server) {
     await new Promise((resolve) => server.close(resolve));
   }
+
+  // Close Knex connection to prevent leaks
+  await db.destroy();
 });
 
 describe('FitLife Sync API Integration Tests', () => {
   let personalToken = '';
   let studentToken = '';
   let studentId = null;
+  let otherPersonalToken = '';
+  let otherPersonalId = null;
+  let otherStudentToken = '';
+  let otherStudentId = null;
   let workoutId = null;
   let exerciseId = null;
   let workoutExerciseId = null;
@@ -392,6 +398,40 @@ describe('FitLife Sync API Integration Tests', () => {
   // 6. CHAT
   // ==========================================
   describe('Chat Endpoints', () => {
+    beforeAll(async () => {
+      const personalRes = await request(app)
+        .post('/api/auth/register')
+        .send({
+          name: 'Other Personal',
+          email: 'other_personal@fitlife.com',
+          password: 'password123',
+          accessKey: 'key_for_testing'
+        });
+      expect(personalRes.statusCode).toBe(201);
+      otherPersonalToken = personalRes.body.token;
+      otherPersonalId = personalRes.body.user.id;
+
+      const studentRes = await request(app)
+        .post('/api/personal/students')
+        .set('Authorization', `Bearer ${otherPersonalToken}`)
+        .send({
+          name: 'Other Student',
+          email: 'other_student@fitlife.com',
+          password: 'student_password123'
+        });
+      expect(studentRes.statusCode).toBe(201);
+      otherStudentId = studentRes.body.student.id;
+
+      const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: 'other_student@fitlife.com',
+          password: 'student_password123'
+        });
+      expect(loginRes.statusCode).toBe(200);
+      otherStudentToken = loginRes.body.token;
+    });
+
     test('Should send chat message (Personal Trainer)', async () => {
       const res = await request(app)
         .post('/api/chat')
@@ -433,10 +473,65 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(Array.isArray(res.body)).toBe(true);
     });
 
+    test('Should deny a Personal Trainer access to another trainer student messages', async () => {
+      const personal = await db('users')
+        .select('id')
+        .where('email', 'test_personal@fitlife.com')
+        .first();
+      const [messageId] = await db('chat_messages').insert({
+        sender_id: otherStudentId,
+        receiver_id: personal.id,
+        message: 'Cross-tenant unread fixture',
+        read_status: 0
+      });
+
+      const res = await request(app)
+        .get(`/api/chat/${otherStudentId}`)
+        .set('Authorization', `Bearer ${personalToken}`);
+
+      expect(res.statusCode).toBe(403);
+      expect(res.body).toHaveProperty('error', 'Chat access forbidden');
+
+      const message = await db('chat_messages').where('id', messageId).first();
+      expect(message.read_status).toBe(0);
+    });
+
+    test('Should deny a Personal Trainer sending messages to another trainer student', async () => {
+      const unauthorizedMessage = 'Cross-tenant message must not be stored';
+      const res = await request(app)
+        .post('/api/chat')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({
+          receiverId: otherStudentId,
+          message: unauthorizedMessage
+        });
+
+      expect(res.statusCode).toBe(403);
+      expect(res.body).toHaveProperty('error', 'Chat access forbidden');
+
+      const message = await db('chat_messages')
+        .where('message', unauthorizedMessage)
+        .first();
+      expect(message).toBeUndefined();
+    });
+
+    test('Should ignore a Student supplied receiver and use the linked Personal Trainer', async () => {
+      const res = await request(app)
+        .post('/api/chat')
+        .set('Authorization', `Bearer ${otherStudentToken}`)
+        .send({
+          receiverId: otherPersonalId + 1000,
+          message: 'Message for linked trainer only'
+        });
+
+      expect(res.statusCode).toBe(201);
+      expect(res.body.receiver_id).toBe(otherPersonalId);
+    });
+
     test('Should open real-time SSE chat connection', (done) => {
       http.get({
-        hostname: 'localhost',
-        port: 3001,
+        hostname: '127.0.0.1',
+        port: server.address().port,
         path: '/api/chat/stream',
         headers: {
           'Authorization': `Bearer ${studentToken}`
