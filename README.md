@@ -20,9 +20,36 @@ em tempo real.
 
 ## Arquitetura atual
 
-O FitLife Sync é um **monólito modular conteinerizado**, não uma arquitetura de
-microsserviços. Há uma única aplicação Node.js/Express responsável por todas as
-regras de negócio e um Nginx que serve o frontend e encaminha `/api` ao backend.
+#### Migrations do banco
+
+O schema é versionado em `backend/src/db/migrations`. A aplicação executa automaticamente as migrations pendentes antes de abrir a porta HTTP. Para operar manualmente:
+
+```bash
+cd backend
+npm run migrate
+npm run migrate:status
+npm run migrate:rollback
+```
+
+Defina `NODE_ENV` para selecionar o ambiente do `knexfile.js` e `DB_PATH` para indicar o arquivo SQLite em desenvolvimento ou produção. O rollback remove as tabelas da aplicação e deve ser usado somente com backup e autorização do responsável pelos dados.
+
+#### Chaves de cadastro
+
+As chaves de cadastro são geradas com 256 bits de entropia criptográfica, armazenadas no banco somente como hashes SHA-256 e consumidas na mesma transação que cria o personal. Para gerar uma chave:
+
+```bash
+cd backend
+npm run access-key:create
+```
+
+O valor é exibido uma única vez. Armazene-o em um canal seguro e não o inclua em commits, logs ou tickets. As chaves do antigo `keys_aut.json` não são importadas automaticamente: como foram versionadas, devem ser revogadas e substituídas por novas chaves após alinhamento com o mantenedor.
+
+### 3. Layout PWA Móvel Híbrido (Drawer Sidebar)
+- **Roteamento Inteligente:** O arquivo `index.html` agora roteia o usuário de forma autônoma: Desktop vai para `desktop.html`, Smartphone vai para `mobile.html`.
+- **Isolamento Completo (Sem Vazamento de Estilos):** Sem uso de `@media` queries mirabolantes. O layout mobile é independente, possuindo:
+  - Header fixo
+  - **Menu Lateral (Drawer):** Um menu hambúrguer animado que desliza com efeito Glassmorphism para melhor navegação.
+  - Menu Inferior (Bottom Navigation) ajustado à área segura dos iPhones (`safe-area-inset-bottom`).
 
 | Componente | Responsabilidade |
 |---|---|
@@ -69,66 +96,17 @@ Pré-requisitos: Docker Desktop ou Docker Engine com Docker Compose.
    docker compose up -d --build web app
    ```
 
-3. Acesse `http://localhost:3000`.
+## Configuração segura antes de iniciar
 
-Para iniciar também o túnel, defina `TUNNEL_TOKEN` no `.env` e execute:
+1. Copie `.env.example` para `.env`.
+2. Gere um segredo JWT aleatório com pelo menos 32 bytes. Por exemplo:
+   ```bash
+   openssl rand -base64 48
+   ```
+3. Preencha `JWT_SECRET` no `.env` com o valor gerado. A aplicação recusa segredos ausentes ou menores que 32 bytes. Não reutilize o antigo valor padrão.
+4. Copie `backend/keys_aut.example.json` para `backend/keys_aut.json` e adicione somente as chaves de cadastro necessárias ao ambiente local.
+5. Mantenha `.env`, `backend/keys_aut.json` e bancos SQLite fora do Git. Esses arquivos já estão listados no `.gitignore` e no `.dockerignore`.
 
-```bash
-docker compose up -d --build
-```
+O Docker Compose monta `backend/keys_aut.json` no container sem incorporá-lo à imagem. Crie o arquivo antes de executar `docker-compose up`.
 
-Nunca versione o `.env`, tokens do túnel, chaves de cadastro ou bancos com dados
-operacionais.
-
-## Executar e testar o backend localmente
-
-```bash
-cd backend
-npm ci
-npm test
-npm start
-```
-
-O backend usa a porta `3000` por padrão. Se o Nginx já estiver nessa porta,
-configure outra porta no ambiente antes de executar o processo local.
-
-Na branch principal atual, a inicialização da API também inicia o tradutor em
-segundo plano. Esse worker pode manter um handle aberto após os testes; trate isso
-como uma limitação conhecida, não como motivo para ocultar falhas da suíte.
-
-## Endereços úteis
-
-- Aplicação via Nginx: `http://localhost:3000`
-- Swagger UI: `http://localhost:3000/api/api-docs`
-- Especificação OpenAPI: `http://localhost:3000/api/swagger.json`
-
-## Variáveis de ambiente
-
-| Variável | Uso | Padrão atual |
-|---|---|---|
-| `PORT` | Porta interna do backend | `3000` |
-| `NODE_ENV` | Ambiente do Node.js | `development` no Compose |
-| `JWT_SECRET` | Assinatura dos tokens JWT | Deve ser substituído por segredo forte |
-| `DB_PATH` | Caminho do arquivo SQLite | `/app/data/database.sqlite` no Compose |
-| `TUNNEL_TOKEN` | Credencial do Cloudflare Tunnel | Sem valor seguro padrão |
-
-## Limitações conhecidas da versão atual
-
-- O schema é criado durante a inicialização, sem migrations versionadas reais.
-- O tradutor de exercícios roda em loop dentro do processo HTTP.
-- O armazenamento e o transporte do JWT no frontend precisam de hardening.
-- SQLite atende ao MVP, mas limita concorrência e escala horizontal.
-- O frontend é responsivo, porém não possui manifest ou service worker; portanto,
-  ainda não é uma PWA instalável.
-- O túnel torna a aplicação pública e só deve ser habilitado em ambiente
-  devidamente protegido.
-
-## Codificação de texto
-
-Arquivos de texto devem ser salvos em UTF-8 com finais de linha LF. As regras
-estão em `.editorconfig` e `.gitattributes`. No Windows PowerShell 5.1, use
-`Get-Content arquivo -Encoding UTF8` para evitar que texto UTF-8 seja exibido
-como mojibake.
-
-Para diagnóstico de acesso pela rede local, consulte
-[mobile_access_troubleshooting.md](mobile_access_troubleshooting.md).
+Se o segredo padrão ou as chaves anteriormente versionadas tiverem sido usados, eles devem ser rotacionados pelo mantenedor. A remoção do histórico Git exige coordenação separada e não deve ser feita em uma contribuição comum sem aprovação explícita.
