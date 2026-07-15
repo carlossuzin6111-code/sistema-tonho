@@ -111,7 +111,7 @@ Abaixo está o resumo factório do trabalho realizado e as instruções para que
 
 O servidor está **ativo e rodando** localmente:
 - **URL**: `http://localhost:3000`
-- **Banco de Dados**: `backend/database.sqlite` (Gerado e estruturado automaticamente)
+- **Banco de Dados**: SQLite gerado localmente no caminho configurado por `DB_PATH` e mantido fora do Git
 
 Para mais detalhes sobre as rotas de teste e estrutura de diretórios, acesse o walkthrough completo em [walkthrough.md](file:///C:/Users/Wolnei/.gemini/antigravity-ide/brain/1b5098aa-4247-4cb1-a704-3d4ddcf8f2dc/walkthrough.md).
 

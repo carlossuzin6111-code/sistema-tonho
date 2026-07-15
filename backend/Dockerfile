@@ -19,6 +19,5 @@ EXPOSE 3000
 
 ENV PORT=3000
 ENV NODE_ENV=production
-ENV JWT_SECRET=fitlife_sync_super_secret_key_123
 
 CMD ["node", "src/index.js"]

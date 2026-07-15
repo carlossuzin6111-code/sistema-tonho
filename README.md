@@ -1,20 +1,48 @@
-# Sistema do Tonho (FitLife Sync) 🏋️‍♂️
+# FitLife Sync
 
-Aplicativo web completo para gerenciamento de treinos entre Personal Trainers e Alunos.
+Sistema web para acompanhamento de alunos por personal trainers. O projeto reúne
+cadastro, medidas corporais, catálogo de exercícios, montagem de treinos e chat
+em tempo real.
 
-## 🚀 O que mudou nesta nova versão? (Refatoração de Arquitetura)
+> Estado atual: MVP funcional. A aplicação ainda possui limitações de segurança,
+> persistência e escalabilidade que precisam ser tratadas antes de um uso em
+> produção com dados reais.
 
-Esta versão traz mudanças profundas na base do projeto visando escalabilidade, velocidade e modularidade. Deixamos de ser um monolito simples em Node.js para nos tornarmos uma aplicação PWA robusta baseada em microsserviços via Docker.
+## Funcionalidades
 
-### 1. Separação de Frontend e Backend (Gateway Nginx)
-- **Frontend Independente:** Todos os arquivos HTML, CSS e JS que rodam no navegador foram movidos para a pasta `/frontend`.
-- **Nginx Proxy Reverso:** O aplicativo agora roda atrás de um servidor Nginx de alta performance (na porta 3000). O Nginx cuida de servir os arquivos estáticos e redireciona qualquer requisição de API invisivelmente para o backend Node.js através da rota `/api`.
-- **Prevenção de CORS:** Essa arquitetura evita dores de cabeça com bloqueios de CORS, além de permitir o funcionamento de Server-Sent Events (SSE) limpos para o chat em tempo real.
+- Autenticação JWT com perfis `personal` e `student`.
+- Cadastro e acompanhamento de alunos vinculados a um personal.
+- Histórico de medidas corporais.
+- Catálogo de exercícios e fichas de treino.
+- Chat com atualização em tempo real por Server-Sent Events (SSE).
+- Interfaces desktop e mobile em HTML, CSS e JavaScript.
+- Documentação OpenAPI disponibilizada pela própria API.
 
-### 2. Abstração de Banco de Dados com Knex.js
-- **Adeus Strings SQL Manuais:** Todas as 5 rotas (`auth`, `student`, `workout`, `exercise` e `chat`) foram refatoradas para usar o *Query Builder* do **Knex.js**.
-- **Multi-DB Ready:** O sistema ainda está rodando o prático banco local `SQLite` (via `backend/knexfile.js`), mas agora a estrutura do código está 100% pronta para migrar para bancos de dados mais potentes como `PostgreSQL` ou `MySQL` mudando apenas algumas linhas de configuração.
-- **Migração de Respostas:** O Knex encapsula e protege contra injeções SQL e normaliza as devoluções (arrays de IDs ao inserir, métodos padronizados `.first()`, `.del()`, etc).
+## Arquitetura atual
+
+#### Migrations do banco
+
+O schema é versionado em `backend/src/db/migrations`. A aplicação executa automaticamente as migrations pendentes antes de abrir a porta HTTP. Para operar manualmente:
+
+```bash
+cd backend
+npm run migrate
+npm run migrate:status
+npm run migrate:rollback
+```
+
+Defina `NODE_ENV` para selecionar o ambiente do `knexfile.js` e `DB_PATH` para indicar o arquivo SQLite em desenvolvimento ou produção. O rollback remove as tabelas da aplicação e deve ser usado somente com backup e autorização do responsável pelos dados.
+
+#### Chaves de cadastro
+
+As chaves de cadastro são geradas com 256 bits de entropia criptográfica, armazenadas no banco somente como hashes SHA-256 e consumidas na mesma transação que cria o personal. Para gerar uma chave:
+
+```bash
+cd backend
+npm run access-key:create
+```
+
+O valor é exibido uma única vez. Armazene-o em um canal seguro e não o inclua em commits, logs ou tickets. As chaves do antigo `keys_aut.json` não são importadas automaticamente: como foram versionadas, devem ser revogadas e substituídas por novas chaves após alinhamento com o mantenedor.
 
 ### 3. Layout PWA Móvel Híbrido (Drawer Sidebar)
 - **Roteamento Inteligente:** O arquivo `index.html` agora roteia o usuário de forma autônoma: Desktop vai para `desktop.html`, Smartphone vai para `mobile.html`.
@@ -23,23 +51,62 @@ Esta versão traz mudanças profundas na base do projeto visando escalabilidade,
   - **Menu Lateral (Drawer):** Um menu hambúrguer animado que desliza com efeito Glassmorphism para melhor navegação.
   - Menu Inferior (Bottom Navigation) ajustado à área segura dos iPhones (`safe-area-inset-bottom`).
 
-## 🛠️ Tecnologias Utilizadas
-- **Node.js** (Backend API)
-- **Express.js** (Rotas da API)
-- **Knex.js** (ORM e Query Builder)
-- **SQLite3** (Banco de dados de desenvolvimento)
-- **Nginx** (Web Server / Proxy Reverso)
-- **Docker Compose** (Orquestração de Containeres)
-- **HTML5/CSS3/Vanilla JS** (Frontend)
+| Componente | Responsabilidade |
+|---|---|
+| `frontend/` | Interfaces estáticas desktop e mobile |
+| Nginx | Arquivos estáticos, proxy reverso e suporte ao SSE |
+| Express | Autenticação, alunos, medidas, treinos, exercícios e chat |
+| Knex + SQLite | Acesso e persistência dos dados |
+| Cloudflare Tunnel | Exposição externa opcional do Nginx |
 
-## 📦 Como rodar localmente
+O uso do Knex reduz o acoplamento das consultas, mas a aplicação está configurada
+e testada apenas com SQLite. Migrar para PostgreSQL ou MySQL exige revisar schema,
+migrations, tipos e retornos de inserção.
 
-1. Tenha o Docker Desktop instalado e aberto.
-2. Na raiz do projeto, rode:
+Veja a descrição detalhada em [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Estrutura do repositório
+
+```text
+.
+├── backend/
+│   ├── src/controllers/   # Regras das áreas funcionais
+│   ├── src/middleware/    # Autenticação e autorização
+│   ├── src/tests/         # Testes de integração
+│   ├── src/database.js    # Bootstrap do schema, seed e tradutor
+│   └── knexfile.js        # Conexões Knex por ambiente
+├── frontend/
+│   ├── css/
+│   ├── js/
+│   ├── desktop.html
+│   ├── mobile.html
+│   └── index.html         # Seleção da interface por dispositivo
+├── docker-compose.yml
+└── nginx.conf
+```
+
+## Executar com Docker
+
+Pré-requisitos: Docker Desktop ou Docker Engine com Docker Compose.
+
+1. Copie `.env.example` para `.env` e substitua todos os valores de exemplo.
+2. Inicie o frontend, Nginx e backend:
+
    ```bash
-   docker-compose up -d --build
+   docker compose up -d --build web app
    ```
-3. O Nginx subirá na porta 3000. Acesse no navegador:
+
+## Configuração segura antes de iniciar
+
+1. Copie `.env.example` para `.env`.
+2. Gere um segredo JWT aleatório com pelo menos 32 bytes. Por exemplo:
+   ```bash
+   openssl rand -base64 48
    ```
-   http://localhost:3000
-   ```
+3. Preencha `JWT_SECRET` no `.env` com o valor gerado. A aplicação recusa segredos ausentes ou menores que 32 bytes. Não reutilize o antigo valor padrão.
+4. Copie `backend/keys_aut.example.json` para `backend/keys_aut.json` e adicione somente as chaves de cadastro necessárias ao ambiente local.
+5. Mantenha `.env`, `backend/keys_aut.json` e bancos SQLite fora do Git. Esses arquivos já estão listados no `.gitignore` e no `.dockerignore`.
+
+O Docker Compose monta `backend/keys_aut.json` no container sem incorporá-lo à imagem. Crie o arquivo antes de executar `docker-compose up`.
+
+Se o segredo padrão ou as chaves anteriormente versionadas tiverem sido usados, eles devem ser rotacionados pelo mantenedor. A remoção do histórico Git exige coordenação separada e não deve ser feita em uma contribuição comum sem aprovação explícita.
