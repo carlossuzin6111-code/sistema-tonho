@@ -25,20 +25,33 @@ async function getMessages(req, res) {
   const userRole = req.user.role;
   let targetId = req.params.userId;
 
-  // If student, the only chat they have is with their Personal Trainer
-  if (userRole === 'student') {
-    const profile = await db('student_profiles').select('personal_id').where('student_id', userId).first();
-    if (!profile) {
-      return res.status(404).json({ error: 'Personal Trainer profile not found' });
-    }
-    targetId = profile.personal_id;
-  }
-
-  if (!targetId) {
-    return res.status(400).json({ error: 'Target User ID is required' });
-  }
-
   try {
+    // Students can only chat with their linked Personal Trainer.
+    if (userRole === 'student') {
+      const profile = await db('student_profiles')
+        .select('personal_id')
+        .where('student_id', userId)
+        .first();
+      if (!profile) {
+        return res.status(404).json({ error: 'Personal Trainer profile not found' });
+      }
+      targetId = profile.personal_id;
+    } else if (userRole === 'personal') {
+      if (!targetId) {
+        return res.status(400).json({ error: 'Target User ID is required' });
+      }
+
+      const profile = await db('student_profiles')
+        .select('student_id')
+        .where({ student_id: targetId, personal_id: userId })
+        .first();
+      if (!profile) {
+        return res.status(403).json({ error: 'Chat access forbidden' });
+      }
+    } else {
+      return res.status(403).json({ error: 'Chat access forbidden' });
+    }
+
     // Mark messages sent by target to me as read
     await db('chat_messages')
       .where({ sender_id: targetId, receiver_id: userId, read_status: 0 })
@@ -79,6 +92,20 @@ async function sendMessage(req, res) {
         return res.status(400).json({ error: 'No Personal Trainer linked to this student' });
       }
       receiverId = profile.personal_id;
+    } else if (userRole === 'personal') {
+      if (!receiverId) {
+        return res.status(400).json({ error: 'Receiver ID is required' });
+      }
+
+      const profile = await db('student_profiles')
+        .select('student_id')
+        .where({ student_id: receiverId, personal_id: senderId })
+        .first();
+      if (!profile) {
+        return res.status(403).json({ error: 'Chat access forbidden' });
+      }
+    } else {
+      return res.status(403).json({ error: 'Chat access forbidden' });
     }
 
     if (!receiverId) {

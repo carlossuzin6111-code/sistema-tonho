@@ -292,11 +292,13 @@ function toggleTheme() {
 
 // Global modal execution helper
 function openExerciseExecutionModal(name, gifUrl, description) {
-  document.getElementById('execution-modal-title').innerHTML = `<i data-lucide="play-circle"></i> Execução: ${name}`;
+  const title = document.getElementById('execution-modal-title');
+  SafeDOM.clear(title);
+  title.appendChild(SafeDOM.icon('play-circle'));
+  title.appendChild(document.createTextNode(` Execução: ${name ?? ''}`));
   
   const gifImg = document.getElementById('execution-modal-gif');
-  if (gifUrl) {
-    gifImg.src = gifUrl;
+  if (SafeDOM.setSafeImageSource(gifImg, gifUrl)) {
     gifImg.parentElement.style.display = 'flex';
   } else {
     gifImg.src = '';

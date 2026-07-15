@@ -10,7 +10,10 @@
     "start": "node src/index.js",
     "dev": "node src/index.js",
     "test": "jest --runInBand --detectOpenHandles",
-    "worker:translate": "node src/workers/runTranslationWorker.js"
+    "migrate": "knex migrate:latest --knexfile knexfile.js",
+    "migrate:rollback": "knex migrate:rollback --knexfile knexfile.js",
+    "migrate:status": "knex migrate:status --knexfile knexfile.js",
+    "access-key:create": "node src/scripts/createAccessKey.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -1,33 +1,26 @@
 process.env.NODE_ENV = 'test';
+process.env.JWT_SECRET = 'test-only-jwt-secret-with-at-least-32-bytes';
 const request = require('supertest');
 const app = require('../index');
 const db = require('../database');
-const fs = require('fs');
 const http = require('http');
+const { hashAccessKey } = require('../services/accessKeyService');
 
-// Save original fs functions to prevent polluting host files
-const originalReadFileSync = fs.readFileSync;
-const originalWriteFileSync = fs.writeFileSync;
+const testAccessKey = 'key_for_testing';
 
 let server;
+let testAccessKeyId;
+
+async function insertAccessKey(accessKey) {
+  const [id] = await db('registration_keys').insert({
+    key_hash: hashAccessKey(accessKey)
+  });
+  return id;
+}
 
 beforeAll(async () => {
-  // Mock keys_aut.json read/write to avoid consuming actual keys
-  fs.readFileSync = jest.fn((filePath, options) => {
-    if (filePath.endsWith('keys_aut.json')) {
-      return JSON.stringify({ valid_keys: ['key_for_testing'] });
-    }
-    return originalReadFileSync(filePath, options);
-  });
-  
-  fs.writeFileSync = jest.fn((filePath, data, options) => {
-    if (filePath.endsWith('keys_aut.json')) {
-      return; // Mock write, do not persist to host filesystem
-    }
-    return originalWriteFileSync(filePath, data, options);
-  });
-
   await db.ready;
+  testAccessKeyId = await insertAccessKey(testAccessKey);
 
   // Let the operating system select a free port for SSE tests.
   await new Promise((resolve, reject) => {
@@ -54,6 +47,10 @@ describe('FitLife Sync API Integration Tests', () => {
   let personalToken = '';
   let studentToken = '';
   let studentId = null;
+  let otherPersonalToken = '';
+  let otherPersonalId = null;
+  let otherStudentToken = '';
+  let otherStudentId = null;
   let workoutId = null;
   let exerciseId = null;
   let workoutExerciseId = null;
@@ -94,13 +91,70 @@ describe('FitLife Sync API Integration Tests', () => {
           name: 'Test Personal',
           email: 'test_personal@fitlife.com',
           password: 'password123',
-          accessKey: 'key_for_testing'
+          accessKey: testAccessKey
         });
       expect(res.statusCode).toBe(201);
       expect(res.body).toHaveProperty('message', 'Personal Trainer registered successfully');
       expect(res.body).toHaveProperty('token');
       expect(res.body.user).toHaveProperty('email', 'test_personal@fitlife.com');
       expect(res.body.user).toHaveProperty('role', 'personal');
+
+      const storedKey = await db('registration_keys').where({ id: testAccessKeyId }).first();
+      expect(storedKey.key_hash).toBe(hashAccessKey(testAccessKey));
+      expect(storedKey.key_hash).not.toContain(testAccessKey);
+      expect(storedKey.used_at).not.toBeNull();
+      expect(storedKey.used_by).toBe(res.body.user.id);
+    });
+
+    test('Should not consume an access key when the email is already registered', async () => {
+      const accessKey = 'duplicate_email_key_for_testing';
+      const accessKeyId = await insertAccessKey(accessKey);
+
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          name: 'Duplicate Personal',
+          email: 'test_personal@fitlife.com',
+          password: 'password123',
+          accessKey
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body).toHaveProperty('error', 'Email already registered');
+      const storedKey = await db('registration_keys').where({ id: accessKeyId }).first();
+      expect(storedKey.used_at).toBeNull();
+      expect(storedKey.used_by).toBeNull();
+    });
+
+    test('Should allow only one registration when the same key is submitted concurrently', async () => {
+      const accessKey = 'concurrent_key_for_testing';
+      const accessKeyId = await insertAccessKey(accessKey);
+
+      const responses = await Promise.all([
+        request(app).post('/api/auth/register').send({
+          name: 'Concurrent Personal A',
+          email: 'concurrent-a@fitlife.com',
+          password: 'password123',
+          accessKey
+        }),
+        request(app).post('/api/auth/register').send({
+          name: 'Concurrent Personal B',
+          email: 'concurrent-b@fitlife.com',
+          password: 'password123',
+          accessKey
+        })
+      ]);
+
+      expect(responses.map(response => response.statusCode).sort()).toEqual([201, 403]);
+
+      const createdUsers = await db('users')
+        .select('id')
+        .whereIn('email', ['concurrent-a@fitlife.com', 'concurrent-b@fitlife.com']);
+      expect(createdUsers).toHaveLength(1);
+
+      const storedKey = await db('registration_keys').where({ id: accessKeyId }).first();
+      expect(storedKey.used_at).not.toBeNull();
+      expect(storedKey.used_by).toBe(createdUsers[0].id);
     });
 
     test('Should fail login with incorrect password', async () => {
@@ -393,6 +447,40 @@ describe('FitLife Sync API Integration Tests', () => {
   // 6. CHAT
   // ==========================================
   describe('Chat Endpoints', () => {
+    beforeAll(async () => {
+      const personalRes = await request(app)
+        .post('/api/auth/register')
+        .send({
+          name: 'Other Personal',
+          email: 'other_personal@fitlife.com',
+          password: 'password123',
+          accessKey: 'key_for_testing'
+        });
+      expect(personalRes.statusCode).toBe(201);
+      otherPersonalToken = personalRes.body.token;
+      otherPersonalId = personalRes.body.user.id;
+
+      const studentRes = await request(app)
+        .post('/api/personal/students')
+        .set('Authorization', `Bearer ${otherPersonalToken}`)
+        .send({
+          name: 'Other Student',
+          email: 'other_student@fitlife.com',
+          password: 'student_password123'
+        });
+      expect(studentRes.statusCode).toBe(201);
+      otherStudentId = studentRes.body.student.id;
+
+      const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: 'other_student@fitlife.com',
+          password: 'student_password123'
+        });
+      expect(loginRes.statusCode).toBe(200);
+      otherStudentToken = loginRes.body.token;
+    });
+
     test('Should send chat message (Personal Trainer)', async () => {
       const res = await request(app)
         .post('/api/chat')
@@ -432,6 +520,61 @@ describe('FitLife Sync API Integration Tests', () => {
         .set('Authorization', `Bearer ${studentToken}`);
       expect(res.statusCode).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    test('Should deny a Personal Trainer access to another trainer student messages', async () => {
+      const personal = await db('users')
+        .select('id')
+        .where('email', 'test_personal@fitlife.com')
+        .first();
+      const [messageId] = await db('chat_messages').insert({
+        sender_id: otherStudentId,
+        receiver_id: personal.id,
+        message: 'Cross-tenant unread fixture',
+        read_status: 0
+      });
+
+      const res = await request(app)
+        .get(`/api/chat/${otherStudentId}`)
+        .set('Authorization', `Bearer ${personalToken}`);
+
+      expect(res.statusCode).toBe(403);
+      expect(res.body).toHaveProperty('error', 'Chat access forbidden');
+
+      const message = await db('chat_messages').where('id', messageId).first();
+      expect(message.read_status).toBe(0);
+    });
+
+    test('Should deny a Personal Trainer sending messages to another trainer student', async () => {
+      const unauthorizedMessage = 'Cross-tenant message must not be stored';
+      const res = await request(app)
+        .post('/api/chat')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({
+          receiverId: otherStudentId,
+          message: unauthorizedMessage
+        });
+
+      expect(res.statusCode).toBe(403);
+      expect(res.body).toHaveProperty('error', 'Chat access forbidden');
+
+      const message = await db('chat_messages')
+        .where('message', unauthorizedMessage)
+        .first();
+      expect(message).toBeUndefined();
+    });
+
+    test('Should ignore a Student supplied receiver and use the linked Personal Trainer', async () => {
+      const res = await request(app)
+        .post('/api/chat')
+        .set('Authorization', `Bearer ${otherStudentToken}`)
+        .send({
+          receiverId: otherPersonalId + 1000,
+          message: 'Message for linked trainer only'
+        });
+
+      expect(res.statusCode).toBe(201);
+      expect(res.body.receiver_id).toBe(otherPersonalId);
     });
 
     test('Should open real-time SSE chat connection', (done) => {
