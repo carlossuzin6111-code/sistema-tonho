@@ -88,3 +88,13 @@ test('frontend scripts do not interpolate data into innerHTML or inline handlers
     assert.doesNotMatch(source, /onclick="|onchange="/i, `${filename} has an inline event handler`);
   }
 });
+
+test('browser session credentials are not exposed to JavaScript or SSE URLs', () => {
+  const apiSource = fs.readFileSync(path.join(__dirname, '..', 'js', 'api.js'), 'utf8');
+  const appSource = fs.readFileSync(path.join(__dirname, '..', 'js', 'app.js'), 'utf8');
+
+  assert.doesNotMatch(apiSource, /(?:getItem|setItem)\(['"]fitlife_token|Authorization\s*:|Bearer\s+\$\{|[?&]token=/);
+  assert.match(apiSource, /removeItem\(['"]fitlife_token['"]\)/);
+  assert.doesNotMatch(appSource, /data\.token|getToken\(/);
+  assert.match(apiSource, /new EventSource\([^?]+withCredentials:\s*true/);
+});

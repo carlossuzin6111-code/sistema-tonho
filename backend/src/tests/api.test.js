@@ -46,6 +46,10 @@ afterAll(async () => {
 describe('FitLife Sync API Integration Tests', () => {
   let personalToken = '';
   let studentToken = '';
+  let personalCookies = '';
+  let studentCookies = '';
+  let personalCsrf = '';
+  let studentCsrf = '';
   let studentId = null;
   let otherPersonalToken = '';
   let otherPersonalId = null;
@@ -95,7 +99,7 @@ describe('FitLife Sync API Integration Tests', () => {
         });
       expect(res.statusCode).toBe(201);
       expect(res.body).toHaveProperty('message', 'Personal Trainer registered successfully');
-      expect(res.body).toHaveProperty('token');
+      expect(res.body).not.toHaveProperty('token');
       expect(res.body.user).toHaveProperty('email', 'test_personal@fitlife.com');
       expect(res.body.user).toHaveProperty('role', 'personal');
 
@@ -177,8 +181,14 @@ describe('FitLife Sync API Integration Tests', () => {
         });
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveProperty('message', 'Login successful');
-      expect(res.body).toHaveProperty('token');
-      personalToken = res.body.token;
+      expect(res.body).not.toHaveProperty('token');
+      personalToken = cookieValue(res, SESSION_COOKIE);
+      personalCsrf = cookieValue(res, CSRF_COOKIE);
+      personalCookies = cookieHeader(res);
+      expect(personalToken).toBeTruthy();
+      expect(personalCsrf).toBeTruthy();
+      expect(setCookies(res).find(cookie => cookie.startsWith(`${SESSION_COOKIE}=`))).toContain('HttpOnly');
+      expect(setCookies(res).find(cookie => cookie.startsWith(`${SESSION_COOKIE}=`))).toContain('SameSite=Strict');
     });
 
     test('Should retrieve authenticated user details using token', async () => {
@@ -188,6 +198,62 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveProperty('email', 'test_personal@fitlife.com');
       expect(res.body).toHaveProperty('role', 'personal');
+    });
+
+    test('Should authenticate browser requests using the HttpOnly cookie', async () => {
+      const res = await request(app)
+        .get('/api/auth/me')
+        .set('Cookie', personalCookies);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveProperty('email', 'test_personal@fitlife.com');
+    });
+
+    test('Should reject cookie mutations without the matching CSRF token', async () => {
+      const missing = await request(app)
+        .post('/api/auth/logout')
+        .set('Cookie', personalCookies);
+      expect(missing.statusCode).toBe(403);
+      expect(missing.body).toHaveProperty('error', 'Invalid CSRF token');
+
+      const wrong = await request(app)
+        .post('/api/auth/logout')
+        .set('Cookie', personalCookies)
+        .set('X-CSRF-Token', 'wrong-token');
+      expect(wrong.statusCode).toBe(403);
+    });
+
+    test('Should clear session cookies on logout with valid CSRF', async () => {
+      const login = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'test_personal@fitlife.com', password: 'password123' });
+      const cookies = cookieHeader(login);
+      const csrf = cookieValue(login, CSRF_COOKIE);
+
+      const res = await request(app)
+        .post('/api/auth/logout')
+        .set('Cookie', cookies)
+        .set('X-CSRF-Token', csrf);
+
+      expect(res.statusCode).toBe(200);
+      const cleared = setCookies(res);
+      expect(cleared.filter(cookie => cookie.includes('Max-Age=0'))).toHaveLength(2);
+    });
+
+    test('Should reject expired session cookies and ignore query-string tokens', async () => {
+      const expiredToken = jwt.sign(
+        { id: 1, role: 'personal', csrf: 'expired-csrf' },
+        JWT_SECRET,
+        { expiresIn: -1 }
+      );
+      const expired = await request(app)
+        .get('/api/auth/me')
+        .set('Cookie', `${SESSION_COOKIE}=${expiredToken}`);
+      expect(expired.statusCode).toBe(403);
+
+      const queryToken = await request(app)
+        .get(`/api/auth/me?token=${encodeURIComponent(personalToken)}`);
+      expect(queryToken.statusCode).toBe(401);
     });
 
     test('Should fail profile fetch when token is missing', async () => {
@@ -239,8 +305,12 @@ describe('FitLife Sync API Integration Tests', () => {
           password: 'student_password123'
         });
       expect(res.statusCode).toBe(200);
-      expect(res.body).toHaveProperty('token');
-      studentToken = res.body.token;
+      expect(res.body).not.toHaveProperty('token');
+      studentToken = cookieValue(res, SESSION_COOKIE);
+      studentCsrf = cookieValue(res, CSRF_COOKIE);
+      studentCookies = cookieHeader(res);
+      expect(studentToken).toBeTruthy();
+      expect(studentCsrf).toBeTruthy();
     });
 
     test('Should retrieve list of students linked to Personal Trainer', async () => {
@@ -583,7 +653,7 @@ describe('FitLife Sync API Integration Tests', () => {
         port: server.address().port,
         path: '/api/chat/stream',
         headers: {
-          'Authorization': `Bearer ${studentToken}`
+          'Cookie': studentCookies
         }
       }, (res) => {
         expect(res.statusCode).toBe(200);
