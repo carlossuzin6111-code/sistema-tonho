@@ -1,9 +1,0 @@
-﻿node_modules/
-.env
-.env.*
-!.env.example
-keys_aut.json
-*.sqlite
-*.sqlite-journal
-*.sqlite-shm
-*.sqlite-wal
