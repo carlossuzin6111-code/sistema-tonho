@@ -2,6 +2,15 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const {
+  DEFAULT_BODY_LIMIT,
+  createAuthRateLimiter,
+  createCorsOptions,
+  createHelmetMiddleware,
+  jsonErrorHandler,
+  permissionsPolicy
+} = require('./middleware/httpSecurity');
+const { validateBody, validateIdParam } = require('./middleware/validateRequest');
+const {
   authenticateToken,
   csrfProtection,
   optionalAuthentication,
@@ -21,10 +30,19 @@ const db = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const authRateLimiter = createAuthRateLimiter();
+const configuredProxyHops = Number.parseInt(process.env.TRUST_PROXY_HOPS || '1', 10);
+const trustProxyHops = Number.isInteger(configuredProxyHops) && configuredProxyHops >= 0
+  ? configuredProxyHops
+  : 1;
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.set('trust proxy', trustProxyHops);
+app.disable('x-powered-by');
+app.use(createHelmetMiddleware());
+app.use(permissionsPolicy);
+app.use(cors(createCorsOptions()));
+app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || DEFAULT_BODY_LIMIT }));
 app.use(optionalAuthentication);
 app.use(csrfProtection);
 
@@ -79,7 +97,7 @@ setupSwagger(app);
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/auth/register', authController.registerPersonal);
+app.post('/api/auth/register', authRateLimiter, validateBody('register'), authController.registerPersonal);
 
 /**
  * @openapi
@@ -114,7 +132,7 @@ app.post('/api/auth/register', authController.registerPersonal);
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/auth/login', authController.login);
+app.post('/api/auth/login', authRateLimiter, validateBody('login'), authController.login);
 
 app.post('/api/auth/logout', authenticateToken, authController.logout);
 
@@ -196,7 +214,7 @@ app.get('/api/auth/me', authenticateToken, authController.getMe);
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/personal/students', authenticateToken, requireRole('personal'), studentController.createStudent);
+app.post('/api/personal/students', authenticateToken, requireRole('personal'), validateBody('student'), studentController.createStudent);
 
 /**
  * @openapi
@@ -285,7 +303,7 @@ app.get('/api/personal/students/:id', authenticateToken, studentController.getSt
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/personal/students/:id/reset-password', authenticateToken, requireRole('personal'), studentController.resetPassword);
+app.post('/api/personal/students/:id/reset-password', authenticateToken, requireRole('personal'), validateIdParam(), validateBody('passwordReset'), studentController.resetPassword);
 
 
 // Medidas (Aluno/Personal)
@@ -356,7 +374,7 @@ app.post('/api/personal/students/:id/reset-password', authenticateToken, require
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/student/measurements', authenticateToken, studentController.addMeasurement);
+app.post('/api/student/measurements', authenticateToken, validateBody('measurement'), studentController.addMeasurement);
 
 /**
  * @openapi
@@ -424,7 +442,7 @@ app.get('/api/student/measurements', authenticateToken, studentController.getMea
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/workouts', authenticateToken, requireRole('personal'), workoutController.createWorkout);
+app.post('/api/workouts', authenticateToken, requireRole('personal'), validateBody('workout'), workoutController.createWorkout);
 
 /**
  * @openapi
@@ -451,7 +469,7 @@ app.post('/api/workouts', authenticateToken, requireRole('personal'), workoutCon
  *       500:
  *         description: Erro interno do servidor.
  */
-app.delete('/api/workouts/:id', authenticateToken, requireRole('personal'), workoutController.deleteWorkout);
+app.delete('/api/workouts/:id', authenticateToken, requireRole('personal'), validateIdParam(), workoutController.deleteWorkout);
 
 /**
  * @openapi
@@ -504,7 +522,7 @@ app.delete('/api/workouts/:id', authenticateToken, requireRole('personal'), work
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/workouts/:id/exercises', authenticateToken, requireRole('personal'), workoutController.addExercise);
+app.post('/api/workouts/:id/exercises', authenticateToken, requireRole('personal'), validateIdParam(), validateBody('workoutExercise'), workoutController.addExercise);
 
 /**
  * @openapi
@@ -531,7 +549,7 @@ app.post('/api/workouts/:id/exercises', authenticateToken, requireRole('personal
  *       500:
  *         description: Erro interno do servidor.
  */
-app.delete('/api/exercises/:id', authenticateToken, requireRole('personal'), workoutController.deleteExercise);
+app.delete('/api/exercises/:id', authenticateToken, requireRole('personal'), validateIdParam(), workoutController.deleteExercise);
 
 /**
  * @openapi
@@ -610,7 +628,7 @@ app.get('/api/catalog/exercises', authenticateToken, exerciseController.getExerc
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/catalog/exercises', authenticateToken, requireRole('personal'), exerciseController.createExercise);
+app.post('/api/catalog/exercises', authenticateToken, requireRole('personal'), validateBody('catalogExercise'), exerciseController.createExercise);
 
 /**
  * @openapi
@@ -637,7 +655,7 @@ app.post('/api/catalog/exercises', authenticateToken, requireRole('personal'), e
  *       500:
  *         description: Erro interno do servidor.
  */
-app.delete('/api/catalog/exercises/:id', authenticateToken, requireRole('personal'), exerciseController.deleteExercise);
+app.delete('/api/catalog/exercises/:id', authenticateToken, requireRole('personal'), validateIdParam(), exerciseController.deleteExercise);
 
 
 // Chat (Tempo Real com SSE)
@@ -723,7 +741,10 @@ app.get('/api/chat/:userId?', authenticateToken, chatController.getMessages);
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/chat', authenticateToken, chatController.sendMessage);
+app.post('/api/chat', authenticateToken, validateBody('chatMessage'), chatController.sendMessage);
+
+// Normalize parser failures without exposing Express internals.
+app.use(jsonErrorHandler);
 
 // Removed fallback to SPA index.html, handled by Nginx now
 
