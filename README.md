@@ -16,6 +16,19 @@ Esta versão traz mudanças profundas na base do projeto visando escalabilidade,
 - **Multi-DB Ready:** O sistema ainda está rodando o prático banco local `SQLite` (via `backend/knexfile.js`), mas agora a estrutura do código está 100% pronta para migrar para bancos de dados mais potentes como `PostgreSQL` ou `MySQL` mudando apenas algumas linhas de configuração.
 - **Migração de Respostas:** O Knex encapsula e protege contra injeções SQL e normaliza as devoluções (arrays de IDs ao inserir, métodos padronizados `.first()`, `.del()`, etc).
 
+#### Migrations do banco
+
+O schema é versionado em `backend/src/db/migrations`. A aplicação executa automaticamente as migrations pendentes antes de abrir a porta HTTP. Para operar manualmente:
+
+```bash
+cd backend
+npm run migrate
+npm run migrate:status
+npm run migrate:rollback
+```
+
+Defina `NODE_ENV` para selecionar o ambiente do `knexfile.js` e `DB_PATH` para indicar o arquivo SQLite em desenvolvimento ou produção. O rollback remove as tabelas da aplicação e deve ser usado somente com backup e autorização do responsável pelos dados.
+
 ### 3. Layout PWA Móvel Híbrido (Drawer Sidebar)
 - **Roteamento Inteligente:** O arquivo `index.html` agora roteia o usuário de forma autônoma: Desktop vai para `desktop.html`, Smartphone vai para `mobile.html`.
 - **Isolamento Completo (Sem Vazamento de Estilos):** Sem uso de `@media` queries mirabolantes. O layout mobile é independente, possuindo:
