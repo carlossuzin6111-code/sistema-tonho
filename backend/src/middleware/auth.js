@@ -7,8 +7,15 @@ const {
   verifySessionToken
 } = require('../services/sessionService');
 
-const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
-const CSRF_EXEMPT_PATHS = new Set(['/api/auth/login', '/api/auth/register']);
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
+
+if (Buffer.byteLength(JWT_SECRET, 'utf8') < 32) {
+  throw new Error('JWT_SECRET must contain at least 32 bytes');
+}
 
 function extractAuthentication(req) {
   const authHeader = req.headers.authorization;
