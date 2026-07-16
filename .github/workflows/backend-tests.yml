@@ -1,22 +1,35 @@
-name: Backend tests
+name: Test suites
 
 on:
   pull_request:
     paths:
       - 'backend/**'
+      - 'frontend/**'
+      - '.gitignore'
+      - 'README.md'
+      - 'docker-compose.yml'
+      - 'nginx.conf'
+      - 'package.json'
       - '.github/workflows/backend-tests.yml'
   push:
     branches:
       - main
     paths:
       - 'backend/**'
+      - 'frontend/**'
+      - '.gitignore'
+      - 'README.md'
+      - 'docker-compose.yml'
+      - 'nginx.conf'
+      - 'package.json'
       - '.github/workflows/backend-tests.yml'
 
 permissions:
   contents: read
 
 jobs:
-  test:
+  backend:
+    name: Backend
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -42,4 +55,21 @@ jobs:
         run: npm ci
 
       - name: Run tests
+        run: npm test
+
+  frontend:
+    name: Frontend and infrastructure
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Run frontend and infrastructure tests
         run: npm test
