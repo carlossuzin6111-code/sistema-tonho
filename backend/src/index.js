@@ -49,6 +49,19 @@ app.use(csrfProtection);
 // Setup Swagger UI API documentation
 setupSwagger(app);
 
+// Readiness endpoint used by Compose. It verifies both the HTTP process and the
+// database connection without exposing schema or environment details.
+app.get('/api/health', async (req, res) => {
+  try {
+    await db.ready;
+    await db.raw('SELECT 1');
+    res.json({ status: 'ok' });
+  } catch (error) {
+    console.error('Health check failed:', error.message);
+    res.status(503).json({ status: 'unavailable' });
+  }
+});
+
 
 // --- API ROUTES ---
 

@@ -79,6 +79,17 @@ test('registration keys use the transactional database flow only', () => {
   assert.equal(fs.existsSync(path.join(repositoryRoot, 'backend', 'keys_aut.example.json')), false);
 });
 
+test('Compose gates dependent services on API and Nginx health', () => {
+  const compose = fs.readFileSync(path.join(repositoryRoot, 'docker-compose.yml'), 'utf8');
+  const backend = fs.readFileSync(path.join(repositoryRoot, 'backend', 'src', 'index.js'), 'utf8');
+
+  assert.match(backend, /app\.get\('\/api\/health'/);
+  assert.match(backend, /await db\.raw\('SELECT 1'\)/);
+  assert.match(compose, /fetch\('http:\/\/127\.0\.0\.1:3000\/api\/health'\)/);
+  assert.match(compose, /wget.*http:\/\/127\.0\.0\.1:3000\//);
+  assert.equal((compose.match(/condition: service_healthy/g) || []).length, 3);
+});
+
 test('event delegation invokes only the allowlisted action and form handlers', () => {
   const listeners = {};
   const calls = [];
