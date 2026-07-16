@@ -56,6 +56,16 @@ test('Nginx script policy rejects inline JavaScript', () => {
   assert.doesNotMatch(scriptSource, /'unsafe-inline'/);
 });
 
+test('proxy forwarding uses one canonical client IP and local-only host access', () => {
+  const nginx = fs.readFileSync(path.join(repositoryRoot, 'nginx.conf'), 'utf8');
+  const compose = fs.readFileSync(path.join(repositoryRoot, 'docker-compose.yml'), 'utf8');
+
+  assert.match(nginx, /map \$http_cf_connecting_ip \$forwarded_client_ip/);
+  assert.match(nginx, /proxy_set_header X-Forwarded-For \$forwarded_client_ip/);
+  assert.doesNotMatch(nginx, /\$proxy_add_x_forwarded_for/);
+  assert.match(compose, /127\.0\.0\.1:3000:3000/);
+});
+
 test('event delegation invokes only the allowlisted action and form handlers', () => {
   const listeners = {};
   const calls = [];

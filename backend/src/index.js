@@ -30,14 +30,14 @@ const db = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const authRateLimiter = createAuthRateLimiter();
-const configuredProxyHops = Number.parseInt(process.env.TRUST_PROXY_HOPS || '1', 10);
-const trustProxyHops = Number.isInteger(configuredProxyHops) && configuredProxyHops >= 0
-  ? configuredProxyHops
-  : 1;
+const registrationRateLimiter = createAuthRateLimiter({ identifier: 'registration' });
+const loginRateLimiter = createAuthRateLimiter({ identifier: 'login' });
 
 // Middleware
-app.set('trust proxy', trustProxyHops);
+// The app is private on the Compose network and receives requests from exactly
+// one trusted proxy: Nginx. Nginx replaces the forwarding chain with one
+// authoritative client address before proxying the request.
+app.set('trust proxy', 1);
 app.disable('x-powered-by');
 app.use(createHelmetMiddleware());
 app.use(permissionsPolicy);
@@ -97,7 +97,7 @@ setupSwagger(app);
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/auth/register', authRateLimiter, validateBody('register'), authController.registerPersonal);
+app.post('/api/auth/register', registrationRateLimiter, validateBody('register'), authController.registerPersonal);
 
 /**
  * @openapi
@@ -132,7 +132,7 @@ app.post('/api/auth/register', authRateLimiter, validateBody('register'), authCo
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/auth/login', authRateLimiter, validateBody('login'), authController.login);
+app.post('/api/auth/login', loginRateLimiter, validateBody('login'), authController.login);
 
 app.post('/api/auth/logout', authenticateToken, authController.logout);
 
