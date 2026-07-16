@@ -269,9 +269,10 @@ Validação:
 - [x] Aguardar todos os healthchecks ficarem saudáveis.
 - [x] Validar API, cabeçalhos, cookies e interface pública.
 - [x] Repetir testes automatizados após a publicação.
-- [ ] Criar commit, enviar a branch e abrir pull request.
+- [x] Criar commit, enviar a branch e abrir pull request.
 
 Branch de trabalho: `fix/mobile-accessibility-production`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/30
 
 Resultados da publicação:
 
