@@ -299,6 +299,7 @@ Resultados da publicação:
 - [x] Validar em desktop e mobile e adicionar cobertura automatizada.
 
 Branch de trabalho: `feat/auth-form-feedback`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/31
 
 Resultados:
 
