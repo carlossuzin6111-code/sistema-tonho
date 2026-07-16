@@ -59,6 +59,7 @@ function createAuthRateLimiter(options = {}) {
     options.limit ?? process.env.AUTH_RATE_LIMIT_MAX,
     DEFAULT_RATE_LIMIT_MAX
   );
+  const identifier = options.identifier || 'authentication';
 
   return rateLimit({
     windowMs,
@@ -66,7 +67,7 @@ function createAuthRateLimiter(options = {}) {
     standardHeaders: 'draft-8',
     legacyHeaders: false,
     skipSuccessfulRequests: true,
-    identifier: 'authentication',
+    identifier,
     message: { error: 'Too many authentication attempts. Try again later.' }
   });
 }

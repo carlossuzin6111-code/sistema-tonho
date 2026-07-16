@@ -62,6 +62,52 @@ describe('HTTP security middleware', () => {
     expect(blocked.headers['x-ratelimit-limit']).toBeUndefined();
   });
 
+  test('keeps login and registration failure budgets independent', async () => {
+    const app = express();
+    const registrationLimiter = createAuthRateLimiter({
+      windowMs: 60_000,
+      limit: 1,
+      identifier: 'registration'
+    });
+    const loginLimiter = createAuthRateLimiter({
+      windowMs: 60_000,
+      limit: 1,
+      identifier: 'login'
+    });
+    app.post('/register', registrationLimiter, (req, res) => res.sendStatus(401));
+    app.post('/login', loginLimiter, (req, res) => res.sendStatus(401));
+
+    await request(app).post('/register').expect(401);
+    await request(app).post('/register').expect(429);
+    await request(app).post('/login').expect(401);
+    await request(app).post('/login').expect(429);
+  });
+
+  test('keys failures by the client address supplied by one trusted proxy', async () => {
+    const app = express();
+    app.set('trust proxy', 1);
+    app.use(createAuthRateLimiter({ windowMs: 60_000, limit: 1 }));
+    app.post('/login', (req, res) => res.status(401).json({ ip: req.ip }));
+
+    const firstClient = '198.51.100.10';
+    const secondClient = '203.0.113.20';
+    const firstAttempt = await request(app)
+      .post('/login')
+      .set('X-Forwarded-For', firstClient);
+    const otherClientAttempt = await request(app)
+      .post('/login')
+      .set('X-Forwarded-For', secondClient);
+    const blocked = await request(app)
+      .post('/login')
+      .set('X-Forwarded-For', firstClient);
+
+    expect(firstAttempt.statusCode).toBe(401);
+    expect(firstAttempt.body.ip).toBe(firstClient);
+    expect(otherClientAttempt.statusCode).toBe(401);
+    expect(otherClientAttempt.body.ip).toBe(secondClient);
+    expect(blocked.statusCode).toBe(429);
+  });
+
   test('normalizes oversized and malformed JSON errors', async () => {
     const app = express();
     app.use(express.json({ limit: '1kb' }));
