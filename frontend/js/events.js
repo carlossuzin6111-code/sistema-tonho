@@ -33,6 +33,7 @@ const clickActions = Object.freeze({
   'switch-modal-tab': element => switchModalSubtab(element.dataset.tab),
   'open-workout-modal': () => openCreateWorkoutModal(),
   'open-modal': element => openModal(element.dataset.modal),
+  'toggle-password': element => togglePasswordVisibility(element),
   'toggle-drawer': () => toggleMobileDrawer(),
   'close-drawer': (element, event) => {
     if (event.target === element) toggleMobileDrawer();
@@ -83,4 +84,6 @@ document.addEventListener('change', event => {
 
 document.addEventListener('input', event => {
   if (event.target.id === 'cat-ex-gif-url') handleCatalogGifUrlInput();
+  const authForm = event.target.closest?.('.auth-form');
+  if (authForm) clearFormError(authForm.id);
 });

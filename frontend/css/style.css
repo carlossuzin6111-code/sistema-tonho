@@ -197,6 +197,29 @@ body.dark-theme .btn-accent:hover {
   width: 100%;
 }
 
+.btn:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.btn.is-loading [data-lucide] {
+  display: none;
+}
+
+.btn.is-loading::after {
+  width: 16px;
+  height: 16px;
+  content: '';
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: auth-button-spin 0.7s linear infinite;
+}
+
+@keyframes auth-button-spin {
+  to { transform: rotate(360deg); }
+}
+
 .btn-danger {
   background: rgba(239, 68, 68, 0.06);
   color: var(--danger);
@@ -286,6 +309,60 @@ body.dark-theme .btn-accent:hover {
   border-color: var(--border-active);
   box-shadow: var(--focus-shadow);
   outline: 2px solid var(--focus-ring);
+}
+
+.password-field {
+  position: relative;
+  width: 100%;
+}
+
+.password-field input {
+  width: 100%;
+  padding-right: 44px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.password-toggle:hover {
+  color: var(--text-main);
+  background: var(--bg-tertiary);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.password-toggle [data-lucide] {
+  width: 18px;
+  height: 18px;
+}
+
+.form-error {
+  padding: 10px 12px;
+  margin: -2px 0 14px;
+  color: var(--danger);
+  font-size: 0.86rem;
+  line-height: 1.4;
+  background: var(--danger-glow);
+  border: 1px solid rgba(239, 68, 68, 0.22);
+  border-radius: 6px;
 }
 
 /* Auth / Login Page */

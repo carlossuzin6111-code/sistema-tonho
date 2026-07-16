@@ -235,11 +235,61 @@ function switchStudentTab(tab) {
 
 // Authentication Actions
 
+function setFormSubmitting(form, isSubmitting) {
+  const submitButton = form.querySelector('button[type="submit"]');
+  const label = submitButton?.querySelector('[data-submit-label]');
+
+  form.dataset.submitting = isSubmitting ? 'true' : 'false';
+  form.setAttribute('aria-busy', isSubmitting ? 'true' : 'false');
+  if (!submitButton) return;
+
+  submitButton.disabled = isSubmitting;
+  submitButton.classList.toggle('is-loading', isSubmitting);
+  if (label) {
+    label.textContent = isSubmitting
+      ? submitButton.dataset.loadingLabel
+      : submitButton.dataset.defaultLabel;
+  }
+}
+
+function setFormError(formId, message) {
+  const error = document.getElementById(`${formId}-error`);
+  if (!error) return;
+  error.textContent = message;
+  error.classList.remove('hidden');
+}
+
+function clearFormError(formId) {
+  const error = document.getElementById(`${formId}-error`);
+  if (!error) return;
+  error.textContent = '';
+  error.classList.add('hidden');
+}
+
+function togglePasswordVisibility(button) {
+  const input = document.getElementById(button.dataset.target);
+  if (!input) return;
+
+  const willShow = input.type === 'password';
+  input.type = willShow ? 'text' : 'password';
+  button.setAttribute('aria-pressed', willShow ? 'true' : 'false');
+  button.setAttribute('aria-label', willShow ? 'Ocultar senha' : 'Mostrar senha');
+
+  const icon = button.querySelector('[data-lucide]');
+  if (icon) icon.setAttribute('data-lucide', willShow ? 'eye-off' : 'eye');
+  lucide.createIcons();
+}
+
 // Login Handler
 async function handleLogin(event) {
   event.preventDefault();
+  const form = event.target;
+  if (form.dataset.submitting === 'true') return;
+
   const email = document.getElementById('login-email').value;
   const password = document.getElementById('login-password').value;
+  clearFormError(form.id);
+  setFormSubmitting(form, true);
 
   try {
     const data = await API.post('/auth/login', { email, password });
@@ -247,22 +297,33 @@ async function handleLogin(event) {
     showToast('Login realizado com sucesso!', 'success');
     setupAppShell(data.user);
   } catch (err) {
+    setFormError(form.id, err.message);
     showToast(err.message, 'error');
+  } finally {
+    setFormSubmitting(form, false);
   }
 }
 
 // Register Personal Trainer Handler
 async function handleRegister(event) {
   event.preventDefault();
+  const form = event.target;
+  if (form.dataset.submitting === 'true') return;
+
   const name = document.getElementById('reg-name').value;
   const email = document.getElementById('reg-email').value;
   const password = document.getElementById('reg-password').value;
   const accessKey = document.getElementById('reg-access-key').value;
 
   if (name.trim() === '' || email.trim() === '' || password.trim() === '' || accessKey.trim() === '') {
-    showToast('Por favor, preencha todos os campos.', 'error');
+    const message = 'Por favor, preencha todos os campos.';
+    setFormError(form.id, message);
+    showToast(message, 'error');
     return;
   }
+
+  clearFormError(form.id);
+  setFormSubmitting(form, true);
 
   try {
     const data = await API.post('/auth/register', { name, email, password, accessKey });
@@ -270,7 +331,10 @@ async function handleRegister(event) {
     showToast('Conta criada com sucesso!', 'success');
     setupAppShell(data.user);
   } catch (err) {
+    setFormError(form.id, err.message);
     showToast(err.message, 'error');
+  } finally {
+    setFormSubmitting(form, false);
   }
 }
 

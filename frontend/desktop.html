@@ -12,7 +12,7 @@
   <!-- Lucide Icons for premium modern icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20260716.2">
 </head>
 <body>
 
@@ -46,22 +46,26 @@
       </div>
 
       <!-- Login Form -->
-      <form id="login-form" class="auth-form" role="tabpanel" aria-labelledby="tab-btn-login">
+      <form id="login-form" class="auth-form" role="tabpanel" aria-labelledby="tab-btn-login" aria-describedby="login-form-error">
         <div class="input-group">
           <label for="login-email"><i data-lucide="mail"></i> E-mail</label>
           <input type="email" id="login-email" required autocomplete="email" inputmode="email" placeholder="seuemail@exemplo.com">
         </div>
         <div class="input-group">
           <label for="login-password"><i data-lucide="lock"></i> Senha</label>
-          <input type="password" id="login-password" required autocomplete="current-password" placeholder="Sua senha de acesso">
+          <div class="password-field">
+            <input type="password" id="login-password" required autocomplete="current-password" placeholder="Sua senha de acesso">
+            <button type="button" class="password-toggle" data-action="toggle-password" data-target="login-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary btn-full btn-glow">
-          <span>Acessar Painel</span> <i data-lucide="arrow-right"></i>
+        <p id="login-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+        <button type="submit" class="btn btn-primary btn-full btn-glow" data-default-label="Acessar Painel" data-loading-label="Entrando...">
+          <span data-submit-label>Acessar Painel</span> <i data-lucide="arrow-right"></i>
         </button>
       </form>
 
       <!-- Register Form (Only Personal) -->
-      <form id="register-form" class="auth-form hidden" role="tabpanel" aria-labelledby="tab-btn-register">
+      <form id="register-form" class="auth-form hidden" role="tabpanel" aria-labelledby="tab-btn-register" aria-describedby="register-form-error">
         <div class="input-group">
           <label for="reg-name"><i data-lucide="user"></i> Nome Completo</label>
           <input type="text" id="reg-name" required autocomplete="name" placeholder="Ex: Professor Silva">
@@ -72,7 +76,10 @@
         </div>
         <div class="input-group">
           <label for="reg-password"><i data-lucide="lock"></i> Senha Segura</label>
-          <input type="password" id="reg-password" required autocomplete="new-password" placeholder="Mínimo 6 caracteres">
+          <div class="password-field">
+            <input type="password" id="reg-password" required autocomplete="new-password" placeholder="Mínimo 6 caracteres">
+            <button type="button" class="password-toggle" data-action="toggle-password" data-target="reg-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+          </div>
         </div>
         <div class="input-group">
           <label for="reg-access-key"><i data-lucide="key"></i> Chave de Acesso (Access Key)</label>
@@ -82,8 +89,9 @@
           <i data-lucide="shield-check"></i>
           <span>O cadastro direto é exclusivo para <strong>Personal Trainers</strong> com uma Access Key válida.</span>
         </div>
-        <button type="submit" class="btn btn-accent btn-full btn-glow">
-          <span>Cadastrar-se como Personal</span> <i data-lucide="user-plus"></i>
+        <p id="register-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+        <button type="submit" class="btn btn-accent btn-full btn-glow" data-default-label="Cadastrar-se como Personal" data-loading-label="Criando conta...">
+          <span data-submit-label>Cadastrar-se como Personal</span> <i data-lucide="user-plus"></i>
         </button>
       </form>
     </div>
@@ -657,11 +665,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js"></script>
-  <script src="js/safe-dom.js"></script>
-  <script src="js/app.js"></script>
-  <script src="js/personal.js"></script>
-  <script src="js/student.js"></script>
-  <script src="js/events.js"></script>
+  <script src="js/api.js?v=20260716.2"></script>
+  <script src="js/safe-dom.js?v=20260716.2"></script>
+  <script src="js/app.js?v=20260716.2"></script>
+  <script src="js/personal.js?v=20260716.2"></script>
+  <script src="js/student.js?v=20260716.2"></script>
+  <script src="js/events.js?v=20260716.2"></script>
 </body>
 </html>

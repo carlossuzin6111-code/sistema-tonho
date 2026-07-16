@@ -290,3 +290,23 @@ Resultados da publicação:
 - Auditoria npm das dependências de produção: zero vulnerabilidades.
 - HSTS foi observado na resposta externa entregue pela Cloudflare.
 - GitHub Actions do PR #30: checks `Backend` e `Frontend and infrastructure` concluídos com sucesso.
+
+### 2026-07-16 — Bloco 4 concluído
+
+- [x] Exibir estado de carregamento e impedir envio duplicado no login e cadastro.
+- [x] Mostrar erros de autenticação junto ao formulário, mantendo o toast como aviso global.
+- [x] Adicionar controle acessível para mostrar ou ocultar senhas.
+- [x] Validar em desktop e mobile e adicionar cobertura automatizada.
+
+Branch de trabalho: `feat/auth-form-feedback`.
+
+Resultados:
+
+- Botões de envio passam a indicar `Entrando...` ou `Criando conta...`, recebem `aria-busy` e ficam desabilitados durante a requisição.
+- Um segundo envio durante a mesma requisição é ignorado.
+- Erros são apresentados dentro do formulário com anúncio acessível e continuam aparecendo no toast global.
+- Login e cadastro agora possuem controle de mostrar/ocultar senha com `aria-label` e `aria-pressed` atualizados.
+- Foi detectada mistura de HTML novo com CSS/JS antigos no cache público; todos os assets locais receberam uma versão de release comum para evitar carregamentos incompatíveis.
+- Frontend e infraestrutura: 18 de 18 testes aprovados, incluindo envio duplicado, recuperação após erro, visibilidade de senha e versionamento de assets.
+- Backend: 68 de 68 testes aprovados em 9 suítes.
+- Captura pública mobile após o versionamento confirmou o ícone alinhado dentro do campo e ausência de corte no formulário.
