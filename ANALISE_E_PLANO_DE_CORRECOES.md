@@ -320,6 +320,7 @@ Resultados:
 - [x] Atualizar documentação da API, frontend e testes automatizados.
 
 Branch de trabalho: `fix/auth-input-hardening`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/32
 
 Pré-validação do banco público: zero colisões de e-mail quando comparados com `LOWER(TRIM(email))`; nenhum endereço individual foi exibido.
 
