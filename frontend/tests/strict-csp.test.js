@@ -39,9 +39,25 @@ test('every declarative action is present in the event allowlist', () => {
 });
 
 test('pages load external routing and event scripts', () => {
-  assert.match(read('index.html'), /<script src="js\/router\.js" defer><\/script>/);
-  assert.match(read('desktop.html'), /<script src="js\/events\.js"><\/script>/);
-  assert.match(read('mobile.html'), /<script src="js\/events\.js"><\/script>/);
+  assert.match(read('index.html'), /<script src="js\/router\.js\?v=[^"]+" defer><\/script>/);
+  assert.match(read('desktop.html'), /<script src="js\/events\.js\?v=[^"]+"><\/script>/);
+  assert.match(read('mobile.html'), /<script src="js\/events\.js\?v=[^"]+"><\/script>/);
+});
+
+test('local CSS and JavaScript assets use one cache-busting release version', () => {
+  const versions = new Set();
+
+  for (const filename of htmlFiles) {
+    const html = read(filename);
+    const assets = [...html.matchAll(/(?:src|href)="((?:css|js)\/[^"]+)"/g)];
+    for (const [, asset] of assets) {
+      const version = new URLSearchParams(asset.split('?')[1] || '').get('v');
+      assert.ok(version, `${filename} has an unversioned local asset: ${asset}`);
+      versions.add(version);
+    }
+  }
+
+  assert.equal(versions.size, 1, 'local assets must share the same release version');
 });
 
 test('Nginx script policy rejects inline JavaScript', () => {
@@ -107,6 +123,105 @@ test('modal controller provides dialog semantics and keyboard focus management',
   assert.match(app, /event\.key === 'Escape'/);
   assert.match(app, /event\.key !== 'Tab'/);
   assert.match(app, /lastModalTrigger\.focus\(\)/);
+});
+
+test('authentication forms expose loading, inline error and password visibility controls', () => {
+  for (const page of ['desktop.html', 'mobile.html']) {
+    const html = fs.readFileSync(path.join(frontendRoot, page), 'utf8');
+    assert.equal((html.match(/data-action="toggle-password"/g) || []).length, 2);
+    assert.equal((html.match(/role="alert" aria-live="assertive"/g) || []).length, 2);
+    assert.equal((html.match(/data-submit-label/g) || []).length, 2);
+  }
+
+  const input = { type: 'password' };
+  const icon = { setAttribute(name, value) { this[name] = value; } };
+  const attributes = {};
+  const button = {
+    dataset: { target: 'login-password' },
+    setAttribute(name, value) { attributes[name] = value; },
+    querySelector() { return icon; }
+  };
+  const context = {
+    console,
+    document: {
+      addEventListener() {},
+      getElementById(id) { return id === 'login-password' ? input : null; },
+      querySelector() { return null; }
+    },
+    lucide: { createIcons() {} }
+  };
+
+  vm.runInNewContext(read(path.join('js', 'app.js')), context);
+  context.togglePasswordVisibility(button);
+  assert.equal(input.type, 'text');
+  assert.equal(attributes['aria-pressed'], 'true');
+  assert.equal(attributes['aria-label'], 'Ocultar senha');
+  assert.equal(icon['data-lucide'], 'eye-off');
+});
+
+test('login submission blocks duplicates and restores the form after an API error', async () => {
+  let rejectLogin;
+  let apiCalls = 0;
+  const classes = new Set(['hidden']);
+  const label = { textContent: 'Acessar Painel' };
+  const submitButton = {
+    dataset: { defaultLabel: 'Acessar Painel', loadingLabel: 'Entrando...' },
+    disabled: false,
+    classList: { toggle(name, enabled) { if (enabled) classes.add(name); else classes.delete(name); } },
+    querySelector() { return label; }
+  };
+  const form = {
+    id: 'login-form',
+    dataset: {},
+    setAttribute(name, value) { this[name] = value; },
+    querySelector() { return submitButton; }
+  };
+  const error = {
+    textContent: '',
+    classList: {
+      add(name) { classes.add(name); },
+      remove(name) { classes.delete(name); }
+    }
+  };
+  const nodes = {
+    'login-email': { value: 'person@example.com' },
+    'login-password': { value: 'secret-password' },
+    'login-form-error': error
+  };
+  const context = {
+    API: {
+      post() {
+        apiCalls += 1;
+        return new Promise((resolve, reject) => { rejectLogin = reject; });
+      }
+    },
+    console,
+    document: {
+      addEventListener() {},
+      getElementById(id) { return nodes[id] || null; },
+      querySelector() { return null; }
+    },
+    lucide: { createIcons() {} }
+  };
+
+  vm.runInNewContext(read(path.join('js', 'app.js')), context);
+  context.showToast = () => {};
+  const firstSubmit = context.handleLogin({ preventDefault() {}, target: form });
+  const duplicateSubmit = context.handleLogin({ preventDefault() {}, target: form });
+
+  assert.equal(apiCalls, 1);
+  assert.equal(submitButton.disabled, true);
+  assert.equal(label.textContent, 'Entrando...');
+  await duplicateSubmit;
+
+  rejectLogin(new Error('Credenciais inválidas'));
+  await firstSubmit;
+
+  assert.equal(submitButton.disabled, false);
+  assert.equal(form.dataset.submitting, 'false');
+  assert.equal(label.textContent, 'Acessar Painel');
+  assert.equal(error.textContent, 'Credenciais inválidas');
+  assert.equal(classes.has('hidden'), false);
 });
 
 test('event delegation invokes only the allowlisted action and form handlers', () => {
