@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>FitLife Sync - Mobile App</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,7 +18,7 @@
 <body>
 
   <!-- Toast -->
-  <div id="toast" class="toast hidden">
+  <div id="toast" class="toast hidden" role="status" aria-live="polite" aria-atomic="true">
     <div class="toast-content">
       <i data-lucide="info" id="toast-icon"></i>
       <span id="toast-message">Alerta</span>
@@ -27,7 +27,7 @@
 
   <!-- 1. LOGIN SCREEN -->
   <div id="login-screen">
-    <div class="login-card glass" style="box-shadow: none; width: 100%;">
+    <div class="login-card glass mobile-login-card">
       <div class="login-header">
         <div class="logo-container">
           <i data-lucide="dumbbell" class="logo-icon text-gradient"></i>
@@ -36,39 +36,39 @@
         <p class="login-subtitle">Conectando treinos e evolução</p>
       </div>
 
-      <div class="auth-tabs">
-        <button id="tab-btn-login" class="auth-tab-btn active" data-action="switch-auth-tab" data-tab="login">Entrar</button>
-        <button id="tab-btn-register" class="auth-tab-btn" data-action="switch-auth-tab" data-tab="register">Personal</button>
+      <div class="auth-tabs" role="tablist" aria-label="Acesso à conta">
+        <button id="tab-btn-login" class="auth-tab-btn active" role="tab" aria-selected="true" aria-controls="login-form" data-action="switch-auth-tab" data-tab="login">Entrar</button>
+        <button id="tab-btn-register" class="auth-tab-btn" role="tab" aria-selected="false" aria-controls="register-form" data-action="switch-auth-tab" data-tab="register">Personal</button>
       </div>
 
-      <form id="login-form" class="auth-form">
+      <form id="login-form" class="auth-form" role="tabpanel" aria-labelledby="tab-btn-login">
         <div class="input-group">
           <label for="login-email"><i data-lucide="mail"></i> E-mail</label>
-          <input type="email" id="login-email" required placeholder="seuemail@exemplo.com">
+          <input type="email" id="login-email" required autocomplete="email" inputmode="email" placeholder="seuemail@exemplo.com">
         </div>
         <div class="input-group">
           <label for="login-password"><i data-lucide="lock"></i> Senha</label>
-          <input type="password" id="login-password" required placeholder="Sua senha">
+          <input type="password" id="login-password" required autocomplete="current-password" placeholder="Sua senha">
         </div>
         <button type="submit" class="btn btn-primary btn-full btn-glow">Acessar Painel</button>
       </form>
 
-      <form id="register-form" class="auth-form hidden">
+      <form id="register-form" class="auth-form hidden" role="tabpanel" aria-labelledby="tab-btn-register">
         <div class="input-group">
           <label for="reg-name"><i data-lucide="user"></i> Nome Completo</label>
-          <input type="text" id="reg-name" required>
+          <input type="text" id="reg-name" required autocomplete="name">
         </div>
         <div class="input-group">
           <label for="reg-email"><i data-lucide="mail"></i> E-mail Profissional</label>
-          <input type="email" id="reg-email" required>
+          <input type="email" id="reg-email" required autocomplete="email" inputmode="email">
         </div>
         <div class="input-group">
           <label for="reg-password"><i data-lucide="lock"></i> Senha Segura</label>
-          <input type="password" id="reg-password" required>
+          <input type="password" id="reg-password" required autocomplete="new-password">
         </div>
         <div class="input-group">
           <label for="reg-access-key"><i data-lucide="key"></i> Chave de Acesso</label>
-          <input type="text" id="reg-access-key" required>
+          <input type="text" id="reg-access-key" required autocomplete="off" spellcheck="false">
         </div>
         <button type="submit" class="btn btn-accent btn-full btn-glow">Cadastrar-se</button>
       </form>

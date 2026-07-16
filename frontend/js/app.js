@@ -1,6 +1,44 @@
 // FitLife Sync - App Orchestrator & Shell
 
+let lastModalTrigger = null;
+
+const modalFocusableSelector = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])'
+].join(',');
+
+function configureAccessibleModal(modal) {
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-hidden', modal.classList.contains('active') ? 'false' : 'true');
+  modal.setAttribute('tabindex', '-1');
+
+  const title = modal.querySelector('.modal-title, h1, h2, h3, #modal-student-name');
+  if (title) {
+    if (!title.id) title.id = `${modal.id}-title`;
+    modal.setAttribute('aria-labelledby', title.id);
+  } else {
+    modal.setAttribute('aria-label', 'Janela de diálogo');
+  }
+
+  modal.querySelectorAll('[data-action="close-modal"]').forEach(button => {
+    if (!button.hasAttribute('aria-label')) button.setAttribute('aria-label', 'Fechar janela');
+  });
+}
+
+function getModalFocusableElements(modal) {
+  return Array.from(modal.querySelectorAll(modalFocusableSelector)).filter(element => {
+    return !element.hasAttribute('hidden') && element.getAttribute('aria-hidden') !== 'true';
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.modal-overlay').forEach(configureAccessibleModal);
+
   // Check and apply theme
   const savedTheme = localStorage.getItem('fitlife_theme');
   const icon = document.getElementById('theme-toggle-icon');
@@ -47,8 +85,13 @@ function showToast(message, type = 'info') {
 function openModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
+    lastModalTrigger = document.activeElement;
+    configureAccessibleModal(modal);
     modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('modal-open');
+    const focusTarget = getModalFocusableElements(modal)[0] || modal;
+    focusTarget.focus();
   }
 }
 
@@ -57,8 +100,41 @@ function closeModal(modalId) {
   if (modal) {
     modal.classList.remove('active');
     document.body.classList.remove('modal-open');
+    if (lastModalTrigger && lastModalTrigger.isConnected) lastModalTrigger.focus();
+    lastModalTrigger = null;
+    modal.setAttribute('aria-hidden', 'true');
   }
 }
+
+document.addEventListener('keydown', event => {
+  const modal = document.querySelector('.modal-overlay.active');
+  if (!modal) return;
+
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    closeModal(modal.id);
+    return;
+  }
+
+  if (event.key !== 'Tab') return;
+
+  const focusable = getModalFocusableElements(modal);
+  if (!focusable.length) {
+    event.preventDefault();
+    modal.focus();
+    return;
+  }
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+});
 
 // Switch Login/Register Tabs
 function switchAuthTab(tab) {
@@ -70,11 +146,15 @@ function switchAuthTab(tab) {
   if (tab === 'login') {
     tabLogin.classList.add('active');
     tabRegister.classList.remove('active');
+    tabLogin.setAttribute('aria-selected', 'true');
+    tabRegister.setAttribute('aria-selected', 'false');
     formLogin.classList.remove('hidden');
     formRegister.classList.add('hidden');
   } else {
     tabLogin.classList.remove('active');
     tabRegister.classList.add('active');
+    tabLogin.setAttribute('aria-selected', 'false');
+    tabRegister.setAttribute('aria-selected', 'true');
     formLogin.classList.add('hidden');
     formRegister.classList.remove('hidden');
   }
