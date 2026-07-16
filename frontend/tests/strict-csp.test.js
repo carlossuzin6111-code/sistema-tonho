@@ -66,6 +66,19 @@ test('proxy forwarding uses one canonical client IP and local-only host access',
   assert.match(compose, /127\.0\.0\.1:3000:3000/);
 });
 
+test('registration keys use the transactional database flow only', () => {
+  const compose = fs.readFileSync(path.join(repositoryRoot, 'docker-compose.yml'), 'utf8');
+  const readme = fs.readFileSync(path.join(repositoryRoot, 'README.md'), 'utf8');
+  const gitignore = fs.readFileSync(path.join(repositoryRoot, '.gitignore'), 'utf8');
+
+  assert.doesNotMatch(compose, /keys_aut\.json/);
+  assert.doesNotMatch(readme, /Copie `backend\/keys_aut\.example\.json`/);
+  assert.match(readme, /docker compose exec app npm run access-key:create/);
+  assert.match(gitignore, /^keys_aut\.json$/m);
+  assert.match(gitignore, /^\*\.sqlite$/m);
+  assert.equal(fs.existsSync(path.join(repositoryRoot, 'backend', 'keys_aut.example.json')), false);
+});
+
 test('event delegation invokes only the allowlisted action and form handlers', () => {
   const listeners = {};
   const calls = [];

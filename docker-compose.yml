@@ -21,7 +21,6 @@ services:
     # Remover o ports "3000:3000" para evitar conflito. A API fica privada na rede Docker.
     volumes:
       - db-data:/app/data
-      - ./backend/keys_aut.json:/app/keys_aut.json
     environment:
       - PORT=${PORT:-3000}
       - NODE_ENV=${NODE_ENV:-development}
