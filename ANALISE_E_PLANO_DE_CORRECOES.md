@@ -1,470 +1,292 @@
-# Análise técnica atualizada e próximos passos — FitLife Sync
 
-> Atualizado em 16/07/2026 após os merges dos PRs #22 a #28, confirmação do CI completo da `main` e restauração segura dos metadados Git do workspace.
+  ## Prioridade imediata
 
-## 1. Resumo executivo
+  ### 1. Corrigir o layout mobile
 
-O plano técnico anterior foi implementado quase integralmente pelos PRs #7 a #21. Entretanto, a integração sequencial de branches empilhadas introduziu regressões na `main`: a API e o worker de tradução não iniciavam, partes da autenticação por cookie foram perdidas e a suíte de testes ficou inconsistente.
+  Na captura em celular, o cartão de login ultrapassa a largura da tela e fica cortado à direita.
 
-As correções foram reunidas no PR #22:
+  A causa provável está em frontend/css/mobile.css:7:
 
-- PR: https://github.com/carlossuzin6111-code/sistema-tonho/pull/22
-- Branch: `fix/stacked-pr-integration-regressions`
-- Commit: `82e287e`
-- Estado verificado: mesclado em 16/07/2026 no commit `2d000df`, com CI da `main` aprovado
+  - Uso de width: 100vw junto com padding.
+  - overflow: hidden no html e body.
+  - Alturas fixas em 100vh.
+  - Isso também pode quebrar quando o teclado virtual aparece.
 
-O PR #22 foi mesclado antes do início das correções operacionais seguintes.
+  Recomendação:
 
-O código presente neste workspace contém as correções do PR #22 e passa nas suítes automatizadas. A análise dos logs, porém, encontrou problemas operacionais adicionais que não são detectados pelos testes atuais: quedas periódicas do SSE do chat, bloqueios compartilhados no rate limiter de autenticação e configuração legada de chaves de cadastro.
+  - Trocar 100vw por width: 100%.
+  - Usar min-height: 100dvh.
+  - Aplicar box-sizing: border-box.
+  - Não bloquear o scroll na tela de autenticação.
+  - Considerar env(safe-area-inset-*).
+  - Testar nas larguras 320, 360 e 390 pixels.
 
-## 2. Estado validado
+  ### 2. Publicação está usando ambiente de desenvolvimento
 
-### Testes automatizados
+  O Compose define NODE_ENV=development como padrão em docker-compose.yml:33.
 
-- Backend: 9 suítes e 68 testes aprovados.
-- Frontend, CSP e infraestrutura: 13 testes aprovados.
-- Verificação de sintaxe: nenhum erro nos arquivos JavaScript do backend e frontend.
-- Dependências: instalação reproduzível e auditoria sem vulnerabilidades conhecidas.
-- A suíte backend encerra naturalmente, sem `--forceExit`.
+  Porém, o cookie só recebe o atributo Secure quando o ambiente é production, em backend/src/services/
+  sessionService.js:35.
 
-### Docker
+  Como a aplicação está pública via HTTPS, isso deve ser corrigido mesmo sendo uma base de testes. Sugestão:
 
-Os quatro serviços foram iniciados e inspecionados:
+  - Ambiente público: NODE_ENV=production.
+  - Ambiente local: arquivo Compose separado ou override para desenvolvimento.
+  - Alternativamente, criar uma configuração explícita como COOKIE_SECURE=true.
 
-- `fitlife_app`: ativo e sem reinícios após a correção.
-- `fitlife_translation_worker`: ativo e sem reinícios.
-- `fitlife_web`: ativo e respondendo HTTP 200.
-- `fitlife_tunnel`: conectado ao Cloudflare Tunnel.
+  ### 3. Site público ainda está numa versão anterior
 
-O Compose agora possui healthchecks de API/SQLite e Nginx, e condiciona web, worker e túnel à saúde das dependências. Essas mudanças estão na `main`, mas ainda não foram implantadas porque a rotação de credenciais permanece pendente.
+  A versão acessível publicamente não contém todas as correções já integradas na branch main. Portanto, alguns
+  resultados visuais e de segurança observados no endereço público não representam completamente o código atual.
 
-As três migrations foram aplicadas corretamente:
+  Antes de validar definitivamente, será necessário reconstruir e republicar os containers.
 
-1. Schema inicial.
-2. Índices das consultas principais.
-3. Chaves de cadastro transacionais.
+  ## Melhorias visuais e interativas
 
-### Site público
+  ### Login
 
-URL validada: https://tonho.personaltonho.online
+  A identidade visual está limpa e coerente, mas no desktop há muito espaço vazio e pouca informação para orientar o
+  usuário.
 
-Um smoke test com Chrome real confirmou:
+  Eu adicionaria:
 
-- redirecionamento para a interface desktop;
-- carregamento da tela de login;
-- login de personal;
-- abertura do painel e da lista de alunos;
-- navegação para cadastro de aluno e biblioteca de exercícios;
-- sessão em cookie `HttpOnly` não acessível por JavaScript;
-- cookie CSRF presente durante a sessão;
-- logout com limpeza dos cookies e do cache local;
-- nenhuma exceção JavaScript;
-- nenhuma resposta inesperada de erro da API.
+  - Mostrar/ocultar senha.
+  - Recuperação de senha.
+  - Indicação visível de que o ambiente é de testes.
+  - Pequena apresentação dos recursos no lado esquerdo em desktop.
+  - Identificação mais clara: “Entrar” e “Criar conta de personal”.
+  - Erros junto ao campo correspondente, em vez de depender apenas de mensagens flutuantes.
+  - Estado de carregamento no botão e prevenção de cliques duplicados.
 
-As contas e os dados criados para o teste foram removidos após a validação.
+  ### Dashboard
 
-Esse smoke test representa um recorte pontual. A inspeção posterior dos logs revelou timeouts recorrentes na conexão SSE do chat e respostas de autenticação `400`, `403` e `429`, detalhadas na seção 4.
+  Para tornar a aplicação mais útil no uso diário:
 
-## 3. Regressões corrigidas pelo PR #22
+  - Mostrar último peso, evolução, treinos ativos e mensagens não lidas.
+  - Busca, filtros e ordenação de alunos e exercícios.
+  - Skeletons durante carregamentos.
+  - Telas vazias com uma ação direta, por exemplo “Cadastrar primeiro aluno”.
+  - Botões de ação fixos no celular.
+  - Gráficos com resumo textual e unidades bem visíveis.
+  - Manter a aba atual no histórico/URL para o botão Voltar funcionar corretamente.
 
-- Declaração duplicada de `JWT_SECRET`, que impedia a API de iniciar.
-- Constantes de métodos seguros do middleware CSRF ausentes.
-- Funções de criação e limpeza de cookies não importadas no controller.
-- Retorno do segredo JWT legado como fallback.
-- Script `worker:translate` ausente do `package.json`.
-- Lista duplicada e incompleta de migrations nos testes.
-- Testes de integração ainda esperando JWT no corpo da resposta.
-- Helpers e imports ausentes nos testes de cookie, logout e sessão expirada.
-- Cenário multi-personal reutilizando uma chave de cadastro já consumida.
-- Teste CSP ausente do comando `npm test` da raiz.
-- Requisito de Node e permissão do SQLite desalinhados com o SQLite 6.0.1.
-- `.gitignore` raiz vazio, sem proteção para arquivos `.env`.
+  ### Chat e atualizações em tempo real
 
-## 4. Erros atuais confirmados e causas-raiz
+  O SSE já melhorou a atualização em tempo real. A interface poderia informar melhor o estado:
 
-Os achados desta seção foram confirmados nos logs do ambiente anterior. As correções foram mescladas na `main` pelos PRs #23 a #25, mas a validação operacional final depende da rotação de credenciais e da recriação dos containers.
+  - “Conectado”, “Reconectando” ou “Sem conexão”.
+  - Mensagem com estado “enviando”, “enviada” ou “falhou”.
+  - Botão de tentar novamente.
+  - Notificação discreta de novas mensagens.
+  - Preservar mensagens digitadas em caso de falha.
 
-### SSE-01 — Timeout recorrente no chat
+  ### Exclusões e ações sensíveis
 
-**Prioridade: alta.**
+  Adicionar:
 
-**Estado do código:** corrigido pelo PR #23; implantação pendente.
+  - Confirmação clara antes de excluir aluno, treino ou exercício.
+  - Possibilidade de desfazer quando tecnicamente possível.
+  - Diferenciar visualmente ações destrutivas.
+  - Evitar fechar formulários quando a requisição falhar.
 
-O Nginx registrava repetidamente `upstream timed out while reading upstream` para `GET /api/chat/stream`. A conexão era encerrada aproximadamente a cada 60 segundos e o `EventSource` do navegador tentava reconectar, gerando ciclos de conexão e desconexão e, em alguns momentos, múltiplos streams para o mesmo usuário.
+  ## Acessibilidade
 
-Causa-raiz:
+  Existem lacunas relevantes:
 
-- o backend enviava apenas o comentário inicial `:ok` ao abrir o SSE;
-- não existia heartbeat periódico durante períodos sem mensagens;
-- o bloco `/api/` do Nginx desabilitava buffering, mas não definia `proxy_read_timeout`;
-- o timeout padrão do proxy encerrava a conexão ociosa.
+  - As páginas bloqueiam zoom com user-scalable=0 em frontend/mobile.html:5 e frontend/desktop.html:5. Isso deve ser
+    removido.
 
-Correção implementada:
+  - Muitos botões apenas com ícones não têm aria-label.
+  - Modais não possuem role="dialog", aria-modal, controle de foco ou fechamento com Escape.
+  - O gerenciamento atual apenas mostra ou esconde o modal em frontend/js/app.js:47.
+  - Toasts não usam aria-live, então leitores de tela podem não anunciar erros.
+  - Falta suporte a prefers-reduced-motion.
+  - As abas deveriam expor role="tab", aria-selected e relacionamento com seus painéis.
+  - Campos de login deveriam usar autocomplete="email" e autocomplete="current-password".
 
-1. Enviar heartbeat SSE a cada 15 a 30 segundos.
-2. Definir um `proxy_read_timeout` explicitamente maior para a rota do stream.
-3. Limpar o timer de heartbeat quando a conexão fechar.
-4. Criar teste automatizado que mantenha o stream aberto além do timeout anterior.
+  ## Segurança
 
-### AUTH-KEY-01 — Cadastro retorna `403`
+  ### Pontos positivos
 
-**Prioridade: alta.**
+  A base atual já possui:
 
-**Estado do código:** corrigido pelo PR #25; implantação pendente.
+  - JWT obrigatório com segredo mínimo de 32 bytes.
+  - Cookie de sessão HttpOnly.
+  - SameSite=Strict.
+  - Proteção CSRF.
+  - Limites separados para login e cadastro.
+  - Validação de papéis e vínculos entre personal e aluno.
+  - CORS restritivo.
+  - Cabeçalhos CSP, anti-iframe, MIME sniffing e política de referência.
+  - Auditoria de dependências com resultado atual de zero vulnerabilidades conhecidas.
 
-Os `403` observados possuem a resposta `Access Key Inválida`. O backend atual valida somente hashes existentes e ainda não utilizados na tabela `registration_keys`. O arquivo legado `keys_aut.json` não é lido nem importado.
+  ### Melhorias prioritárias
 
-Problemas associados:
+  1. Rotacionar os segredos antes de dados reais
 
-- antes do PR #25, o README orientava copiar e preencher `backend/keys_aut.json`, contradizendo o fluxo transacional atual;
-- antes do PR #25, o Compose montava `backend/keys_aut.json` em `/app/keys_aut.json`;
-- no workspace analisado, esse caminho foi criado pelo bind mount como diretório, não como arquivo;
-- `.dockerignore` já excluía o arquivo do build, mas o `.gitignore` raiz não protegia explicitamente `keys_aut.json` nem bancos SQLite.
+     Como combinado, pode permanecer assim durante os testes. Antes de transformar em ambiente real, troque JWT, token
+     do túnel e quaisquer credenciais utilizadas.
 
-Correção implementada:
+  2. Invalidar sessões após troca de senha
 
-1. Gerar chaves no mesmo banco usado pela aplicação com `docker compose exec app npm run access-key:create`.
-2. Remover do Compose a montagem de `keys_aut.json`.
-3. Remover do README as instruções do mecanismo legado.
-4. Adicionar ao `.gitignore` padrões para `keys_aut.json`, `*.sqlite` e arquivos auxiliares do SQLite.
-5. Não restaurar nem importar chaves antigas que já foram versionadas.
+     A sessão JWT dura sete dias em backend/src/services/sessionService.js:15. Atualmente, trocar a senha não aparenta
+     invalidar tokens emitidos anteriormente.
 
-### AUTH-RATE-01 — Login e cadastro retornam `429`
+     O ideal é implementar token_version ou uma tabela de sessões revogáveis.
 
-**Prioridade: alta.**
+  3. Aumentar o mínimo de senha
 
-**Estado do código:** corrigido pelo PR #24; implantação pendente.
+     O mínimo atual é seis caracteres em backend/src/middleware/validateRequest.js:52. Recomendo pelo menos 10–12
+     caracteres, aceitando senhas longas e frases-senha.
 
-Login e cadastro compartilhavam o mesmo rate limiter: por padrão eram permitidas 10 tentativas malsucedidas em 15 minutos, agrupadas por endereço IP.
+  4. Fluxo de redefinição de senha
 
-A implantação pública possui dois proxies antes do Express: Cloudflare Tunnel e Nginx. Antes do PR #24, o Nginx repassava a cadeia recebida e o backend não obtinha de forma confiável o endereço canônico do visitante, fazendo clientes diferentes compartilharem a mesma contagem.
+     O personal pode definir diretamente uma nova senha do aluno. Mais seguro seria:
+      - Gerar convite ou token temporário.
+      - Obrigar troca no primeiro acesso.
+      - Registrar quem iniciou a redefinição.
+      - Invalidar sessões anteriores.
 
-Isso explica a sequência observada nos logs: várias chaves inválidas retornam `403`; essas falhas consomem o limite; em seguida, cadastro e login passam a responder `429`.
+  5. Remover dependência externa flutuante
 
-Correção implementada:
+     Os ícones são carregados de unpkg.com/lucide@latest em frontend/mobile.html:12. Isso traz risco de cadeia de
+     fornecimento.
 
-1. Validar `req.ip` e `req.ips` em ambiente controlado, sem registrar dados pessoais permanentemente.
-2. Configurar a cadeia de proxies confiáveis de forma explícita e restrita.
-3. Não usar uma configuração ampla que permita ao cliente forjar `X-Forwarded-For`.
-4. Avaliar limitadores separados para login e cadastro.
-5. Incluir teste de integração representando Cloudflare Tunnel, Nginx e Express.
+     Melhor instalar e servir uma versão fixa dentro do próprio projeto.
 
-### AUTH-LOGIN-01 — Login retorna `400`
+  6. Fortalecer a CSP
 
-**Prioridade: informativa.**
+     A CSP ainda aceita estilos inline e imagens de qualquer origem HTTPS em nginx.conf:33.
 
-O `400` observado no login corresponde a e-mail inexistente ou senha incorreta. Nesse caso, o backend está se comportando conforme implementado. O problema operacional ocorre quando essas falhas legítimas são agregadas incorretamente pelo rate limiter e evoluem para `429` compartilhado.
+     Os 38 estilos inline encontrados na versão mobile deveriam virar classes CSS. Depois disso, seria possível remover
+     'unsafe-inline' e restringir img-src.
 
-### OPS-DNS-01 — Timeout DNS isolado no túnel
+  7. Adicionar HSTS
 
-**Prioridade: baixa/monitoramento.**
+     O endereço público usa HTTPS, mas não retornou Strict-Transport-Security. Deve ser configurado depois de confirmar
+     que todo acesso será exclusivamente HTTPS.
 
-O Cloudflare Tunnel registrou um timeout ao atualizar o resolvedor DNS local. As conexões QUIC já estavam estabelecidas e os testes prévios de DNS, UDP, TCP e API haviam sido aprovados. O evento aparenta ser transitório; deve ser monitorado antes de qualquer mudança de configuração.
+  8. Imagens e GIFs externos
 
-O aviso sobre tamanho do buffer UDP também não impediu o túnel de conectar e não é, isoladamente, a causa dos erros da aplicação.
+     O campo de GIF aceita texto muito grande e não valida adequadamente protocolo ou domínio. Recomendo:
+      - Aceitar apenas URLs https:.
+      - Impor tamanho menor.
+      - Opcionalmente usar uma lista de domínios permitidos.
+      - Futuramente armazenar uploads de forma controlada.
 
-### DOC-01 — Documentação arquitetural desatualizada
+  9. Normalizar e-mails
 
-**Prioridade: média.**
+     Converter e-mail para minúsculas e remover espaços antes de cadastrar ou autenticar. Isso evita contas duplicadas
+     por diferenças de capitalização.
 
-`docs/ARCHITECTURE.md` ainda descreve ausência de migrations, worker de tradução dentro da API, JWT no armazenamento do navegador e token SSE na URL. O código atual já possui três migrations, worker separado, sessão em cookie `HttpOnly` e SSE autenticado pelo cookie.
+  10. Registro de auditoria
 
-O README também mistura o fluxo novo de `registration_keys` com instruções do arquivo legado `keys_aut.json`. Essa divergência aumenta a chance de operação incorreta e explica tentativas de cadastro com chaves que o backend nunca aceitará.
+  Registrar ações como:
 
-### WORKSPACE-01 — Metadados Git restaurados
+  - Redefinição de senha.
+  - Exclusão de alunos e treinos.
+  - Alteração de medidas.
+  - Mudanças de vínculo.
+  - Tentativas administrativas relevantes.
 
-**Estado: concluído em 16/07/2026.**
+  ### Infraestrutura
 
-Os metadados Git foram reconstruídos a partir da `main` remota após o merge do PR #22. A branch local `main` acompanha `origin/main` no commit `2d000df`. A restauração atualizou somente referências e índice, preservando os arquivos existentes. O único arquivo funcionalmente modificado no workspace é este documento de acompanhamento.
+  As imagens nginx:alpine, node:20-slim e cloudflared:latest não estão totalmente fixadas. Recomendo versões ou digests
+  específicos.
 
-## 5. Ações urgentes após o merge
+  O container Node também deveria:
 
-### SEC-01 — Rotação de credenciais
+  - Executar com usuário não-root.
+  - Usar build em múltiplos estágios.
+  - Não manter compiladores no container final.
+  - Ter backup automatizado e testado do SQLite.
 
-**Prioridade: crítica.**
+  ## Ordem sugerida para continuar
 
-O token do Cloudflare Tunnel e um segredo JWT foram expostos durante a manutenção. Eles não foram incluídos no PR, mas devem ser considerados comprometidos.
+  1. Corrigir o estouro e teclado no mobile.
+  2. Publicar com NODE_ENV=production.
+  3. Melhorar acessibilidade de modais, botões, zoom e mensagens.
+  4. Adicionar feedback de carregamento, erro e reconexão.
+  5. Hospedar Lucide localmente e remover estilos inline.
+  6. Implementar revogação de sessões e novo fluxo de senha.
+  7. Adicionar HSTS, auditoria e rotina de backup.
+  8. Reconstruir os containers e repetir os testes desktop/mobile.
 
-Ações:
+## Progresso de implementação
 
-1. Revogar o token atual do Cloudflare Tunnel.
-2. Gerar um token novo.
-3. Gerar um `JWT_SECRET` novo, aleatório e exclusivo, com pelo menos 32 bytes.
-4. Atualizar somente o `.env` local ou o gerenciador de segredos do ambiente.
-5. Recriar os containers.
-6. Invalidar sessões antigas e repetir o smoke test.
+### 2026-07-16 — Bloco 1 concluído
 
-Não registrar os novos valores em documentação, commits, logs ou mensagens.
+- [x] Corrigir largura, rolagem e altura dinâmica da tela de login mobile.
+- [x] Permitir zoom e adicionar metadados básicos de acessibilidade aos formulários.
+- [x] Adicionar anúncio acessível aos toasts e preferência por movimento reduzido.
+- [x] Executar os testes automatizados e registrar o resultado.
 
-### REL-01 — Implantar somente após o merge
+Observação: o documento já continha alterações locais antes deste bloco; elas foram preservadas.
 
-O gate foi concluído: a `main` pública contém as correções do PR #22 e o workflow backend pós-merge foi aprovado. A implantação ainda depende da rotação das credenciais comprometidas e das validações operacionais subsequentes.
+Validação:
 
-## 6. Melhorias recomendadas
+- Frontend e infraestrutura: 13 de 13 testes aprovados.
+- Backend: 68 de 68 testes aprovados em 9 suítes.
+- `git diff --check`: nenhuma inconsistência de espaços em branco.
+- Permanecem dois usos de `100vw` no drawer mobile, fora da tela de login; serão tratados em bloco visual posterior.
 
-### CI-01 — Executar testes frontend no GitHub Actions
+### 2026-07-16 — Bloco 2 concluído
 
-**Estado: concluído pelo PR #27.**
+- [x] Tornar `production` o ambiente padrão da pilha pública.
+- [x] Preservar uma forma explícita de executar localmente em desenvolvimento.
+- [x] Confirmar por teste que cookies de produção continuam recebendo `Secure`.
 
-O workflow atual executa apenas a suíte backend. O CI deve também executar o `npm test` da raiz para impedir regressões de XSS, sessão e CSP.
+Validação:
 
-Critérios de aceite:
+- O Compose reconheceu os quatro serviços sem expor a configuração completa no terminal.
+- Frontend e infraestrutura: 14 de 14 testes aprovados, incluindo o novo teste do ambiente padrão.
+- Cookies de sessão: 2 de 2 testes específicos aprovados, incluindo `Secure` em produção.
+- O `.env` local foi ajustado para `production`; para desenvolvimento local, `NODE_ENV=development` deve ser definido explicitamente.
 
-- backend e frontend aparecem como checks obrigatórios;
-- falha de qualquer suíte bloqueia o merge;
-- o workflow usa versões fixadas e instalação reproduzível.
+### 2026-07-16 — Bloco 3 concluído
 
-### PERF-01 — Retirar a carga do catálogo do cadastro
+- [x] Aplicar semântica de diálogo a todos os modais ao abri-los.
+- [x] Direcionar e prender o foco dentro do modal ativo.
+- [x] Fechar com `Escape` e devolver o foco ao elemento acionador.
+- [x] Adicionar cobertura automatizada do comportamento.
 
-**Prioridade: média/alta.**
+Validação:
 
-O cadastro de um personal insere aproximadamente 1.324 exercícios antes de responder. Isso aumenta a latência da requisição e pode causar timeout em conexões lentas.
+- Frontend e infraestrutura: 15 de 15 testes aprovados.
+- Backend completo após as alterações: 68 de 68 testes aprovados em 9 suítes.
+- Captura local com viewport CSS equivalente a 360 px confirmou o cartão de login inteiro, com margens laterais e sem corte de campos ou botões.
+- A primeira captura feita diretamente em 360 px foi descartada como referência porque o Chrome headless no Windows impõe uma largura interna mínima e recorta a imagem; a validação correta usou 720 px com escala de dispositivo 2.
 
-Recomendação:
+### Estado ao encerrar este ciclo
 
-- criar o usuário e responder sem aguardar toda a carga;
-- popular o catálogo por job idempotente;
-- registrar progresso e falhas;
-- impedir duplicação por nome/personal.
+- Três blocos concluídos: layout/acessibilidade básica, ambiente público seguro e modais acessíveis.
+- Naquele ponto, os containers ainda precisavam ser reconstruídos para adotar `NODE_ENV=production`; a publicação foi concluída e validada na etapa seguinte.
+- Próximo bloco sugerido: estados de carregamento e erros junto aos campos de login/cadastro, seguido de botões de mostrar/ocultar senha.
 
-### OPS-01 — Adicionar healthchecks
+### 2026-07-16 — Publicação e validação concluídas
 
-**Estado do código: concluído pelo PR #28; implantação pendente.**
+- [x] Reconstruir e recriar a pilha da base pública de testes.
+- [x] Aguardar todos os healthchecks ficarem saudáveis.
+- [x] Validar API, cabeçalhos, cookies e interface pública.
+- [x] Repetir testes automatizados após a publicação.
+- [x] Criar commit, enviar a branch e abrir pull request.
 
-O Compose considera o container iniciado mesmo quando o processo entra em reinício. Adicionar healthchecks para API e Nginx e condicionar dependências à saúde real.
+Branch de trabalho: `fix/mobile-accessibility-production`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/30
 
-Os healthchecks não substituem a correção do SSE: uma API pode responder ao healthcheck e ainda encerrar indevidamente streams de longa duração.
+Resultados da publicação:
 
-### TEST-01 — E2E contínuo para desktop e mobile
-
-**Prioridade: média.**
-
-Transformar o smoke test realizado manualmente em teste automatizado de navegador, cobrindo:
-
-- login e logout;
-- personal e aluno;
-- criação de aluno;
-- treino e exercícios;
-- medidas;
-- chat e SSE;
-- desktop e viewport mobile;
-- ausência de erros JavaScript e respostas 5xx.
-
-### SEC-02 — Remover `unsafe-inline` de estilos
-
-**Prioridade: média.**
-
-O `script-src` já rejeita JavaScript inline, mas `style-src` ainda permite `unsafe-inline` por causa de estilos legados nos HTML. Migrar estilos inline para classes CSS e endurecer a CSP.
-
-### DB-01 — Avaliar substituição do `node-sqlite3`
-
-**Prioridade: média.**
-
-O projeto usa `sqlite3` 6.0.1 e está sem vulnerabilidades conhecidas na auditoria atual. Ainda assim, o repositório do driver foi arquivado. A substituição deve ser estudada em PR próprio, com benchmarks, compatibilidade de migrations e testes de concorrência.
-
-## 7. Ordem sugerida dos próximos PRs
-
-1. Mesclar o PR #22 e confirmar o CI na `main`.
-2. Rotacionar credenciais e recriar o ambiente.
-3. Restaurar ou recriar o workspace a partir de um clone Git válido.
-4. Corrigir heartbeat e timeout do SSE do chat.
-5. Corrigir a cadeia de proxies confiáveis e o rate limiter de autenticação.
-6. Remover o fluxo legado de `keys_aut.json` e atualizar os padrões de ignore.
-7. Atualizar README e documentação arquitetural.
-8. Adicionar a suíte frontend ao GitHub Actions.
-9. Adicionar healthchecks e smoke test de deploy.
-10. Retirar a carga do catálogo do caminho síncrono de cadastro.
-11. Automatizar E2E desktop/mobile, incluindo estabilidade do SSE.
-12. Remover estilos inline e endurecer a CSP.
-13. Avaliar um substituto para `node-sqlite3`.
-
-Cada item deve permanecer em PR próprio, com escopo pequeno e validação proporcional ao risco.
-
-Situação em 16/07/2026: itens 1, 3, 4, 5, 6, 7, 8 e 9 concluídos na `main`. O item 2, rotação de credenciais, permanece como gate para implantação. Os itens 10 a 13 ainda não foram iniciados.
-
-## 8. Checklist para liberar uma versão
-
-- [x] PR #22 mesclado.
-- [x] CI da `main` aprovado.
-- [ ] Token do Cloudflare rotacionado.
-- [ ] `JWT_SECRET` rotacionado.
-- [ ] `.env` ausente do Git.
-- [ ] `keys_aut.json` e bancos SQLite protegidos pelo `.gitignore`.
-- [x] Workspace reconhecido como repositório Git válido.
-- [x] Backend: 68 testes aprovados.
-- [x] Frontend/CSP/infra: 13 testes aprovados.
-- [ ] Docker sem containers em reinício.
-- [ ] Healthchecks de API e Nginx aprovados.
-- [ ] Stream SSE permanece conectado e recebe heartbeats.
-- [ ] Rate limiter diferencia corretamente clientes atrás do túnel e do Nginx.
-- [x] Cadastro usa chave gerada na tabela `registration_keys`, sem arquivo legado.
-- [ ] API autenticada validada pelo domínio público.
-- [ ] Login e logout validados em desktop e mobile.
-- [ ] Logs sem segredos, tokens ou dados pessoais.
-- [ ] Backup do banco confirmado antes de migrations destrutivas.
-
-## 9. Conclusão
-
-O PR #22 foi mesclado e corrige as regressões que impediam a inicialização da API e do worker. As suítes locais e o CI da `main` estão aprovados, e os metadados Git do workspace foram restaurados. Isso não significa, porém, que o ambiente esteja pronto para liberação: os logs confirmam instabilidade no SSE, bloqueio potencialmente compartilhado no rate limiter e documentação conflitante sobre chaves de cadastro.
-
-A prioridade imediata agora é rotacionar as credenciais expostas e recriar o ambiente a partir da `main`. SSE, cadeia de proxies, fluxo legado de chaves, documentação, CI completo e healthchecks já foram corrigidos no código. Após a validação operacional, o foco pode avançar para redução da latência do cadastro, E2E, endurecimento adicional da CSP e avaliação do driver SQLite.
-
-## 10. Diário de implementação
-
-Este diário deve ser atualizado em cada etapa com estado, arquivos alterados, validações executadas e pendências. Valores de credenciais nunca devem ser registrados.
-
-### 15/07/2026 — Início da execução ordenada
-
-**Estado:** bloqueado no primeiro gate externo, sem alteração de código funcional.
-
-- Item 1 — Mesclar o PR #22: bloqueado porque a autenticação local do GitHub CLI expirou (`HTTP 401`). É necessário autenticar novamente antes de confirmar ou executar o merge.
-- Item 2 — Rotacionar credenciais: `TUNNEL_TOKEN` e `JWT_SECRET` estão configurados localmente, mas seus valores não foram lidos nem registrados. A rotação depende de revogação no Cloudflare e substituição controlada no ambiente.
-- Item 3 — Restaurar o Git: confirmado que `.git` está vazio e o workspace não é reconhecido como repositório. A regularização será feita somente após confirmar o estado definitivo da `main`, preservando os arquivos atuais.
-- Itens de código seguintes: ainda não iniciados para respeitar a ordem aprovada.
-
-**Validações realizadas:**
-
-- presença das variáveis obrigatórias verificada sem exibir valores;
-- diretório `.git` inspecionado e confirmado vazio;
-- tentativa de consulta do PR retornou falha de autenticação, sem mudança remota.
-
-### 16/07/2026 — Merge e restauração do Git
-
-**Estado:** primeiro gate concluído; rotação de credenciais permanece pendente.
-
-- Item 1 — PR #22 mesclado na `main` pelo commit `2d000df6dcc1b34bad56c7e412b5089040b7571e`.
-- CI pós-merge — workflow `Backend tests` concluído com sucesso para o mesmo commit.
-- Item 3 — repositório Git local reconstruído; `main` acompanha `origin/main` sem substituir os arquivos do workspace.
-- Item 2 — rotação de `TUNNEL_TOKEN` e `JWT_SECRET` ainda requer revogação e geração controlada nos provedores correspondentes.
-- Próximos itens de código — permanecem aguardando a conclusão da rotação de credenciais, conforme a ordem aprovada.
-
-**Validações realizadas:**
-
-- autenticação do GitHub CLI confirmada para a conta ativa;
-- estado remoto do PR confirmado como `MERGED`;
-- SHA da `main` remota confirmado como `2d000df6dcc1b34bad56c7e412b5089040b7571e`;
-- suíte local backend: 8 suítes e 64 testes aprovados;
-- suíte local frontend/CSP: 10 testes aprovados;
-- branch local `main` configurada para acompanhar `origin/main`;
-- somente este documento permanece modificado no working tree.
-
-### 16/07/2026 — Correção SSE preparada no PR #23
-
-**Estado:** implementação, merge e CI da `main` concluídos; implantação pendente.
-
-- Branch: `fix/sse-heartbeat-timeout`.
-- Commit: `38413d2`.
-- PR: https://github.com/carlossuzin6111-code/sistema-tonho/pull/23
-- Backend envia heartbeat SSE a cada 25 segundos e limpa o timer na desconexão.
-- Nginx usa `proxy_read_timeout 75s` exclusivamente em `/api/chat/stream`.
-- O teste automatizado cobre emissão do heartbeat e ausência de timer residual.
-- O PR foi mesclado na `main` pelo commit `5cbd6cd`.
-- O workflow backend pós-merge foi aprovado para o mesmo commit.
-- A recriação dos containers permanece bloqueada até a rotação de `TUNNEL_TOKEN` e `JWT_SECRET`.
-
-**Validações realizadas:**
-
-- backend: 9 suítes e 65 testes aprovados;
-- frontend/CSP: 10 testes aprovados;
-- `nginx -t` aprovado no container;
-- verificação de sintaxe e `git diff --check` aprovados.
-
-### 16/07/2026 — Proxy e rate limiter preparados no PR #24
-
-**Estado:** implementação, merge e CI da `main` concluídos; implantação pendente.
-
-- Branch: `fix/auth-proxy-rate-limits`.
-- Commit: `195e322`.
-- PR: https://github.com/carlossuzin6111-code/sistema-tonho/pull/24
-- Express confia em exatamente um proxy, o Nginx.
-- Nginx substitui a cadeia recebida por um único endereço derivado de `CF-Connecting-IP`, com fallback para o socket local.
-- A porta publicada pelo Compose fica restrita a `127.0.0.1`; dispositivos externos devem usar o domínio do túnel.
-- Login e cadastro usam limitadores independentes.
-- O PR foi mesclado na `main` pelo commit `3b0a429`.
-- O workflow backend pós-merge foi aprovado para o mesmo commit.
-- A implantação permanece bloqueada até a rotação de `TUNNEL_TOKEN` e `JWT_SECRET`.
-
-**Validações realizadas:**
-
-- backend: 9 suítes e 67 testes aprovados;
-- frontend/CSP/infra: 11 testes aprovados;
-- `docker compose config --quiet` e `nginx -t` aprovados;
-- verificação de sintaxe e `git diff --check` aprovados.
-
-### 16/07/2026 — Fluxo legado de chaves removido no PR #25
-
-**Estado:** implementação, merge e CI da `main` concluídos; implantação pendente.
-
-- Branch: `chore/remove-legacy-access-keys`.
-- Commit: `9f6a5fc`.
-- PR: https://github.com/carlossuzin6111-code/sistema-tonho/pull/25
-- Bind mount e arquivo de exemplo `keys_aut.json` removidos.
-- Diretório vazio criado pelo mount legado foi removido do workspace após verificação.
-- README agora orienta gerar chaves no banco real com `docker compose exec app npm run access-key:create`.
-- `.gitignore` raiz protege chaves locais e arquivos auxiliares do SQLite.
-- O PR foi mesclado na `main` pelo commit `d67adea`.
-- O workflow backend pós-merge foi aprovado para o mesmo commit.
-
-**Validações realizadas:**
-
-- backend: 9 suítes e 67 testes aprovados;
-- frontend/CSP/infra: 12 testes aprovados;
-- `docker compose config --quiet` e `git diff --check` aprovados.
-
-### 16/07/2026 — Arquitetura atualizada no PR #26
-
-**Estado:** implementação e merge concluídos.
-
-- Branch: `docs/update-current-architecture`.
-- Commit: `9906b24`.
-- PR: https://github.com/carlossuzin6111-code/sistema-tonho/pull/26
-- README e `docs/ARCHITECTURE.md` agora refletem migrations, worker separado, cookies `HttpOnly`, CSRF, heartbeat SSE, cadeia de proxies e chaves transacionais.
-- O PR foi mesclado na `main` pelo commit `70c5eb9`.
-- O workflow anterior não executava para mudanças apenas em documentação.
-
-**Validações realizadas:**
-
-- busca por afirmações arquiteturais obsoletas concluída;
-- backend: 9 suítes e 67 testes aprovados;
-- frontend/CSP/infra: 12 testes aprovados;
-- `git diff --check` aprovado.
-
-### 16/07/2026 — CI completo preparado no PR #27
-
-**Estado:** implementação, merge e checks da `main` concluídos.
-
-- Branch: `ci/run-full-test-suite`.
-- Commit: `647be3d`.
-- PR: https://github.com/carlossuzin6111-code/sistema-tonho/pull/27
-- O workflow possui checks separados `Backend` e `Frontend and infrastructure`.
-- Os filtros incluem backend, frontend, Nginx, Compose, README, `.gitignore` e arquivos de pacote relevantes.
-- O PR foi mesclado na `main` pelo commit `b66daa6`.
-- Os dois checks também foram aprovados no push pós-merge.
-
-**Validações realizadas:**
-
-- backend local: 9 suítes e 67 testes aprovados;
-- frontend/CSP/infra local: 12 testes aprovados;
-- checks remotos `Backend` e `Frontend and infrastructure` aprovados;
-- `git diff --check` aprovado.
-
-### 16/07/2026 — Healthchecks preparados no PR #28
-
-**Estado:** implementação, merge e checks da `main` concluídos; implantação pendente.
-
-- Branch: `ops/add-service-healthchecks`.
-- Commit: `8bc4223`.
-- PR: https://github.com/carlossuzin6111-code/sistema-tonho/pull/28
-- A API expõe `/api/health` e valida a conexão com o SQLite.
-- App e Nginx possuem healthchecks; web, worker e túnel aguardam dependências saudáveis.
-- O PR foi mesclado na `main` pelo commit `ecd134c`.
-- Os checks `Backend` e `Frontend and infrastructure` também foram aprovados no push pós-merge.
-- Durante uma inspeção expandida do Compose, os valores atuais das duas credenciais foram emitidos no output da ferramenta. Eles não são repetidos neste documento, mas devem ser tratados como definitivamente comprometidos.
-- A implantação permanece bloqueada até a revogação e substituição de `TUNNEL_TOKEN` e `JWT_SECRET`.
-
-**Validações realizadas:**
-
-- backend: 9 suítes e 68 testes aprovados;
-- frontend/CSP/infra: 13 testes aprovados;
-- `docker compose config --quiet`, sintaxe e `git diff --check` aprovados;
-- checks remotos `Backend` e `Frontend and infrastructure` aprovados.
+- API e Nginx permaneceram saudáveis após mais de três minutos de observação.
+- Worker de tradução iniciou normalmente e não apresentou exceções nos logs recentes.
+- API local e pública responderam `200` em `/api/health`.
+- Backend confirmou execução efetiva com `NODE_ENV=production`.
+- Teste isolado confirmou cookie de sessão com `Secure`, `HttpOnly` e CSRF também com `Secure`.
+- Requisição pública sem sessão recebeu `401 Unauthorized`, conforme esperado.
+- Requisição de login inválida recebeu `400 Bad Request` e cabeçalhos de rate limit.
+- HTML público contém o cartão mobile corrigido, toast acessível e não bloqueia zoom.
+- Capturas públicas desktop e mobile foram inspecionadas sem corte ou regressão visual aparente.
+- Frontend e infraestrutura: 15 de 15 testes aprovados.
+- Backend: 68 de 68 testes aprovados em 9 suítes.
+- Auditoria npm das dependências de produção: zero vulnerabilidades.
+- HSTS foi observado na resposta externa entregue pela Cloudflare.
+- GitHub Actions do PR #30: checks `Backend` e `Frontend and infrastructure` concluídos com sucesso.

@@ -90,6 +90,25 @@ test('Compose gates dependent services on API and Nginx health', () => {
   assert.equal((compose.match(/condition: service_healthy/g) || []).length, 3);
 });
 
+test('public Compose stack defaults application services to production', () => {
+  const compose = fs.readFileSync(path.join(repositoryRoot, 'docker-compose.yml'), 'utf8');
+  const productionDefaults = compose.match(/NODE_ENV=\$\{NODE_ENV:-production\}/g) || [];
+
+  assert.equal(productionDefaults.length, 2);
+  assert.doesNotMatch(compose, /NODE_ENV=\$\{NODE_ENV:-development\}/);
+});
+
+test('modal controller provides dialog semantics and keyboard focus management', () => {
+  const app = fs.readFileSync(path.join(frontendRoot, 'js', 'app.js'), 'utf8');
+
+  assert.match(app, /setAttribute\('role', 'dialog'\)/);
+  assert.match(app, /setAttribute\('aria-modal', 'true'\)/);
+  assert.match(app, /setAttribute\('aria-hidden', 'false'\)/);
+  assert.match(app, /event\.key === 'Escape'/);
+  assert.match(app, /event\.key !== 'Tab'/);
+  assert.match(app, /lastModalTrigger\.focus\(\)/);
+});
+
 test('event delegation invokes only the allowlisted action and form handlers', () => {
   const listeners = {};
   const calls = [];

@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>FitLife Sync - Personal Trainer & Alunos</title>
   <meta name="description" content="Portal moderno de acompanhamento fitness para personal trainers e alunos. Conectando treinos, medidas e comunicação instantânea.">
   <!-- Google Fonts -->
@@ -21,7 +21,7 @@
   <div class="bg-glow bg-glow-2"></div>
 
   <!-- Notification Toast -->
-  <div id="toast" class="toast hidden">
+  <div id="toast" class="toast hidden" role="status" aria-live="polite" aria-atomic="true">
     <div class="toast-content">
       <i data-lucide="info" id="toast-icon"></i>
       <span id="toast-message">Mensagem de alerta</span>
@@ -40,20 +40,20 @@
       </div>
 
       <!-- Auth Switch Tabs -->
-      <div class="auth-tabs">
-        <button id="tab-btn-login" class="auth-tab-btn active" data-action="switch-auth-tab" data-tab="login">Entrar</button>
-        <button id="tab-btn-register" class="auth-tab-btn" data-action="switch-auth-tab" data-tab="register">Criar Conta Personal</button>
+      <div class="auth-tabs" role="tablist" aria-label="Acesso à conta">
+        <button id="tab-btn-login" class="auth-tab-btn active" role="tab" aria-selected="true" aria-controls="login-form" data-action="switch-auth-tab" data-tab="login">Entrar</button>
+        <button id="tab-btn-register" class="auth-tab-btn" role="tab" aria-selected="false" aria-controls="register-form" data-action="switch-auth-tab" data-tab="register">Criar Conta Personal</button>
       </div>
 
       <!-- Login Form -->
-      <form id="login-form" class="auth-form">
+      <form id="login-form" class="auth-form" role="tabpanel" aria-labelledby="tab-btn-login">
         <div class="input-group">
           <label for="login-email"><i data-lucide="mail"></i> E-mail</label>
-          <input type="email" id="login-email" required placeholder="seuemail@exemplo.com">
+          <input type="email" id="login-email" required autocomplete="email" inputmode="email" placeholder="seuemail@exemplo.com">
         </div>
         <div class="input-group">
           <label for="login-password"><i data-lucide="lock"></i> Senha</label>
-          <input type="password" id="login-password" required placeholder="Sua senha de acesso">
+          <input type="password" id="login-password" required autocomplete="current-password" placeholder="Sua senha de acesso">
         </div>
         <button type="submit" class="btn btn-primary btn-full btn-glow">
           <span>Acessar Painel</span> <i data-lucide="arrow-right"></i>
@@ -61,22 +61,22 @@
       </form>
 
       <!-- Register Form (Only Personal) -->
-      <form id="register-form" class="auth-form hidden">
+      <form id="register-form" class="auth-form hidden" role="tabpanel" aria-labelledby="tab-btn-register">
         <div class="input-group">
           <label for="reg-name"><i data-lucide="user"></i> Nome Completo</label>
-          <input type="text" id="reg-name" placeholder="Ex: Professor Silva">
+          <input type="text" id="reg-name" required autocomplete="name" placeholder="Ex: Professor Silva">
         </div>
         <div class="input-group">
           <label for="reg-email"><i data-lucide="mail"></i> E-mail Profissional</label>
-          <input type="email" id="reg-email" placeholder="nome@personal.com">
+          <input type="email" id="reg-email" required autocomplete="email" inputmode="email" placeholder="nome@personal.com">
         </div>
         <div class="input-group">
           <label for="reg-password"><i data-lucide="lock"></i> Senha Segura</label>
-          <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres">
+          <input type="password" id="reg-password" required autocomplete="new-password" placeholder="Mínimo 6 caracteres">
         </div>
         <div class="input-group">
           <label for="reg-access-key"><i data-lucide="key"></i> Chave de Acesso (Access Key)</label>
-          <input type="text" id="reg-access-key" required placeholder="Insira sua chave convite">
+          <input type="text" id="reg-access-key" required autocomplete="off" spellcheck="false" placeholder="Insira sua chave convite">
         </div>
         <div class="info-alert">
           <i data-lucide="shield-check"></i>

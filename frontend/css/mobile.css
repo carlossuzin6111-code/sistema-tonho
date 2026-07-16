@@ -7,22 +7,37 @@
 body, html {
   margin: 0;
   padding: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden !important; /* Bloqueia scroll no root, imitando app nativo */
+  width: 100%;
+  min-height: 100%;
   background-color: var(--bg-primary); /* Cream background */
+}
+
+body {
+  min-height: 100dvh;
+  overflow-x: hidden;
 }
 
 /* Tela de login ocupa tudo */
 #login-screen {
-  height: 100vh;
-  width: 100vw;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   overflow-y: auto;
-  padding: 20px;
+  overflow-x: hidden;
+  padding: max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  box-sizing: border-box;
+}
+
+.mobile-login-card {
+  width: min(440px, calc(100vw - 32px));
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  box-shadow: none;
 }
 
 /* O container principal do aplicativo autenticado */
@@ -30,7 +45,8 @@ body, html {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  width: 100vw;
+  height: 100dvh;
+  width: 100%;
   overflow: hidden;
 }
 
