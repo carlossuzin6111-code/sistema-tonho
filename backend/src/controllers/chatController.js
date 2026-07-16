@@ -3,6 +3,7 @@ const db = require('../database');
 // In-memory mapping of active SSE clients for real-time messaging
 // Key: userId (integer or string), Value: Set of express response objects
 const activeClients = new Map();
+const SSE_HEARTBEAT_INTERVAL_MS = 25_000;
 
 // Helper to send real-time event to a user if connected
 function notifyUser(userId, data) {
@@ -153,6 +154,15 @@ function handleChatStream(req, res) {
   // Write initial blank line to establish connection
   res.write(':ok\n\n');
 
+  // Keep idle streams active across reverse proxies. SSE comments are ignored
+  // by EventSource clients but count as upstream activity for proxy timeouts.
+  const heartbeatTimer = setInterval(() => {
+    if (!res.writableEnded && !res.destroyed) {
+      res.write(':heartbeat\n\n');
+    }
+  }, SSE_HEARTBEAT_INTERVAL_MS);
+  heartbeatTimer.unref?.();
+
   // Add client to active streams
   if (!activeClients.has(userId)) {
     activeClients.set(userId, new Set());
@@ -163,6 +173,7 @@ function handleChatStream(req, res) {
 
   // Handle client disconnection
   req.on('close', () => {
+    clearInterval(heartbeatTimer);
     const userStreams = activeClients.get(userId);
     if (userStreams) {
       userStreams.delete(res);
