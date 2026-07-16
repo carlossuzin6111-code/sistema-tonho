@@ -16,15 +16,17 @@ flowchart LR
     A --> C[Controllers e middleware]
     C --> K[Knex]
     K --> S[(SQLite)]
-    A -->|tradução em segundo plano| G[Serviço público de tradução]
+    W[Worker de tradução] --> K
+    W --> G[Serviço público de tradução]
 ```
 
-O sistema tem três processos de infraestrutura no Compose, mas somente um deles
+O sistema tem quatro processos de infraestrutura no Compose, mas somente um deles
 implementa as regras de negócio. Por isso, a classificação correta é **monólito
 modular conteinerizado**:
 
 - `web`: Nginx para conteúdo estático e proxy reverso;
 - `app`: uma aplicação Node.js/Express única;
+- `translation-worker`: processo separado que consome a fila de traduções;
 - `cloudflared`: túnel opcional para o Nginx.
 
 Separar processos em contêineres não transforma a aplicação em microsserviços.
@@ -49,11 +51,13 @@ O Nginx:
 
 - serve o conteúdo de `frontend/`;
 - encaminha `/api/` para o contêiner `app`;
-- desabilita buffering e cache na conexão SSE;
-- expõe a porta `3000` do host.
+- desabilita buffering e cache na conexão SSE e usa timeout de leitura de 75 segundos;
+- normaliza o IP do visitante a partir de `CF-Connecting-IP` antes de encaminhá-lo;
+- publica a porta `3000` somente no loopback do host.
 
 O backend não é publicado diretamente pelo Compose. A porta `3000` declarada no
-Dockerfile é interna à rede dos contêineres.
+Dockerfile é interna à rede dos contêineres. Tráfego externo deve entrar pelo
+Cloudflare Tunnel; o acesso direto em `127.0.0.1:3000` é reservado ao host.
 
 ### Backend
 
@@ -66,22 +70,28 @@ são separados por área funcional:
 - `exerciseController`: catálogo de exercícios;
 - `chatController`: histórico, envio e streams SSE.
 
-O middleware de autenticação valida JWT e restringe rotas por perfil. Essa
-separação melhora a organização interna, mas todos os módulos continuam no mesmo
-processo e são implantados juntos.
+O middleware de autenticação valida o JWT armazenado em cookie `HttpOnly`, aplica
+proteção CSRF nas requisições mutáveis e restringe rotas por perfil. Login e
+cadastro possuem limitadores independentes, agrupados pelo IP canônico encaminhado
+pelo Nginx. Essa separação melhora a organização interna, mas todos os módulos de
+negócio continuam no mesmo processo e são implantados juntos.
 
 ### Persistência
 
 O Knex acessa um único banco SQLite. No Compose, o arquivo fica em
 `/app/data/database.sqlite`, dentro do volume nomeado `db-data`.
 
-Na inicialização, `backend/src/database.js` verifica e cria tabelas diretamente.
-Esse bootstrap atende a bancos vazios, mas não substitui migrations versionadas
-para atualizar bancos existentes. O `knexfile.js` contém referências a diretórios
-de migrations e seeds que ainda não existem na branch principal.
+O schema é versionado em `backend/src/db/migrations`. Antes de abrir a porta HTTP,
+a aplicação executa as migrations pendentes na ordem definida. O mesmo conjunto é
+usado pelos comandos do Knex e pela suíte de testes.
 
-O backend também adiciona exercícios padrão para cada personal e inicia no mesmo
-processo um loop de tradução. Cada réplica da API iniciaria seu próprio loop.
+As chaves de cadastro ficam na tabela `registration_keys` somente como hashes e
+são consumidas na mesma transação que cria o personal. O arquivo legado
+`keys_aut.json` não participa do fluxo atual.
+
+O cadastro ainda adiciona o catálogo padrão de exercícios de forma síncrona. A
+tradução, por outro lado, é executada pelo processo `translation-worker`, com
+intervalos e retentativas configuráveis, sem compartilhar o ciclo de vida da API.
 
 ## Fluxos principais
 
@@ -99,7 +109,9 @@ processo um loop de tradução. Cada réplica da API iniciaria seu próprio loop
 1. O cliente carrega o histórico por uma rota HTTP autenticada.
 2. O `EventSource` abre uma conexão persistente com `/api/chat/stream`.
 3. O backend mantém as respostas SSE ativas em memória, agrupadas por usuário.
-4. Ao salvar uma mensagem, o processo envia o evento às conexões locais do
+4. Durante períodos ociosos, o backend envia um comentário heartbeat a cada 25
+   segundos; o Nginx aceita até 75 segundos sem atividade do upstream.
+5. Ao salvar uma mensagem, o processo envia o evento às conexões locais do
    remetente e do destinatário.
 
 As conexões ficam na memória de uma única instância. Escalar horizontalmente
@@ -109,12 +121,14 @@ réplicas.
 ## Limites arquiteturais
 
 - **Banco:** somente SQLite está configurado e coberto pelos testes.
-- **Escala:** banco em arquivo, streams em memória e worker interno dificultam
-  múltiplas réplicas.
-- **Evolução do schema:** não há migrations versionadas na branch principal.
-- **Jobs:** seed e tradução compartilham o ciclo de vida da API.
-- **Sessão:** o frontend atual mantém JWT no armazenamento do navegador e o SSE
-  usa token na URL.
+- **Escala:** banco em arquivo e streams em memória dificultam múltiplas réplicas;
+  o worker também exige coordenação para execução concorrente.
+- **Evolução do schema:** migrations Knex estão versionadas, mas mudanças
+  destrutivas ainda exigem backup e plano explícito de rollback.
+- **Jobs:** a tradução foi isolada, mas a carga inicial de aproximadamente 1.324
+  exercícios ainda ocorre no caminho síncrono do cadastro.
+- **Sessão:** JWT e CSRF usam cookies; a sessão `HttpOnly` não fica acessível ao
+  JavaScript e o SSE não inclui token na URL.
 - **PWA:** não há manifest nem service worker.
 - **Observabilidade:** não existe infraestrutura central de logs, métricas ou
   rastreamento distribuído.
