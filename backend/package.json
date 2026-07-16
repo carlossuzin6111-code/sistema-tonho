@@ -4,7 +4,7 @@
   "description": "Backend API for Personal Trainer and Student Management System",
   "main": "src/index.js",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.17.0"
   },
   "scripts": {
     "start": "node src/index.js",
@@ -13,7 +13,8 @@
     "migrate": "knex migrate:latest --knexfile knexfile.js",
     "migrate:rollback": "knex migrate:rollback --knexfile knexfile.js",
     "migrate:status": "knex migrate:status --knexfile knexfile.js",
-    "access-key:create": "node src/scripts/createAccessKey.js"
+    "access-key:create": "node src/scripts/createAccessKey.js",
+    "worker:translate": "node src/workers/runTranslationWorker.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -32,6 +33,6 @@
     "supertest": "^7.2.2"
   },
   "allowScripts": {
-    "sqlite3@5.1.7": true
+    "sqlite3@6.0.1": true
   }
 }

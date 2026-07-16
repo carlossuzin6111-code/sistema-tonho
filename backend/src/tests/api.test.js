@@ -1,15 +1,37 @@
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-only-jwt-secret-with-at-least-32-bytes';
 const request = require('supertest');
+const jwt = require('jsonwebtoken');
 const app = require('../index');
 const db = require('../database');
 const http = require('http');
-const { hashAccessKey } = require('../services/accessKeyService');
+const { hashAccessKey, issueAccessKey } = require('../services/accessKeyService');
+const {
+  CSRF_COOKIE,
+  JWT_SECRET,
+  SESSION_COOKIE
+} = require('../services/sessionService');
 
 const testAccessKey = 'key_for_testing';
 
 let server;
 let testAccessKeyId;
+
+function setCookies(response) {
+  return response.headers['set-cookie'] || [];
+}
+
+function cookieValue(response, name) {
+  const cookie = setCookies(response).find(value => value.startsWith(`${name}=`));
+  if (!cookie) return '';
+  return decodeURIComponent(cookie.split(';', 1)[0].slice(name.length + 1));
+}
+
+function cookieHeader(response) {
+  return setCookies(response)
+    .map(cookie => cookie.split(';', 1)[0])
+    .join('; ');
+}
 
 async function insertAccessKey(accessKey) {
   const [id] = await db('registration_keys').insert({
@@ -30,10 +52,6 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  // Restore original fs functions
-  fs.readFileSync = originalReadFileSync;
-  fs.writeFileSync = originalWriteFileSync;
-  
   // Close the temporary server
   if (server) {
     await new Promise((resolve) => server.close(resolve));
@@ -533,16 +551,17 @@ describe('FitLife Sync API Integration Tests', () => {
   // ==========================================
   describe('Chat Endpoints', () => {
     beforeAll(async () => {
+      const otherAccessKey = await issueAccessKey(db);
       const personalRes = await request(app)
         .post('/api/auth/register')
         .send({
           name: 'Other Personal',
           email: 'other_personal@fitlife.com',
           password: 'password123',
-          accessKey: 'key_for_testing'
+          accessKey: otherAccessKey
         });
       expect(personalRes.statusCode).toBe(201);
-      otherPersonalToken = personalRes.body.token;
+      otherPersonalToken = cookieValue(personalRes, SESSION_COOKIE);
       otherPersonalId = personalRes.body.user.id;
 
       const studentRes = await request(app)
@@ -563,7 +582,7 @@ describe('FitLife Sync API Integration Tests', () => {
           password: 'student_password123'
         });
       expect(loginRes.statusCode).toBe(200);
-      otherStudentToken = loginRes.body.token;
+      otherStudentToken = cookieValue(loginRes, SESSION_COOKIE);
     });
 
     test('Should send chat message (Personal Trainer)', async () => {
