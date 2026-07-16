@@ -10,7 +10,7 @@ em tempo real.
 
 ## Funcionalidades
 
-- Autenticação JWT com perfis `personal` e `student`.
+- Sessão JWT em cookie `HttpOnly`, proteção CSRF e perfis `personal` e `student`.
 - Cadastro e acompanhamento de alunos vinculados a um personal.
 - Histórico de medidas corporais.
 - Catálogo de exercícios e fichas de treino.
@@ -57,6 +57,7 @@ O valor é exibido uma única vez. Armazene-o em um canal seguro e não o inclua
 | Nginx | Arquivos estáticos, proxy reverso e suporte ao SSE |
 | Express | Autenticação, alunos, medidas, treinos, exercícios e chat |
 | Knex + SQLite | Acesso e persistência dos dados |
+| Worker de tradução | Tradução assíncrona do catálogo fora do processo da API |
 | Cloudflare Tunnel | Exposição externa opcional do Nginx |
 
 O uso do Knex reduz o acoplamento das consultas, mas a aplicação está configurada
@@ -73,7 +74,9 @@ Veja a descrição detalhada em [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 │   ├── src/controllers/   # Regras das áreas funcionais
 │   ├── src/middleware/    # Autenticação e autorização
 │   ├── src/tests/         # Testes de integração
-│   ├── src/database.js    # Bootstrap do schema, seed e tradutor
+│   ├── src/db/migrations/ # Evolução versionada do schema
+│   ├── src/workers/       # Processo separado de tradução
+│   ├── src/database.js    # Conexão, migrations e acesso ao banco
 │   └── knexfile.js        # Conexões Knex por ambiente
 ├── frontend/
 │   ├── css/
