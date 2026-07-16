@@ -337,3 +337,23 @@ Resultados:
 - Backend: 72 de 72 testes aprovados em 9 suítes.
 - API pública respondeu `200` no healthcheck e `400` ao smoke test de senha curta, sem criar conta.
 - Containers permaneceram saudáveis e os logs pós-migration não apresentaram exceções.
+
+### 2026-07-16 — Bloco 6 implementado localmente
+
+- [x] Adicionar versão revogável às sessões de usuário.
+- [x] Invalidar sessões existentes quando a senha do aluno for redefinida.
+- [x] Preservar temporariamente tokens legados enquanto a versão da sessão permanecer zero.
+- [x] Confirmar por integração que o token antigo falha e um novo login funciona.
+
+Branch local de trabalho: `fix/session-revocation`, baseada no PR #32 enquanto o merge aguarda ação do mantenedor.
+
+Resultados locais:
+
+- Migration adiciona `session_version` com valor inicial zero.
+- JWT passa a carregar a versão da sessão e cada requisição autenticada compara o token com o usuário atual.
+- Redefinir a senha incrementa a versão, revogando cookies e Bearer tokens emitidos anteriormente.
+- O teste de integração confirma `403` para o token antigo e sucesso após autenticar com a nova senha.
+- O acesso ao banco no middleware é lazy, evitando inicialização assíncrona durante testes isolados de configuração.
+- Frontend e infraestrutura: 18 de 18 testes aprovados.
+- Backend: 72 de 72 testes aprovados em 9 suítes, sem handles ou erros após o encerramento.
+- Publicação e novo PR aguardam o merge do PR #32 para evitar uma cadeia de branches empilhadas.

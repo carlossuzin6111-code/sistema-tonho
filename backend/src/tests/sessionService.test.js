@@ -56,6 +56,7 @@ describe('session cookies', () => {
 
     const payload = verifySessionToken(cookieValue(sessionCookie, SESSION_COOKIE));
     expect(payload.csrf).toBe(cookieValue(csrfCookie, CSRF_COOKIE));
+    expect(payload.sessionVersion).toBe(0);
   });
 
   test('clears both cookies using their original attributes', () => {
