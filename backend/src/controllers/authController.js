@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../database');
 const { findUnusedAccessKeyId } = require('../services/accessKeyService');
 const { clearSessionCookies, setSessionCookies } = require('../services/sessionService');
+const { isEmailUniqueConstraint, normalizeEmail } = require('../services/userIdentityService');
 
 class RegistrationError extends Error {
   constructor(code) {
@@ -18,6 +19,7 @@ async function registerPersonal(req, res) {
   }
 
   try {
+    const normalizedEmail = normalizeEmail(email);
     const accessKeyId = await findUnusedAccessKeyId(db, accessKey);
     if (!accessKeyId) {
       return res.status(403).json({ error: 'Access Key Inválida' });
@@ -27,7 +29,7 @@ async function registerPersonal(req, res) {
     const passwordHash = await bcrypt.hash(password, salt);
 
     const insertedId = await db.transaction(async trx => {
-      const existingUser = await trx('users').select('id').where('email', email).first();
+      const existingUser = await trx('users').select('id').where('email', normalizedEmail).first();
       if (existingUser) {
         throw new RegistrationError('EMAIL_ALREADY_REGISTERED');
       }
@@ -43,7 +45,7 @@ async function registerPersonal(req, res) {
 
       const [userId] = await trx('users').insert({
         name,
-        email,
+        email: normalizedEmail,
         password_hash: passwordHash,
         role: 'personal'
       });
@@ -60,7 +62,7 @@ async function registerPersonal(req, res) {
       await db.seedDefaultExercisesForPersonal(db, insertedId);
     }
 
-    const user = { id: insertedId, name, email, role: 'personal' };
+    const user = { id: insertedId, name, email: normalizedEmail, role: 'personal' };
     setSessionCookies(res, user);
 
     res.status(201).json({
@@ -68,7 +70,7 @@ async function registerPersonal(req, res) {
       user
     });
   } catch (err) {
-    if (err.code === 'EMAIL_ALREADY_REGISTERED') {
+    if (err.code === 'EMAIL_ALREADY_REGISTERED' || isEmailUniqueConstraint(err)) {
       return res.status(400).json({ error: 'Email already registered' });
     }
     if (err.code === 'ACCESS_KEY_ALREADY_USED') {
@@ -87,8 +89,9 @@ async function login(req, res) {
   }
 
   try {
+    const normalizedEmail = normalizeEmail(email);
     // Find user
-    const user = await db('users').where('email', email).first();
+    const user = await db('users').where('email', normalizedEmail).first();
     if (!user) {
       return res.status(400).json({ error: 'Invalid email or password' });
     }

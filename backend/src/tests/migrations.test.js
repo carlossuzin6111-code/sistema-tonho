@@ -15,7 +15,8 @@ const applicationTables = [
 const migrations = [
   '202607140001_initial_schema.js',
   '202607140002_add_query_indexes.js',
-  '202607140003_create_registration_keys.js'
+  '202607140003_create_registration_keys.js',
+  '202607160001_normalize_user_emails.js'
 ];
 
 function createDatabase() {
@@ -44,6 +45,11 @@ describe('database migrations', () => {
       await expect(db.schema.hasTable(table)).resolves.toBe(true);
     }
     await expect(db.schema.hasColumn('exercises', 'is_translated')).resolves.toBe(true);
+    const emailIndex = await db('sqlite_master')
+      .select('name')
+      .where({ type: 'index', name: 'users_email_normalized_unique' })
+      .first();
+    expect(emailIndex).toBeTruthy();
   });
 
   test('preserves legacy data while bringing an existing schema under migrations', async () => {
@@ -68,7 +74,7 @@ describe('database migrations', () => {
 
     const [personalId] = await db('users').insert({
       name: 'Legacy Personal',
-      email: 'legacy@example.com',
+      email: ' Legacy@Example.COM ',
       password_hash: 'legacy-hash',
       role: 'personal'
     });
@@ -86,7 +92,25 @@ describe('database migrations', () => {
       description: 'Must survive the baseline migration',
       is_translated: 0
     });
+    const legacyUser = await db('users').where({ id: personalId }).first();
+    expect(legacyUser.email).toBe('legacy@example.com');
     expect(await db('knex_migrations').pluck('name')).toEqual(migrations);
+  });
+
+  test('refuses normalization when case-insensitive duplicate emails exist', async () => {
+    db = createDatabase();
+    await db.migrate.up({ name: '202607140001_initial_schema.js' });
+    await db.migrate.up({ name: '202607140002_add_query_indexes.js' });
+    await db.migrate.up({ name: '202607140003_create_registration_keys.js' });
+
+    await db('users').insert([
+      { name: 'First', email: 'person@example.com', password_hash: 'hash', role: 'personal' },
+      { name: 'Second', email: 'PERSON@example.com', password_hash: 'hash', role: 'personal' }
+    ]);
+
+    await expect(db.migrate.latest()).rejects.toThrow(
+      'Cannot normalize user emails while case-insensitive duplicates exist'
+    );
   });
 
   test('rolls back the application schema in reverse dependency order', async () => {

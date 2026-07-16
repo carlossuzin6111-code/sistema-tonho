@@ -11,9 +11,9 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Base Styles (Components, Colors, Lovable) -->
-  <link rel="stylesheet" href="css/style.css?v=20260716.2">
+  <link rel="stylesheet" href="css/style.css?v=20260716.3">
   <!-- Mobile Architecture Overrides (PWA Lock) -->
-  <link rel="stylesheet" href="css/mobile.css?v=20260716.2">
+  <link rel="stylesheet" href="css/mobile.css?v=20260716.3">
 </head>
 <body>
 
@@ -69,7 +69,7 @@
         <div class="input-group">
           <label for="reg-password"><i data-lucide="lock"></i> Senha Segura</label>
           <div class="password-field">
-            <input type="password" id="reg-password" required autocomplete="new-password">
+            <input type="password" id="reg-password" required minlength="10" maxlength="128" autocomplete="new-password" placeholder="Mínimo 10 caracteres">
             <button type="button" class="password-toggle" data-action="toggle-password" data-target="reg-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
           </div>
         </div>
@@ -136,7 +136,7 @@
               <div class="grid grid-2">
                 <div class="input-group">
                   <label for="new-student-password"><i data-lucide="lock"></i> Senha Provisória *</label>
-                  <input type="password" id="new-student-password" required placeholder="Mínimo 6 caracteres">
+                  <input type="password" id="new-student-password" required minlength="10" maxlength="128" autocomplete="new-password" placeholder="Mínimo 10 caracteres">
                 </div>
                 <div class="input-group">
                   <label for="new-student-birth"><i data-lucide="calendar"></i> Data de Nascimento</label>
@@ -421,11 +421,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260716.2"></script>
-  <script src="js/safe-dom.js?v=20260716.2"></script>
-  <script src="js/app.js?v=20260716.2"></script>
-  <script src="js/personal.js?v=20260716.2"></script>
-  <script src="js/student.js?v=20260716.2"></script>
-  <script src="js/events.js?v=20260716.2"></script>
+  <script src="js/api.js?v=20260716.3"></script>
+  <script src="js/safe-dom.js?v=20260716.3"></script>
+  <script src="js/app.js?v=20260716.3"></script>
+  <script src="js/personal.js?v=20260716.3"></script>
+  <script src="js/student.js?v=20260716.3"></script>
+  <script src="js/events.js?v=20260716.3"></script>
 </body>
 </html>

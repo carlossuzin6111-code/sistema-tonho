@@ -311,3 +311,28 @@ Resultados:
 - Frontend e infraestrutura: 18 de 18 testes aprovados, incluindo envio duplicado, recuperação após erro, visibilidade de senha e versionamento de assets.
 - Backend: 68 de 68 testes aprovados em 9 suítes.
 - Captura pública mobile após o versionamento confirmou o ícone alinhado dentro do campo e ausência de corte no formulário.
+
+### 2026-07-16 — Bloco 5 concluído
+
+- [x] Normalizar e-mails de cadastro, criação de aluno e login.
+- [x] Impedir duplicidade de e-mail sem diferenciar maiúsculas e minúsculas.
+- [x] Elevar para 10 caracteres o mínimo de novas senhas e redefinições, sem bloquear o login de contas existentes.
+- [x] Atualizar documentação da API, frontend e testes automatizados.
+
+Branch de trabalho: `fix/auth-input-hardening`.
+
+Pré-validação do banco público: zero colisões de e-mail quando comparados com `LOWER(TRIM(email))`; nenhum endereço individual foi exibido.
+
+Resultados:
+
+- Backup consistente criado em `/app/data/database.pre-email-normalization-20260716.sqlite` antes da migration.
+- A base pública de testes continha zero usuários antes e depois da migration.
+- Migration `202607160001_normalize_user_emails.js` aplicada com sucesso.
+- Índice `users_email_normalized_unique` confirmado no banco público.
+- Novos e-mails são armazenados com espaços removidos e letras minúsculas; login também normaliza a entrada.
+- A migration recusa execução quando encontra colisões case-insensitive, evitando mesclar contas silenciosamente.
+- Senhas existentes continuam válidas no login; o mínimo de 10 caracteres vale somente para novos cadastros, novos alunos e redefinições.
+- Frontend e infraestrutura: 18 de 18 testes aprovados.
+- Backend: 72 de 72 testes aprovados em 9 suítes.
+- API pública respondeu `200` no healthcheck e `400` ao smoke test de senha curta, sem criar conta.
+- Containers permaneceram saudáveis e os logs pós-migration não apresentaram exceções.

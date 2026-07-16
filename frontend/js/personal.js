@@ -761,11 +761,11 @@ function closeChatThreadMobile() {
 
 // Reset Student Password
 async function promptResetPassword() {
-  const newPassword = prompt('Digite a nova senha para o aluno (mínimo 6 caracteres):');
+  const newPassword = prompt('Digite a nova senha para o aluno (mínimo 10 caracteres):');
   if (!newPassword) return; 
 
-  if (newPassword.length < 6) {
-    showToast('A senha precisa ter pelo menos 6 caracteres', 'error');
+  if (newPassword.length < 10) {
+    showToast('A senha precisa ter pelo menos 10 caracteres', 'error');
     return;
   }
 
