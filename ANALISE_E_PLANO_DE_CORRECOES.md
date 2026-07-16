@@ -338,14 +338,14 @@ Resultados:
 - API pública respondeu `200` no healthcheck e `400` ao smoke test de senha curta, sem criar conta.
 - Containers permaneceram saudáveis e os logs pós-migration não apresentaram exceções.
 
-### 2026-07-16 — Bloco 6 implementado localmente
+### 2026-07-16 — Bloco 6 concluído e publicado
 
 - [x] Adicionar versão revogável às sessões de usuário.
 - [x] Invalidar sessões existentes quando a senha do aluno for redefinida.
 - [x] Preservar temporariamente tokens legados enquanto a versão da sessão permanecer zero.
 - [x] Confirmar por integração que o token antigo falha e um novo login funciona.
 
-Branch local de trabalho: `fix/session-revocation`, baseada no PR #32 enquanto o merge aguarda ação do mantenedor.
+Branch de trabalho: `fix/session-revocation`, rebaseada sobre a `main` após o merge do PR #32.
 
 Resultados locais:
 
@@ -356,4 +356,5 @@ Resultados locais:
 - O acesso ao banco no middleware é lazy, evitando inicialização assíncrona durante testes isolados de configuração.
 - Frontend e infraestrutura: 18 de 18 testes aprovados.
 - Backend: 72 de 72 testes aprovados em 9 suítes, sem handles ou erros após o encerramento.
-- Publicação e novo PR aguardam o merge do PR #32 para evitar uma cadeia de branches empilhadas.
+- Migration `202607160002_add_session_version.js` aplicada e coluna `session_version` confirmada na base pública.
+- API e containers permaneceram saudáveis após a publicação; healthcheck público respondeu `200`.
