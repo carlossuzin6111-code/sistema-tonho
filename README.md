@@ -104,9 +104,17 @@ Pré-requisitos: Docker Desktop ou Docker Engine com Docker Compose.
    openssl rand -base64 48
    ```
 3. Preencha `JWT_SECRET` no `.env` com o valor gerado. A aplicação recusa segredos ausentes ou menores que 32 bytes. Não reutilize o antigo valor padrão.
-4. Copie `backend/keys_aut.example.json` para `backend/keys_aut.json` e adicione somente as chaves de cadastro necessárias ao ambiente local.
-5. Mantenha `.env`, `backend/keys_aut.json` e bancos SQLite fora do Git. Esses arquivos já estão listados no `.gitignore` e no `.dockerignore`.
+4. Inicie a aplicação para aplicar as migrations no banco configurado:
+   ```bash
+   docker compose up -d --build app
+   ```
+5. Gere cada chave de cadastro dentro do container da aplicação:
+   ```bash
+   docker compose exec app npm run access-key:create
+   ```
+6. Entregue o valor exibido uma única vez por um canal seguro. O banco armazena somente o hash e consome a chave na mesma transação que cria o personal.
+7. Mantenha `.env`, chaves locais e bancos SQLite fora do Git. Esses arquivos estão protegidos pelo `.gitignore` e pelo `.dockerignore`.
 
-O Docker Compose monta `backend/keys_aut.json` no container sem incorporá-lo à imagem. Crie o arquivo antes de executar `docker-compose up`.
+O mecanismo legado `keys_aut.json` não é lido, montado nem importado. Chaves antigas que já foram versionadas devem permanecer revogadas e não podem ser restauradas no fluxo atual.
 
 Se o segredo padrão ou as chaves anteriormente versionadas tiverem sido usados, eles devem ser rotacionados pelo mantenedor. A remoção do histórico Git exige coordenação separada e não deve ser feita em uma contribuição comum sem aprovação explícita.
