@@ -227,7 +227,10 @@ async function resetPassword(req, res) {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(newPassword, salt);
 
-    await db('users').where('id', studentId).update({password_hash: passwordHash});
+    await db('users').where('id', studentId).update({
+      password_hash: passwordHash,
+      session_version: db.raw('session_version + 1')
+    });
 
     res.status(200).json({ message: 'Senha redefinida com sucesso' });
   } catch (err) {

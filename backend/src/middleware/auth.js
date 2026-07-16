@@ -23,16 +23,27 @@ function extractAuthentication(req) {
   return null;
 }
 
-function applyAuthentication(req, authentication) {
-  req.user = verifySessionToken(authentication.token);
+async function applyAuthentication(req, authentication) {
+  const db = require('../database');
+  const payload = verifySessionToken(authentication.token);
+  const user = await db('users')
+    .select('id', 'name', 'email', 'role', 'session_version')
+    .where('id', payload.id)
+    .first();
+
+  if (!user || (payload.sessionVersion || 0) !== user.session_version) {
+    throw new Error('Session revoked');
+  }
+
+  req.user = { ...payload, name: user.name, email: user.email, role: user.role };
   req.authSource = authentication.source;
 }
 
-function optionalAuthentication(req, res, next) {
+async function optionalAuthentication(req, res, next) {
   const authentication = extractAuthentication(req);
   if (authentication) {
     try {
-      applyAuthentication(req, authentication);
+      await applyAuthentication(req, authentication);
     } catch (error) {
       req.authError = error;
     }
@@ -40,7 +51,7 @@ function optionalAuthentication(req, res, next) {
   next();
 }
 
-function authenticateToken(req, res, next) {
+async function authenticateToken(req, res, next) {
   if (req.user) return next();
 
   const authentication = extractAuthentication(req);
@@ -49,7 +60,7 @@ function authenticateToken(req, res, next) {
   }
 
   try {
-    applyAuthentication(req, authentication);
+    await applyAuthentication(req, authentication);
     return next();
   } catch {
     return res.status(403).json({ error: 'Invalid or expired token' });

@@ -432,6 +432,22 @@ describe('FitLife Sync API Integration Tests', () => {
         });
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveProperty('message', 'Senha redefinida com sucesso');
+
+      const revokedSession = await request(app)
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(revokedSession.statusCode).toBe(403);
+
+      const newLogin = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: 'test_student@fitlife.com',
+          password: 'new_student_password123'
+        });
+      expect(newLogin.statusCode).toBe(200);
+      studentToken = cookieValue(newLogin, SESSION_COOKIE);
+      studentCsrf = cookieValue(newLogin, CSRF_COOKIE);
+      studentCookies = cookieHeader(newLogin);
     });
 
     test('Should reject resetting a student password to fewer than 10 characters', async () => {

@@ -48,7 +48,14 @@ function serializeCookie(name, value, { httpOnly = false, maxAge = SESSION_MAX_A
 function setSessionCookies(res, user) {
   const csrfToken = crypto.randomBytes(32).toString('base64url');
   const sessionToken = jwt.sign(
-    { id: user.id, name: user.name, email: user.email, role: user.role, csrf: csrfToken },
+    {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      sessionVersion: user.session_version || 0,
+      csrf: csrfToken
+    },
     JWT_SECRET,
     { expiresIn: SESSION_MAX_AGE_SECONDS }
   );
