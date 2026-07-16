@@ -96,7 +96,9 @@ app.get('/api/health', async (req, res) => {
  *                 example: personal@fitlife.com
  *               password:
  *                 type: string
- *                 example: senha123
+ *                 minLength: 10
+ *                 maxLength: 128
+ *                 example: SenhaSegura123
  *               accessKey:
  *                 type: string
  *                 example: key2
@@ -204,7 +206,9 @@ app.get('/api/auth/me', authenticateToken, authController.getMe);
  *                 example: maria@aluna.com
  *               password:
  *                 type: string
- *                 example: aluno123
+ *                 minLength: 10
+ *                 maxLength: 128
+ *                 example: SenhaAluno123
  *               height:
  *                 type: number
  *                 format: float
@@ -304,13 +308,14 @@ app.get('/api/personal/students/:id', authenticateToken, studentController.getSt
  *             properties:
  *               newPassword:
  *                 type: string
- *                 minLength: 6
+ *                 minLength: 10
+ *                 maxLength: 128
  *                 example: novasenhasegura123
  *     responses:
  *       200:
  *         description: Senha redefinida com sucesso.
  *       400:
- *         description: Senha ausente ou com menos de 6 caracteres.
+ *         description: Senha ausente ou com menos de 10 caracteres.
  *       403:
  *         description: Acesso negado.
  *       500:

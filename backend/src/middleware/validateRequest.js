@@ -1,5 +1,6 @@
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const { normalizeEmail } = require('../services/userIdentityService');
 
 function optionalString({ min = 0, max, pattern, label = 'value' } = {}) {
   return value => {
@@ -49,7 +50,7 @@ function optionalExercises(value) {
 
 const text = (label, max, min = 0) => optionalString({ label, max, min });
 const email = optionalString({ label: 'email', max: 254, pattern: EMAIL_PATTERN });
-const password = optionalString({ label: 'password', min: 6, max: 128 });
+const password = optionalString({ label: 'password', min: 10, max: 128 });
 const bodySchemas = {
   register: {
     name: text('name', 100),
@@ -70,7 +71,7 @@ const bodySchemas = {
     birthDate: optionalString({ label: 'birthDate', max: 10, pattern: DATE_PATTERN })
   },
   passwordReset: {
-    newPassword: optionalString({ label: 'newPassword', min: 6, max: 128 })
+    newPassword: optionalString({ label: 'newPassword', min: 10, max: 128 })
   },
   measurement: {
     studentId: optionalPositiveInteger('studentId'),
@@ -117,6 +118,10 @@ function validateBody(schemaName) {
     if (req.body === undefined || req.body === null) return next();
     if (typeof req.body !== 'object' || Array.isArray(req.body)) {
       return res.status(400).json({ error: 'Request body must be a JSON object' });
+    }
+
+    if (Object.hasOwn(schema, 'email') && typeof req.body.email === 'string') {
+      req.body.email = normalizeEmail(req.body.email);
     }
 
     const details = [];

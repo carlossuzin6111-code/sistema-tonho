@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const db = require('../database');
+const { isEmailUniqueConstraint, normalizeEmail } = require('../services/userIdentityService');
 
 // Create a new student (Personal Trainer only)
 async function createStudent(req, res) {
@@ -11,8 +12,9 @@ async function createStudent(req, res) {
   }
 
   try {
+    const normalizedEmail = normalizeEmail(email);
     // Check if email exists
-    const existingUser = await db('users').select('id').where('email', email).first();
+    const existingUser = await db('users').select('id').where('email', normalizedEmail).first();
     if (existingUser) {
       return res.status(400).json({ error: 'Email already registered' });
     }
@@ -24,7 +26,7 @@ async function createStudent(req, res) {
     // Insert student user
     const [studentId] = await db('users').insert({
       name,
-      email,
+      email: normalizedEmail,
       password_hash: passwordHash,
       role: 'student'
     });
@@ -43,13 +45,16 @@ async function createStudent(req, res) {
       student: {
         id: studentId,
         name,
-        email,
+        email: normalizedEmail,
         role: 'student'
       }
     });
   } catch (err) {
+    if (isEmailUniqueConstraint(err)) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
     console.error('Create student error:', err.message);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 

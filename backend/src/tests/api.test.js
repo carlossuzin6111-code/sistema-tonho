@@ -128,12 +128,31 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body).toHaveProperty('error', 'Access Key Inválida');
     });
 
+    test('Should reject new passwords shorter than 10 characters without consuming the key', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          name: 'Short Password Personal',
+          email: 'short-password@fitlife.com',
+          password: 'short123',
+          accessKey: testAccessKey
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body).toMatchObject({
+        error: 'Invalid request data',
+        details: [{ field: 'password', message: 'password must have at least 10 characters' }]
+      });
+      const storedKey = await db('registration_keys').where({ id: testAccessKeyId }).first();
+      expect(storedKey.used_at).toBeNull();
+    });
+
     test('Should register successfully with a valid accessKey', async () => {
       const res = await request(app)
         .post('/api/auth/register')
         .send({
           name: 'Test Personal',
-          email: 'test_personal@fitlife.com',
+          email: '  Test_Personal@FitLife.COM  ',
           password: 'password123',
           accessKey: testAccessKey
         });
@@ -158,7 +177,7 @@ describe('FitLife Sync API Integration Tests', () => {
         .post('/api/auth/register')
         .send({
           name: 'Duplicate Personal',
-          email: 'test_personal@fitlife.com',
+          email: '  TEST_PERSONAL@FITLIFE.COM ',
           password: 'password123',
           accessKey
         });
@@ -216,7 +235,7 @@ describe('FitLife Sync API Integration Tests', () => {
       const res = await request(app)
         .post('/api/auth/login')
         .send({
-          email: 'test_personal@fitlife.com',
+          email: ' TEST_PERSONAL@FITLIFE.COM ',
           password: 'password123'
         });
       expect(res.statusCode).toBe(200);
@@ -319,13 +338,30 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.statusCode).toBe(401); // missing token
     });
 
+    test('Should reject a Student password shorter than 10 characters', async () => {
+      const res = await request(app)
+        .post('/api/personal/students')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({
+          name: 'Short Password Student',
+          email: 'short-student@fitlife.com',
+          password: 'short123'
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.details).toContainEqual({
+        field: 'password',
+        message: 'password must have at least 10 characters'
+      });
+    });
+
     test('Should create a new Student successfully (Personal Trainer)', async () => {
       const res = await request(app)
         .post('/api/personal/students')
         .set('Authorization', `Bearer ${personalToken}`)
         .send({
           name: 'Test Student',
-          email: 'test_student@fitlife.com',
+          email: ' Test_Student@FitLife.COM ',
           password: 'student_password123',
           height: 1.75,
           targetWeight: 75.0,
@@ -396,6 +432,19 @@ describe('FitLife Sync API Integration Tests', () => {
         });
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveProperty('message', 'Senha redefinida com sucesso');
+    });
+
+    test('Should reject resetting a student password to fewer than 10 characters', async () => {
+      const res = await request(app)
+        .post(`/api/personal/students/${studentId}/reset-password`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ newPassword: 'short123' });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.details).toContainEqual({
+        field: 'newPassword',
+        message: 'newPassword must have at least 10 characters'
+      });
     });
   });
 
