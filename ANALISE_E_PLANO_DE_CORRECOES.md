@@ -346,6 +346,7 @@ Resultados:
 - [x] Confirmar por integração que o token antigo falha e um novo login funciona.
 
 Branch de trabalho: `fix/session-revocation`, rebaseada sobre a `main` após o merge do PR #32.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/33
 
 Resultados locais:
 
