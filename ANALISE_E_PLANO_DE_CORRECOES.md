@@ -289,3 +289,4 @@ Resultados da publicação:
 - Backend: 68 de 68 testes aprovados em 9 suítes.
 - Auditoria npm das dependências de produção: zero vulnerabilidades.
 - HSTS foi observado na resposta externa entregue pela Cloudflare.
+- GitHub Actions do PR #30: checks `Backend` e `Frontend and infrastructure` concluídos com sucesso.
