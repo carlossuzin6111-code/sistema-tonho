@@ -1,6 +1,7 @@
 // FitLife Sync - App Orchestrator & Shell
 
 let lastModalTrigger = null;
+let pendingDestructiveAction = null;
 
 const DASHBOARD_TABS = Object.freeze({
   personal: ['students', 'create', 'chat', 'exercises'],
@@ -129,11 +130,62 @@ function closeModal(modalId) {
     if (lastModalTrigger && lastModalTrigger.isConnected) lastModalTrigger.focus();
     lastModalTrigger = null;
     modal.setAttribute('aria-hidden', 'true');
+    if (modalId === 'modal-destructive-confirmation') pendingDestructiveAction = null;
     if (formId) {
       document.getElementById(formId)?.reset();
       clearFormError(formId);
     }
     if (returnModalId) openModal(returnModalId);
+  }
+}
+
+function openDestructiveConfirmation({ title, message, confirmLabel = 'Excluir', returnModalId = '', action }) {
+  const modal = document.getElementById('modal-destructive-confirmation');
+  const form = document.getElementById('destructive-confirmation-form');
+  const submitButton = form?.querySelector('button[type="submit"]');
+  if (!modal || !form || typeof action !== 'function') return;
+
+  if (returnModalId) closeModal(returnModalId);
+  modal.dataset.returnModal = returnModalId;
+  document.getElementById('destructive-confirmation-title').textContent = title;
+  document.getElementById('destructive-confirmation-message').textContent = message;
+  submitButton.dataset.defaultLabel = confirmLabel;
+  submitButton.querySelector('[data-submit-label]').textContent = confirmLabel;
+  clearFormError(form.id);
+  pendingDestructiveAction = action;
+  openModal(modal.id);
+}
+
+function closeDestructiveConfirmation() {
+  closeModal('modal-destructive-confirmation');
+}
+
+async function handleDestructiveConfirmationSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  if (form.dataset.submitting === 'true' || !pendingDestructiveAction) return;
+
+  clearFormError(form.id);
+  setFormSubmitting(form, true);
+  let afterClose;
+  try {
+    afterClose = await pendingDestructiveAction();
+  } catch (err) {
+    setFormError(form.id, err.message);
+    showToast('Não foi possível concluir a exclusão.', 'error');
+    return;
+  } finally {
+    setFormSubmitting(form, false);
+  }
+
+  pendingDestructiveAction = null;
+  closeDestructiveConfirmation();
+  if (typeof afterClose === 'function') {
+    try {
+      await afterClose();
+    } catch (err) {
+      showToast(`A exclusão foi concluída, mas a tela não pôde ser atualizada: ${err.message}`, 'error');
+    }
   }
 }
 
