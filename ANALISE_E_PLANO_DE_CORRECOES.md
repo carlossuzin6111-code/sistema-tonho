@@ -385,3 +385,32 @@ Resultados locais:
 - API e Nginx permaneceram saudáveis após mais de dois minutos; worker de tradução permaneceu ativo sem erros recentes.
 - Healthcheck público respondeu `200` e o HTML externo confirmou a versão de assets `20260717.1`.
 - GitHub Actions do PR #34: checks `Backend` e `Frontend and infrastructure` concluídos com sucesso; branch marcada como limpa para merge.
+
+### 2026-07-17 — Bloco 8 concluído e publicado
+
+- [x] Substituir `lucide@latest` externo por uma versão fixa servida localmente.
+- [x] Remover `unpkg.com` da política de scripts da CSP.
+- [x] Corrigir o limite do Nginx para aceitar exatamente as imagens permitidas pelo backend.
+- [x] Atualizar testes e versão dos assets.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `fix/local-icons-request-limit`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/35
+
+Resultados locais:
+
+- Lucide `1.25.0` fixado no lockfile e distribuído em `frontend/vendor/lucide`, com a licença ISC preservada.
+- Desktop e mobile deixaram de executar JavaScript carregado por `unpkg.com`.
+- `script-src` da CSP agora permite apenas a própria origem.
+- Nginx aceita até `600k`, coerente com o limite JSON do backend e com a imagem Base64 de até 525000 caracteres.
+- Versão comum dos assets atualizada para `20260717.2`.
+- Frontend e infraestrutura: 19 de 19 testes aprovados.
+- Backend: 81 de 81 testes aprovados em 9 suítes.
+- Auditoria npm completa e de produção: zero vulnerabilidades.
+- Configuração Nginx validada com sucesso por `nginx -t`.
+- Nginx público recriado e permaneceu saudável; API pública respondeu `200` no healthcheck.
+- Bundle local do Lucide respondeu `200` com 411938 bytes.
+- CSP pública confirmou `script-src 'self'`, sem `unpkg.com`.
+- Smoke test público confirmou que uma requisição com 550000 caracteres atravessa o proxy e chega à autenticação (`401` sem sessão), enquanto uma carga acima de 600k é recusada pelo Nginx (`413`).
+- GitHub Actions do PR #35: checks `Backend` e `Frontend and infrastructure` concluídos com sucesso.
