@@ -227,6 +227,11 @@ function switchModalSubtab(subtab) {
     tabMetrics.classList.add('active');
     paneMetrics.classList.add('active');
   }
+  syncTabGroup(
+    ['modal-tab-workouts', 'modal-tab-metrics'],
+    ['modal-subpane-workouts', 'modal-subpane-metrics'],
+    subtab === 'workouts' ? 'modal-tab-workouts' : 'modal-tab-metrics'
+  );
 }
 
 // Render student workouts list in the details modal

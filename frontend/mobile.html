@@ -8,9 +8,9 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Base Styles (Components, Colors, Lovable) -->
-  <link rel="stylesheet" href="css/style.css?v=20260717.10">
+  <link rel="stylesheet" href="css/style.css?v=20260717.11">
   <!-- Mobile Architecture Overrides (PWA Lock) -->
-  <link rel="stylesheet" href="css/mobile.css?v=20260717.10">
+  <link rel="stylesheet" href="css/mobile.css?v=20260717.11">
 </head>
 <body>
 
@@ -202,7 +202,7 @@
         </div>
       </div>
 
-      <nav class="mobile-bottom-nav">
+      <nav class="mobile-bottom-nav" role="tablist" aria-label="Áreas do personal">
         <button id="nav-p-students" class="mobile-nav-btn active" data-action="switch-personal-tab" data-tab="students">
           <i data-lucide="users"></i><span>Alunos</span>
         </button>
@@ -264,7 +264,7 @@
         </div>
       </div>
 
-      <nav class="mobile-bottom-nav">
+      <nav class="mobile-bottom-nav" role="tablist" aria-label="Áreas do aluno">
         <button id="nav-s-workouts" class="mobile-nav-btn active" data-action="switch-student-tab" data-tab="workouts">
           <i data-lucide="dumbbell"></i><span>Treinos</span>
         </button>
@@ -299,7 +299,7 @@
         </div>
       </div>
 
-      <div class="modal-subtabs modal-subtabs-spaced">
+      <div class="modal-subtabs modal-subtabs-spaced" role="tablist" aria-label="Detalhes do aluno">
         <button id="modal-tab-workouts" class="modal-subtab active" data-action="switch-modal-tab" data-tab="workouts">Ficha</button>
         <button id="modal-tab-metrics" class="modal-subtab" data-action="switch-modal-tab" data-tab="metrics">Medidas</button>
       </div>
@@ -478,11 +478,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260717.10"></script>
-  <script src="js/safe-dom.js?v=20260717.10"></script>
-  <script src="js/app.js?v=20260717.10"></script>
-  <script src="js/personal.js?v=20260717.10"></script>
-  <script src="js/student.js?v=20260717.10"></script>
-  <script src="js/events.js?v=20260717.10"></script>
+  <script src="js/api.js?v=20260717.11"></script>
+  <script src="js/safe-dom.js?v=20260717.11"></script>
+  <script src="js/app.js?v=20260717.11"></script>
+  <script src="js/personal.js?v=20260717.11"></script>
+  <script src="js/student.js?v=20260717.11"></script>
+  <script src="js/events.js?v=20260717.11"></script>
 </body>
 </html>

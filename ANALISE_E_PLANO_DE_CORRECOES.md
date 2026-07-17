@@ -633,6 +633,27 @@ Resultados locais:
 - HTML público confirmou o modal acessível e os assets `20260717.6`; JavaScript público confirmou o novo manipulador de envio e a ausência do fluxo antigo.
 - CI do pull request aprovado nas verificações de frontend/infraestrutura e backend.
 
+### 2026-07-17 — Bloco 21 concluído e publicado
+
+- [x] Aplicar semântica de abas aos dashboards e ao modal de aluno.
+- [x] Sincronizar `aria-selected`, foco e visibilidade dos painéis.
+- [x] Permitir navegação por setas, Home e End.
+- [x] Testar, publicar e validar na base pública de testes.
+- [ ] Abrir pull request.
+
+Branch de trabalho: `accessibility/semantic-tabs`.
+
+Resultados:
+
+- Autenticação, áreas do personal, áreas do aluno e detalhes do aluno possuem grupos `tablist` identificados.
+- Cada aba recebe `role=tab`, `aria-controls`, `aria-selected` e ordem de foco coerentes; cada conteúdo recebe `role=tabpanel`, `aria-labelledby` e visibilidade sincronizada.
+- Setas horizontais e verticais circulam entre abas; Home e End selecionam os extremos.
+- A ativação por teclado reutiliza o fluxo existente, incluindo carregamento dos dados e atualização da rota.
+- Versão comum dos assets atualizada para `20260717.11`.
+- Frontend e infraestrutura: 29 de 29 testes aprovados.
+- Backend: 87 de 87 testes aprovados em 11 suítes.
+- Healthcheck público respondeu `200`; HTML e JavaScript públicos confirmaram grupos, sincronização e navegação por teclado.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.
