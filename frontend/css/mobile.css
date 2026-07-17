@@ -89,10 +89,15 @@ body.dark-theme .mobile-header {
 .mobile-summary-grid { margin: 12px 0 18px; }
 .mobile-summary-grid .stat-mini { flex: 1; padding: 12px 14px; }
 .mobile-section-actions {
+  position: sticky;
+  top: -16px;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin: -8px -4px 16px;
+  padding: 8px 4px 12px;
+  background: var(--bg-primary);
 }
 .personal-chat-messages { height: 300px; }
 .student-chat-container { display: flex; flex-direction: column; height: 400px; }
@@ -101,6 +106,12 @@ body.dark-theme .mobile-header {
 .mobile-modal-profile { padding: 0 16px; }
 .modal-subtabs-spaced { margin-top: 20px; }
 .mobile-modal-body { padding: 16px; }
+.mobile-sticky-action {
+  position: sticky;
+  top: -16px;
+  z-index: 10;
+  box-shadow: 0 8px 18px rgba(28, 28, 28, 0.12);
+}
 .mobile-chart-preview { height: 150px; margin-bottom: 16px; background: #fff; }
 .mobile-modal-inner { padding: 24px; }
 .drawer-title { margin: 0; font-size: 1.2rem; }
@@ -173,10 +184,13 @@ body.dark-theme .mobile-bottom-nav {
 }
 
 .modal-content {
-  width: 100vw !important;
+  width: 100% !important;
   height: 100vh !important;
-  max-width: 100vw !important;
+  height: 100dvh !important;
+  max-width: 100% !important;
   max-height: 100vh !important;
+  max-height: 100dvh !important;
+  box-sizing: border-box;
   border-radius: 0 !important;
   border: none !important;
   transform: translateY(100%);
