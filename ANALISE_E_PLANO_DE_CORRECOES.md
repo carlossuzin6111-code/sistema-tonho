@@ -661,9 +661,10 @@ Resultados:
 - [x] Cobrir chats desktop/mobile e formulários dos modais mobile.
 - [x] Adicionar teste preventivo para controles sem nome acessível.
 - [x] Testar, publicar e validar na base pública de testes.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `accessibility/form-control-labels`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/49
 
 Resultados:
 
