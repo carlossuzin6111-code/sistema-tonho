@@ -704,9 +704,10 @@ Resultados:
 - [x] Combinar ordenação e busca sem novas chamadas à API.
 - [x] Garantir controles acessíveis em desktop e mobile.
 - [x] Testar, publicar e validar na base pública de testes.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `feat/catalog-list-sorting`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/51
 
 Resultados:
 
