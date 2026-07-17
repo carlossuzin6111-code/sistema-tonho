@@ -711,3 +711,4 @@ Resultados:
 - Backend: 87 de 87 testes aprovados em 11 suítes.
 - Configuração do Nginx validada antes da publicação; API, workers e tunnel permaneceram ativos durante a recriação do frontend.
 - Resposta pública confirmou healthcheck `200`, assets `20260717.9` e a CSP restrita à própria origem.
+- CI do pull request aprovado nas verificações de frontend/infraestrutura e backend.
