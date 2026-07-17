@@ -695,9 +695,10 @@ Resultados:
 - [x] Restringir `style-src` e `font-src` da CSP somente à própria origem.
 - [x] Ampliar o teste preventivo para todas as páginas HTML.
 - [x] Testar, publicar e validar na base pública de testes.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `security/self-hosted-styles-only`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/46
 
 Resultados:
 
