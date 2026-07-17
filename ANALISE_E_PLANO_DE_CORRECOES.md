@@ -525,3 +525,30 @@ Resultados locais:
 - API e Nginx permaneceram saudáveis e o healthcheck público respondeu `200`.
 - HTML público desktop e mobile confirmou os quatro campos/estados acessíveis e assets `20260717.4`.
 - JavaScript público confirmou normalização e filtros locais para alunos e exercícios.
+
+### 2026-07-17 — Bloco 13 concluído e publicado
+
+- [x] Representar a aba ativa na URL para personal e aluno.
+- [x] Restaurar a aba correta após recarregar a página.
+- [x] Fazer os botões Voltar/Avançar navegarem entre abas sem recarregar a interface.
+- [x] Preservar a rota ao selecionar automaticamente desktop ou mobile.
+- [x] Testar e atualizar a versão dos assets.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/dashboard-tab-history`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/40
+
+Resultados locais:
+
+- Rotas seguem `#/personal/{aba}` ou `#/student/{aba}` e aceitam somente abas conhecidas do papel autenticado.
+- Cliques usam `history.pushState`; inicialização usa `replaceState`; Voltar/Avançar restaura via `popstate` sem recarregar a página.
+- Recarregar uma rota válida abre diretamente a aba correspondente após validar a sessão.
+- Rotas incompatíveis com o papel são ignoradas e substituídas pela aba inicial segura.
+- O seletor de interface mantém o hash ao redirecionar para `desktop.html` ou `mobile.html`.
+- Versão comum dos assets atualizada para `20260717.5`.
+- Frontend e infraestrutura: 23 de 23 testes aprovados.
+- Backend: 84 de 84 testes aprovados em 10 suítes.
+- API, Nginx e worker permaneceram saudáveis; healthcheck público respondeu `200`.
+- Página pública confirmou `router.js` `20260717.5` e preservação de `window.location.hash`.
+- `app.js` público confirmou `pushState`, `replaceState`, restauração por papel e listener de `popstate`.

@@ -2,6 +2,30 @@
 
 let lastModalTrigger = null;
 
+const DASHBOARD_TABS = Object.freeze({
+  personal: ['students', 'create', 'chat', 'exercises'],
+  student: ['workouts', 'measurements', 'chat']
+});
+
+function dashboardRoute(role, tab) {
+  return `#/${role}/${tab}`;
+}
+
+function tabFromDashboardRoute(role) {
+  if (typeof window === 'undefined') return null;
+  const match = window.location.hash.match(/^#\/(personal|student)\/([a-z-]+)$/);
+  if (!match || match[1] !== role || !DASHBOARD_TABS[role]?.includes(match[2])) return null;
+  return match[2];
+}
+
+function updateDashboardRoute(role, tab, historyMode) {
+  if (typeof window === 'undefined' || historyMode === 'none') return;
+  const route = dashboardRoute(role, tab);
+  if (window.location.hash === route) return;
+  const method = historyMode === 'replace' ? 'replaceState' : 'pushState';
+  window.history[method]({ role, tab }, '', route);
+}
+
 const modalFocusableSelector = [
   'a[href]',
   'button:not([disabled])',
@@ -161,7 +185,8 @@ function switchAuthTab(tab) {
 }
 
 // Switch Personal Tabs
-function switchPersonalTab(tab) {
+function switchPersonalTab(tab, { historyMode = 'push' } = {}) {
+  if (!DASHBOARD_TABS.personal.includes(tab)) return;
   const tabPaneStudents = document.getElementById('tab-p-students');
   const tabPaneCreate = document.getElementById('tab-p-create');
   const tabPaneChat = document.getElementById('tab-p-chat');
@@ -198,10 +223,12 @@ function switchPersonalTab(tab) {
     if (navExercises) navExercises.classList.add('active');
     loadPersonalExercises();
   }
+  updateDashboardRoute('personal', tab, historyMode);
 }
 
 // Switch Student Tabs
-function switchStudentTab(tab) {
+function switchStudentTab(tab, { historyMode = 'push' } = {}) {
+  if (!DASHBOARD_TABS.student.includes(tab)) return;
   const tabPaneWorkouts = document.getElementById('tab-s-workouts');
   const tabPaneMeasurements = document.getElementById('tab-s-measurements');
   const tabPaneChat = document.getElementById('tab-s-chat');
@@ -231,7 +258,19 @@ function switchStudentTab(tab) {
     navChat.classList.add('active');
     loadStudentChat();
   }
+  updateDashboardRoute('student', tab, historyMode);
 }
+
+function restoreDashboardRoute() {
+  const user = API.getCurrentUser();
+  if (!user || !DASHBOARD_TABS[user.role]) return;
+  const tab = tabFromDashboardRoute(user.role);
+  if (!tab) return;
+  if (user.role === 'personal') switchPersonalTab(tab, { historyMode: 'none' });
+  else switchStudentTab(tab, { historyMode: 'none' });
+}
+
+if (typeof window !== 'undefined') window.addEventListener('popstate', restoreDashboardRoute);
 
 // Authentication Actions
 
@@ -378,10 +417,10 @@ function setupAppShell(user) {
 
   if (user.role === 'personal') {
     document.getElementById('personal-dashboard').classList.remove('hidden');
-    switchPersonalTab('students');
+    switchPersonalTab(tabFromDashboardRoute('personal') || 'students', { historyMode: 'replace' });
   } else {
     document.getElementById('student-dashboard').classList.remove('hidden');
-    switchStudentTab('workouts');
+    switchStudentTab(tabFromDashboardRoute('student') || 'workouts', { historyMode: 'replace' });
   }
 
   // Connect to the real-time chat SSE stream
