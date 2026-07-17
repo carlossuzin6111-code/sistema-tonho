@@ -125,6 +125,18 @@ test('public Compose stack defaults application services to production', () => {
   assert.doesNotMatch(compose, /NODE_ENV=\$\{NODE_ENV:-development\}/);
 });
 
+test('backend runtime image is multi-stage, non-root and excludes build tools', () => {
+  const dockerfile = fs.readFileSync(path.join(repositoryRoot, 'backend', 'Dockerfile'), 'utf8');
+  const runtimeStage = dockerfile.split(/FROM node:20-slim AS runtime/)[1];
+
+  assert.match(dockerfile, /FROM node:20-slim AS dependencies/);
+  assert.ok(runtimeStage, 'runtime stage is missing');
+  assert.match(runtimeStage, /COPY --from=dependencies --chown=node:node/);
+  assert.match(runtimeStage, /COPY --chown=node:node \. \./);
+  assert.match(runtimeStage, /USER node/);
+  assert.doesNotMatch(runtimeStage, /apt-get|python3|make|g\+\+/);
+});
+
 test('modal controller provides dialog semantics and keyboard focus management', () => {
   const app = fs.readFileSync(path.join(frontendRoot, 'js', 'app.js'), 'utf8');
 
