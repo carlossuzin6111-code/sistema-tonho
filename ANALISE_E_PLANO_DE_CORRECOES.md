@@ -639,9 +639,10 @@ Resultados locais:
 - [x] Sincronizar `aria-selected`, foco e visibilidade dos painéis.
 - [x] Permitir navegação por setas, Home e End.
 - [x] Testar, publicar e validar na base pública de testes.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `accessibility/semantic-tabs`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/48
 
 Resultados:
 
