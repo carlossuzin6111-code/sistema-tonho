@@ -321,6 +321,17 @@ test('internal creation forms block duplicate submissions and announce local err
   assert.match(events, /\.auth-form, \.form-with-feedback/);
 });
 
+test('mobile primary actions remain reachable without viewport overflow', () => {
+  const html = fs.readFileSync(path.join(frontendRoot, 'mobile.html'), 'utf8');
+  const css = fs.readFileSync(path.join(frontendRoot, 'css', 'mobile.css'), 'utf8');
+
+  assert.equal((html.match(/mobile-sticky-action/g) || []).length, 2);
+  assert.match(css, /\.mobile-section-actions\s*\{[^}]*position:\s*sticky/);
+  assert.match(css, /\.mobile-sticky-action\s*\{[^}]*position:\s*sticky/);
+  assert.match(css, /\.modal-content\s*\{[^}]*height:\s*100dvh\s*!important/);
+  assert.doesNotMatch(css, /\.modal-content\s*\{[^}]*width:\s*100vw/);
+});
+
 test('login submission blocks duplicates and restores the form after an API error', async () => {
   let rejectLogin;
   let apiCalls = 0;

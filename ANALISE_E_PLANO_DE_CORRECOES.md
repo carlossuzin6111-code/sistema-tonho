@@ -815,6 +815,33 @@ Resultados locais:
 - HTML e JavaScript públicos confirmaram os assets `20260717.18`, regiões de erro e bloqueio de submissões duplicadas.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
+### 2026-07-17 — Bloco 29 concluído e publicado
+
+- [x] Manter acessível a ação de criar exercício durante a rolagem do catálogo mobile.
+- [x] Fixar as ações de novo treino e novas medidas dentro do conteúdo rolável do aluno.
+- [x] Evitar largura baseada em `100vw` nos modais mobile.
+- [x] Adaptar a altura dos modais às barras dinâmicas do navegador e ao teclado virtual com `100dvh`.
+- [x] Adicionar cobertura automatizada das regras visuais.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+- [x] Aguardar a CI.
+
+Branch de trabalho: `feat/mobile-sticky-actions`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/56
+
+Resultados locais:
+
+- Ações primárias usam posicionamento aderente somente dentro de suas respectivas áreas roláveis.
+- O conteúdo continua reservando espaço normal para os botões, sem ficar oculto atrás deles.
+- Modais usam `width: 100%`, `height: 100dvh` e `box-sizing: border-box` no celular.
+- Assets atualizados para `20260717.19`.
+- Frontend e infraestrutura: 36 de 36 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- HTML e CSS públicos confirmaram os assets `20260717.19`, ações aderentes e dimensões dinâmicas dos modais.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.
