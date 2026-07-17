@@ -605,3 +605,30 @@ Resultados:
 - API, Nginx, worker e tunnel permaneceram ativos; healthcheck público respondeu `200`.
 - Frontend e infraestrutura: 24 de 24 testes aprovados.
 - Backend: 84 de 84 testes aprovados em 10 suítes.
+
+### 2026-07-17 — Bloco 16 concluído e publicado
+
+- [x] Substituir o `prompt()` de redefinição de senha por modal acessível.
+- [x] Exigir confirmação da nova senha e apresentar erros junto ao formulário.
+- [x] Adicionar controles de visibilidade e estado de envio sem perder os campos em falhas da API.
+- [x] Garantir comportamento equivalente em desktop e mobile.
+- [x] Testar localmente e atualizar a versão dos assets.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/password-reset-modal`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/43
+
+Resultados locais:
+
+- Modal acessível incluído nas interfaces desktop e mobile, com retorno aos detalhes do aluno ao cancelar ou concluir.
+- Nova senha e confirmação exigem entre 10 e 128 caracteres e possuem controles independentes de visibilidade.
+- Divergências e falhas da API são anunciadas junto ao formulário; falhas remotas preservam os campos para correção ou nova tentativa.
+- Envios duplicados são bloqueados e o botão informa visualmente o andamento.
+- O fluxo não utiliza mais `prompt()`.
+- Versão comum dos assets atualizada para `20260717.6`.
+- Frontend e infraestrutura: 26 de 26 testes aprovados.
+- Backend: 87 de 87 testes aprovados em 11 suítes.
+- API, Nginx, workers e tunnel permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
+- HTML público confirmou o modal acessível e os assets `20260717.6`; JavaScript público confirmou o novo manipulador de envio e a ausência do fluxo antigo.
+- CI do pull request aprovado nas verificações de frontend/infraestrutura e backend.

@@ -122,11 +122,18 @@ function openModal(modalId) {
 function closeModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
+    const returnModalId = modal.dataset.returnModal;
+    const formId = modal.dataset.clearFormOnClose;
     modal.classList.remove('active');
     document.body.classList.remove('modal-open');
     if (lastModalTrigger && lastModalTrigger.isConnected) lastModalTrigger.focus();
     lastModalTrigger = null;
     modal.setAttribute('aria-hidden', 'true');
+    if (formId) {
+      document.getElementById(formId)?.reset();
+      clearFormError(formId);
+    }
+    if (returnModalId) openModal(returnModalId);
   }
 }
 
