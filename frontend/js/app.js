@@ -578,10 +578,10 @@ function openExerciseExecutionModal(name, gifUrl, description) {
   
   const gifImg = document.getElementById('execution-modal-gif');
   if (SafeDOM.setSafeImageSource(gifImg, gifUrl)) {
-    gifImg.parentElement.style.display = 'flex';
+    gifImg.parentElement.classList.remove('hidden');
   } else {
     gifImg.src = '';
-    gifImg.parentElement.style.display = 'none';
+    gifImg.parentElement.classList.add('hidden');
   }
   
   document.getElementById('execution-modal-instructions').textContent = description || 'Sem instruções técnicas adicionadas.';

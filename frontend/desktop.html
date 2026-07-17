@@ -12,7 +12,7 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260717.7">
+  <link rel="stylesheet" href="css/style.css?v=20260717.8">
 </head>
 <body>
 
@@ -117,7 +117,7 @@
             <span class="profile-email" id="header-user-email">email@exemplo.com</span>
           </div>
         </div>
-        <button class="btn-icon" data-action="toggle-theme" title="Alterar Tema" style="margin-right: 5px;">
+        <button class="btn-icon theme-toggle-button" data-action="toggle-theme" title="Alterar Tema">
           <i id="theme-toggle-icon" data-lucide="sun"></i>
         </button>
         <button class="btn-icon btn-logout" data-action="logout" title="Sair da Conta">
@@ -256,7 +256,7 @@
               <!-- Active Chat Area -->
               <div class="chat-active-area hidden" id="personal-chat-active">
                 <div class="chat-active-header">
-                  <button class="btn-icon hide-desktop btn-chat-back" data-action="close-chat-thread" style="margin-right: 10px;">
+                  <button class="btn-icon hide-desktop btn-chat-back chat-back-button" data-action="close-chat-thread">
                     <i data-lucide="arrow-left"></i>
                   </button>
                   <div class="avatar" id="chat-active-avatar">A</div>
@@ -440,7 +440,7 @@
             <span class="meta-tag"><i data-lucide="target"></i> Meta: <strong id="modal-sd-target">-</strong></span>
             <span class="meta-tag"><i data-lucide="calendar"></i> Idade: <strong id="modal-sd-age">-</strong></span>
           </div>
-          <button class="btn btn-sm" style="margin-top: 10px; background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid var(--danger);" data-action="reset-password">
+          <button class="btn btn-sm btn-sensitive" data-action="reset-password">
             <i data-lucide="key"></i> Redefinir Senha do Aluno
           </button>
         </div>
@@ -468,7 +468,7 @@
 
         <!-- Subtab Metrics -->
         <div id="modal-subpane-metrics" class="modal-subpane">
-          <div class="subpane-actions" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+          <div class="subpane-actions subpane-actions-spaced">
             <h3>Evolução Física do Aluno</h3>
             <button class="btn btn-primary btn-sm" data-action="open-modal" data-modal="modal-add-measurement">
               <i data-lucide="plus"></i> <span>Lançar Medidas</span>
@@ -729,11 +729,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260717.7"></script>
-  <script src="js/safe-dom.js?v=20260717.7"></script>
-  <script src="js/app.js?v=20260717.7"></script>
-  <script src="js/personal.js?v=20260717.7"></script>
-  <script src="js/student.js?v=20260717.7"></script>
-  <script src="js/events.js?v=20260717.7"></script>
+  <script src="js/api.js?v=20260717.8"></script>
+  <script src="js/safe-dom.js?v=20260717.8"></script>
+  <script src="js/app.js?v=20260717.8"></script>
+  <script src="js/personal.js?v=20260717.8"></script>
+  <script src="js/student.js?v=20260717.8"></script>
+  <script src="js/events.js?v=20260717.8"></script>
 </body>
 </html>

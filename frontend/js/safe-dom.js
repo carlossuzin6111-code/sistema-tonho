@@ -17,7 +17,6 @@
         if (value !== undefined && value !== null) node.setAttribute(name, String(value));
       }
     }
-    if (options.style) Object.assign(node.style, options.style);
     if (options.on) {
       for (const [eventName, handler] of Object.entries(options.on)) node.addEventListener(eventName, handler);
     }
@@ -54,15 +53,9 @@
     ]);
   }
 
-  function errorAlert(prefix, message, extraStyle = {}) {
+  function errorAlert(prefix, message, extraClass = '') {
     return el('div', {
-      className: 'info-alert',
-      style: {
-        borderColor: 'var(--danger)',
-        background: 'rgba(239, 68, 68, 0.05)',
-        color: 'var(--danger)',
-        ...extraStyle
-      }
+      className: `info-alert info-alert-error ${extraClass}`.trim()
     }, [
       icon('alert-circle'),
       el('span', { text: `${prefix}${message ?? ''}` })

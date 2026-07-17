@@ -16,8 +16,8 @@ function toggleMobileDrawer() {
 
   drawer.classList.add('active');
   const isPersonal = role.includes('Personal');
-  if (personalNavigation) personalNavigation.style.display = isPersonal ? 'flex' : 'none';
-  if (studentNavigation) studentNavigation.style.display = isPersonal ? 'none' : 'flex';
+  personalNavigation?.classList.toggle('hidden', !isPersonal);
+  studentNavigation?.classList.toggle('hidden', isPersonal);
 }
 
 const clickActions = Object.freeze({

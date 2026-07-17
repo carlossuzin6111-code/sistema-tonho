@@ -46,8 +46,8 @@ async function loadPersonalStudents() {
 
     if (personalStudents.length === 0) {
       grid.innerHTML = `
-        <div class="chat-empty-state glass" style="grid-column: 1 / -1; padding: 50px;">
-          <i data-lucide="users" class="chat-empty-icon text-gradient" style="width: 50px; height: 50px;"></i>
+        <div class="chat-empty-state glass grid-span-full empty-state-large">
+          <i data-lucide="users" class="chat-empty-icon text-gradient icon-50"></i>
           <h3>Nenhum aluno cadastrado</h3>
           <p>Crie o primeiro acesso para seus alunos usando a aba "Cadastrar Aluno" na barra lateral.</p>
         </div>
@@ -124,7 +124,7 @@ async function loadPersonalStudents() {
     filterPersonalStudents(document.getElementById('students-search').value);
   } catch (err) {
     SafeDOM.clear(grid);
-    grid.appendChild(SafeDOM.errorAlert('Erro ao carregar lista de alunos: ', err.message, { gridColumn: '1 / -1' }));
+    grid.appendChild(SafeDOM.errorAlert('Erro ao carregar lista de alunos: ', err.message, 'grid-span-full'));
     lucide.createIcons();
   }
 }
@@ -234,8 +234,8 @@ function renderPersonalStudentWorkouts(workouts) {
   const listContainer = document.getElementById('modal-workouts-list');
   if (workouts.length === 0) {
     listContainer.innerHTML = `
-      <div class="chat-empty-state" style="padding: 20px;">
-        <i data-lucide="dumbbell" class="chat-empty-icon text-gradient" style="width: 40px; height: 40px;"></i>
+      <div class="chat-empty-state empty-state-medium">
+        <i data-lucide="dumbbell" class="chat-empty-icon text-gradient icon-40"></i>
         <h4>Nenhum treino prescrito ainda</h4>
         <p>Use o botão "Criar Ficha de Treino" para adicionar a primeira ficha para o aluno.</p>
       </div>
@@ -266,15 +266,14 @@ function renderPersonalStudentWorkouts(workouts) {
     }, [SafeDOM.icon('trash-2'), ' Excluir Treino']);
     card.appendChild(SafeDOM.el('div', { className: 'workout-header' }, [
       titleBlock,
-      SafeDOM.el('div', { style: { display: 'flex', gap: '8px' } }, [addButton, deleteButton])
+      SafeDOM.el('div', { className: 'inline-actions' }, [addButton, deleteButton])
     ]));
 
     const exercisesList = SafeDOM.el('div', { className: 'exercises-list' });
     if (workout.exercises.length === 0) {
       exercisesList.appendChild(SafeDOM.el('div', {
-        className: 'no-data-msg',
-        text: 'Nenhum exercício cadastrado nesta ficha.',
-        style: { padding: '10px' }
+        className: 'no-data-msg compact-empty-state',
+        text: 'Nenhum exercício cadastrado nesta ficha.'
       }));
     } else {
       workout.exercises.forEach(ex => {
@@ -283,8 +282,7 @@ function renderPersonalStudentWorkouts(workouts) {
         ]);
         if (ex.gif_url) {
           nameBlock.appendChild(SafeDOM.el('button', {
-            className: 'btn-pill-action',
-            style: { marginLeft: '8px' },
+            className: 'btn-pill-action execution-inline-action',
             on: { click: () => openExerciseExecutionModal(ex.name, ex.gif_url, ex.exercise_description || '') }
           }, [SafeDOM.icon('play-circle'), ' Execução']));
         }
@@ -328,7 +326,7 @@ function renderPersonalStudentMeasurements(measurements) {
   if (measurements.length === 0) {
     tbody.innerHTML = '<tr><td colspan="7" class="no-data-msg">Nenhuma medição realizada pelo aluno.</td></tr>';
     metricsGrid.innerHTML = `
-      <div class="no-data-msg" style="grid-column: 1/-1;">
+      <div class="no-data-msg grid-span-full">
         Nenhum dado de avaliação física.
       </div>
     `;
@@ -342,7 +340,7 @@ function renderPersonalStudentMeasurements(measurements) {
     const dateFormatted = new Date(m.recorded_at).toLocaleDateString('pt-BR');
     SafeDOM.appendChildren(row, [
       SafeDOM.el('td', { text: dateFormatted }),
-      SafeDOM.el('td', { text: `${m.weight} kg`, style: { fontWeight: '600', color: 'var(--accent-secondary)' } }),
+      SafeDOM.el('td', { text: `${m.weight} kg`, className: 'metric-weight-value' }),
       SafeDOM.el('td', { text: m.chest ? `${m.chest} cm` : '-' }),
       SafeDOM.el('td', { text: m.waist ? `${m.waist} cm` : '-' }),
       SafeDOM.el('td', { text: m.hips ? `${m.hips} cm` : '-' }),
@@ -634,7 +632,7 @@ async function loadPersonalChatThreads() {
     list.innerHTML = '';
     
     if (personalStudents.length === 0) {
-      list.innerHTML = '<p class="no-data-msg" style="padding:10px;">Sem alunos para conversar.</p>';
+      list.innerHTML = '<p class="no-data-msg compact-empty-state">Sem alunos para conversar.</p>';
       return;
     }
 
@@ -652,9 +650,8 @@ async function loadPersonalChatThreads() {
       ]);
       if (student.unread_messages > 0) {
         thread.appendChild(SafeDOM.el('span', {
-          className: 'badge-count',
-          text: student.unread_messages,
-          style: { marginLeft: '10px' }
+          className: 'badge-count thread-unread-badge',
+          text: student.unread_messages
         }));
       }
       list.appendChild(thread);
@@ -663,9 +660,8 @@ async function loadPersonalChatThreads() {
   } catch (err) {
     SafeDOM.clear(list);
     list.appendChild(SafeDOM.el('p', {
-      className: 'no-data-msg',
-      text: err.message,
-      style: { color: 'var(--danger)' }
+      className: 'no-data-msg text-danger',
+      text: err.message
     }));
   }
 }
@@ -699,7 +695,7 @@ async function openPersonalChatThread(studentId, studentName) {
 
     if (messages.length === 0) {
       chatMessagesBox.innerHTML = `
-        <div class="no-data-msg" style="padding: 20px; align-self: center;">
+        <div class="no-data-msg chat-empty-message">
           Inicie a conversa! Envie uma instrução ou mensagem de incentivo abaixo.
         </div>
       `;
@@ -850,7 +846,7 @@ async function handleResetPasswordSubmit(event) {
 async function loadPersonalExercises() {
   const container = document.getElementById('exercises-catalog-list');
   container.innerHTML = `
-    <div class="loading-placeholder" style="grid-column: 1 / -1;">
+    <div class="loading-placeholder grid-span-full">
       <div class="spinner"></div>
       <span>Carregando biblioteca de exercícios...</span>
     </div>
@@ -862,8 +858,8 @@ async function loadPersonalExercises() {
 
     if (list.length === 0) {
       container.innerHTML = `
-        <div class="chat-empty-state glass" style="grid-column: 1 / -1; padding: 40px;">
-          <i data-lucide="dumbbell" class="chat-empty-icon" style="width: 40px; height: 40px;"></i>
+        <div class="chat-empty-state glass grid-span-full empty-state-catalog">
+          <i data-lucide="dumbbell" class="chat-empty-icon icon-40"></i>
           <h3>Sua biblioteca está vazia</h3>
           <p>Cadastre seu primeiro exercício personalizado clicando no botão "Novo Exercício".</p>
         </div>
@@ -886,8 +882,7 @@ async function loadPersonalExercises() {
       const thumb = hasSafeImage
         ? image
         : SafeDOM.el('div', {
-            className: 'exercise-thumb',
-            style: { display: 'flex', alignItems: 'center', justifyContent: 'center' }
+            className: 'exercise-thumb exercise-thumb-placeholder'
           }, [SafeDOM.icon('dumbbell')]);
 
       const info = SafeDOM.el('div', { className: 'exercise-db-info' }, [
@@ -897,7 +892,7 @@ async function loadPersonalExercises() {
           SafeDOM.el('p', { text: descText })
         ])
       ]);
-      const actions = SafeDOM.el('div', { style: { display: 'flex', gap: '6px' } });
+      const actions = SafeDOM.el('div', { className: 'catalog-actions' });
       if (hasSafeImage) {
         actions.appendChild(SafeDOM.el('button', {
           className: 'btn btn-tertiary btn-sm',
@@ -918,7 +913,7 @@ async function loadPersonalExercises() {
     filterPersonalExercises(document.getElementById('exercises-search').value);
   } catch (err) {
     SafeDOM.clear(container);
-    container.appendChild(SafeDOM.errorAlert('Erro ao carregar catálogo: ', err.message, { gridColumn: '1 / -1' }));
+    container.appendChild(SafeDOM.errorAlert('Erro ao carregar catálogo: ', err.message, 'grid-span-full'));
     lucide.createIcons();
   }
 }

@@ -76,6 +76,33 @@ body.dark-theme .mobile-header {
   letter-spacing: -0.5px;
 }
 
+.mobile-header-brand, .mobile-brand-name, .mobile-header-actions {
+  display: flex;
+  align-items: center;
+}
+.mobile-header-brand, .mobile-header-actions { gap: 12px; }
+.mobile-brand-name { gap: 8px; }
+.mobile-menu-button { padding: 4px; }
+.mobile-brand-icon { width: 20px; height: 20px; }
+.mobile-brand-text { font-size: 1.1rem; }
+.mobile-section-title { font-size: 24px; }
+.mobile-section-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.personal-chat-messages { height: 300px; }
+.student-chat-container { display: flex; flex-direction: column; height: 400px; }
+.mobile-modal-close-row { display: flex; justify-content: flex-end; padding: 16px; }
+.mobile-modal-close { position: relative; top: 0; right: 0; }
+.mobile-modal-profile { padding: 0 16px; }
+.modal-subtabs-spaced { margin-top: 20px; }
+.mobile-modal-body { padding: 16px; }
+.mobile-chart-preview { height: 150px; margin-bottom: 16px; background: #fff; }
+.mobile-modal-inner { padding: 24px; }
+.drawer-title { margin: 0; font-size: 1.2rem; }
+
 /* Container de Dashboards do personal e aluno */
 .mobile-dashboard-wrapper {
   display: flex;

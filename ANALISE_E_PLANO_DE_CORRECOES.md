@@ -660,3 +660,29 @@ Resultados locais:
 - API, Nginx, workers e tunnel permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
 - HTML público desktop e mobile confirmou o diálogo e os assets `20260717.7`; JavaScript público confirmou as três ações contextuais e a ausência de `confirm()`.
 - CI do pull request aprovado nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-17 — Bloco 18 concluído e publicado
+
+- [x] Remover estilos inline estáticos das interfaces desktop e mobile.
+- [x] Substituir estilos criados por JavaScript por classes CSS.
+- [x] Impedir que o helper de DOM volte a criar atributos `style`.
+- [x] Remover `'unsafe-inline'` de `style-src` na CSP.
+- [x] Testar, reconstruir e validar na base pública de testes.
+- [ ] Abrir pull request.
+
+Branch de trabalho: `fix/remove-inline-styles`.
+
+Resultados:
+
+- Todos os atributos `style` foram removidos dos HTMLs desktop e mobile e substituídos por classes reutilizáveis.
+- Renderizações dinâmicas de alunos, treinos, medidas, chat, catálogo e mídia deixaram de criar estilos inline.
+- O helper `SafeDOM.el` não aceita mais a opção `style`, prevenindo reintrodução acidental.
+- A CSP publicada removeu `'unsafe-inline'` de `style-src`, mantendo somente CSS local e Google Fonts explicitamente autorizado.
+- Teste automatizado falha se HTML ou JavaScript voltar a criar estilos inline ou se a CSP voltar a permitir `'unsafe-inline'`.
+- Versão comum dos assets atualizada para `20260717.8`.
+- Frontend e infraestrutura: 27 de 27 testes aprovados.
+- Backend: 87 de 87 testes aprovados em 11 suítes.
+- Configuração do Nginx validada com sucesso antes da recriação do container.
+- API, Nginx, workers e tunnel permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
+- Cabeçalho público confirmou a CSP sem estilos inline e HTML público confirmou assets `20260717.8` sem atributos `style`.
+- Captura pública mobile em escala equivalente a 390 px confirmou o formulário completo, alinhado e sem regressão visual.
