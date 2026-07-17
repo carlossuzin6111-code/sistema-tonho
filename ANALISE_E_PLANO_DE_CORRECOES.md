@@ -413,3 +413,4 @@ Resultados locais:
 - Bundle local do Lucide respondeu `200` com 411938 bytes.
 - CSP pública confirmou `script-src 'self'`, sem `unpkg.com`.
 - Smoke test público confirmou que uma requisição com 550000 caracteres atravessa o proxy e chega à autenticação (`401` sem sessão), enquanto uma carga acima de 600k é recusada pelo Nginx (`413`).
+- GitHub Actions do PR #35: checks `Backend` e `Frontend and infrastructure` concluídos com sucesso.
