@@ -287,6 +287,36 @@ test('student and exercise searches are accessible, local and accent-insensitive
   assert.doesNotMatch(filters, /API\./);
 });
 
+test('dashboard tabs use restorable history routes and preserve them through interface selection', () => {
+  const calls = [];
+  const context = {
+    API: { getCurrentUser() { return null; } },
+    document: { addEventListener() {} },
+    window: {
+      location: { hash: '#/personal/chat' },
+      history: {
+        pushState(...args) { calls.push(['push', ...args]); },
+        replaceState(...args) { calls.push(['replace', ...args]); }
+      },
+      addEventListener() {}
+    }
+  };
+  vm.runInNewContext(read(path.join('js', 'app.js')), context);
+
+  assert.equal(context.tabFromDashboardRoute('personal'), 'chat');
+  assert.equal(context.tabFromDashboardRoute('student'), null);
+  context.window.location.hash = '';
+  context.updateDashboardRoute('student', 'measurements', 'push');
+  assert.equal(calls[0][0], 'push');
+  assert.equal(calls[0][3], '#/student/measurements');
+
+  const router = read(path.join('js', 'router.js'));
+  assert.match(router, /interfaceFile.*window\.location\.hash/);
+  const app = read(path.join('js', 'app.js'));
+  assert.match(app, /addEventListener\('popstate', restoreDashboardRoute\)/);
+  assert.match(app, /historyMode: 'none'/);
+});
+
 test('event delegation invokes only the allowlisted action and form handlers', () => {
   const listeners = {};
   const calls = [];
