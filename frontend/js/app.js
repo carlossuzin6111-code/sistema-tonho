@@ -157,6 +157,16 @@ function finishLoadingState(container) {
   container.setAttribute('aria-busy', 'false');
 }
 
+function appendEmptyStateAction(container, { label, icon, onClick }) {
+  const emptyState = container.querySelector('.chat-empty-state');
+  if (!emptyState) return;
+  emptyState.appendChild(SafeDOM.el('button', {
+    className: 'btn btn-primary empty-state-action',
+    on: { click: onClick }
+  }, [SafeDOM.icon(icon), ` ${label}`]));
+  lucide.createIcons();
+}
+
 // Modal management
 function openModal(modalId) {
   const modal = document.getElementById(modalId);

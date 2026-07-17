@@ -70,6 +70,7 @@ async function loadPersonalStudents() {
           <p>Crie o primeiro acesso para seus alunos usando a aba "Cadastrar Aluno" na barra lateral.</p>
         </div>
       `;
+      appendEmptyStateAction(grid, { label: 'Cadastrar primeiro aluno', icon: 'user-plus', onClick: () => switchPersonalTab('create') });
       lucide.createIcons();
       filterPersonalStudents(document.getElementById('students-search').value);
       return;
@@ -267,6 +268,7 @@ function renderPersonalStudentWorkouts(workouts) {
         <p>Use o botão "Criar Ficha de Treino" para adicionar a primeira ficha para o aluno.</p>
       </div>
     `;
+    appendEmptyStateAction(listContainer, { label: 'Criar primeira ficha', icon: 'plus-circle', onClick: () => openCreateWorkoutModal() });
     lucide.createIcons();
     return;
   }
@@ -887,6 +889,7 @@ async function loadPersonalExercises() {
           <p>Cadastre seu primeiro exercício personalizado clicando no botão "Novo Exercício".</p>
         </div>
       `;
+      appendEmptyStateAction(container, { label: 'Criar primeiro exercício', icon: 'plus-circle', onClick: () => openCreateCatalogExerciseModal() });
       lucide.createIcons();
       filterPersonalExercises(document.getElementById('exercises-search').value);
       return;

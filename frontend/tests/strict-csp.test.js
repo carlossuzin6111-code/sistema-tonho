@@ -398,6 +398,18 @@ test('card loading states use accessible reduced-motion skeletons', () => {
   assert.match(css, /prefers-reduced-motion: reduce[^}]*skeleton-card::after/s);
 });
 
+test('primary empty states offer direct contextual actions', () => {
+  const app = read(path.join('js', 'app.js'));
+  const personal = read(path.join('js', 'personal.js'));
+  const student = read(path.join('js', 'student.js'));
+  assert.match(app, /function appendEmptyStateAction/);
+  assert.match(app, /on: \{ click: onClick \}/);
+  assert.match(personal, /Cadastrar primeiro aluno/);
+  assert.match(personal, /Criar primeira ficha/);
+  assert.match(personal, /Criar primeiro exercício/);
+  assert.match(student, /Conversar com meu personal/);
+});
+
 test('student and exercise searches are accessible, local and accent-insensitive', () => {
   for (const page of ['desktop.html', 'mobile.html']) {
     const html = read(page);
