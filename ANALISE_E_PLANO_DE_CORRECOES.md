@@ -422,9 +422,10 @@ Resultados locais:
 - [x] Informar envio, sucesso e falha de mensagens sem perder o texto digitado.
 - [x] Adicionar cobertura automatizada e atualizar a versão dos assets.
 - [x] Publicar e validar na base pública de testes.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `feat/chat-connection-feedback`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/36
 
 Resultados locais:
 
