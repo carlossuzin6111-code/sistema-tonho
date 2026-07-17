@@ -534,9 +534,10 @@ Resultados locais:
 - [x] Preservar a rota ao selecionar automaticamente desktop ou mobile.
 - [x] Testar e atualizar a versão dos assets.
 - [x] Publicar e validar na base pública de testes.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `feat/dashboard-tab-history`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/40
 
 Resultados locais:
 
