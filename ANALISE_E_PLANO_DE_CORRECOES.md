@@ -655,6 +655,26 @@ Resultados:
 - Backend: 87 de 87 testes aprovados em 11 suítes.
 - Healthcheck público respondeu `200`; HTML e JavaScript públicos confirmaram grupos, sincronização e navegação por teclado.
 
+### 2026-07-17 — Bloco 22 concluído e publicado
+
+- [x] Associar programaticamente todos os controles visíveis aos seus rótulos.
+- [x] Cobrir chats desktop/mobile e formulários dos modais mobile.
+- [x] Adicionar teste preventivo para controles sem nome acessível.
+- [x] Testar, publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `accessibility/form-control-labels`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/49
+
+Resultados:
+
+- A auditoria encontrou e corrigiu 19 controles sem associação programática: quatro chats e quinze campos de modais mobile.
+- Chats receberam nomes contextuais para aluno e personal; os demais controles usam `label[for]` ligado ao `id`.
+- Teste automatizado percorre todos os `input`, `select` e `textarea` visíveis de desktop e mobile e exige `id` e nome acessível.
+- Frontend e infraestrutura: 30 de 30 testes aprovados.
+- Backend: 87 de 87 testes aprovados em 11 suítes.
+- Healthcheck público respondeu `200`; HTML público confirmou as associações nos chats e formulários mobile.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.

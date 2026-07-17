@@ -42,6 +42,21 @@ test('icon-only buttons expose an explicit accessible name', () => {
   assert.match(personal, /'aria-label': `Excluir \$\{ex\.name\} da biblioteca`/);
 });
 
+test('visible form controls expose an associated label or accessible name', () => {
+  for (const filename of ['desktop.html', 'mobile.html']) {
+    const html = read(filename);
+    for (const match of html.matchAll(/<(input|select|textarea)\b([^>]*)>/gi)) {
+      const attributes = match[2];
+      if (/type="hidden"/i.test(attributes)) continue;
+      const id = attributes.match(/\bid="([^"]+)"/i)?.[1];
+      assert.ok(id, `${filename} has a visible control without id`);
+      const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const hasLabel = new RegExp(`<label[^>]*for=["']${escapedId}["']`, 'i').test(html);
+      assert.ok(hasLabel || /aria-label="[^"]+"/i.test(attributes), `${filename}#${id} has no accessible name`);
+    }
+  }
+});
+
 test('every declarative action is present in the event allowlist', () => {
   const eventsSource = read(path.join('js', 'events.js'));
   const actions = new Set();

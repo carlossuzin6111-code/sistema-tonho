@@ -179,7 +179,7 @@
                 </div>
                 <div class="chat-messages personal-chat-messages" id="personal-chat-messages"></div>
                 <form id="personal-chat-form" class="chat-input-form">
-                  <input type="text" id="personal-chat-input" placeholder="Mensagem...">
+                  <input type="text" id="personal-chat-input" placeholder="Mensagem..." aria-label="Mensagem para o aluno">
                   <span class="chat-send-status" data-chat-send-status role="status" aria-live="polite"></span>
                   <button type="submit" class="btn-chat-send" aria-label="Enviar mensagem"><i data-lucide="send"></i></button>
                 </form>
@@ -256,7 +256,7 @@
             </div>
             <div class="chat-messages flex-fill" id="student-chat-messages"></div>
             <form id="student-chat-form" class="chat-input-form">
-              <input type="text" id="student-chat-input" placeholder="Mensagem...">
+              <input type="text" id="student-chat-input" placeholder="Mensagem..." aria-label="Mensagem para o personal">
               <span class="chat-send-status" data-chat-send-status role="status" aria-live="polite"></span>
               <button type="submit" class="btn-chat-send" aria-label="Enviar mensagem"><i data-lucide="send"></i></button>
             </form>
@@ -373,8 +373,8 @@
       <div class="mobile-modal-inner">
         <h2 class="modal-title">Novo Treino</h2>
         <form id="create-workout-form">
-          <div class="input-group"><label>Nome *</label><input type="text" id="workout-name" required></div>
-          <div class="input-group"><label>Foco</label><input type="text" id="workout-description"></div>
+          <div class="input-group"><label for="workout-name">Nome *</label><input type="text" id="workout-name" required></div>
+          <div class="input-group"><label for="workout-description">Foco</label><input type="text" id="workout-description"></div>
           <button type="submit" class="btn btn-primary btn-full">Criar</button>
         </form>
       </div>
@@ -387,17 +387,17 @@
       <div class="mobile-modal-inner">
         <h2 class="modal-title">Exercício</h2>
         <form id="add-exercise-form">
-          <div class="input-group"><label>Biblioteca</label><select id="ex-select" required></select></div>
-          <div class="input-group hidden" id="ex-custom-name-group"><label>Nome Customizado</label><input type="text" id="ex-name"></div>
+          <div class="input-group"><label for="ex-select">Biblioteca</label><select id="ex-select" required></select></div>
+          <div class="input-group hidden" id="ex-custom-name-group"><label for="ex-name">Nome Customizado</label><input type="text" id="ex-name"></div>
           <div class="grid grid-2">
-            <div class="input-group"><label>Séries *</label><input type="number" id="ex-sets" required value="4"></div>
-            <div class="input-group"><label>Reps *</label><input type="text" id="ex-reps" required></div>
+            <div class="input-group"><label for="ex-sets">Séries *</label><input type="number" id="ex-sets" required value="4"></div>
+            <div class="input-group"><label for="ex-reps">Reps *</label><input type="text" id="ex-reps" required></div>
           </div>
           <div class="grid grid-2">
-            <div class="input-group"><label>Carga</label><input type="text" id="ex-weight"></div>
-            <div class="input-group"><label>Descanso</label><input type="text" id="ex-rest"></div>
+            <div class="input-group"><label for="ex-weight">Carga</label><input type="text" id="ex-weight"></div>
+            <div class="input-group"><label for="ex-rest">Descanso</label><input type="text" id="ex-rest"></div>
           </div>
-          <div class="input-group"><label>Instrução</label><input type="text" id="ex-notes"></div>
+          <div class="input-group"><label for="ex-notes">Instrução</label><input type="text" id="ex-notes"></div>
           <button type="submit" class="btn btn-primary btn-full">Adicionar</button>
         </form>
       </div>
@@ -411,10 +411,10 @@
         <h2 class="modal-title">Lançar Medidas</h2>
         <form id="add-measurement-form">
           <div class="grid grid-2">
-            <div class="input-group"><label>Peso (kg) *</label><input type="number" id="meas-weight" required step="0.1"></div>
-            <div class="input-group"><label>Tórax</label><input type="number" id="meas-chest" step="0.1"></div>
-            <div class="input-group"><label>Cintura</label><input type="number" id="meas-waist" step="0.1"></div>
-            <div class="input-group"><label>Quadril</label><input type="number" id="meas-hips" step="0.1"></div>
+            <div class="input-group"><label for="meas-weight">Peso (kg) *</label><input type="number" id="meas-weight" required step="0.1"></div>
+            <div class="input-group"><label for="meas-chest">Tórax</label><input type="number" id="meas-chest" step="0.1"></div>
+            <div class="input-group"><label for="meas-waist">Cintura</label><input type="number" id="meas-waist" step="0.1"></div>
+            <div class="input-group"><label for="meas-hips">Quadril</label><input type="number" id="meas-hips" step="0.1"></div>
           </div>
           <button type="submit" class="btn btn-primary btn-full">Gravar</button>
         </form>
@@ -441,10 +441,10 @@
       <div class="mobile-modal-inner">
         <h2 class="modal-title">Criar Exercício</h2>
         <form id="create-catalog-exercise-form">
-          <div class="input-group"><label>Nome *</label><input type="text" id="cat-ex-name" required></div>
+          <div class="input-group"><label for="cat-ex-name">Nome *</label><input type="text" id="cat-ex-name" required></div>
           <div class="input-group"><label for="cat-ex-gif-url">Link HTTPS da imagem</label><input type="url" id="cat-ex-gif-url" placeholder="https://exemplo.com/exercicio.gif"></div>
           <div class="input-group"><label for="cat-ex-gif-file">Ou enviar imagem (máx. 380 KB)</label><input type="file" id="cat-ex-gif-file" accept="image/gif,image/png,image/jpeg,image/webp"></div>
-          <div class="input-group"><label>Orientações</label><textarea id="cat-ex-description" rows="3"></textarea></div>
+          <div class="input-group"><label for="cat-ex-description">Orientações</label><textarea id="cat-ex-description" rows="3"></textarea></div>
           <input type="hidden" id="cat-ex-base64" />
           <button type="submit" class="btn btn-primary btn-full">Salvar</button>
         </form>
