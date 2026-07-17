@@ -8,9 +8,9 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Base Styles (Components, Colors, Lovable) -->
-  <link rel="stylesheet" href="css/style.css?v=20260717.9">
+  <link rel="stylesheet" href="css/style.css?v=20260717.10">
   <!-- Mobile Architecture Overrides (PWA Lock) -->
-  <link rel="stylesheet" href="css/mobile.css?v=20260717.9">
+  <link rel="stylesheet" href="css/mobile.css?v=20260717.10">
 </head>
 <body>
 
@@ -86,15 +86,15 @@
     <!-- HEADER MOBILE -->
     <header class="mobile-header">
       <div class="logo-container mobile-header-brand">
-        <button class="btn-icon mobile-menu-button" data-action="toggle-drawer"><i data-lucide="menu"></i></button>
+        <button class="btn-icon mobile-menu-button" data-action="toggle-drawer" aria-label="Abrir menu"><i data-lucide="menu"></i></button>
         <div class="mobile-brand-name">
           <i data-lucide="dumbbell" class="logo-icon text-gradient mobile-brand-icon"></i>
           <span class="logo-text text-gradient mobile-brand-text">FitLife</span>
         </div>
       </div>
       <div class="mobile-header-actions">
-        <button class="btn-icon" data-action="toggle-theme"><i id="theme-toggle-icon" data-lucide="sun"></i></button>
-        <button class="btn-icon btn-logout" data-action="logout"><i data-lucide="log-out"></i></button>
+        <button class="btn-icon" data-action="toggle-theme" aria-label="Alterar tema"><i id="theme-toggle-icon" data-lucide="sun"></i></button>
+        <button class="btn-icon btn-logout" data-action="logout" aria-label="Sair da conta"><i data-lucide="log-out"></i></button>
       </div>
       <!-- Hidden data used by app.js -->
       <span id="user-role-badge" class="hidden"></span>
@@ -173,7 +173,7 @@
               <div id="personal-chat-empty">Selecione um aluno acima.</div>
               <div id="personal-chat-active" class="hidden flex-column-fill">
                 <div class="chat-active-header">
-                  <button class="btn-icon" data-action="close-chat-thread"><i data-lucide="arrow-left"></i></button>
+                  <button class="btn-icon" data-action="close-chat-thread" aria-label="Voltar para conversas"><i data-lucide="arrow-left"></i></button>
                   <div class="avatar" id="chat-active-avatar">A</div>
                   <div><h3 id="chat-active-name">Nome</h3><span class="chat-connection-status connecting" data-chat-status role="status" aria-live="polite">Conectando...</span></div>
                 </div>
@@ -191,7 +191,7 @@
         <div id="tab-p-exercises" class="tab-pane">
           <div class="mobile-section-actions">
             <h1 class="section-title mobile-section-title">Exercícios</h1>
-            <button class="btn btn-primary btn-sm" data-action="open-catalog-exercise"><i data-lucide="plus"></i></button>
+            <button class="btn btn-primary btn-sm" data-action="open-catalog-exercise" aria-label="Criar exercício no catálogo"><i data-lucide="plus"></i></button>
           </div>
           <div class="list-search-toolbar">
             <div class="list-search-field"><i data-lucide="search"></i><input type="search" id="exercises-search" placeholder="Buscar exercício" aria-label="Buscar exercício por nome ou descrição" autocomplete="off"></div>
@@ -283,7 +283,7 @@
   <div id="modal-student-detail" class="modal-overlay">
     <div class="modal-content glass student-detail-modal">
       <div class="mobile-modal-close-row">
-        <button class="modal-close mobile-modal-close" data-action="close-modal" data-modal="modal-student-detail"><i data-lucide="x"></i></button>
+        <button class="modal-close mobile-modal-close" data-action="close-modal" data-modal="modal-student-detail" aria-label="Fechar detalhes do aluno"><i data-lucide="x"></i></button>
       </div>
       <div class="modal-header-profile mobile-modal-profile">
         <div class="avatar-large" id="modal-sd-avatar">A</div>
@@ -369,7 +369,7 @@
 
   <div id="modal-create-workout" class="modal-overlay">
     <div class="modal-content glass modal-small">
-      <button class="modal-close" data-action="close-modal" data-modal="modal-create-workout"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-create-workout" aria-label="Fechar criação de treino"><i data-lucide="x"></i></button>
       <div class="mobile-modal-inner">
         <h2 class="modal-title">Novo Treino</h2>
         <form id="create-workout-form">
@@ -383,7 +383,7 @@
 
   <div id="modal-add-exercise" class="modal-overlay">
     <div class="modal-content glass modal-small">
-      <button class="modal-close" data-action="close-modal" data-modal="modal-add-exercise"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-add-exercise" aria-label="Fechar adição de exercício"><i data-lucide="x"></i></button>
       <div class="mobile-modal-inner">
         <h2 class="modal-title">Exercício</h2>
         <form id="add-exercise-form">
@@ -406,7 +406,7 @@
 
   <div id="modal-add-measurement" class="modal-overlay">
     <div class="modal-content glass modal-medium">
-      <button class="modal-close" data-action="close-modal" data-modal="modal-add-measurement"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-add-measurement" aria-label="Fechar lançamento de medidas"><i data-lucide="x"></i></button>
       <div class="mobile-modal-inner">
         <h2 class="modal-title">Lançar Medidas</h2>
         <form id="add-measurement-form">
@@ -424,7 +424,7 @@
 
   <div id="modal-exercise-execution" class="modal-overlay">
     <div class="modal-content glass modal-medium">
-      <button class="modal-close" data-action="close-modal" data-modal="modal-exercise-execution"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-exercise-execution" aria-label="Fechar execução do exercício"><i data-lucide="x"></i></button>
       <div class="mobile-modal-inner">
         <h2 class="modal-title" id="execution-modal-title">Execução</h2>
         <div class="execution-gif-container mt-16">
@@ -437,7 +437,7 @@
 
   <div id="modal-create-catalog-exercise" class="modal-overlay">
     <div class="modal-content glass modal-medium">
-      <button class="modal-close" data-action="close-modal" data-modal="modal-create-catalog-exercise"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-create-catalog-exercise" aria-label="Fechar criação de exercício"><i data-lucide="x"></i></button>
       <div class="mobile-modal-inner">
         <h2 class="modal-title">Criar Exercício</h2>
         <form id="create-catalog-exercise-form">
@@ -457,7 +457,7 @@
     <aside class="mobile-drawer-panel" data-action="stop-propagation">
       <div class="drawer-header">
         <h2 class="logo-text text-gradient drawer-title">Menu</h2>
-        <button class="btn-icon" data-action="toggle-drawer"><i data-lucide="x"></i></button>
+        <button class="btn-icon" data-action="toggle-drawer" aria-label="Fechar menu"><i data-lucide="x"></i></button>
       </div>
       
       <!-- Navegação Personal -->
@@ -478,11 +478,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260717.9"></script>
-  <script src="js/safe-dom.js?v=20260717.9"></script>
-  <script src="js/app.js?v=20260717.9"></script>
-  <script src="js/personal.js?v=20260717.9"></script>
-  <script src="js/student.js?v=20260717.9"></script>
-  <script src="js/events.js?v=20260717.9"></script>
+  <script src="js/api.js?v=20260717.10"></script>
+  <script src="js/safe-dom.js?v=20260717.10"></script>
+  <script src="js/app.js?v=20260717.10"></script>
+  <script src="js/personal.js?v=20260717.10"></script>
+  <script src="js/student.js?v=20260717.10"></script>
+  <script src="js/events.js?v=20260717.10"></script>
 </body>
 </html>

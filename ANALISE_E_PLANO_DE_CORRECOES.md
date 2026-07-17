@@ -633,6 +633,31 @@ Resultados locais:
 - HTML público confirmou o modal acessível e os assets `20260717.6`; JavaScript público confirmou o novo manipulador de envio e a ausência do fluxo antigo.
 - CI do pull request aprovado nas verificações de frontend/infraestrutura e backend.
 
+### 2026-07-17 — Bloco 20 concluído e publicado
+
+- [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.
+- [x] Cobrir cabeçalhos, chat, catálogo, drawer e fechamentos de modal.
+- [x] Corrigir componentes de botão criados dinamicamente.
+- [x] Adicionar teste preventivo para desktop, mobile e JavaScript.
+- [x] Testar localmente e atualizar a versão dos assets.
+- [x] Publicar e validar na base pública de testes.
+- [ ] Abrir pull request.
+
+Branch de trabalho: `accessibility/icon-button-labels`.
+
+Resultados locais:
+
+- Menu, tema, logout, retorno do chat, criação de exercício e fechamento do drawer receberam nomes explícitos no mobile.
+- Tema, logout, retorno do chat e todos os fechamentos de modal receberam nomes explícitos no desktop.
+- Fechamentos de modal possuem descrições contextuais em vez do nome genérico aplicado após a inicialização do JavaScript.
+- Botões dinâmicos de remover exercício, visualizar execução e excluir do catálogo incluem o nome do exercício no `aria-label`.
+- O teste novo encontrou e impediu a permanência de um botão de logout desktop que dependia apenas de `title`.
+- Versão comum dos assets atualizada para `20260717.10`.
+- Frontend e infraestrutura: 28 de 28 testes aprovados.
+- Backend: 87 de 87 testes aprovados em 11 suítes.
+- API, Nginx, workers e tunnel permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
+- HTML público desktop e mobile confirmou os nomes acessíveis e assets `20260717.10`; JavaScript público confirmou os três rótulos dinâmicos contextuais.
+
 ### 2026-07-17 — Bloco 17 concluído e publicado
 
 - [x] Substituir confirmações nativas de exclusão por modal acessível e contextual.
