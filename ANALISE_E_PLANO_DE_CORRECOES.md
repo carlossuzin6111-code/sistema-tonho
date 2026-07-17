@@ -493,6 +493,35 @@ Resultados locais:
 - Integração confirma isolamento entre personal e aluno e recusa acesso sem sessão.
 - Frontend e infraestrutura: 21 de 21 testes aprovados.
 - Backend: 84 de 84 testes aprovados em 10 suítes.
+
+### 2026-07-17 — Bloco 15 concluído e publicado
+
+- [x] Executar backup SQLite validado automaticamente em intervalo configurável.
+- [x] Manter retenção limitada e remover somente snapshots automáticos reconhecidos.
+- [x] Executar o worker como usuário `node` no mesmo volume persistente.
+- [x] Adicionar testes.
+- [x] Publicar e confirmar a criação do primeiro snapshot.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/automated-database-backups`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/42
+
+Resultados locais:
+
+- Novo `backup-worker` aguarda a API saudável, compartilha somente o volume do banco e executa como usuário `node` da imagem endurecida.
+- Primeiro ciclo ocorre na inicialização; intervalo padrão é 24 horas e pode ser configurado por `BACKUP_INTERVAL_MS`.
+- Retenção padrão mantém sete snapshots e pode ser configurada por `BACKUP_RETENTION`.
+- Arquivos automáticos usam nome UTC ordenável; limpeza ignora backups manuais e qualquer arquivo fora do padrão estrito.
+- Cada ciclo reutiliza a rotina que verifica tamanho, tabelas e `PRAGMA integrity_check` antes de aplicar retenção.
+- Encerramento aguarda o ciclo ativo para não interromper um snapshot em andamento.
+- Compose validado com sucesso.
+- Frontend e infraestrutura: 25 de 25 testes aprovados.
+- Backend: 87 de 87 testes aprovados em 11 suítes.
+- Worker publicado como `uid=1000(node)` e iniciado após o healthcheck da API.
+- Primeiro snapshot automático criado em `/app/data/backups/database-20260717T181443994Z.sqlite`.
+- Snapshot público possui 114688 bytes, integridade `ok`, UID/GID 1000 e foi contabilizado na retenção.
+- Worker confirmou intervalo de 86400000 ms e permaneceu ativo aguardando o próximo ciclo.
+- API, Nginx, worker de tradução, worker de backup e tunnel permaneceram ativos; healthcheck público respondeu `200`.
 - Backup pré-migration criado em `/app/data/database.pre-audit-20260717.sqlite`: 102400 bytes, 11 tabelas e integridade `ok`.
 - Migration `202607170001_create_audit_logs.js` aplicada na base pública.
 - Tabela e índices `audit_logs_actor_created_idx` e `audit_logs_action_created_idx` confirmados; tabela iniciou vazia como esperado.
