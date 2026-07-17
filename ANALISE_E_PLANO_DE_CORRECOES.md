@@ -697,6 +697,29 @@ Resultados:
 - Backend: 88 de 88 testes aprovados em 11 suítes.
 - API reconstruída e saudável; Nginx recriado e resposta pública `200` confirmou a allowlist nas três camadas.
 
+### 2026-07-17 — Bloco 24 concluído e publicado
+
+- [x] Adicionar ordenação local de alunos por nome e mensagens não lidas.
+- [x] Adicionar ordenação local de exercícios por nome.
+- [x] Combinar ordenação e busca sem novas chamadas à API.
+- [x] Garantir controles acessíveis em desktop e mobile.
+- [x] Testar, publicar e validar na base pública de testes.
+- [ ] Abrir pull request.
+
+Branch de trabalho: `feat/catalog-list-sorting`.
+
+Resultados:
+
+- Alunos podem ser ordenados por nome A–Z, Z–A ou quantidade de mensagens não lidas.
+- Exercícios podem ser ordenados por nome A–Z ou Z–A.
+- Ordenação reorganiza os cards já renderizados, preserva a busca atual e não chama a API novamente.
+- Comparação usa normalização sem acentos e `localeCompare` em português.
+- Controles possuem nome acessível e a barra passa a quebrar linha em telas estreitas.
+- Assets atualizados para `20260717.14`.
+- Frontend e infraestrutura: 31 de 31 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- Healthcheck público respondeu `200`; HTML e JavaScript públicos confirmaram controles e ordenação local.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.
