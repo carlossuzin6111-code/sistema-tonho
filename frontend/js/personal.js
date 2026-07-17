@@ -693,20 +693,22 @@ async function openPersonalChatThread(studentId, studentName) {
 // Submit messages to student
 async function sendPersonalChatMessage(event) {
   event.preventDefault();
+  const form = event.target;
   const input = document.getElementById('personal-chat-input');
   const message = input.value.trim();
 
   if (message === '' || !activeChatStudentId) return;
 
+  setChatSendState(form, 'sending', 'Enviando...');
   try {
     await API.post('/chat', {
       receiverId: activeChatStudentId,
       message
     });
     input.value = '';
-    // EventSource (SSE) will trigger addition, but we fetch to sync instantly if desired.
-    // However, to keep it slick, we empty the input and let SSE handle the rendering or just append instantly.
+    setChatSendState(form, 'sent', 'Mensagem enviada.');
   } catch (err) {
+    setChatSendState(form, 'failed', 'Falha no envio. Tente novamente.');
     showToast(err.message, 'error');
   }
 }

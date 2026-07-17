@@ -98,12 +98,16 @@ const API = {
   // Real-Time Chat Server-Sent Events subscription
   chatStream: null,
   
-  connectChatStream(onMessageReceived, onError) {
+  connectChatStream(onMessageReceived, { onOpen, onError } = {}) {
     // If there is an active stream, close it
     this.disconnectChatStream();
 
     // EventSource authenticates with the same-origin HttpOnly session cookie.
     this.chatStream = new EventSource(`${API_BASE_URL}/chat/stream`, { withCredentials: true });
+
+    this.chatStream.onopen = () => {
+      if (onOpen) onOpen();
+    };
 
     this.chatStream.onmessage = (event) => {
       try {
@@ -116,7 +120,7 @@ const API = {
 
     this.chatStream.onerror = (err) => {
       console.error('SSE Chat Stream encountered an error:', err);
-      if (onError) onError(err);
+      if (onError) onError(err, this.chatStream?.readyState);
     };
 
     return this.chatStream;

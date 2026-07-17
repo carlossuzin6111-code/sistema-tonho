@@ -12,7 +12,7 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260717.2">
+  <link rel="stylesheet" href="css/style.css?v=20260717.3">
 </head>
 <body>
 
@@ -254,7 +254,7 @@
                   <div class="avatar" id="chat-active-avatar">A</div>
                   <div>
                     <h3 id="chat-active-name">Nome do Aluno</h3>
-                    <span class="status-online"><span class="dot"></span> Ativo no chat</span>
+                    <span class="chat-connection-status connecting" data-chat-status role="status" aria-live="polite">Conectando...</span>
                   </div>
                 </div>
                 <!-- Messages List -->
@@ -264,7 +264,8 @@
                 <!-- Input Area -->
                 <form id="personal-chat-form" class="chat-input-form">
                   <input type="text" id="personal-chat-input" placeholder="Digite uma mensagem para o aluno..." autocomplete="off">
-                  <button type="submit" class="btn-chat-send btn-glow">
+                  <span class="chat-send-status" data-chat-send-status role="status" aria-live="polite"></span>
+                  <button type="submit" class="btn-chat-send btn-glow" aria-label="Enviar mensagem">
                     <i data-lucide="send"></i>
                   </button>
                 </form>
@@ -386,7 +387,7 @@
                 <div class="avatar" id="student-chat-trainer-avatar">P</div>
                 <div>
                   <h3 id="student-chat-trainer-name">Personal Trainer</h3>
-                  <span class="status-online"><span class="dot"></span> Online</span>
+                  <span class="chat-connection-status connecting" data-chat-status role="status" aria-live="polite">Conectando...</span>
                 </div>
               </div>
               <div class="chat-messages" id="student-chat-messages">
@@ -394,7 +395,8 @@
               </div>
               <form id="student-chat-form" class="chat-input-form">
                 <input type="text" id="student-chat-input" placeholder="Tire dúvidas, mande feedbacks de treinos..." autocomplete="off">
-                <button type="submit" class="btn-chat-send btn-glow">
+                <span class="chat-send-status" data-chat-send-status role="status" aria-live="polite"></span>
+                <button type="submit" class="btn-chat-send btn-glow" aria-label="Enviar mensagem">
                   <i data-lucide="send"></i>
                 </button>
               </form>
@@ -665,11 +667,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260717.2"></script>
-  <script src="js/safe-dom.js?v=20260717.2"></script>
-  <script src="js/app.js?v=20260717.2"></script>
-  <script src="js/personal.js?v=20260717.2"></script>
-  <script src="js/student.js?v=20260717.2"></script>
-  <script src="js/events.js?v=20260717.2"></script>
+  <script src="js/api.js?v=20260717.3"></script>
+  <script src="js/safe-dom.js?v=20260717.3"></script>
+  <script src="js/app.js?v=20260717.3"></script>
+  <script src="js/personal.js?v=20260717.3"></script>
+  <script src="js/student.js?v=20260717.3"></script>
+  <script src="js/events.js?v=20260717.3"></script>
 </body>
 </html>

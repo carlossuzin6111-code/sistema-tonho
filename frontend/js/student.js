@@ -243,15 +243,19 @@ async function loadStudentChat() {
 // Send message to coach
 async function sendStudentChatMessage(event) {
   event.preventDefault();
+  const form = event.target;
   const input = document.getElementById('student-chat-input');
   const message = input.value.trim();
 
   if (message === '') return;
 
+  setChatSendState(form, 'sending', 'Enviando...');
   try {
     await API.post('/chat', { message });
     input.value = '';
+    setChatSendState(form, 'sent', 'Mensagem enviada.');
   } catch (err) {
+    setChatSendState(form, 'failed', 'Falha no envio. Tente novamente.');
     showToast(err.message, 'error');
   }
 }

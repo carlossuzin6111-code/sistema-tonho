@@ -414,3 +414,29 @@ Resultados locais:
 - CSP pública confirmou `script-src 'self'`, sem `unpkg.com`.
 - Smoke test público confirmou que uma requisição com 550000 caracteres atravessa o proxy e chega à autenticação (`401` sem sessão), enquanto uma carga acima de 600k é recusada pelo Nginx (`413`).
 - GitHub Actions do PR #35: checks `Backend` e `Frontend and infrastructure` concluídos com sucesso.
+
+### 2026-07-17 — Bloco 9 concluído e publicado
+
+- [x] Exibir o estado real da conexão do chat em desktop e mobile.
+- [x] Remover a reconexão manual concorrente com a reconexão nativa do `EventSource`.
+- [x] Informar envio, sucesso e falha de mensagens sem perder o texto digitado.
+- [x] Adicionar cobertura automatizada e atualizar a versão dos assets.
+- [x] Publicar e validar na base pública de testes.
+- [ ] Abrir pull request.
+
+Branch de trabalho: `feat/chat-connection-feedback`.
+
+Resultados locais:
+
+- Cabeçalhos do chat mostram `Conectando`, `Conectado`, `Reconectando`, `Sem conexão` ou `Desconectado`, com cor e anúncio acessível.
+- Eventos `open`, `error`, `online` e `offline` atualizam o estado sem criar um segundo ciclo de reconexão.
+- A reconexão passa a ser responsabilidade exclusiva do `EventSource`, evitando streams e mensagens duplicadas após instabilidade.
+- Envio desabilita temporariamente o botão e informa `Enviando`, `Mensagem enviada` ou `Falha no envio`.
+- O campo só é limpo após resposta bem-sucedida; em falha, o texto permanece disponível para nova tentativa.
+- Botões de envio por ícone receberam nome acessível.
+- Versão comum dos assets atualizada para `20260717.3`.
+- Frontend e infraestrutura: 20 de 20 testes aprovados.
+- Backend: 81 de 81 testes aprovados em 9 suítes.
+- API e Nginx permaneceram saudáveis; healthcheck público respondeu `200`.
+- HTML público confirmou os quatro indicadores acessíveis e a versão `20260717.3`.
+- JavaScript público confirmou o mapeamento de reconexão e o controle de estado do envio.

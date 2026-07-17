@@ -235,6 +235,30 @@ test('login submission blocks duplicates and restores the form after an API erro
   assert.equal(classes.has('hidden'), false);
 });
 
+test('chat exposes connection and delivery feedback without parallel retry timers', () => {
+  const api = read(path.join('js', 'api.js'));
+  const app = read(path.join('js', 'app.js'));
+  const personal = read(path.join('js', 'personal.js'));
+  const student = read(path.join('js', 'student.js'));
+
+  assert.match(api, /chatStream\.onopen/);
+  assert.match(app, /connected: 'Conectado'/);
+  assert.match(app, /reconnecting: 'Reconectando\.\.\.'/);
+  const connectionOrchestrator = app.match(/function connectRealTimeUpdates[\s\S]*?\n}\n\nif \(typeof window/)?.[0];
+  assert.ok(connectionOrchestrator);
+  assert.doesNotMatch(connectionOrchestrator, /setTimeout/);
+  assert.match(personal, /setChatSendState\(form, 'sending'/);
+  assert.match(personal, /setChatSendState\(form, 'failed'/);
+  assert.match(student, /setChatSendState\(form, 'sending'/);
+  assert.match(student, /setChatSendState\(form, 'failed'/);
+
+  for (const page of ['desktop.html', 'mobile.html']) {
+    const html = read(page);
+    assert.equal((html.match(/data-chat-status/g) || []).length, 2);
+    assert.equal((html.match(/data-chat-send-status/g) || []).length, 2);
+  }
+});
+
 test('event delegation invokes only the allowlisted action and form handlers', () => {
   const listeners = {};
   const calls = [];
