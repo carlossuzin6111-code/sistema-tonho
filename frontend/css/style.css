@@ -1751,6 +1751,52 @@ body.dark-theme .metric-item {
 /* Spacers & Margins */
 .mt-4 { margin-top: 1.25rem; }
 
+/* CSP-safe layout helpers and component variants */
+.theme-toggle-button { margin-right: 5px; }
+.chat-back-button { margin-right: 10px; }
+.btn-sensitive {
+  margin-top: 10px;
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--danger);
+}
+.subpane-actions-spaced { margin-bottom: 20px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-20 { margin-bottom: 20px; }
+.mt-16 { margin-top: 16px; }
+.flex-fill { flex: 1; }
+.flex-column-fill { display: flex; flex: 1; flex-direction: column; }
+.inline-actions, .catalog-actions { display: flex; gap: 8px; }
+.catalog-actions { gap: 6px; }
+.grid-span-full { grid-column: 1 / -1; }
+.compact-empty-state { padding: 10px; }
+.empty-state-medium, .chat-empty-message { padding: 20px; }
+.empty-state-large { padding: 50px; }
+.empty-state-catalog { padding: 40px; }
+.chat-empty-message { align-self: center; }
+.icon-40 { width: 40px; height: 40px; }
+.icon-50 { width: 50px; height: 50px; }
+.text-muted { color: var(--text-muted); }
+.text-danger { color: var(--danger); }
+.execution-inline-action { margin-left: 8px; }
+.thread-unread-badge { margin-left: 10px; }
+.metric-weight-value { color: var(--accent-secondary); font-weight: 600; }
+.exercise-thumb-placeholder { display: flex; align-items: center; justify-content: center; }
+.info-alert-error {
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.05);
+  border-color: var(--danger);
+}
+.workout-checkbox { display: inline-block; margin: 0 auto; padding-left: 18px; }
+.workout-checkmark { left: 0; }
+.exercise-name-strong, .workout-cell-strong { font-weight: 600; }
+.workout-check-cell { width: 50px; text-align: center; vertical-align: middle; }
+.workout-cell { vertical-align: middle; }
+.workout-cell-muted { color: var(--text-muted); }
+.workout-status-heading { width: 60px; text-align: center; }
+.workout-execution-heading { width: 150px; }
+.table-spinner { margin: 10px auto; }
+
 /* Responsive adjustments */
 @media (max-width: 1024px) {
   .grid-3 { grid-template-columns: repeat(2, 1fr); }

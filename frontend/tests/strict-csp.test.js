@@ -66,7 +66,7 @@ test('local CSS and JavaScript assets use one cache-busting release version', ()
   assert.equal(versions.size, 1, 'local assets must share the same release version');
 });
 
-test('Nginx script policy rejects inline JavaScript', () => {
+test('Nginx policy rejects inline JavaScript and CSS', () => {
   const nginx = fs.readFileSync(path.join(repositoryRoot, 'nginx.conf'), 'utf8');
   const policy = nginx.match(/Content-Security-Policy "([^"]+)"/)?.[1];
   assert.ok(policy, 'Content-Security-Policy header is missing');
@@ -76,6 +76,19 @@ test('Nginx script policy rejects inline JavaScript', () => {
   assert.match(scriptSource, /'self'/);
   assert.doesNotMatch(scriptSource, /https?:/);
   assert.doesNotMatch(scriptSource, /'unsafe-inline'/);
+
+  const styleSource = policy.match(/style-src ([^;]+)/)?.[1];
+  assert.ok(styleSource, 'style-src directive is missing');
+  assert.match(styleSource, /'self'/);
+  assert.doesNotMatch(styleSource, /'unsafe-inline'/);
+
+  for (const filename of ['desktop.html', 'mobile.html']) {
+    assert.doesNotMatch(read(filename), /\sstyle=/i, `${filename} has an inline style`);
+  }
+  for (const filename of ['app.js', 'events.js', 'personal.js', 'student.js', 'safe-dom.js']) {
+    const source = read(path.join('js', filename));
+    assert.doesNotMatch(source, /\.style\.|style\s*:\s*\{/i, `${filename} creates an inline style`);
+  }
 });
 
 test('Nginx request limit matches the bounded embedded image payload', () => {

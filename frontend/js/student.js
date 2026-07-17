@@ -19,8 +19,8 @@ async function loadStudentWorkouts() {
     
     if (studentWorkouts.length === 0) {
       container.innerHTML = `
-        <div class="chat-empty-state glass" style="padding: 50px;">
-          <i data-lucide="dumbbell" class="chat-empty-icon" style="width: 50px; height: 50px; color: var(--text-muted);"></i>
+        <div class="chat-empty-state glass empty-state-large">
+          <i data-lucide="dumbbell" class="chat-empty-icon icon-50 text-muted"></i>
           <h3>Nenhum treino prescrito</h3>
           <p>Seu Personal Trainer ainda não criou sua ficha de treinos. Fale com ele via chat!</p>
         </div>
@@ -49,13 +49,13 @@ async function loadStudentWorkouts() {
       const thead = document.createElement('thead');
       thead.innerHTML = `
         <tr>
-          <th style="width: 60px; text-align: center;">Status</th>
+          <th class="workout-status-heading">Status</th>
           <th>Exercício</th>
           <th>Séries</th>
           <th>Repetições</th>
           <th>Carga</th>
           <th>Descanso</th>
-          <th style="width: 150px;">Execução</th>
+          <th class="workout-execution-heading">Execução</th>
         </tr>`;
       table.appendChild(thead);
       const tbody = document.createElement('tbody');
@@ -75,15 +75,13 @@ async function loadStudentWorkouts() {
           checkbox.addEventListener('change', () => toggleExerciseCheck(ex.id, checkbox));
 
           const label = SafeDOM.el('label', {
-            className: 'checkbox-container',
-            style: { paddingLeft: '18px', margin: '0 auto', display: 'inline-block' }
-          }, [checkbox, SafeDOM.el('span', { className: 'checkmark', style: { left: '0' } })]);
+            className: 'checkbox-container workout-checkbox'
+          }, [checkbox, SafeDOM.el('span', { className: 'checkmark workout-checkmark' })]);
 
           const name = SafeDOM.el('span', {
-            className: `exercise-name ${isChecked ? 'strike-completed' : ''}`,
             text: ex.name,
             attrs: { id: `ex-name-${ex.id}` },
-            style: { fontWeight: '600' }
+            className: `exercise-name exercise-name-strong ${isChecked ? 'strike-completed' : ''}`
           });
           const nameCell = SafeDOM.el('td', {}, [name]);
           if (ex.notes) nameCell.appendChild(SafeDOM.el('div', { className: 'exercise-notes', text: ex.notes }));
@@ -97,13 +95,13 @@ async function loadStudentWorkouts() {
           }, [SafeDOM.icon(ex.gif_url ? 'play-circle' : 'help-circle'), ex.gif_url ? ' Ver execução' : ' Sem GIF']);
 
           const row = SafeDOM.el('tr', { attrs: { id: `ex-row-${ex.id}` } }, [
-            SafeDOM.el('td', { style: { width: '50px', textAlign: 'center', verticalAlign: 'middle' } }, [label]),
+            SafeDOM.el('td', { className: 'workout-check-cell' }, [label]),
             nameCell,
-            SafeDOM.el('td', { text: ex.sets, style: { fontWeight: '600', verticalAlign: 'middle' } }),
-            SafeDOM.el('td', { text: ex.reps, style: { verticalAlign: 'middle' } }),
-            SafeDOM.el('td', { text: ex.weight || 'Sem carga', style: { color: 'var(--text-muted)', verticalAlign: 'middle' } }),
-            SafeDOM.el('td', { text: ex.rest_time || 'Sem pausa', style: { color: 'var(--text-muted)', verticalAlign: 'middle' } }),
-            SafeDOM.el('td', { style: { verticalAlign: 'middle' } }, [executionButton])
+            SafeDOM.el('td', { text: ex.sets, className: 'workout-cell workout-cell-strong' }),
+            SafeDOM.el('td', { text: ex.reps, className: 'workout-cell' }),
+            SafeDOM.el('td', { text: ex.weight || 'Sem carga', className: 'workout-cell workout-cell-muted' }),
+            SafeDOM.el('td', { text: ex.rest_time || 'Sem pausa', className: 'workout-cell workout-cell-muted' }),
+            SafeDOM.el('td', { className: 'workout-cell' }, [executionButton])
           ]);
           tbody.appendChild(row);
         });
@@ -142,7 +140,7 @@ async function loadStudentMeasurements() {
   const tbody = document.getElementById('measurements-table-body');
   const metricsGrid = document.getElementById('latest-metrics-grid');
   
-  tbody.innerHTML = '<tr><td colspan="7"><div class="spinner" style="margin: 10px auto;"></div></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7"><div class="spinner table-spinner"></div></td></tr>';
 
   try {
     studentMeasurements = await API.get('/student/measurements');
@@ -151,7 +149,7 @@ async function loadStudentMeasurements() {
     if (studentMeasurements.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" class="no-data-msg">Nenhuma medida cadastrada. Clique em "Adicionar Medidas" para registrar!</td></tr>';
       metricsGrid.innerHTML = `
-        <div class="no-data-msg" style="grid-column: 1 / -1;">
+        <div class="no-data-msg grid-span-full">
           Nenhum dado cadastrado.
         </div>
       `;
@@ -165,7 +163,7 @@ async function loadStudentMeasurements() {
       const dateFormatted = new Date(m.recorded_at).toLocaleDateString('pt-BR');
       SafeDOM.appendChildren(row, [
         SafeDOM.el('td', { text: dateFormatted }),
-        SafeDOM.el('td', { text: `${m.weight} kg`, style: { fontWeight: '600', color: 'var(--accent-secondary)' } }),
+        SafeDOM.el('td', { text: `${m.weight} kg`, className: 'metric-weight-value' }),
         SafeDOM.el('td', { text: m.chest ? `${m.chest} cm` : '-' }),
         SafeDOM.el('td', { text: m.waist ? `${m.waist} cm` : '-' }),
         SafeDOM.el('td', { text: m.hips ? `${m.hips} cm` : '-' }),
@@ -212,7 +210,7 @@ async function loadStudentChat() {
 
     if (messages.length === 0) {
       box.innerHTML = `
-        <div class="no-data-msg" style="padding: 20px; align-self: center;">
+        <div class="no-data-msg chat-empty-message">
           Inicie o papo! Mande um alô para seu Personal Trainer aqui.
         </div>
       `;
@@ -233,9 +231,8 @@ async function loadStudentChat() {
   } catch (err) {
     SafeDOM.clear(box);
     box.appendChild(SafeDOM.el('p', {
-      className: 'no-data-msg',
-      text: err.message,
-      style: { color: 'var(--danger)' }
+      className: 'no-data-msg text-danger',
+      text: err.message
     }));
   }
 }
