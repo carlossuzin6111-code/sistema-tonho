@@ -1039,6 +1039,14 @@ body.dark-theme .chat-thread-item:hover {
 .chat-input-form[data-send-state='failed'] .chat-send-status { color: var(--danger); }
 .chat-input-form[data-send-state='sent'] .chat-send-status { color: var(--success); }
 
+.list-search-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.list-search-field { position: relative; flex: 1; max-width: 520px; }
+.list-search-field svg { position: absolute; top: 50%; left: 14px; width: 18px; color: var(--text-muted); pointer-events: none; transform: translateY(-50%); }
+.list-search-field input { width: 100%; padding: 11px 14px 11px 42px; border: 1px solid var(--border-passive); border-radius: 10px; background: var(--bg-secondary); color: var(--text-main); }
+.list-search-field input:focus { border-color: var(--border-active); outline: 3px solid var(--focus-ring); outline-offset: 1px; }
+.list-search-count { color: var(--text-muted); font-size: 0.82rem; white-space: nowrap; }
+.search-empty { padding: 24px; color: var(--text-muted); text-align: center; }
+
 /* Workouts List */
 .workouts-list-container {
   display: flex;

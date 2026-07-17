@@ -498,3 +498,30 @@ Resultados locais:
 - Tabela e índices `audit_logs_actor_created_idx` e `audit_logs_action_created_idx` confirmados; tabela iniciou vazia como esperado.
 - API e Nginx permaneceram saudáveis, worker iniciou sem exceções e healthcheck público respondeu `200`.
 - Consulta pública de auditoria sem sessão respondeu `401`, conforme esperado.
+
+### 2026-07-17 — Bloco 12 concluído e publicado
+
+- [x] Adicionar busca instantânea de alunos por nome ou e-mail.
+- [x] Adicionar busca instantânea de exercícios por nome ou descrição.
+- [x] Exibir contagem e estado vazio acessíveis sem repetir chamadas à API.
+- [x] Garantir funcionamento equivalente em desktop e mobile.
+- [x] Testar e atualizar a versão dos assets.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/catalog-list-search`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/39
+
+Resultados locais:
+
+- Busca de alunos considera nome e e-mail; busca de exercícios considera nome e descrição.
+- Normalização remove diferenças de maiúsculas, espaços e acentos, permitindo encontrar `Elevação` ao digitar `elevacao`.
+- Filtro opera sobre cards já carregados e não dispara novas chamadas à API.
+- Contadores anunciam `visíveis de total` e estados vazios específicos aparecem somente quando a consulta não encontra resultados.
+- Campos usam `type=search`, nome acessível, foco visível e funcionamento equivalente nas duas interfaces.
+- Versão comum dos assets atualizada para `20260717.4`.
+- Frontend e infraestrutura: 22 de 22 testes aprovados.
+- Backend: 84 de 84 testes aprovados em 10 suítes.
+- API e Nginx permaneceram saudáveis e o healthcheck público respondeu `200`.
+- HTML público desktop e mobile confirmou os quatro campos/estados acessíveis e assets `20260717.4`.
+- JavaScript público confirmou normalização e filtros locais para alunos e exercícios.
