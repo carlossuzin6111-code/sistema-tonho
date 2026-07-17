@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const db = require('../database');
 const { isEmailUniqueConstraint, normalizeEmail } = require('../services/userIdentityService');
+const { AUDIT_ACTIONS, recordAudit } = require('../services/auditService');
 
 // Create a new student (Personal Trainer only)
 async function createStudent(req, res) {
@@ -154,16 +155,26 @@ async function addMeasurement(req, res) {
       }
     }
 
-    const [measurementId] = await db('measurements').insert({
-      student_id: targetStudentId,
-      weight,
-      chest: chest || null,
-      waist: waist || null,
-      hips: hips || null,
-      biceps_l: bicepsL || null,
-      biceps_r: bicepsR || null,
-      thigh_l: thighL || null,
-      thigh_r: thighR || null
+    const measurementId = await db.transaction(async trx => {
+      const [insertedId] = await trx('measurements').insert({
+        student_id: targetStudentId,
+        weight,
+        chest: chest || null,
+        waist: waist || null,
+        hips: hips || null,
+        biceps_l: bicepsL || null,
+        biceps_r: bicepsR || null,
+        thigh_l: thighL || null,
+        thigh_r: thighR || null
+      });
+      await recordAudit(trx, {
+        actorUserId: userId,
+        action: AUDIT_ACTIONS.MEASUREMENT_CREATED,
+        targetType: 'measurement',
+        targetId: insertedId,
+        metadata: { studentId: Number(targetStudentId) }
+      });
+      return insertedId;
     });
 
     res.status(201).json({
@@ -227,9 +238,17 @@ async function resetPassword(req, res) {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(newPassword, salt);
 
-    await db('users').where('id', studentId).update({
-      password_hash: passwordHash,
-      session_version: db.raw('session_version + 1')
+    await db.transaction(async trx => {
+      await trx('users').where('id', studentId).update({
+        password_hash: passwordHash,
+        session_version: trx.raw('session_version + 1')
+      });
+      await recordAudit(trx, {
+        actorUserId: personalId,
+        action: AUDIT_ACTIONS.PASSWORD_RESET,
+        targetType: 'student',
+        targetId: studentId
+      });
     });
 
     res.status(200).json({ message: 'Senha redefinida com sucesso' });

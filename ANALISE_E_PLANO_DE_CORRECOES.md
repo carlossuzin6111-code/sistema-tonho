@@ -471,3 +471,30 @@ Resultados locais:
 - Propriedade do volume migrada para UID/GID 1000; banco atual e backups confirmados como `node:node`.
 - API e worker publicados como `uid=1000(node)`; escrita e remoção de arquivo temporário no volume foram bem-sucedidas.
 - API, Nginx e worker permaneceram saudáveis e sem exceções nos logs; healthcheck público respondeu `200`.
+
+### 2026-07-17 — Bloco 11 concluído e publicado
+
+- [x] Criar armazenamento persistente e indexado para auditoria.
+- [x] Registrar redefinições de senha, medidas e exclusões na mesma transação da ação.
+- [x] Não registrar senhas nem valores corporais sensíveis nos metadados.
+- [x] Disponibilizar consulta autenticada e limitada às ações do próprio usuário.
+- [x] Testar e migrar a base pública.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/security-audit-log`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/38
+
+Resultados locais:
+
+- Migration cria `audit_logs` com índices por ator/data e ação/data.
+- Redefinição de senha, inclusão de medida e exclusão de treino, exercício do treino ou exercício do catálogo gravam auditoria na mesma transação.
+- Logs armazenam ação, tipo e identificador do alvo e somente identificadores relacionais necessários; não armazenam senha ou valores de medidas.
+- `GET /api/audit-logs` exige autenticação, retorna no máximo 100 ações do próprio usuário e converte metadados para JSON.
+- Integração confirma isolamento entre personal e aluno e recusa acesso sem sessão.
+- Frontend e infraestrutura: 21 de 21 testes aprovados.
+- Backend: 84 de 84 testes aprovados em 10 suítes.
+- Backup pré-migration criado em `/app/data/database.pre-audit-20260717.sqlite`: 102400 bytes, 11 tabelas e integridade `ok`.
+- Migration `202607170001_create_audit_logs.js` aplicada na base pública.
+- Tabela e índices `audit_logs_actor_created_idx` e `audit_logs_action_created_idx` confirmados; tabela iniciou vazia como esperado.
+- API e Nginx permaneceram saudáveis, worker iniciou sem exceções e healthcheck público respondeu `200`.
+- Consulta pública de auditoria sem sessão respondeu `401`, conforme esperado.

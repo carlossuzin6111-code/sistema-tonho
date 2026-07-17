@@ -24,6 +24,7 @@ const studentController = require('./controllers/studentController');
 const workoutController = require('./controllers/workoutController');
 const chatController = require('./controllers/chatController');
 const exerciseController = require('./controllers/exerciseController');
+const auditController = require('./controllers/auditController');
 
 // Initialize database
 const db = require('./database');
@@ -150,6 +151,22 @@ app.post('/api/auth/register', registrationRateLimiter, validateBody('register')
 app.post('/api/auth/login', loginRateLimiter, validateBody('login'), authController.login);
 
 app.post('/api/auth/logout', authenticateToken, authController.logout);
+
+/**
+ * @openapi
+ * /audit-logs:
+ *   get:
+ *     summary: Lista as ações de auditoria do usuário autenticado
+ *     tags: [Auditoria]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Até 100 registros mais recentes, sem valores sensíveis.
+ *       401:
+ *         description: Sessão obrigatória.
+ */
+app.get('/api/audit-logs', authenticateToken, auditController.getOwnAuditLogs);
 
 /**
  * @openapi
