@@ -727,9 +727,10 @@ Resultados:
 - [x] Aplicar em alunos, catálogo e treinos desktop/mobile.
 - [x] Respeitar `prefers-reduced-motion`.
 - [x] Testar, publicar e validar na base pública de testes.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `feat/accessible-loading-skeletons`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/52
 
 Resultados:
 
