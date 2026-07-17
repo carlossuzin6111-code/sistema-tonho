@@ -15,7 +15,8 @@
     "migrate:status": "knex migrate:status --knexfile knexfile.js",
     "access-key:create": "node src/scripts/createAccessKey.js",
     "db:backup": "node src/scripts/backupDatabase.js",
-    "worker:translate": "node src/workers/runTranslationWorker.js"
+    "worker:translate": "node src/workers/runTranslationWorker.js",
+    "worker:backup": "node src/workers/runBackupWorker.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

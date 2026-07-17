@@ -61,6 +61,24 @@ services:
         condition: service_healthy
     restart: always
 
+  backup-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fitlife_backup_worker
+    command: npm run worker:backup
+    volumes:
+      - db-data:/app/data
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - DB_PATH=${DB_PATH:-/app/data/database.sqlite}
+      - BACKUP_INTERVAL_MS=${BACKUP_INTERVAL_MS:-86400000}
+      - BACKUP_RETENTION=${BACKUP_RETENTION:-7}
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: always
+
   cloudflared:
     image: cloudflare/cloudflared:latest@sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d
     container_name: fitlife_tunnel
