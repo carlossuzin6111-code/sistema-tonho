@@ -5,6 +5,31 @@ let selectedStudentId = null;
 let activeWorkoutId = null;
 let activeChatStudentId = null;
 
+function normalizeListSearch(value) {
+  return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+function filterRenderedList({ containerId, cardSelector, emptyId, countId, query }) {
+  const normalizedQuery = normalizeListSearch(query);
+  const cards = Array.from(document.getElementById(containerId).querySelectorAll(cardSelector));
+  let visible = 0;
+  cards.forEach(card => {
+    const matches = !normalizedQuery || card.dataset.search.includes(normalizedQuery);
+    card.classList.toggle('hidden', !matches);
+    if (matches) visible += 1;
+  });
+  document.getElementById(countId).textContent = `${visible} de ${cards.length}`;
+  document.getElementById(emptyId).classList.toggle('hidden', !normalizedQuery || visible > 0);
+}
+
+function filterPersonalStudents(query) {
+  filterRenderedList({ containerId: 'students-grid', cardSelector: '.student-card', emptyId: 'students-search-empty', countId: 'students-search-count', query });
+}
+
+function filterPersonalExercises(query) {
+  filterRenderedList({ containerId: 'exercises-catalog-list', cardSelector: '.exercise-db-card', emptyId: 'exercises-search-empty', countId: 'exercises-search-count', query });
+}
+
 // Renders the list of students in the Personal Dashboard
 async function loadPersonalStudents() {
   const grid = document.getElementById('students-grid');
@@ -28,6 +53,7 @@ async function loadPersonalStudents() {
         </div>
       `;
       lucide.createIcons();
+      filterPersonalStudents(document.getElementById('students-search').value);
       return;
     }
 
@@ -39,6 +65,7 @@ async function loadPersonalStudents() {
       
       const card = document.createElement('div');
       card.className = 'student-card glass';
+      card.dataset.search = normalizeListSearch(`${student.name} ${student.email}`);
       
       // Calculate age if birth_date exists
       let ageText = 'N/A';
@@ -94,6 +121,7 @@ async function loadPersonalStudents() {
     }
 
     lucide.createIcons();
+    filterPersonalStudents(document.getElementById('students-search').value);
   } catch (err) {
     SafeDOM.clear(grid);
     grid.appendChild(SafeDOM.errorAlert('Erro ao carregar lista de alunos: ', err.message, { gridColumn: '1 / -1' }));
@@ -805,6 +833,7 @@ async function loadPersonalExercises() {
         </div>
       `;
       lucide.createIcons();
+      filterPersonalExercises(document.getElementById('exercises-search').value);
       return;
     }
 
@@ -812,6 +841,7 @@ async function loadPersonalExercises() {
       const card = document.createElement('div');
       card.className = 'exercise-db-card glass';
       const descText = ex.description ? ex.description : 'Sem orientações técnicas cadastradas.';
+      card.dataset.search = normalizeListSearch(`${ex.name} ${descText}`);
       const image = SafeDOM.el('img', {
         className: 'exercise-thumb',
         attrs: { alt: 'Exercício' }
@@ -849,6 +879,7 @@ async function loadPersonalExercises() {
     });
 
     lucide.createIcons();
+    filterPersonalExercises(document.getElementById('exercises-search').value);
   } catch (err) {
     SafeDOM.clear(container);
     container.appendChild(SafeDOM.errorAlert('Erro ao carregar catálogo: ', err.message, { gridColumn: '1 / -1' }));

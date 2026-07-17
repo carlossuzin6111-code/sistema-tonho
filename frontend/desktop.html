@@ -12,7 +12,7 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260717.3">
+  <link rel="stylesheet" href="css/style.css?v=20260717.4">
 </head>
 <body>
 
@@ -164,6 +164,13 @@
             </div>
           </div>
 
+          <div class="list-search-toolbar">
+            <div class="list-search-field">
+              <i data-lucide="search"></i>
+              <input type="search" id="students-search" placeholder="Buscar aluno por nome ou e-mail" aria-label="Buscar aluno por nome ou e-mail" autocomplete="off">
+            </div>
+            <span id="students-search-count" class="list-search-count" role="status" aria-live="polite"></span>
+          </div>
           <!-- Students Grid -->
           <div id="students-grid" class="grid grid-3">
             <!-- Dynamic student cards go here -->
@@ -172,6 +179,7 @@
               <span>Carregando sua lista de alunos...</span>
             </div>
           </div>
+          <p id="students-search-empty" class="search-empty hidden">Nenhum aluno corresponde à busca.</p>
         </div>
 
         <!-- Aba 2: Cadastrar Aluno -->
@@ -286,9 +294,17 @@
             </button>
           </div>
 
+          <div class="list-search-toolbar">
+            <div class="list-search-field">
+              <i data-lucide="search"></i>
+              <input type="search" id="exercises-search" placeholder="Buscar exercício por nome ou descrição" aria-label="Buscar exercício por nome ou descrição" autocomplete="off">
+            </div>
+            <span id="exercises-search-count" class="list-search-count" role="status" aria-live="polite"></span>
+          </div>
           <div id="exercises-catalog-list" class="grid grid-2">
             <!-- Dynamically populated from JS -->
           </div>
+          <p id="exercises-search-empty" class="search-empty hidden">Nenhum exercício corresponde à busca.</p>
         </div>
       </section>
     </main>
@@ -667,11 +683,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260717.3"></script>
-  <script src="js/safe-dom.js?v=20260717.3"></script>
-  <script src="js/app.js?v=20260717.3"></script>
-  <script src="js/personal.js?v=20260717.3"></script>
-  <script src="js/student.js?v=20260717.3"></script>
-  <script src="js/events.js?v=20260717.3"></script>
+  <script src="js/api.js?v=20260717.4"></script>
+  <script src="js/safe-dom.js?v=20260717.4"></script>
+  <script src="js/app.js?v=20260717.4"></script>
+  <script src="js/personal.js?v=20260717.4"></script>
+  <script src="js/student.js?v=20260717.4"></script>
+  <script src="js/events.js?v=20260717.4"></script>
 </body>
 </html>

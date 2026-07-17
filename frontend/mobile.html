@@ -11,9 +11,9 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Base Styles (Components, Colors, Lovable) -->
-  <link rel="stylesheet" href="css/style.css?v=20260717.3">
+  <link rel="stylesheet" href="css/style.css?v=20260717.4">
   <!-- Mobile Architecture Overrides (PWA Lock) -->
-  <link rel="stylesheet" href="css/mobile.css?v=20260717.3">
+  <link rel="stylesheet" href="css/mobile.css?v=20260717.4">
 </head>
 <body>
 
@@ -113,9 +113,14 @@
         <div id="tab-p-students" class="tab-pane active">
           <h1 class="section-title" style="font-size: 24px;">Alunos</h1>
           <span class="hidden" id="stat-total-students"></span>
+          <div class="list-search-toolbar">
+            <div class="list-search-field"><i data-lucide="search"></i><input type="search" id="students-search" placeholder="Buscar aluno" aria-label="Buscar aluno por nome ou e-mail" autocomplete="off"></div>
+            <span id="students-search-count" class="list-search-count" role="status" aria-live="polite"></span>
+          </div>
           <div id="students-grid" class="grid grid-2">
             <div class="spinner"></div>
           </div>
+          <p id="students-search-empty" class="search-empty hidden">Nenhum aluno corresponde à busca.</p>
         </div>
 
         <div id="tab-p-create" class="tab-pane">
@@ -191,7 +196,12 @@
             <h1 class="section-title" style="font-size: 24px;">Exercícios</h1>
             <button class="btn btn-primary btn-sm" data-action="open-catalog-exercise"><i data-lucide="plus"></i></button>
           </div>
+          <div class="list-search-toolbar">
+            <div class="list-search-field"><i data-lucide="search"></i><input type="search" id="exercises-search" placeholder="Buscar exercício" aria-label="Buscar exercício por nome ou descrição" autocomplete="off"></div>
+            <span id="exercises-search-count" class="list-search-count" role="status" aria-live="polite"></span>
+          </div>
           <div id="exercises-catalog-list" class="grid grid-2"></div>
+          <p id="exercises-search-empty" class="search-empty hidden">Nenhum exercício corresponde à busca.</p>
         </div>
       </div>
 
@@ -423,11 +433,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260717.3"></script>
-  <script src="js/safe-dom.js?v=20260717.3"></script>
-  <script src="js/app.js?v=20260717.3"></script>
-  <script src="js/personal.js?v=20260717.3"></script>
-  <script src="js/student.js?v=20260717.3"></script>
-  <script src="js/events.js?v=20260717.3"></script>
+  <script src="js/api.js?v=20260717.4"></script>
+  <script src="js/safe-dom.js?v=20260717.4"></script>
+  <script src="js/app.js?v=20260717.4"></script>
+  <script src="js/personal.js?v=20260717.4"></script>
+  <script src="js/student.js?v=20260717.4"></script>
+  <script src="js/events.js?v=20260717.4"></script>
 </body>
 </html>

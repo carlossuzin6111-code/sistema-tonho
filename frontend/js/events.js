@@ -84,6 +84,8 @@ document.addEventListener('change', event => {
 
 document.addEventListener('input', event => {
   if (event.target.id === 'cat-ex-gif-url') handleCatalogGifUrlInput();
+  if (event.target.id === 'students-search') filterPersonalStudents(event.target.value);
+  if (event.target.id === 'exercises-search') filterPersonalExercises(event.target.value);
   const authForm = event.target.closest?.('.auth-form');
   if (authForm) clearFormError(authForm.id);
 });

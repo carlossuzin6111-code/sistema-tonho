@@ -271,6 +271,22 @@ test('chat exposes connection and delivery feedback without parallel retry timer
   }
 });
 
+test('student and exercise searches are accessible, local and accent-insensitive', () => {
+  for (const page of ['desktop.html', 'mobile.html']) {
+    const html = read(page);
+    assert.equal((html.match(/class="list-search-toolbar"/g) || []).length, 2);
+    assert.equal((html.match(/role="status" aria-live="polite"/g) || []).length >= 6, true);
+    assert.match(html, /id="students-search"[^>]+aria-label=/);
+    assert.match(html, /id="exercises-search"[^>]+aria-label=/);
+  }
+
+  const context = {};
+  vm.runInNewContext(read(path.join('js', 'personal.js')), context);
+  assert.equal(context.normalizeListSearch('  Elevação PÉLVICA  '), 'elevacao pelvica');
+  const filters = context.filterPersonalStudents.toString() + context.filterPersonalExercises.toString();
+  assert.doesNotMatch(filters, /API\./);
+});
+
 test('event delegation invokes only the allowlisted action and form handlers', () => {
   const listeners = {};
   const calls = [];
