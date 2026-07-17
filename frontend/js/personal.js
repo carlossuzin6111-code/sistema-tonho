@@ -790,20 +790,52 @@ function closeChatThreadMobile() {
 }
 
 // Reset Student Password
-async function promptResetPassword() {
-  const newPassword = prompt('Digite a nova senha para o aluno (mínimo 10 caracteres):');
-  if (!newPassword) return; 
+function openResetPasswordModal() {
+  if (!selectedStudentId) return;
+
+  const form = document.getElementById('reset-password-form');
+  form?.reset();
+  clearFormError('reset-password-form');
+  closeModal('modal-student-detail');
+  openModal('modal-reset-password');
+}
+
+function closeResetPasswordModal() {
+  closeModal('modal-reset-password');
+}
+
+async function handleResetPasswordSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  if (form.dataset.submitting === 'true' || !selectedStudentId) return;
+
+  const passwordInput = document.getElementById('reset-student-password');
+  const confirmationInput = document.getElementById('reset-student-password-confirm');
+  const newPassword = passwordInput.value;
+  const confirmation = confirmationInput.value;
+  clearFormError(form.id);
 
   if (newPassword.length < 10) {
-    showToast('A senha precisa ter pelo menos 10 caracteres', 'error');
+    setFormError(form.id, 'A senha precisa ter pelo menos 10 caracteres.');
+    passwordInput.focus();
+    return;
+  }
+  if (newPassword !== confirmation) {
+    setFormError(form.id, 'As senhas informadas não coincidem.');
+    confirmationInput.focus();
     return;
   }
 
+  setFormSubmitting(form, true);
   try {
     await API.post(`/personal/students/${selectedStudentId}/reset-password`, { newPassword });
+    closeResetPasswordModal();
     showToast('Senha redefinida com sucesso!', 'success');
   } catch (err) {
-    showToast(err.message, 'error');
+    setFormError(form.id, err.message);
+    showToast('Não foi possível redefinir a senha.', 'error');
+  } finally {
+    setFormSubmitting(form, false);
   }
 }
 

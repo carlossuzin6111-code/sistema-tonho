@@ -170,9 +170,9 @@ test('modal controller provides dialog semantics and keyboard focus management',
 test('authentication forms expose loading, inline error and password visibility controls', () => {
   for (const page of ['desktop.html', 'mobile.html']) {
     const html = fs.readFileSync(path.join(frontendRoot, page), 'utf8');
-    assert.equal((html.match(/data-action="toggle-password"/g) || []).length, 2);
-    assert.equal((html.match(/role="alert" aria-live="assertive"/g) || []).length, 2);
-    assert.equal((html.match(/data-submit-label/g) || []).length, 2);
+    assert.equal((html.match(/data-action="toggle-password"/g) || []).length, 4);
+    assert.equal((html.match(/role="alert" aria-live="assertive"/g) || []).length, 3);
+    assert.equal((html.match(/data-submit-label/g) || []).length, 3);
   }
 
   const input = { type: 'password' };
@@ -199,6 +199,25 @@ test('authentication forms expose loading, inline error and password visibility 
   assert.equal(attributes['aria-pressed'], 'true');
   assert.equal(attributes['aria-label'], 'Ocultar senha');
   assert.equal(icon['data-lucide'], 'eye-off');
+});
+
+test('student password reset uses an accessible confirmed form instead of a browser prompt', () => {
+  for (const page of ['desktop.html', 'mobile.html']) {
+    const html = fs.readFileSync(path.join(frontendRoot, page), 'utf8');
+    assert.match(html, /id="modal-reset-password"[^>]*data-return-modal="modal-student-detail"/);
+    assert.match(html, /id="reset-password-form"/);
+    assert.match(html, /id="reset-student-password"[^>]*minlength="10"[^>]*maxlength="128"/);
+    assert.match(html, /id="reset-student-password-confirm"[^>]*minlength="10"[^>]*maxlength="128"/);
+    assert.match(html, /id="reset-password-form-error"[^>]*role="alert"/);
+  }
+
+  const personal = read(path.join('js', 'personal.js'));
+  const events = read(path.join('js', 'events.js'));
+  assert.doesNotMatch(personal, /\bprompt\s*\(/);
+  assert.match(personal, /newPassword !== confirmation/);
+  assert.match(personal, /setFormSubmitting\(form, true\)/);
+  assert.match(personal, /setFormError\(form\.id, err\.message\)/);
+  assert.match(events, /'reset-password-form': event => handleResetPasswordSubmit\(event\)/);
 });
 
 test('login submission blocks duplicates and restores the form after an API error', async () => {

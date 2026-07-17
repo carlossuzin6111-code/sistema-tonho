@@ -12,7 +12,7 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260717.5">
+  <link rel="stylesheet" href="css/style.css?v=20260717.6">
 </head>
 <body>
 
@@ -511,6 +511,36 @@
     </div>
   </div>
 
+  <!-- MODAL: REDEFINIR SENHA DO ALUNO -->
+  <div id="modal-reset-password" class="modal-overlay" data-return-modal="modal-student-detail" data-clear-form-on-close="reset-password-form">
+    <div class="modal-content glass modal-small">
+      <button class="modal-close" data-action="close-reset-password" aria-label="Cancelar redefinição de senha"><i data-lucide="x"></i></button>
+      <h2 class="modal-title"><i data-lucide="key-round"></i> Redefinir senha</h2>
+      <form id="reset-password-form">
+        <p>Defina uma senha temporária com pelo menos 10 caracteres. O aluno poderá alterá-la depois.</p>
+        <div class="input-group">
+          <label for="reset-student-password">Nova senha *</label>
+          <div class="password-field">
+            <input type="password" id="reset-student-password" required minlength="10" maxlength="128" autocomplete="new-password">
+            <button type="button" class="password-toggle" data-action="toggle-password" data-target="reset-student-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="reset-student-password-confirm">Confirmar nova senha *</label>
+          <div class="password-field">
+            <input type="password" id="reset-student-password-confirm" required minlength="10" maxlength="128" autocomplete="new-password">
+            <button type="button" class="password-toggle" data-action="toggle-password" data-target="reset-student-password-confirm" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+          </div>
+        </div>
+        <p id="reset-password-form-error" class="auth-form-error hidden" role="alert" aria-live="assertive"></p>
+        <button type="submit" class="btn btn-primary btn-full" data-default-label="Redefinir senha" data-loading-label="Redefinindo...">
+          <span data-submit-label>Redefinir senha</span>
+        </button>
+        <button type="button" class="btn btn-full" data-action="close-reset-password">Cancelar</button>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL 2: CRIAR NOVO TREINO (Personal -> Aluno) -->
   <div id="modal-create-workout" class="modal-overlay">
     <div class="modal-content glass modal-small">
@@ -683,11 +713,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260717.5"></script>
-  <script src="js/safe-dom.js?v=20260717.5"></script>
-  <script src="js/app.js?v=20260717.5"></script>
-  <script src="js/personal.js?v=20260717.5"></script>
-  <script src="js/student.js?v=20260717.5"></script>
-  <script src="js/events.js?v=20260717.5"></script>
+  <script src="js/api.js?v=20260717.6"></script>
+  <script src="js/safe-dom.js?v=20260717.6"></script>
+  <script src="js/app.js?v=20260717.6"></script>
+  <script src="js/personal.js?v=20260717.6"></script>
+  <script src="js/student.js?v=20260717.6"></script>
+  <script src="js/events.js?v=20260717.6"></script>
 </body>
 </html>
