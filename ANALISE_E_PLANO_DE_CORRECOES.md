@@ -687,3 +687,28 @@ Resultados:
 - API, Nginx, workers e tunnel permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
 - Cabeçalho público confirmou a CSP sem estilos inline e HTML público confirmou assets `20260717.8` sem atributos `style`.
 - Captura pública mobile em escala equivalente a 390 px confirmou o formulário completo, alinhado e sem regressão visual.
+
+### 2026-07-17 — Bloco 19 concluído e publicado
+
+- [x] Remover conexões não utilizadas com Google Fonts.
+- [x] Mover o último bloco de CSS inline do roteador para a folha local.
+- [x] Restringir `style-src` e `font-src` da CSP somente à própria origem.
+- [x] Ampliar o teste preventivo para todas as páginas HTML.
+- [x] Testar, publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `security/self-hosted-styles-only`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/46
+
+Resultados:
+
+- As interfaces já utilizavam a pilha de fontes do sistema; três conexões remotas sem efeito visual foram removidas de cada dashboard.
+- `index.html` passou a carregar a folha versionada e usa a classe local `router-loading-page`, eliminando o último bloco `<style>`.
+- CSP pública restringe `style-src 'self'` e `font-src 'self'`, sem autorizações a Google Fonts.
+- Teste automatizado cobre index, desktop e mobile contra blocos, atributos de estilo e hosts remotos de fontes.
+- Versão comum dos assets atualizada para `20260717.9`.
+- Frontend e infraestrutura: 27 de 27 testes aprovados.
+- Backend: 87 de 87 testes aprovados em 11 suítes.
+- Configuração do Nginx validada antes da publicação; API, workers e tunnel permaneceram ativos durante a recriação do frontend.
+- Resposta pública confirmou healthcheck `200`, assets `20260717.9` e a CSP restrita à própria origem.
+- CI do pull request aprovado nas verificações de frontend/infraestrutura e backend.

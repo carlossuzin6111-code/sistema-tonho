@@ -75,6 +75,16 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+body.router-loading-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  color: #1c1c1c;
+  background-color: #f7f4ed;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

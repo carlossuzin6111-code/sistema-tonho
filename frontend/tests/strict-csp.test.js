@@ -79,11 +79,18 @@ test('Nginx policy rejects inline JavaScript and CSS', () => {
 
   const styleSource = policy.match(/style-src ([^;]+)/)?.[1];
   assert.ok(styleSource, 'style-src directive is missing');
-  assert.match(styleSource, /'self'/);
+  assert.equal(styleSource.trim(), "'self'");
   assert.doesNotMatch(styleSource, /'unsafe-inline'/);
 
-  for (const filename of ['desktop.html', 'mobile.html']) {
-    assert.doesNotMatch(read(filename), /\sstyle=/i, `${filename} has an inline style`);
+  const fontSource = policy.match(/font-src ([^;]+)/)?.[1];
+  assert.ok(fontSource, 'font-src directive is missing');
+  assert.equal(fontSource.trim(), "'self'");
+
+  for (const filename of htmlFiles) {
+    const html = read(filename);
+    assert.doesNotMatch(html, /\sstyle=/i, `${filename} has an inline style attribute`);
+    assert.doesNotMatch(html, /<style\b/i, `${filename} has an inline style block`);
+    assert.doesNotMatch(html, /fonts\.(?:googleapis|gstatic)\.com/i, `${filename} loads a remote font`);
   }
   for (const filename of ['app.js', 'events.js', 'personal.js', 'student.js', 'safe-dom.js']) {
     const source = read(path.join('js', filename));
