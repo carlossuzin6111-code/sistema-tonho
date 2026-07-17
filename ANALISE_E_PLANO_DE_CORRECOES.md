@@ -367,9 +367,10 @@ Resultados locais:
 - [x] Antecipar no frontend erros de arquivo incompatível ou grande demais.
 - [x] Atualizar documentação, testes automatizados e versão dos assets.
 - [x] Publicar na base de testes e validar os serviços.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `fix/exercise-media-validation`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/34
 
 Resultados locais:
 
