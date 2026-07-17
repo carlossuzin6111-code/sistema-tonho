@@ -157,6 +157,7 @@ describe('centralized request validation', () => {
   test.each([
     ['insecure URL', 'http://example.com/exercise.gif'],
     ['script URL', 'javascript:alert(1)'],
+    ['unapproved HTTPS host', 'https://example.com/exercise.gif'],
     ['SVG data URL', 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4='],
     ['malformed raster data URL', 'data:image/png;base64,not_valid!'],
     ['image with a mismatched signature', 'data:image/png;base64,R0lGODlh']
@@ -172,7 +173,7 @@ describe('centralized request validation', () => {
   });
 
   test.each([
-    ['HTTPS URL', 'https://example.com/exercise.gif'],
+    ['approved HTTPS URL', 'https://raw.githubusercontent.com/example/exercise.gif'],
     ['PNG data URL', 'data:image/png;base64,iVBORw0KGgo='],
     ['empty image', null]
   ])('accepts %s for catalog exercise images', async (label, gifUrl) => {

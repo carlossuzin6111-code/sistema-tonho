@@ -88,6 +88,9 @@ function optionalExerciseImage(value) {
   try {
     const url = new URL(value);
     if (url.protocol !== 'https:') return 'gifUrl must use HTTPS';
+    if (url.hostname !== 'raw.githubusercontent.com') {
+      return 'gifUrl remote host is not allowed; upload an image instead';
+    }
   } catch (error) {
     return 'gifUrl must be a valid HTTPS URL';
   }

@@ -675,6 +675,28 @@ Resultados:
 - Backend: 87 de 87 testes aprovados em 11 suítes.
 - Healthcheck público respondeu `200`; HTML público confirmou as associações nos chats e formulários mobile.
 
+### 2026-07-17 — Bloco 23 concluído e publicado
+
+- [x] Restringir imagens remotas ao host oficial do dataset.
+- [x] Aplicar a mesma allowlist na API, renderização e CSP.
+- [x] Preservar uploads raster embutidos e imagens locais.
+- [x] Testar, publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `security/exercise-image-allowlist`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/50
+
+Resultados:
+
+- API rejeita URLs remotas fora de `raw.githubusercontent.com` e orienta usar upload.
+- Renderização aceita somente mesma origem, imagens raster embutidas e o host oficial do dataset.
+- CSP pública substituiu `img-src ... https:` por `img-src 'self' data: https://raw.githubusercontent.com`.
+- Links aprovados continuam disponíveis; uploads GIF, PNG, JPEG e WebP permanecem suportados.
+- Assets atualizados para `20260717.13`.
+- Frontend e infraestrutura: 30 de 30 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- API reconstruída e saudável; Nginx recriado e resposta pública `200` confirmou a allowlist nas três camadas.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.
