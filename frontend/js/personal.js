@@ -404,6 +404,25 @@ function renderPersonalStudentMeasurements(measurements) {
   plotSvgChart('modal-weight-chart-container', chartData);
 }
 
+function describeWeightTrend(dataPoints) {
+  if (dataPoints.length === 0) return '';
+
+  const first = dataPoints[0];
+  const latest = dataPoints[dataPoints.length - 1];
+  const formatWeight = value => Number(value).toLocaleString('pt-BR', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1
+  });
+
+  if (dataPoints.length === 1) {
+    return `1 registro em ${latest.label}: ${formatWeight(latest.value)} kg.`;
+  }
+
+  const difference = latest.value - first.value;
+  const signedDifference = `${difference > 0 ? '+' : ''}${formatWeight(difference)}`;
+  return `${dataPoints.length} registros, de ${first.label} a ${latest.label}. Peso de ${formatWeight(first.value)} kg para ${formatWeight(latest.value)} kg. Variação de ${signedDifference} kg.`;
+}
+
 // Custom Premium SVG Line Chart Plotter
 function plotSvgChart(containerId, dataPoints) {
   const container = document.getElementById(containerId);
@@ -418,6 +437,8 @@ function plotSvgChart(containerId, dataPoints) {
     container.appendChild(SafeDOM.el('p', { className: 'no-data-msg', text: 'Nenhum dado disponível para plotagem.' }));
     return;
   }
+
+  const trendSummary = describeWeightTrend(normalizedPoints);
 
   // Basic SVG parameters
   const padding = 35;
@@ -456,7 +477,9 @@ function plotSvgChart(containerId, dataPoints) {
     class: 'chart-svg',
     viewBox: `0 0 ${width} ${height}`,
     width: '100%',
-    height: '100%'
+    height: '100%',
+    role: 'img',
+    'aria-label': trendSummary
   });
 
   // Draw grid lines
@@ -497,6 +520,11 @@ function plotSvgChart(containerId, dataPoints) {
 
   SafeDOM.clear(container);
   container.appendChild(svg);
+  container.appendChild(SafeDOM.el('p', {
+    className: 'chart-trend-summary',
+    text: trendSummary,
+    attrs: { 'aria-live': 'polite' }
+  }));
 }
 
 // Workout & Exercises API Triggers
