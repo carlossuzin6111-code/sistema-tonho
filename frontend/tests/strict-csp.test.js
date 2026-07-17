@@ -384,6 +384,20 @@ test('chat exposes connection and delivery feedback without parallel retry timer
   }
 });
 
+test('card loading states use accessible reduced-motion skeletons', () => {
+  const app = read(path.join('js', 'app.js'));
+  const personal = read(path.join('js', 'personal.js'));
+  const student = read(path.join('js', 'student.js'));
+  const css = read(path.join('css', 'style.css'));
+  assert.match(app, /function renderLoadingSkeletons/);
+  assert.match(app, /setAttribute\('aria-busy', 'true'\)/);
+  assert.match(app, /setAttribute\('aria-busy', 'false'\)/);
+  assert.equal((personal.match(/renderLoadingSkeletons\(/g) || []).length, 3);
+  assert.equal((student.match(/renderLoadingSkeletons\(/g) || []).length, 1);
+  assert.match(css, /@keyframes skeleton-shimmer/);
+  assert.match(css, /prefers-reduced-motion: reduce[^}]*skeleton-card::after/s);
+});
+
 test('student and exercise searches are accessible, local and accent-insensitive', () => {
   for (const page of ['desktop.html', 'mobile.html']) {
     const html = read(page);

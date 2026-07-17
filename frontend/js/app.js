@@ -137,6 +137,26 @@ function showToast(message, type = 'info') {
   }, 4000);
 }
 
+function renderLoadingSkeletons(container, { count = 3, variant = 'card', label = 'Carregando conteúdo' } = {}) {
+  SafeDOM.clear(container);
+  container.setAttribute('role', 'status');
+  container.setAttribute('aria-label', label);
+  container.setAttribute('aria-busy', 'true');
+  for (let index = 0; index < count; index += 1) {
+    container.appendChild(SafeDOM.el('div', { className: `skeleton-card skeleton-${variant}`, attrs: { 'aria-hidden': 'true' } }, [
+      SafeDOM.el('div', { className: 'skeleton-line skeleton-line-title' }),
+      SafeDOM.el('div', { className: 'skeleton-line' }),
+      SafeDOM.el('div', { className: 'skeleton-line skeleton-line-short' })
+    ]));
+  }
+}
+
+function finishLoadingState(container) {
+  container.removeAttribute('role');
+  container.removeAttribute('aria-label');
+  container.setAttribute('aria-busy', 'false');
+}
+
 // Modal management
 function openModal(modalId) {
   const modal = document.getElementById(modalId);
