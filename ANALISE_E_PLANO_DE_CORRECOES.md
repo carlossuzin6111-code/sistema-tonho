@@ -815,7 +815,7 @@ Resultados locais:
 - HTML e JavaScript públicos confirmaram os assets `20260717.18`, regiões de erro e bloqueio de submissões duplicadas.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
-### 2026-07-17 — Bloco 29 implementado e publicado
+### 2026-07-17 — Bloco 29 concluído e publicado
 
 - [x] Manter acessível a ação de criar exercício durante a rolagem do catálogo mobile.
 - [x] Fixar as ações de novo treino e novas medidas dentro do conteúdo rolável do aluno.
@@ -825,7 +825,7 @@ Resultados locais:
 - [x] Executar testes locais de frontend, infraestrutura e backend.
 - [x] Publicar e validar na base pública de testes.
 - [x] Abrir pull request.
-- [ ] Aguardar a CI.
+- [x] Aguardar a CI.
 
 Branch de trabalho: `feat/mobile-sticky-actions`.
 Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/56
@@ -840,6 +840,7 @@ Resultados locais:
 - Backend: 88 de 88 testes aprovados em 11 suítes.
 - API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
 - HTML e CSS públicos confirmaram os assets `20260717.19`, ações aderentes e dimensões dinâmicas dos modais.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
