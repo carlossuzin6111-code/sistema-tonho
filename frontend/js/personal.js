@@ -860,10 +860,27 @@ function openCreateCatalogExerciseModal() {
   openModal('modal-create-catalog-exercise');
 }
 
-// Convert uploaded file to Base64 data URL
+const CATALOG_IMAGE_TYPES = new Set(['image/gif', 'image/png', 'image/jpeg', 'image/webp']);
+const CATALOG_IMAGE_MAX_FILE_SIZE = 380 * 1024;
+
+// Convert an allowed, bounded raster image to a Base64 data URL.
 function handleCatalogGifFileSelect(input) {
   const file = input.files[0];
   if (!file) return;
+
+  if (!CATALOG_IMAGE_TYPES.has(file.type)) {
+    input.value = '';
+    document.getElementById('cat-ex-base64').value = '';
+    showToast('Use uma imagem GIF, PNG, JPEG ou WebP.', 'error');
+    return;
+  }
+
+  if (file.size > CATALOG_IMAGE_MAX_FILE_SIZE) {
+    input.value = '';
+    document.getElementById('cat-ex-base64').value = '';
+    showToast('A imagem deve ter no máximo 380 KB.', 'error');
+    return;
+  }
 
   // Clear text input to prevent confusion
   document.getElementById('cat-ex-gif-url').value = '';
@@ -871,6 +888,11 @@ function handleCatalogGifFileSelect(input) {
   const reader = new FileReader();
   reader.onload = function(e) {
     document.getElementById('cat-ex-base64').value = e.target.result;
+  };
+  reader.onerror = function() {
+    input.value = '';
+    document.getElementById('cat-ex-base64').value = '';
+    showToast('Não foi possível ler a imagem selecionada.', 'error');
   };
   reader.readAsDataURL(file);
 }

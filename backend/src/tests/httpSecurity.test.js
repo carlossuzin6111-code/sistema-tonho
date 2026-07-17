@@ -153,4 +153,45 @@ describe('centralized request validation', () => {
     expect(response.statusCode).toBe(400);
     expect(response.body.details[0].field).toBe('id');
   });
+
+  test.each([
+    ['insecure URL', 'http://example.com/exercise.gif'],
+    ['script URL', 'javascript:alert(1)'],
+    ['SVG data URL', 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4='],
+    ['malformed raster data URL', 'data:image/png;base64,not_valid!'],
+    ['image with a mismatched signature', 'data:image/png;base64,R0lGODlh']
+  ])('rejects %s for catalog exercise images', async (label, gifUrl) => {
+    const app = express();
+    app.use(express.json());
+    app.post('/catalog', validateBody('catalogExercise'), (req, res) => res.sendStatus(204));
+
+    const response = await request(app).post('/catalog').send({ name: 'Exercise', gifUrl });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.details[0].field).toBe('gifUrl');
+  });
+
+  test.each([
+    ['HTTPS URL', 'https://example.com/exercise.gif'],
+    ['PNG data URL', 'data:image/png;base64,iVBORw0KGgo='],
+    ['empty image', null]
+  ])('accepts %s for catalog exercise images', async (label, gifUrl) => {
+    const app = express();
+    app.use(express.json());
+    app.post('/catalog', validateBody('catalogExercise'), (req, res) => res.sendStatus(204));
+
+    await request(app).post('/catalog').send({ name: 'Exercise', gifUrl }).expect(204);
+  });
+
+  test('rejects an oversized embedded catalog image', async () => {
+    const app = express();
+    app.use(express.json({ limit: '600kb' }));
+    app.post('/catalog', validateBody('catalogExercise'), (req, res) => res.sendStatus(204));
+    const gifUrl = `data:image/png;base64,${'A'.repeat(525000)}`;
+
+    const response = await request(app).post('/catalog').send({ name: 'Exercise', gifUrl });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.details[0].field).toBe('gifUrl');
+  });
 });

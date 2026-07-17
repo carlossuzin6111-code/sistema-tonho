@@ -632,6 +632,7 @@ app.get('/api/catalog/exercises', authenticateToken, exerciseController.getExerc
  *                 example: Supino Reto com Barra
  *               gifUrl:
  *                 type: string
+ *                 description: URL HTTPS (até 2048 caracteres) ou data URL Base64 de GIF, PNG, JPEG ou WebP (até 525000 caracteres).
  *                 example: https://exemplo.com/supino.gif
  *               description:
  *                 type: string

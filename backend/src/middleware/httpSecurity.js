@@ -1,7 +1,9 @@
 const helmet = require('helmet');
 const { rateLimit } = require('express-rate-limit');
 
-const DEFAULT_BODY_LIMIT = '100kb';
+// Exercise images may be sent as a small Base64 data URL. This remains bounded
+// and is paired with a stricter field-level limit in validateRequest.
+const DEFAULT_BODY_LIMIT = '600kb';
 const DEFAULT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const DEFAULT_RATE_LIMIT_MAX = 10;
 
