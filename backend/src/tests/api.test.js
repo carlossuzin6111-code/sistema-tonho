@@ -525,7 +525,7 @@ describe('FitLife Sync API Integration Tests', () => {
         .set('Authorization', `Bearer ${personalToken}`)
         .send({
           name: 'Flexão de Braço',
-          gifUrl: 'https://fitlife.com/flexao.gif',
+          gifUrl: 'https://raw.githubusercontent.com/fitlife/exercises/flexao.gif',
           description: 'Mantenha o corpo reto, desça flexionando os braços...'
         });
       expect(res.statusCode).toBe(201);

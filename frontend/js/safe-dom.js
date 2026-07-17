@@ -67,8 +67,9 @@
     if (/^data:image\/(?:gif|png|jpe?g|webp);base64,/i.test(source)) return true;
 
     try {
-      const url = new URL(source, baseUrl || document.baseURI);
-      return url.protocol === 'https:';
+      const base = new URL(baseUrl || document.baseURI);
+      const url = new URL(source, base);
+      return url.protocol === 'https:' && (url.origin === base.origin || url.hostname === 'raw.githubusercontent.com');
     } catch (err) {
       return false;
     }

@@ -119,6 +119,9 @@ test('Nginx policy rejects inline JavaScript and CSS', () => {
   assert.ok(fontSource, 'font-src directive is missing');
   assert.equal(fontSource.trim(), "'self'");
 
+  const imageSource = policy.match(/img-src ([^;]+)/)?.[1];
+  assert.equal(imageSource.trim(), "'self' data: https://raw.githubusercontent.com");
+
   for (const filename of htmlFiles) {
     const html = read(filename);
     assert.doesNotMatch(html, /\sstyle=/i, `${filename} has an inline style attribute`);
