@@ -641,9 +641,10 @@ Resultados locais:
 - [x] Adicionar teste preventivo para desktop, mobile e JavaScript.
 - [x] Testar localmente e atualizar a versão dos assets.
 - [x] Publicar e validar na base pública de testes.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `accessibility/icon-button-labels`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/47
 
 Resultados locais:
 
