@@ -659,3 +659,4 @@ Resultados locais:
 - Backend: 87 de 87 testes aprovados em 11 suítes.
 - API, Nginx, workers e tunnel permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
 - HTML público desktop e mobile confirmou o diálogo e os assets `20260717.7`; JavaScript público confirmou as três ações contextuais e a ausência de `confirm()`.
+- CI do pull request aprovado nas verificações de frontend/infraestrutura e backend.
