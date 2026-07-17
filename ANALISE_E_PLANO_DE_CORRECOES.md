@@ -501,9 +501,10 @@ Resultados locais:
 - [x] Executar o worker como usuário `node` no mesmo volume persistente.
 - [x] Adicionar testes.
 - [x] Publicar e confirmar a criação do primeiro snapshot.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `feat/automated-database-backups`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/42
 
 Resultados locais:
 
