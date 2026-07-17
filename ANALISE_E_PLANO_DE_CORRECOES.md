@@ -842,7 +842,7 @@ Resultados locais:
 - HTML e CSS públicos confirmaram os assets `20260717.19`, ações aderentes e dimensões dinâmicas dos modais.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
-### 2026-07-17 — Bloco 30 implementado e publicado
+### 2026-07-17 — Bloco 30 concluído e publicado
 
 - [x] Acrescentar resumo textual ao gráfico de evolução de peso.
 - [x] Informar quantidade de registros, período, pesos inicial e final e variação em quilogramas.
@@ -852,7 +852,7 @@ Resultados locais:
 - [x] Executar testes locais de frontend, infraestrutura e backend.
 - [x] Publicar e validar na base pública de testes.
 - [x] Abrir pull request.
-- [ ] Aguardar a CI.
+- [x] Aguardar a CI.
 
 Branch de trabalho: `feat/accessible-weight-trends`.
 Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/57
@@ -868,6 +868,7 @@ Resultados locais:
 - Backend: 88 de 88 testes aprovados em 11 suítes.
 - API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
 - HTML, CSS e JavaScript públicos versionados confirmaram os assets `20260717.20` e o resumo acessível do gráfico.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
