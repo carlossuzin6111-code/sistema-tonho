@@ -9,7 +9,7 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260717.10">
+  <link rel="stylesheet" href="css/style.css?v=20260717.11">
 </head>
 <body>
 
@@ -127,7 +127,7 @@
     <main id="personal-dashboard" class="dashboard-layout hidden">
       <!-- Sidebar / Navegação Lateral -->
       <aside class="sidebar glass">
-        <nav class="sidebar-nav">
+        <nav class="sidebar-nav" role="tablist" aria-label="Áreas do personal">
           <button id="nav-p-students" class="nav-item active" data-action="switch-personal-tab" data-tab="students">
             <i data-lucide="users"></i> <span>Meus Alunos</span>
           </button>
@@ -311,7 +311,7 @@
     <main id="student-dashboard" class="dashboard-layout hidden">
       <!-- Sidebar / Navegação Lateral -->
       <aside class="sidebar glass">
-        <nav class="sidebar-nav">
+        <nav class="sidebar-nav" role="tablist" aria-label="Áreas do aluno">
           <button id="nav-s-workouts" class="nav-item active" data-action="switch-student-tab" data-tab="workouts">
             <i data-lucide="dumbbell"></i> <span>Meus Treinos</span>
           </button>
@@ -444,7 +444,7 @@
       </div>
 
       <!-- Tabs Inside Student Detail Modal -->
-      <div class="modal-subtabs">
+      <div class="modal-subtabs" role="tablist" aria-label="Detalhes do aluno">
         <button id="modal-tab-workouts" class="modal-subtab active" data-action="switch-modal-tab" data-tab="workouts">Ficha de Treino</button>
         <button id="modal-tab-metrics" class="modal-subtab" data-action="switch-modal-tab" data-tab="metrics">Medidas e Evolução</button>
       </div>
@@ -726,11 +726,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260717.10"></script>
-  <script src="js/safe-dom.js?v=20260717.10"></script>
-  <script src="js/app.js?v=20260717.10"></script>
-  <script src="js/personal.js?v=20260717.10"></script>
-  <script src="js/student.js?v=20260717.10"></script>
-  <script src="js/events.js?v=20260717.10"></script>
+  <script src="js/api.js?v=20260717.11"></script>
+  <script src="js/safe-dom.js?v=20260717.11"></script>
+  <script src="js/app.js?v=20260717.11"></script>
+  <script src="js/personal.js?v=20260717.11"></script>
+  <script src="js/student.js?v=20260717.11"></script>
+  <script src="js/events.js?v=20260717.11"></script>
 </body>
 </html>

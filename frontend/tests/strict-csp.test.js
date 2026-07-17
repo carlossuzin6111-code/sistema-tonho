@@ -412,6 +412,21 @@ test('dashboard tabs use restorable history routes and preserve them through int
   assert.match(app, /historyMode: 'none'/);
 });
 
+test('dashboard and modal tabs expose state, panels and keyboard navigation', () => {
+  for (const page of ['desktop.html', 'mobile.html']) {
+    const html = read(page);
+    assert.equal((html.match(/role="tablist"/g) || []).length, 4);
+    assert.match(html, /aria-label="Áreas do personal"/);
+    assert.match(html, /aria-label="Áreas do aluno"/);
+    assert.match(html, /aria-label="Detalhes do aluno"/);
+  }
+  const app = read(path.join('js', 'app.js'));
+  assert.match(app, /setAttribute\('aria-selected', String\(active\)\)/);
+  assert.match(app, /panel\.hidden = !active/);
+  assert.match(app, /'ArrowLeft'.*'ArrowRight'.*'Home'.*'End'/);
+  assert.match(app, /target\.focus\(\);\s*target\.click\(\)/);
+});
+
 test('event delegation invokes only the allowlisted action and form handlers', () => {
   const listeners = {};
   const calls = [];

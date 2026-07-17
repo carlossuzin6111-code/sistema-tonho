@@ -36,6 +36,36 @@ const modalFocusableSelector = [
   '[tabindex]:not([tabindex="-1"])'
 ].join(',');
 
+const tabGroups = [
+  { buttons: ['tab-btn-login', 'tab-btn-register'], panels: ['login-form', 'register-form'] },
+  { buttons: ['nav-p-students', 'nav-p-create', 'nav-p-chat', 'nav-p-exercises'], panels: ['tab-p-students', 'tab-p-create', 'tab-p-chat', 'tab-p-exercises'] },
+  { buttons: ['nav-s-workouts', 'nav-s-measurements', 'nav-s-chat'], panels: ['tab-s-workouts', 'tab-s-measurements', 'tab-s-chat'] },
+  { buttons: ['modal-tab-workouts', 'modal-tab-metrics'], panels: ['modal-subpane-workouts', 'modal-subpane-metrics'] }
+];
+
+function syncTabGroup(buttonIds, panelIds, activeButtonId) {
+  buttonIds.forEach((buttonId, index) => {
+    const button = document.getElementById(buttonId);
+    const panel = document.getElementById(panelIds[index]);
+    if (!button || !panel) return;
+    const active = buttonId === activeButtonId;
+    button.setAttribute('role', 'tab');
+    button.setAttribute('aria-controls', panel.id);
+    button.setAttribute('aria-selected', String(active));
+    button.tabIndex = active ? 0 : -1;
+    panel.setAttribute('role', 'tabpanel');
+    panel.setAttribute('aria-labelledby', button.id);
+    panel.hidden = !active;
+  });
+}
+
+function configureTabGroups() {
+  tabGroups.forEach(group => {
+    const active = group.buttons.find(id => document.getElementById(id)?.classList.contains('active')) || group.buttons[0];
+    syncTabGroup(group.buttons, group.panels, active);
+  });
+}
+
 function configureAccessibleModal(modal) {
   modal.setAttribute('role', 'dialog');
   modal.setAttribute('aria-modal', 'true');
@@ -63,6 +93,7 @@ function getModalFocusableElements(modal) {
 
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.modal-overlay').forEach(configureAccessibleModal);
+  configureTabGroups();
 
   // Check and apply theme
   const savedTheme = localStorage.getItem('fitlife_theme');
@@ -241,6 +272,7 @@ function switchAuthTab(tab) {
     formLogin.classList.add('hidden');
     formRegister.classList.remove('hidden');
   }
+  syncTabGroup(['tab-btn-login', 'tab-btn-register'], ['login-form', 'register-form'], tab === 'login' ? 'tab-btn-login' : 'tab-btn-register');
 }
 
 // Switch Personal Tabs
@@ -283,6 +315,11 @@ function switchPersonalTab(tab, { historyMode = 'push' } = {}) {
     loadPersonalExercises();
   }
   updateDashboardRoute('personal', tab, historyMode);
+  syncTabGroup(
+    ['nav-p-students', 'nav-p-create', 'nav-p-chat', 'nav-p-exercises'],
+    ['tab-p-students', 'tab-p-create', 'tab-p-chat', 'tab-p-exercises'],
+    `nav-p-${tab}`
+  );
 }
 
 // Switch Student Tabs
@@ -318,7 +355,27 @@ function switchStudentTab(tab, { historyMode = 'push' } = {}) {
     loadStudentChat();
   }
   updateDashboardRoute('student', tab, historyMode);
+  syncTabGroup(
+    ['nav-s-workouts', 'nav-s-measurements', 'nav-s-chat'],
+    ['tab-s-workouts', 'tab-s-measurements', 'tab-s-chat'],
+    `nav-s-${tab}`
+  );
 }
+
+document.addEventListener('keydown', event => {
+  const tab = event.target.closest?.('[role="tab"]');
+  if (!tab || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+  const tablist = tab.closest('[role="tablist"]');
+  const tabs = Array.from(tablist?.querySelectorAll('[role="tab"]') || []);
+  if (!tabs.length) return;
+  event.preventDefault();
+  const current = tabs.indexOf(tab);
+  const target = event.key === 'Home' ? tabs[0]
+    : event.key === 'End' ? tabs[tabs.length - 1]
+      : tabs[(current + (['ArrowRight', 'ArrowDown'].includes(event.key) ? 1 : -1) + tabs.length) % tabs.length];
+  target.focus();
+  target.click();
+});
 
 function restoreDashboardRoute() {
   const user = API.getCurrentUser();
