@@ -393,9 +393,10 @@ Resultados locais:
 - [x] Corrigir o limite do Nginx para aceitar exatamente as imagens permitidas pelo backend.
 - [x] Atualizar testes e versão dos assets.
 - [x] Publicar e validar na base pública de testes.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `fix/local-icons-request-limit`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/35
 
 Resultados locais:
 
