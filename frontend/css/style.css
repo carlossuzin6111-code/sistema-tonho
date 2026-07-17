@@ -1604,8 +1604,9 @@ body.dark-theme .pedagogical-table th {
 /* SVG Chart */
 .chart-container-svg {
   width: 100%;
-  height: 180px;
+  min-height: 180px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
@@ -1614,6 +1615,14 @@ body.dark-theme .pedagogical-table th {
   overflow: hidden;
   border: 1px solid var(--border-passive);
   padding: 10px;
+}
+
+.chart-trend-summary {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  text-align: center;
 }
 body.dark-theme .chart-container-svg {
   background: rgba(245, 242, 235, 0.01);
@@ -1637,7 +1646,8 @@ body.dark-theme .chart-container-svg {
 
 .chart-svg {
   width: 100%;
-  height: 100%;
+  height: 180px;
+  flex: 0 0 180px;
 }
 
 .chart-line {

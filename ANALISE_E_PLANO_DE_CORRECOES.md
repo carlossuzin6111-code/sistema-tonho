@@ -842,6 +842,32 @@ Resultados locais:
 - HTML e CSS públicos confirmaram os assets `20260717.19`, ações aderentes e dimensões dinâmicas dos modais.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
+### 2026-07-17 — Bloco 30 implementado e publicado
+
+- [x] Acrescentar resumo textual ao gráfico de evolução de peso.
+- [x] Informar quantidade de registros, período, pesos inicial e final e variação em quilogramas.
+- [x] Expor descrição equivalente como nome acessível do SVG.
+- [x] Ajustar os cartões para que o resumo não seja cortado em desktop ou mobile.
+- [x] Adicionar cobertura automatizada da descrição e da semântica do gráfico.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Publicar e validar na base pública de testes.
+- [ ] Abrir pull request e aguardar a CI.
+
+Branch de trabalho: `feat/accessible-weight-trends`.
+Pull request: pendente.
+
+Resultados locais:
+
+- Gráficos com dados exibem um resumo em português, com unidade explícita e variação assinada.
+- O SVG recebe `role=img` e `aria-label` com a mesma informação essencial apresentada visualmente.
+- Um único registro é descrito sem sugerir tendência inexistente; ausência de registros mantém o estado vazio anterior.
+- O SVG preserva sua área de desenho e o cartão cresce para acomodar o resumo, inclusive no modal mobile.
+- Assets atualizados para `20260717.20`.
+- Frontend e infraestrutura: 37 de 37 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- HTML, CSS e JavaScript públicos versionados confirmaram os assets `20260717.20` e o resumo acessível do gráfico.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.

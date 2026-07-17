@@ -112,7 +112,8 @@ body.dark-theme .mobile-header {
   z-index: 10;
   box-shadow: 0 8px 18px rgba(28, 28, 28, 0.12);
 }
-.mobile-chart-preview { height: 150px; margin-bottom: 16px; background: #fff; }
+.mobile-chart-preview { min-height: 150px; margin-bottom: 16px; background: #fff; }
+.mobile-chart-preview .chart-svg { height: 150px; flex-basis: 150px; }
 .mobile-modal-inner { padding: 24px; }
 .drawer-title { margin: 0; font-size: 1.2rem; }
 

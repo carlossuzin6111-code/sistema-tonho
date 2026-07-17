@@ -332,6 +332,18 @@ test('mobile primary actions remain reachable without viewport overflow', () => 
   assert.doesNotMatch(css, /\.modal-content\s*\{[^}]*width:\s*100vw/);
 });
 
+test('weight charts expose a textual trend with period, units and variation', () => {
+  const personal = read(path.join('js', 'personal.js'));
+  const css = read(path.join('css', 'style.css'));
+
+  assert.match(personal, /function describeWeightTrend\(dataPoints\)/);
+  assert.match(personal, /Variação de \$\{signedDifference\} kg/);
+  assert.match(personal, /role: 'img'/);
+  assert.match(personal, /'aria-label': trendSummary/);
+  assert.match(personal, /className: 'chart-trend-summary'/);
+  assert.match(css, /\.chart-trend-summary\s*\{/);
+});
+
 test('login submission blocks duplicates and restores the form after an API error', async () => {
   let rejectLogin;
   let apiCalls = 0;
