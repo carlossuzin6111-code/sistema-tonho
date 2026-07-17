@@ -632,3 +632,31 @@ Resultados locais:
 - API, Nginx, workers e tunnel permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
 - HTML público confirmou o modal acessível e os assets `20260717.6`; JavaScript público confirmou o novo manipulador de envio e a ausência do fluxo antigo.
 - CI do pull request aprovado nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-17 — Bloco 17 concluído e publicado
+
+- [x] Substituir confirmações nativas de exclusão por modal acessível e contextual.
+- [x] Manter o modal aberto e exibir erro quando a exclusão falhar.
+- [x] Bloquear envios duplicados e informar o estado de processamento.
+- [x] Garantir retorno correto ao contexto de aluno ou catálogo em desktop e mobile.
+- [x] Testar localmente e atualizar a versão dos assets.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/accessible-delete-confirmation`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/44
+
+Resultados locais:
+
+- Exclusões de treino, exercício da ficha e exercício do catálogo usam um diálogo comum com título, descrição e botão específicos.
+- Conteúdo dinâmico é inserido com `textContent`, sem interpolação de HTML.
+- O diálogo permanece aberto em falhas da API, anuncia o erro e permite nova tentativa.
+- Envios duplicados são bloqueados e o botão apresenta estado `Excluindo...`.
+- Cancelamento, tecla Escape e conclusão restauram o contexto correto; a atualização da tela ocorre após fechar o diálogo.
+- O frontend não utiliza mais `confirm()` nativo.
+- Versão comum dos assets atualizada para `20260717.7`.
+- Frontend e infraestrutura: 27 de 27 testes aprovados.
+- Backend: 87 de 87 testes aprovados em 11 suítes.
+- API, Nginx, workers e tunnel permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
+- HTML público desktop e mobile confirmou o diálogo e os assets `20260717.7`; JavaScript público confirmou as três ações contextuais e a ausência de `confirm()`.
+- CI do pull request aprovado nas verificações de frontend/infraestrutura e backend.

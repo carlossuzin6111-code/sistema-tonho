@@ -262,7 +262,7 @@ function renderPersonalStudentWorkouts(workouts) {
     }, [SafeDOM.icon('plus'), ' Exercício']);
     const deleteButton = SafeDOM.el('button', {
       className: 'btn btn-danger btn-sm',
-      on: { click: () => deletePersonalWorkout(workout.id) }
+      on: { click: () => deletePersonalWorkout(workout.id, workout.name) }
     }, [SafeDOM.icon('trash-2'), ' Excluir Treino']);
     card.appendChild(SafeDOM.el('div', { className: 'workout-header' }, [
       titleBlock,
@@ -306,7 +306,7 @@ function renderPersonalStudentWorkouts(workouts) {
         const removeButton = SafeDOM.el('button', {
           className: 'btn-icon text-danger',
           attrs: { title: 'Remover Exercício' },
-          on: { click: () => deletePersonalExercise(ex.id) }
+          on: { click: () => deletePersonalExercise(ex.id, ex.name) }
         }, [SafeDOM.icon('trash-2')]);
         exercisesList.appendChild(SafeDOM.el('div', { className: 'exercise-row' }, [info, removeButton]));
       });
@@ -496,16 +496,18 @@ async function handleCreateWorkoutSubmit(event) {
   }
 }
 
-async function deletePersonalWorkout(workoutId) {
-  if (!confirm('Deseja realmente remover esta ficha de treino inteira? Todos os exercícios vinculados serão excluídos.')) return;
-
-  try {
-    await API.delete(`/workouts/${workoutId}`);
-    showToast('Treino excluído com sucesso!', 'success');
-    openStudentDetails(selectedStudentId);
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
+function deletePersonalWorkout(workoutId, workoutName) {
+  openDestructiveConfirmation({
+    title: 'Excluir ficha de treino?',
+    message: `A ficha “${workoutName}” e todos os exercícios vinculados serão excluídos permanentemente.`,
+    confirmLabel: 'Excluir treino',
+    returnModalId: 'modal-student-detail',
+    action: async () => {
+      await API.delete(`/workouts/${workoutId}`);
+      showToast('Treino excluído com sucesso!', 'success');
+      return () => openStudentDetails(selectedStudentId);
+    }
+  });
 }
 
 async function openAddExercise(workoutId) {
@@ -606,16 +608,18 @@ async function handleAddExerciseSubmit(event) {
   }
 }
 
-async function deletePersonalExercise(exerciseId) {
-  if (!confirm('Excluir este exercício?')) return;
-
-  try {
-    await API.delete(`/exercises/${exerciseId}`);
-    showToast('Exercício removido!', 'success');
-    openStudentDetails(selectedStudentId);
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
+function deletePersonalExercise(exerciseId, exerciseName) {
+  openDestructiveConfirmation({
+    title: 'Remover exercício do treino?',
+    message: `O exercício “${exerciseName}” será removido desta ficha de treino.`,
+    confirmLabel: 'Remover exercício',
+    returnModalId: 'modal-student-detail',
+    action: async () => {
+      await API.delete(`/exercises/${exerciseId}`);
+      showToast('Exercício removido!', 'success');
+      return () => openStudentDetails(selectedStudentId);
+    }
+  });
 }
 
 // Chat Central (Personal Trainer Dashboard)
@@ -904,7 +908,7 @@ async function loadPersonalExercises() {
       actions.appendChild(SafeDOM.el('button', {
         className: 'btn btn-danger btn-sm',
         attrs: { title: 'Excluir da Biblioteca' },
-        on: { click: () => deleteCatalogExercise(ex.id) }
+        on: { click: () => deleteCatalogExercise(ex.id, ex.name) }
       }, [SafeDOM.icon('trash-2')]));
       SafeDOM.appendChildren(card, [info, actions]);
       container.appendChild(card);
@@ -998,14 +1002,15 @@ async function handleCreateCatalogExerciseSubmit(event) {
   }
 }
 
-async function deleteCatalogExercise(id) {
-  if (!confirm('Deseja realmente excluir este exercício do seu catálogo? Isso não apagará históricos de treinos passados, mas removerá o vínculo ao GIF de execução.')) return;
-
-  try {
-    await API.delete(`/catalog/exercises/${id}`);
-    showToast('Exercício removido da biblioteca!', 'success');
-    loadPersonalExercises();
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
+function deleteCatalogExercise(id, exerciseName) {
+  openDestructiveConfirmation({
+    title: 'Excluir exercício do catálogo?',
+    message: `“${exerciseName}” será removido do catálogo e perderá o vínculo com a mídia de execução. Os históricos de treinos serão preservados.`,
+    confirmLabel: 'Excluir do catálogo',
+    action: async () => {
+      await API.delete(`/catalog/exercises/${id}`);
+      showToast('Exercício removido da biblioteca!', 'success');
+      return () => loadPersonalExercises();
+    }
+  });
 }

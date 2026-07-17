@@ -12,7 +12,7 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260717.6">
+  <link rel="stylesheet" href="css/style.css?v=20260717.7">
 </head>
 <body>
 
@@ -541,6 +541,22 @@
     </div>
   </div>
 
+  <!-- MODAL: CONFIRMAR AÇÃO DESTRUTIVA -->
+  <div id="modal-destructive-confirmation" class="modal-overlay" data-clear-form-on-close="destructive-confirmation-form">
+    <div class="modal-content glass modal-small">
+      <button class="modal-close" data-action="close-destructive-confirmation" aria-label="Cancelar exclusão"><i data-lucide="x"></i></button>
+      <h2 id="destructive-confirmation-title" class="modal-title"><i data-lucide="triangle-alert"></i> Confirmar exclusão</h2>
+      <form id="destructive-confirmation-form">
+        <p id="destructive-confirmation-message"></p>
+        <p id="destructive-confirmation-form-error" class="auth-form-error hidden" role="alert" aria-live="assertive"></p>
+        <button type="submit" class="btn btn-danger btn-full" data-default-label="Excluir" data-loading-label="Excluindo...">
+          <span data-submit-label>Excluir</span>
+        </button>
+        <button type="button" class="btn btn-full" data-action="close-destructive-confirmation">Cancelar</button>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL 2: CRIAR NOVO TREINO (Personal -> Aluno) -->
   <div id="modal-create-workout" class="modal-overlay">
     <div class="modal-content glass modal-small">
@@ -713,11 +729,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260717.6"></script>
-  <script src="js/safe-dom.js?v=20260717.6"></script>
-  <script src="js/app.js?v=20260717.6"></script>
-  <script src="js/personal.js?v=20260717.6"></script>
-  <script src="js/student.js?v=20260717.6"></script>
-  <script src="js/events.js?v=20260717.6"></script>
+  <script src="js/api.js?v=20260717.7"></script>
+  <script src="js/safe-dom.js?v=20260717.7"></script>
+  <script src="js/app.js?v=20260717.7"></script>
+  <script src="js/personal.js?v=20260717.7"></script>
+  <script src="js/student.js?v=20260717.7"></script>
+  <script src="js/events.js?v=20260717.7"></script>
 </body>
 </html>

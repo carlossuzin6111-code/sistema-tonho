@@ -171,8 +171,8 @@ test('authentication forms expose loading, inline error and password visibility 
   for (const page of ['desktop.html', 'mobile.html']) {
     const html = fs.readFileSync(path.join(frontendRoot, page), 'utf8');
     assert.equal((html.match(/data-action="toggle-password"/g) || []).length, 4);
-    assert.equal((html.match(/role="alert" aria-live="assertive"/g) || []).length, 3);
-    assert.equal((html.match(/data-submit-label/g) || []).length, 3);
+    assert.equal((html.match(/role="alert" aria-live="assertive"/g) || []).length, 4);
+    assert.equal((html.match(/data-submit-label/g) || []).length, 4);
   }
 
   const input = { type: 'password' };
@@ -218,6 +218,25 @@ test('student password reset uses an accessible confirmed form instead of a brow
   assert.match(personal, /setFormSubmitting\(form, true\)/);
   assert.match(personal, /setFormError\(form\.id, err\.message\)/);
   assert.match(events, /'reset-password-form': event => handleResetPasswordSubmit\(event\)/);
+});
+
+test('destructive actions use an accessible contextual confirmation flow', () => {
+  for (const page of ['desktop.html', 'mobile.html']) {
+    const html = fs.readFileSync(path.join(frontendRoot, page), 'utf8');
+    assert.match(html, /id="modal-destructive-confirmation"/);
+    assert.match(html, /id="destructive-confirmation-form"/);
+    assert.match(html, /id="destructive-confirmation-form-error"[^>]*role="alert"/);
+    assert.match(html, /data-loading-label="Excluindo\.\.\."/);
+  }
+
+  const app = read(path.join('js', 'app.js'));
+  const personal = read(path.join('js', 'personal.js'));
+  const events = read(path.join('js', 'events.js'));
+  assert.doesNotMatch(personal, /\bconfirm\s*\(/);
+  assert.equal((personal.match(/openDestructiveConfirmation\(\{/g) || []).length, 3);
+  assert.match(app, /setFormError\(form\.id, err\.message\)/);
+  assert.match(app, /if \(typeof afterClose === 'function'\)/);
+  assert.match(events, /'destructive-confirmation-form': event => handleDestructiveConfirmationSubmit\(event\)/);
 });
 
 test('login submission blocks duplicates and restores the form after an API error', async () => {
