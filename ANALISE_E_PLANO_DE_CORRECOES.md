@@ -641,9 +641,10 @@ Resultados locais:
 - [x] Garantir retorno correto ao contexto de aluno ou catálogo em desktop e mobile.
 - [x] Testar localmente e atualizar a versão dos assets.
 - [x] Publicar e validar na base pública de testes.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `feat/accessible-delete-confirmation`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/44
 
 Resultados locais:
 
