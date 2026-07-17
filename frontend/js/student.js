@@ -7,15 +7,11 @@ let personalTrainerId = null;
 // Loads student workouts from server and renders checklists
 async function loadStudentWorkouts() {
   const container = document.getElementById('student-workouts-container');
-  container.innerHTML = `
-    <div class="loading-placeholder">
-      <div class="spinner"></div>
-      <span>Carregando sua ficha de treinos...</span>
-    </div>
-  `;
+  renderLoadingSkeletons(container, { count: 3, variant: 'workout', label: 'Carregando ficha de treinos' });
 
   try {
     studentWorkouts = await API.get('/student/workouts');
+    finishLoadingState(container);
     
     if (studentWorkouts.length === 0) {
       container.innerHTML = `
@@ -192,6 +188,7 @@ async function loadStudentMeasurements() {
     plotSvgChart('weight-chart-container', chartData);
 
   } catch (err) {
+    finishLoadingState(container);
     showToast(err.message, 'error');
   }
 }

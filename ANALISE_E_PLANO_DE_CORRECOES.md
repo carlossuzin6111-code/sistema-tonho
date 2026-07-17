@@ -721,6 +721,29 @@ Resultados:
 - Backend: 88 de 88 testes aprovados em 11 suítes.
 - Healthcheck público respondeu `200`; HTML e JavaScript públicos confirmaram controles e ordenação local.
 
+### 2026-07-17 — Bloco 25 concluído e publicado
+
+- [x] Criar skeletons reutilizáveis e acessíveis para carregamentos em cards.
+- [x] Aplicar em alunos, catálogo e treinos desktop/mobile.
+- [x] Respeitar `prefers-reduced-motion`.
+- [x] Testar, publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/accessible-loading-skeletons`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/52
+
+Resultados:
+
+- Helper reutilizável cria skeletons com quantidade, variante e mensagem contextual configuráveis.
+- Estados usam `role=status`, `aria-label` e `aria-busy`; elementos puramente visuais ficam ocultos de leitores de tela.
+- Aplicado em lista de alunos, catálogo, treinos do aluno e treinos dentro do modal de acompanhamento.
+- Erros e conclusões removem o estado de carregamento corretamente.
+- Shimmer responsivo é desativado com `prefers-reduced-motion: reduce`.
+- Assets atualizados para `20260717.15`.
+- Frontend e infraestrutura: 32 de 32 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- Healthcheck público respondeu `200`; JavaScript e CSS públicos confirmaram skeletons, estados ARIA e movimento reduzido.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.

@@ -55,15 +55,11 @@ function sortPersonalExercises(value) {
 // Renders the list of students in the Personal Dashboard
 async function loadPersonalStudents() {
   const grid = document.getElementById('students-grid');
-  grid.innerHTML = `
-    <div class="loading-placeholder">
-      <div class="spinner"></div>
-      <span>Carregando sua lista de alunos...</span>
-    </div>
-  `;
+  renderLoadingSkeletons(grid, { count: 3, variant: 'student', label: 'Carregando lista de alunos' });
 
   try {
     personalStudents = await API.get('/personal/students');
+    finishLoadingState(grid);
     document.getElementById('stat-total-students').textContent = personalStudents.length;
 
     if (personalStudents.length === 0) {
@@ -148,6 +144,7 @@ async function loadPersonalStudents() {
     sortPersonalStudents(document.getElementById('students-sort').value);
     filterPersonalStudents(document.getElementById('students-search').value);
   } catch (err) {
+    finishLoadingState(grid);
     SafeDOM.clear(grid);
     grid.appendChild(SafeDOM.errorAlert('Erro ao carregar lista de alunos: ', err.message, 'grid-span-full'));
     lucide.createIcons();
@@ -193,7 +190,7 @@ async function openStudentDetails(studentId) {
   document.getElementById('modal-sd-age').textContent = '-';
   document.getElementById('modal-sd-avatar').textContent = '';
   
-  document.getElementById('modal-workouts-list').innerHTML = '<div class="spinner"></div>';
+  renderLoadingSkeletons(document.getElementById('modal-workouts-list'), { count: 2, variant: 'workout', label: 'Carregando treinos do aluno' });
   document.getElementById('modal-measurements-table-body').innerHTML = '';
   
   openModal('modal-student-detail');
@@ -875,15 +872,11 @@ async function handleResetPasswordSubmit(event) {
 
 async function loadPersonalExercises() {
   const container = document.getElementById('exercises-catalog-list');
-  container.innerHTML = `
-    <div class="loading-placeholder grid-span-full">
-      <div class="spinner"></div>
-      <span>Carregando biblioteca de exercícios...</span>
-    </div>
-  `;
+  renderLoadingSkeletons(container, { count: 4, variant: 'exercise', label: 'Carregando biblioteca de exercícios' });
 
   try {
     const list = await API.get('/catalog/exercises');
+    finishLoadingState(container);
     container.innerHTML = '';
 
     if (list.length === 0) {
@@ -944,6 +937,7 @@ async function loadPersonalExercises() {
     sortPersonalExercises(document.getElementById('exercises-sort').value);
     filterPersonalExercises(document.getElementById('exercises-search').value);
   } catch (err) {
+    finishLoadingState(container);
     SafeDOM.clear(container);
     container.appendChild(SafeDOM.errorAlert('Erro ao carregar catálogo: ', err.message, 'grid-span-full'));
     lucide.createIcons();
