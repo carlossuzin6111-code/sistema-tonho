@@ -552,3 +552,26 @@ Resultados locais:
 - API, Nginx e worker permaneceram saudáveis; healthcheck público respondeu `200`.
 - Página pública confirmou `router.js` `20260717.5` e preservação de `window.location.hash`.
 - `app.js` público confirmou `pushState`, `replaceState`, restauração por papel e listener de `popstate`.
+
+### 2026-07-17 — Bloco 14 concluído e publicado
+
+- [x] Fixar por digest as imagens Node usadas na compilação e no runtime.
+- [x] Fixar por digest as imagens Nginx e Cloudflare Tunnel.
+- [x] Adicionar teste que impeça novas imagens externas flutuantes.
+- [x] Reconstruir, publicar e validar.
+- [ ] Abrir pull request.
+
+Branch de trabalho: `fix/pin-container-images`.
+
+Resultados:
+
+- Node `20.20.2` fixado em `sha256:2cf067cfed83d5ea958367df9f966191a942351a2df77d6f0193e162b5febfc0` nos dois estágios.
+- Nginx `1.31.2` fixado em `sha256:54f2a904c251d5a34adf545a72d32515a15e08418dae0266e23be2e18c66fefa`.
+- cloudflared `2026.7.2` fixado em `sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d`.
+- Teste automatizado inspeciona todas as instruções `FROM` e todas as imagens do Compose e exige digest SHA-256.
+- Compose validado, imagens reconstruídas e todos os containers recriados com sucesso.
+- Inspeção dos containers confirmou que Nginx e tunnel executam exatamente os IDs configurados.
+- Cloudflare registrou quatro conexões e concluiu os testes de DNS, UDP, TCP e API com ambiente saudável.
+- API, Nginx, worker e tunnel permaneceram ativos; healthcheck público respondeu `200`.
+- Frontend e infraestrutura: 24 de 24 testes aprovados.
+- Backend: 84 de 84 testes aprovados em 10 suítes.
