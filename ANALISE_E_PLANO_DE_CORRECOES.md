@@ -479,9 +479,10 @@ Resultados locais:
 - [x] Não registrar senhas nem valores corporais sensíveis nos metadados.
 - [x] Disponibilizar consulta autenticada e limitada às ações do próprio usuário.
 - [x] Testar e migrar a base pública.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `feat/security-audit-log`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/38
 
 Resultados locais:
 
