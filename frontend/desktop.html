@@ -9,7 +9,7 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260717.16">
+  <link rel="stylesheet" href="css/style.css?v=20260717.17">
 </head>
 <body>
 
@@ -156,7 +156,11 @@
             <div class="stats-mini-grid hide-mobile">
               <div class="stat-mini glass">
                 <span class="stat-mini-label">Total Alunos</span>
-                <span class="stat-mini-value" id="stat-total-students">0</span>
+                <span class="stat-mini-value" id="stat-total-students" aria-live="polite">0</span>
+              </div>
+              <div class="stat-mini glass">
+                <span class="stat-mini-label">Mensagens não lidas</span>
+                <span class="stat-mini-value" id="stat-unread-messages" aria-live="polite">0</span>
               </div>
             </div>
           </div>
@@ -728,11 +732,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260717.16"></script>
-  <script src="js/safe-dom.js?v=20260717.16"></script>
-  <script src="js/app.js?v=20260717.16"></script>
-  <script src="js/personal.js?v=20260717.16"></script>
-  <script src="js/student.js?v=20260717.16"></script>
-  <script src="js/events.js?v=20260717.16"></script>
+  <script src="js/api.js?v=20260717.17"></script>
+  <script src="js/safe-dom.js?v=20260717.17"></script>
+  <script src="js/app.js?v=20260717.17"></script>
+  <script src="js/personal.js?v=20260717.17"></script>
+  <script src="js/student.js?v=20260717.17"></script>
+  <script src="js/events.js?v=20260717.17"></script>
 </body>
 </html>

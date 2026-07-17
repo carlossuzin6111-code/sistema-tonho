@@ -766,6 +766,28 @@ Resultados:
 - Backend: 88 de 88 testes aprovados em 11 suítes.
 - Healthcheck público respondeu `200`; JavaScript público confirmou as quatro ações contextuais.
 
+### 2026-07-17 — Bloco 27 concluído e publicado
+
+- [x] Exibir total de alunos e mensagens não lidas no dashboard.
+- [x] Garantir apresentação equivalente em desktop e mobile.
+- [x] Atualizar indicadores sem chamadas adicionais à API.
+- [x] Testar, publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/dashboard-student-summary`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/54
+
+Resultados:
+
+- Desktop exibe cartões de total de alunos e mensagens não lidas no cabeçalho.
+- Mobile ganhou resumo compacto equivalente acima da busca.
+- Valores usam `aria-live=polite` e são derivados do retorno já carregado de alunos.
+- Contagem de não lidas é calculada antes do estado vazio e permanece coerente com o badge de navegação.
+- Assets atualizados para `20260717.17`.
+- Frontend e infraestrutura: 34 de 34 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- Healthcheck público respondeu `200`; HTML e JavaScript públicos confirmaram os indicadores nas duas interfaces.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.

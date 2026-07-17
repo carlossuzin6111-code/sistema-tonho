@@ -86,6 +86,8 @@ body.dark-theme .mobile-header {
 .mobile-brand-icon { width: 20px; height: 20px; }
 .mobile-brand-text { font-size: 1.1rem; }
 .mobile-section-title { font-size: 24px; }
+.mobile-summary-grid { margin: 12px 0 18px; }
+.mobile-summary-grid .stat-mini { flex: 1; padding: 12px 14px; }
 .mobile-section-actions {
   display: flex;
   align-items: center;
