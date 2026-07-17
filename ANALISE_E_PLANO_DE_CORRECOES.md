@@ -658,6 +658,7 @@ Resultados locais:
 - Backend: 87 de 87 testes aprovados em 11 suítes.
 - API, Nginx, workers e tunnel permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
 - HTML público desktop e mobile confirmou os nomes acessíveis e assets `20260717.10`; JavaScript público confirmou os três rótulos dinâmicos contextuais.
+- CI do pull request aprovado nas verificações de frontend/infraestrutura e backend.
 
 ### 2026-07-17 — Bloco 17 concluído e publicado
 
