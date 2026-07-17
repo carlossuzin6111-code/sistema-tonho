@@ -680,6 +680,10 @@ function openExerciseExecutionModal(name, gifUrl, description) {
 // Global measurements submission for Personal and Student
 async function handleAddMeasurementSubmit(event) {
   event.preventDefault();
+  const form = event.target;
+  if (form.dataset.submitting === 'true') return;
+  clearFormError(form.id);
+  setFormSubmitting(form, true);
   
   const weight = parseFloat(document.getElementById('meas-weight').value);
   const chest = document.getElementById('meas-chest').value;
@@ -691,7 +695,10 @@ async function handleAddMeasurementSubmit(event) {
   const thighR = document.getElementById('meas-thigh-r').value;
 
   const user = API.getCurrentUser();
-  if (!user) return;
+  if (!user) {
+    setFormSubmitting(form, false);
+    return;
+  }
 
   const payload = {
     weight,
@@ -722,6 +729,9 @@ async function handleAddMeasurementSubmit(event) {
       loadStudentMeasurements();
     }
   } catch (err) {
+    setFormError(form.id, err.message);
     showToast(err.message, 'error');
+  } finally {
+    setFormSubmitting(form, false);
   }
 }

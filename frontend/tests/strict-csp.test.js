@@ -227,8 +227,8 @@ test('authentication forms expose loading, inline error and password visibility 
   for (const page of ['desktop.html', 'mobile.html']) {
     const html = fs.readFileSync(path.join(frontendRoot, page), 'utf8');
     assert.equal((html.match(/data-action="toggle-password"/g) || []).length, 4);
-    assert.equal((html.match(/role="alert" aria-live="assertive"/g) || []).length, 4);
-    assert.equal((html.match(/data-submit-label/g) || []).length, 4);
+    assert.equal((html.match(/role="alert" aria-live="assertive"/g) || []).length, 9);
+    assert.equal((html.match(/data-submit-label/g) || []).length, 9);
   }
 
   const input = { type: 'password' };
@@ -293,6 +293,32 @@ test('destructive actions use an accessible contextual confirmation flow', () =>
   assert.match(app, /setFormError\(form\.id, err\.message\)/);
   assert.match(app, /if \(typeof afterClose === 'function'\)/);
   assert.match(events, /'destructive-confirmation-form': event => handleDestructiveConfirmationSubmit\(event\)/);
+});
+
+test('internal creation forms block duplicate submissions and announce local errors', () => {
+  const formIds = [
+    'create-student-form',
+    'create-workout-form',
+    'add-exercise-form',
+    'add-measurement-form',
+    'create-catalog-exercise-form'
+  ];
+
+  for (const page of ['desktop.html', 'mobile.html']) {
+    const html = fs.readFileSync(path.join(frontendRoot, page), 'utf8');
+    for (const formId of formIds) {
+      assert.match(html, new RegExp(`id="${formId}"[^>]*class="form-with-feedback"`));
+      assert.match(html, new RegExp(`id="${formId}-error"[^>]*role="alert"`));
+    }
+    assert.equal((html.match(/data-loading-label=/g) || []).length >= 9, true);
+  }
+
+  const app = read(path.join('js', 'app.js'));
+  const personal = read(path.join('js', 'personal.js'));
+  const events = read(path.join('js', 'events.js'));
+  assert.match(app, /handleAddMeasurementSubmit[\s\S]*form\.dataset\.submitting === 'true'/);
+  assert.equal((personal.match(/form\.dataset\.submitting === 'true'/g) || []).length >= 5, true);
+  assert.match(events, /\.auth-form, \.form-with-feedback/);
 });
 
 test('login submission blocks duplicates and restores the form after an API error', async () => {

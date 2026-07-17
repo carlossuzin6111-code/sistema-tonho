@@ -788,6 +788,33 @@ Resultados:
 - Backend: 88 de 88 testes aprovados em 11 suítes.
 - Healthcheck público respondeu `200`; HTML e JavaScript públicos confirmaram os indicadores nas duas interfaces.
 
+### 2026-07-17 — Bloco 28 concluído e publicado
+
+- [x] Bloquear envios duplicados nos formulários internos de aluno, treino, exercício, medição e catálogo.
+- [x] Exibir estado de processamento no botão de cada formulário em desktop e mobile.
+- [x] Anunciar falhas junto ao formulário e limpar o erro quando o usuário voltar a editar.
+- [x] Limpar o formulário do catálogo após uma criação concluída.
+- [x] Adicionar teste preventivo para os cinco fluxos.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+- [x] Aguardar a CI.
+
+Branch de trabalho: `feat/internal-form-feedback`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/55
+
+Resultados locais:
+
+- Os cinco formulários ignoram novas submissões enquanto a primeira requisição está em andamento.
+- Botões ficam desabilitados, recebem `aria-busy` no formulário e apresentam texto específico de carregamento.
+- Erros de validação e da API são expostos em regiões `role=alert`, sem remover o aviso global já existente.
+- Assets atualizados para `20260717.18`.
+- Frontend e infraestrutura: 35 de 35 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- HTML e JavaScript públicos confirmaram os assets `20260717.18`, regiões de erro e bloqueio de submissões duplicadas.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.

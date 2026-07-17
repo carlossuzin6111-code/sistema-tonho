@@ -8,9 +8,9 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Base Styles (Components, Colors, Lovable) -->
-  <link rel="stylesheet" href="css/style.css?v=20260717.17">
+  <link rel="stylesheet" href="css/style.css?v=20260717.18">
   <!-- Mobile Architecture Overrides (PWA Lock) -->
-  <link rel="stylesheet" href="css/mobile.css?v=20260717.17">
+  <link rel="stylesheet" href="css/mobile.css?v=20260717.18">
 </head>
 <body>
 
@@ -127,7 +127,7 @@
         <div id="tab-p-create" class="tab-pane">
           <h1 class="section-title mobile-section-title mb-16">Cadastrar Aluno</h1>
           <div class="form-container-card glass">
-            <form id="create-student-form">
+            <form id="create-student-form" class="form-with-feedback">
               <div class="grid grid-2">
                 <div class="input-group">
                   <label for="new-student-name"><i data-lucide="user"></i> Nome Completo do Aluno *</label>
@@ -161,8 +161,9 @@
                 </div>
               </div>
 
-              <button type="submit" class="btn btn-primary btn-full">
-                <i data-lucide="user-plus"></i> <span>Criar Conta do Aluno</span>
+              <p id="create-student-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+              <button type="submit" class="btn btn-primary btn-full" data-default-label="Criar Conta do Aluno" data-loading-label="Criando conta...">
+                <i data-lucide="user-plus"></i> <span data-submit-label>Criar Conta do Aluno</span>
               </button>
             </form>
           </div>
@@ -377,10 +378,11 @@
       <button class="modal-close" data-action="close-modal" data-modal="modal-create-workout" aria-label="Fechar criação de treino"><i data-lucide="x"></i></button>
       <div class="mobile-modal-inner">
         <h2 class="modal-title">Novo Treino</h2>
-        <form id="create-workout-form">
+        <form id="create-workout-form" class="form-with-feedback">
           <div class="input-group"><label for="workout-name">Nome *</label><input type="text" id="workout-name" required></div>
           <div class="input-group"><label for="workout-description">Foco</label><input type="text" id="workout-description"></div>
-          <button type="submit" class="btn btn-primary btn-full">Criar</button>
+          <p id="create-workout-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+          <button type="submit" class="btn btn-primary btn-full" data-default-label="Criar" data-loading-label="Criando..."><span data-submit-label>Criar</span></button>
         </form>
       </div>
     </div>
@@ -391,7 +393,7 @@
       <button class="modal-close" data-action="close-modal" data-modal="modal-add-exercise" aria-label="Fechar adição de exercício"><i data-lucide="x"></i></button>
       <div class="mobile-modal-inner">
         <h2 class="modal-title">Exercício</h2>
-        <form id="add-exercise-form">
+        <form id="add-exercise-form" class="form-with-feedback">
           <div class="input-group"><label for="ex-select">Biblioteca</label><select id="ex-select" required></select></div>
           <div class="input-group hidden" id="ex-custom-name-group"><label for="ex-name">Nome Customizado</label><input type="text" id="ex-name"></div>
           <div class="grid grid-2">
@@ -403,7 +405,8 @@
             <div class="input-group"><label for="ex-rest">Descanso</label><input type="text" id="ex-rest"></div>
           </div>
           <div class="input-group"><label for="ex-notes">Instrução</label><input type="text" id="ex-notes"></div>
-          <button type="submit" class="btn btn-primary btn-full">Adicionar</button>
+          <p id="add-exercise-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+          <button type="submit" class="btn btn-primary btn-full" data-default-label="Adicionar" data-loading-label="Adicionando..."><span data-submit-label>Adicionar</span></button>
         </form>
       </div>
     </div>
@@ -414,14 +417,15 @@
       <button class="modal-close" data-action="close-modal" data-modal="modal-add-measurement" aria-label="Fechar lançamento de medidas"><i data-lucide="x"></i></button>
       <div class="mobile-modal-inner">
         <h2 class="modal-title">Lançar Medidas</h2>
-        <form id="add-measurement-form">
+        <form id="add-measurement-form" class="form-with-feedback">
           <div class="grid grid-2">
             <div class="input-group"><label for="meas-weight">Peso (kg) *</label><input type="number" id="meas-weight" required step="0.1"></div>
             <div class="input-group"><label for="meas-chest">Tórax</label><input type="number" id="meas-chest" step="0.1"></div>
             <div class="input-group"><label for="meas-waist">Cintura</label><input type="number" id="meas-waist" step="0.1"></div>
             <div class="input-group"><label for="meas-hips">Quadril</label><input type="number" id="meas-hips" step="0.1"></div>
           </div>
-          <button type="submit" class="btn btn-primary btn-full">Gravar</button>
+          <p id="add-measurement-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+          <button type="submit" class="btn btn-primary btn-full" data-default-label="Gravar" data-loading-label="Gravando..."><span data-submit-label>Gravar</span></button>
         </form>
       </div>
     </div>
@@ -445,13 +449,14 @@
       <button class="modal-close" data-action="close-modal" data-modal="modal-create-catalog-exercise" aria-label="Fechar criação de exercício"><i data-lucide="x"></i></button>
       <div class="mobile-modal-inner">
         <h2 class="modal-title">Criar Exercício</h2>
-        <form id="create-catalog-exercise-form">
+        <form id="create-catalog-exercise-form" class="form-with-feedback">
           <div class="input-group"><label for="cat-ex-name">Nome *</label><input type="text" id="cat-ex-name" required></div>
           <div class="input-group"><label for="cat-ex-gif-url">Link do dataset aprovado (raw.githubusercontent.com)</label><input type="url" id="cat-ex-gif-url" placeholder="https://raw.githubusercontent.com/.../exercicio.gif"></div>
           <div class="input-group"><label for="cat-ex-gif-file">Ou enviar imagem (máx. 380 KB)</label><input type="file" id="cat-ex-gif-file" accept="image/gif,image/png,image/jpeg,image/webp"></div>
           <div class="input-group"><label for="cat-ex-description">Orientações</label><textarea id="cat-ex-description" rows="3"></textarea></div>
           <input type="hidden" id="cat-ex-base64" />
-          <button type="submit" class="btn btn-primary btn-full">Salvar</button>
+          <p id="create-catalog-exercise-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+          <button type="submit" class="btn btn-primary btn-full" data-default-label="Salvar" data-loading-label="Salvando..."><span data-submit-label>Salvar</span></button>
         </form>
       </div>
     </div>
@@ -483,11 +488,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260717.17"></script>
-  <script src="js/safe-dom.js?v=20260717.17"></script>
-  <script src="js/app.js?v=20260717.17"></script>
-  <script src="js/personal.js?v=20260717.17"></script>
-  <script src="js/student.js?v=20260717.17"></script>
-  <script src="js/events.js?v=20260717.17"></script>
+  <script src="js/api.js?v=20260717.18"></script>
+  <script src="js/safe-dom.js?v=20260717.18"></script>
+  <script src="js/app.js?v=20260717.18"></script>
+  <script src="js/personal.js?v=20260717.18"></script>
+  <script src="js/student.js?v=20260717.18"></script>
+  <script src="js/events.js?v=20260717.18"></script>
 </body>
 </html>
