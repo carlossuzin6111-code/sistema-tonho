@@ -1,4 +1,5 @@
 const db = require('../database');
+const { AUDIT_ACTIONS, recordAudit } = require('../services/auditService');
 
 // Create a new exercise (Personal Trainer only)
 async function createExercise(req, res) {
@@ -74,7 +75,15 @@ async function deleteExercise(req, res) {
       return res.status(403).json({ error: 'Access denied: you do not own this exercise' });
     }
 
-    await db('exercises').where('id', exerciseId).del();
+    await db.transaction(async trx => {
+      await trx('exercises').where('id', exerciseId).del();
+      await recordAudit(trx, {
+        actorUserId: personalId,
+        action: AUDIT_ACTIONS.CATALOG_EXERCISE_DELETED,
+        targetType: 'catalog_exercise',
+        targetId: exerciseId
+      });
+    });
     res.status(200).json({ message: 'Exercise deleted successfully' });
   } catch (err) {
     console.error('Delete exercise error:', err.message);

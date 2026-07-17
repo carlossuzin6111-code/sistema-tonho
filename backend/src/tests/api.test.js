@@ -618,6 +618,34 @@ describe('FitLife Sync API Integration Tests', () => {
     });
   });
 
+  describe('Audit Log Endpoint', () => {
+    test('Should return only the authenticated user audit trail without sensitive values', async () => {
+      const personalResponse = await request(app)
+        .get('/api/audit-logs')
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(personalResponse.statusCode).toBe(200);
+      const actions = personalResponse.body.map(log => log.action);
+      expect(actions).toEqual(expect.arrayContaining([
+        'student.password_reset',
+        'measurement.created',
+        'workout_exercise.deleted',
+        'workout.deleted',
+        'catalog_exercise.deleted'
+      ]));
+      expect(JSON.stringify(personalResponse.body)).not.toMatch(/new_student_password123|73\.5|74(?:\.0)?/);
+
+      const studentResponse = await request(app)
+        .get('/api/audit-logs')
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(studentResponse.statusCode).toBe(200);
+      expect(studentResponse.body.map(log => log.action)).toEqual(['measurement.created']);
+    });
+
+    test('Should reject unauthenticated audit access', async () => {
+      await request(app).get('/api/audit-logs').expect(401);
+    });
+  });
+
   // ==========================================
   // 6. CHAT
   // ==========================================

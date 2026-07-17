@@ -9,7 +9,8 @@ const applicationTables = [
   'workout_exercises',
   'measurements',
   'chat_messages',
-  'registration_keys'
+  'registration_keys',
+  'audit_logs'
 ];
 
 const migrations = [
@@ -17,7 +18,8 @@ const migrations = [
   '202607140002_add_query_indexes.js',
   '202607140003_create_registration_keys.js',
   '202607160001_normalize_user_emails.js',
-  '202607160002_add_session_version.js'
+  '202607160002_add_session_version.js',
+  '202607170001_create_audit_logs.js'
 ];
 
 function createDatabase() {
@@ -52,6 +54,13 @@ describe('database migrations', () => {
       .where({ type: 'index', name: 'users_email_normalized_unique' })
       .first();
     expect(emailIndex).toBeTruthy();
+    const auditIndexes = await db('sqlite_master')
+      .pluck('name')
+      .where({ type: 'index', tbl_name: 'audit_logs' });
+    expect(auditIndexes).toEqual(expect.arrayContaining([
+      'audit_logs_actor_created_idx',
+      'audit_logs_action_created_idx'
+    ]));
   });
 
   test('preserves legacy data while bringing an existing schema under migrations', async () => {
