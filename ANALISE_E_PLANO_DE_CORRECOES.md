@@ -359,3 +359,29 @@ Resultados locais:
 - Backend: 72 de 72 testes aprovados em 9 suítes, sem handles ou erros após o encerramento.
 - Migration `202607160002_add_session_version.js` aplicada e coluna `session_version` confirmada na base pública.
 - API e containers permaneceram saudáveis após a publicação; healthcheck público respondeu `200`.
+
+### 2026-07-17 — Bloco 7 concluído e publicado
+
+- [x] Validar no backend as mídias associadas aos exercícios do catálogo.
+- [x] Aceitar somente URLs HTTPS ou imagens raster em Base64 com tipos e tamanho controlados.
+- [x] Antecipar no frontend erros de arquivo incompatível ou grande demais.
+- [x] Atualizar documentação, testes automatizados e versão dos assets.
+- [x] Publicar na base de testes e validar os serviços.
+- [x] Abrir pull request.
+
+Branch de trabalho: `fix/exercise-media-validation`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/34
+
+Resultados locais:
+
+- URLs externas agora precisam usar HTTPS e ter no máximo 2048 caracteres.
+- Imagens incorporadas ficam limitadas a GIF, PNG, JPEG ou WebP Base64, até 525000 caracteres; o conteúdo binário precisa corresponder ao formato declarado.
+- Arquivos acima de 380 KB ou com tipo incompatível são recusados no navegador antes da conversão.
+- O limite JSON permanece controlado em 600 KB para comportar a imagem permitida sem aceitar cargas arbitrariamente grandes.
+- A renderização deixou de carregar imagens externas por HTTP.
+- Frontend e infraestrutura: 18 de 18 testes aprovados.
+- Backend: 81 de 81 testes aprovados em 9 suítes.
+- Imagem da aplicação reconstruída e executada com `NODE_ENV=production`.
+- API e Nginx permaneceram saudáveis após mais de dois minutos; worker de tradução permaneceu ativo sem erros recentes.
+- Healthcheck público respondeu `200` e o HTML externo confirmou a versão de assets `20260717.1`.
+- GitHub Actions do PR #34: checks `Backend` e `Frontend and infrastructure` concluídos com sucesso; branch marcada como limpa para merge.

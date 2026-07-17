@@ -1,6 +1,20 @@
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const { normalizeEmail } = require('../services/userIdentityService');
+const MAX_EXERCISE_IMAGE_URL_LENGTH = 2048;
+const MAX_EXERCISE_IMAGE_DATA_URL_LENGTH = 525000;
+const RASTER_DATA_URL_PATTERN = /^data:image\/(gif|png|jpe?g|webp);base64,([A-Za-z0-9+/]+={0,2})$/i;
+
+function hasExpectedImageSignature(mimeSubtype, bytes) {
+  const subtype = mimeSubtype.toLowerCase();
+  if (subtype === 'gif') return bytes.subarray(0, 6).toString('ascii') === 'GIF87a'
+    || bytes.subarray(0, 6).toString('ascii') === 'GIF89a';
+  if (subtype === 'png') return bytes.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex'));
+  if (subtype === 'jpg' || subtype === 'jpeg') return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  if (subtype === 'webp') return bytes.subarray(0, 4).toString('ascii') === 'RIFF'
+    && bytes.subarray(8, 12).toString('ascii') === 'WEBP';
+  return false;
+}
 
 function optionalString({ min = 0, max, pattern, label = 'value' } = {}) {
   return value => {
@@ -44,6 +58,38 @@ function optionalExercises(value) {
     if (typeof exercise.name === 'string' && exercise.name.length > 200) {
       return 'exercise name must have at most 200 characters';
     }
+  }
+  return null;
+}
+
+function optionalExerciseImage(value) {
+  if (value === undefined || value === null || value === '') return null;
+  if (typeof value !== 'string') return 'gifUrl must be a string';
+
+  if (value.startsWith('data:')) {
+    if (value.length > MAX_EXERCISE_IMAGE_DATA_URL_LENGTH) {
+      return 'gifUrl embedded image must have at most 525000 characters';
+    }
+    const match = value.match(RASTER_DATA_URL_PATTERN);
+    if (!match || match[2].length % 4 !== 0) {
+      return 'gifUrl must be a valid GIF, PNG, JPEG, or WebP Base64 image';
+    }
+    const imageBytes = Buffer.from(match[2], 'base64');
+    if (!hasExpectedImageSignature(match[1], imageBytes)) {
+      return 'gifUrl image content does not match its declared format';
+    }
+    return null;
+  }
+
+  if (value.length > MAX_EXERCISE_IMAGE_URL_LENGTH) {
+    return `gifUrl must have at most ${MAX_EXERCISE_IMAGE_URL_LENGTH} characters`;
+  }
+
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'https:') return 'gifUrl must use HTTPS';
+  } catch (error) {
+    return 'gifUrl must be a valid HTTPS URL';
   }
   return null;
 }
@@ -101,7 +147,7 @@ const bodySchemas = {
   },
   catalogExercise: {
     name: text('name', 200),
-    gifUrl: text('gifUrl', 2_000_000),
+    gifUrl: optionalExerciseImage,
     description: text('description', 5000)
   },
   chatMessage: {
@@ -152,6 +198,8 @@ function validateIdParam(paramName = 'id') {
 }
 
 module.exports = {
+  MAX_EXERCISE_IMAGE_DATA_URL_LENGTH,
+  MAX_EXERCISE_IMAGE_URL_LENGTH,
   bodySchemas,
   validateBody,
   validateIdParam
