@@ -451,9 +451,10 @@ Resultados locais:
 - [x] Fazer backup e ajustar a propriedade do volume público existente antes da publicação.
 - [x] Validar imagem e container temporário.
 - [x] Publicar e validar a pilha pública.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `fix/nonroot-runtime-image`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/37
 
 Resultados locais:
 
