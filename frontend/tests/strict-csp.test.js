@@ -442,6 +442,17 @@ test('student and exercise sorting is local, accessible and search-compatible', 
   assert.match(events, /exercises-sort.*sortPersonalExercises/);
 });
 
+test('student dashboard summarizes totals and unread messages without another request', () => {
+  for (const page of ['desktop.html', 'mobile.html']) {
+    const html = read(page);
+    assert.match(html, /id="stat-total-students"[^>]*aria-live="polite"/);
+    assert.match(html, /id="stat-unread-messages"[^>]*aria-live="polite"/);
+  }
+  const personal = read(path.join('js', 'personal.js'));
+  assert.match(personal, /personalStudents\.reduce\(\(total, student\) => total \+ \(student\.unread_messages \|\| 0\), 0\)/);
+  assert.match(personal, /getElementById\('stat-unread-messages'\)\.textContent = globalUnread/);
+});
+
 test('dashboard tabs use restorable history routes and preserve them through interface selection', () => {
   const calls = [];
   const context = {

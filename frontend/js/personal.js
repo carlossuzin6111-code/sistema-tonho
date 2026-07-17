@@ -61,6 +61,8 @@ async function loadPersonalStudents() {
     personalStudents = await API.get('/personal/students');
     finishLoadingState(grid);
     document.getElementById('stat-total-students').textContent = personalStudents.length;
+    const globalUnread = personalStudents.reduce((total, student) => total + (student.unread_messages || 0), 0);
+    document.getElementById('stat-unread-messages').textContent = globalUnread;
 
     if (personalStudents.length === 0) {
       grid.innerHTML = `
@@ -77,11 +79,7 @@ async function loadPersonalStudents() {
     }
 
     grid.innerHTML = '';
-    let globalUnread = 0;
-
     personalStudents.forEach(student => {
-      globalUnread += student.unread_messages || 0;
-      
       const card = document.createElement('div');
       card.className = 'student-card glass';
       card.dataset.search = normalizeListSearch(`${student.name} ${student.email}`);
