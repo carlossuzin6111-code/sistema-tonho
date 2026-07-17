@@ -153,6 +153,10 @@ async function loadPersonalStudents() {
 // Handle Student Creation
 async function handleCreateStudent(event) {
   event.preventDefault();
+  const form = event.target;
+  if (form.dataset.submitting === 'true') return;
+  clearFormError(form.id);
+  setFormSubmitting(form, true);
   
   const name = document.getElementById('new-student-name').value;
   const email = document.getElementById('new-student-email').value;
@@ -173,7 +177,10 @@ async function handleCreateStudent(event) {
     document.getElementById('create-student-form').reset();
     switchPersonalTab('students');
   } catch (err) {
+    setFormError(form.id, err.message);
     showToast(err.message, 'error');
+  } finally {
+    setFormSubmitting(form, false);
   }
 }
 
@@ -500,6 +507,10 @@ function openCreateWorkoutModal() {
 
 async function handleCreateWorkoutSubmit(event) {
   event.preventDefault();
+  const form = event.target;
+  if (form.dataset.submitting === 'true') return;
+  clearFormError(form.id);
+  setFormSubmitting(form, true);
   const name = document.getElementById('workout-name').value;
   const description = document.getElementById('workout-description').value;
 
@@ -517,7 +528,10 @@ async function handleCreateWorkoutSubmit(event) {
     // Refresh student details in modal
     openStudentDetails(selectedStudentId);
   } catch (err) {
+    setFormError(form.id, err.message);
     showToast(err.message, 'error');
+  } finally {
+    setFormSubmitting(form, false);
   }
 }
 
@@ -586,6 +600,9 @@ function handleExerciseSelectChange(select) {
 
 async function handleAddExerciseSubmit(event) {
   event.preventDefault();
+  const form = event.target;
+  if (form.dataset.submitting === 'true') return;
+  clearFormError(form.id);
   
   const select = document.getElementById('ex-select');
   const sets = document.getElementById('ex-sets').value;
@@ -604,15 +621,20 @@ async function handleAddExerciseSubmit(event) {
     name = selectedOption.getAttribute('data-name');
     exerciseId = parseInt(select.value);
   } else {
-    showToast('Por favor, selecione um exercício da biblioteca.', 'error');
+    const message = 'Por favor, selecione um exercício da biblioteca.';
+    setFormError(form.id, message);
+    showToast(message, 'error');
     return;
   }
 
   if (!name) {
-    showToast('Nome do exercício é obrigatório.', 'error');
+    const message = 'Nome do exercício é obrigatório.';
+    setFormError(form.id, message);
+    showToast(message, 'error');
     return;
   }
 
+  setFormSubmitting(form, true);
   try {
     await API.post(`/workouts/${activeWorkoutId}/exercises`, {
       name, 
@@ -629,7 +651,10 @@ async function handleAddExerciseSubmit(event) {
     document.getElementById('add-exercise-form').reset();
     openStudentDetails(selectedStudentId);
   } catch (err) {
+    setFormError(form.id, err.message);
     showToast(err.message, 'error');
+  } finally {
+    setFormSubmitting(form, false);
   }
 }
 
@@ -996,6 +1021,9 @@ function handleCatalogGifUrlInput() {
 
 async function handleCreateCatalogExerciseSubmit(event) {
   event.preventDefault();
+  const form = event.target;
+  if (form.dataset.submitting === 'true') return;
+  clearFormError(form.id);
 
   const name = document.getElementById('cat-ex-name').value.trim();
   const description = document.getElementById('cat-ex-description').value.trim();
@@ -1005,10 +1033,13 @@ async function handleCreateCatalogExerciseSubmit(event) {
   const gifUrl = base64Val || urlVal || null;
 
   if (!name) {
-    showToast('O nome do exercício é obrigatório.', 'error');
+    const message = 'O nome do exercício é obrigatório.';
+    setFormError(form.id, message);
+    showToast(message, 'error');
     return;
   }
 
+  setFormSubmitting(form, true);
   try {
     await API.post('/catalog/exercises', {
       name,
@@ -1018,9 +1049,13 @@ async function handleCreateCatalogExerciseSubmit(event) {
 
     showToast('Exercício criado com sucesso!', 'success');
     closeModal('modal-create-catalog-exercise');
+    form.reset();
     loadPersonalExercises();
   } catch (err) {
+    setFormError(form.id, err.message);
     showToast(err.message, 'error');
+  } finally {
+    setFormSubmitting(form, false);
   }
 }
 
