@@ -442,3 +442,31 @@ Resultados locais:
 - HTML público confirmou os quatro indicadores acessíveis e a versão `20260717.3`.
 - JavaScript público confirmou o mapeamento de reconexão e o controle de estado do envio.
 - GitHub Actions do PR #36: checks `Backend` e `Frontend and infrastructure` concluídos com sucesso.
+
+### 2026-07-17 — Bloco 10 concluído e publicado
+
+- [x] Separar compilação de dependências e imagem final do backend.
+- [x] Remover compiladores e ferramentas de build do runtime.
+- [x] Executar API e worker como usuário sem privilégios.
+- [x] Fazer backup e ajustar a propriedade do volume público existente antes da publicação.
+- [x] Validar imagem e container temporário.
+- [x] Publicar e validar a pilha pública.
+- [ ] Abrir pull request.
+
+Branch de trabalho: `fix/nonroot-runtime-image`.
+
+Resultados locais:
+
+- Dockerfile separado em estágios `dependencies` e `runtime`.
+- Python, `make` e `g++` permanecem apenas na compilação e foram confirmados como ausentes da imagem final.
+- Arquivos e dependências são copiados com propriedade de `node:node`; runtime declara `USER node`.
+- Inspeção confirmou UID/GID `1000` e usuário configurado `node`.
+- Container temporário criou o banco, aplicou todas as migrations e respondeu `200` no healthcheck sem privilégios.
+- Imagem final medida em 91482030 bytes.
+- Frontend e infraestrutura: 21 de 21 testes aprovados.
+- Backend: 82 de 82 testes aprovados em 10 suítes.
+- Rotina `npm run db:backup -- <destino>` adicionada e coberta por teste de snapshot, integridade e preservação de dados.
+- Backup público criado em `/app/data/database.pre-nonroot-20260717.sqlite`: 102400 bytes, 11 tabelas e integridade `ok`.
+- Propriedade do volume migrada para UID/GID 1000; banco atual e backups confirmados como `node:node`.
+- API e worker publicados como `uid=1000(node)`; escrita e remoção de arquivo temporário no volume foram bem-sucedidas.
+- API, Nginx e worker permaneceram saudáveis e sem exceções nos logs; healthcheck público respondeu `200`.
