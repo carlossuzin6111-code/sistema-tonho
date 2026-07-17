@@ -303,7 +303,7 @@ function renderPersonalStudentWorkouts(workouts) {
         ]);
         const removeButton = SafeDOM.el('button', {
           className: 'btn-icon text-danger',
-          attrs: { title: 'Remover Exercício' },
+          attrs: { title: 'Remover Exercício', 'aria-label': `Remover ${ex.name} do treino` },
           on: { click: () => deletePersonalExercise(ex.id, ex.name) }
         }, [SafeDOM.icon('trash-2')]);
         exercisesList.appendChild(SafeDOM.el('div', { className: 'exercise-row' }, [info, removeButton]));
@@ -896,13 +896,13 @@ async function loadPersonalExercises() {
       if (hasSafeImage) {
         actions.appendChild(SafeDOM.el('button', {
           className: 'btn btn-tertiary btn-sm',
-          attrs: { title: 'Testar Popup' },
+          attrs: { title: 'Visualizar execução', 'aria-label': `Visualizar execução de ${ex.name}` },
           on: { click: () => openExerciseExecutionModal(ex.name, ex.gif_url, descText) }
         }, [SafeDOM.icon('eye')]));
       }
       actions.appendChild(SafeDOM.el('button', {
         className: 'btn btn-danger btn-sm',
-        attrs: { title: 'Excluir da Biblioteca' },
+        attrs: { title: 'Excluir da biblioteca', 'aria-label': `Excluir ${ex.name} da biblioteca` },
         on: { click: () => deleteCatalogExercise(ex.id, ex.name) }
       }, [SafeDOM.icon('trash-2')]));
       SafeDOM.appendChildren(card, [info, actions]);

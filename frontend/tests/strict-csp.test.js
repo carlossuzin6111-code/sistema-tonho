@@ -24,6 +24,24 @@ test('HTML contains no inline scripts or event handler attributes', () => {
   }
 });
 
+test('icon-only buttons expose an explicit accessible name', () => {
+  for (const filename of ['desktop.html', 'mobile.html']) {
+    const html = read(filename);
+    const buttons = [...html.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/gi)];
+    for (const [, attributes, content] of buttons) {
+      if (!/data-lucide=/i.test(content)) continue;
+      const visibleText = content.replace(/<[^>]+>/g, '').trim();
+      if (visibleText) continue;
+      assert.match(attributes, /aria-label="[^"]+"/i, `${filename} has an unnamed icon-only button`);
+    }
+  }
+
+  const personal = read(path.join('js', 'personal.js'));
+  assert.match(personal, /'aria-label': `Remover \$\{ex\.name\} do treino`/);
+  assert.match(personal, /'aria-label': `Visualizar execução de \$\{ex\.name\}`/);
+  assert.match(personal, /'aria-label': `Excluir \$\{ex\.name\} da biblioteca`/);
+});
+
 test('every declarative action is present in the event allowlist', () => {
   const eventsSource = read(path.join('js', 'events.js'));
   const actions = new Set();

@@ -9,7 +9,7 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260717.9">
+  <link rel="stylesheet" href="css/style.css?v=20260717.10">
 </head>
 <body>
 
@@ -114,10 +114,10 @@
             <span class="profile-email" id="header-user-email">email@exemplo.com</span>
           </div>
         </div>
-        <button class="btn-icon theme-toggle-button" data-action="toggle-theme" title="Alterar Tema">
+        <button class="btn-icon theme-toggle-button" data-action="toggle-theme" title="Alterar Tema" aria-label="Alterar tema">
           <i id="theme-toggle-icon" data-lucide="sun"></i>
         </button>
-        <button class="btn-icon btn-logout" data-action="logout" title="Sair da Conta">
+        <button class="btn-icon btn-logout" data-action="logout" title="Sair da Conta" aria-label="Sair da conta">
           <i data-lucide="log-out"></i>
         </button>
       </div>
@@ -253,7 +253,7 @@
               <!-- Active Chat Area -->
               <div class="chat-active-area hidden" id="personal-chat-active">
                 <div class="chat-active-header">
-                  <button class="btn-icon hide-desktop btn-chat-back chat-back-button" data-action="close-chat-thread">
+                  <button class="btn-icon hide-desktop btn-chat-back chat-back-button" data-action="close-chat-thread" aria-label="Voltar para conversas">
                     <i data-lucide="arrow-left"></i>
                   </button>
                   <div class="avatar" id="chat-active-avatar">A</div>
@@ -426,7 +426,7 @@
   <!-- MODAL 1: DETALHES DO ALUNO (Visualização do Personal) -->
   <div id="modal-student-detail" class="modal-overlay">
     <div class="modal-content glass student-detail-modal">
-      <button class="modal-close" data-action="close-modal" data-modal="modal-student-detail"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-student-detail" aria-label="Fechar detalhes do aluno"><i data-lucide="x"></i></button>
       <div class="modal-header-profile">
         <div class="avatar-large" id="modal-sd-avatar">A</div>
         <div class="modal-profile-info">
@@ -557,7 +557,7 @@
   <!-- MODAL 2: CRIAR NOVO TREINO (Personal -> Aluno) -->
   <div id="modal-create-workout" class="modal-overlay">
     <div class="modal-content glass modal-small">
-      <button class="modal-close" data-action="close-modal" data-modal="modal-create-workout"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-create-workout" aria-label="Fechar criação de treino"><i data-lucide="x"></i></button>
       <h2 class="modal-title"><i data-lucide="plus-circle"></i> Nova Ficha de Treino</h2>
       <form id="create-workout-form">
         <div class="input-group">
@@ -576,7 +576,7 @@
   <!-- MODAL 3: ADICIONAR EXERCÍCIO AO TREINO (Personal) -->
   <div id="modal-add-exercise" class="modal-overlay">
     <div class="modal-content glass modal-small">
-      <button class="modal-close" data-action="close-modal" data-modal="modal-add-exercise"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-add-exercise" aria-label="Fechar adição de exercício"><i data-lucide="x"></i></button>
       <h2 class="modal-title"><i data-lucide="plus"></i> Adicionar Exercício</h2>
       <form id="add-exercise-form">
         <div class="input-group">
@@ -621,7 +621,7 @@
   <!-- MODAL 4: REGISTRAR MEDIDAS (Aluno) -->
   <div id="modal-add-measurement" class="modal-overlay">
     <div class="modal-content glass modal-medium">
-      <button class="modal-close" data-action="close-modal" data-modal="modal-add-measurement"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-add-measurement" aria-label="Fechar lançamento de medidas"><i data-lucide="x"></i></button>
       <h2 class="modal-title"><i data-lucide="ruler"></i> Lançar Minhas Medidas</h2>
       <p class="modal-subtitle">Preencha os campos abaixo. O peso é obrigatório, os demais campos ajudam seu personal a ver sua evolução física.</p>
       
@@ -674,7 +674,7 @@
   <!-- MODAL 5: POPUP DE EXECUÇÃO DO EXERCÍCIO (Aluno/Personal) -->
   <div id="modal-exercise-execution" class="modal-overlay">
     <div class="modal-content glass modal-medium">
-      <button class="modal-close" data-action="close-modal" data-modal="modal-exercise-execution"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-exercise-execution" aria-label="Fechar execução do exercício"><i data-lucide="x"></i></button>
       <h2 class="modal-title" id="execution-modal-title"><i data-lucide="play-circle"></i> Execução do Exercício</h2>
       <p class="modal-subtitle">Siga as instruções técnicas abaixo para a execução do movimento.</p>
       
@@ -691,7 +691,7 @@
   <!-- MODAL 6: CADASTRAR EXERCÍCIO NO CATÁLOGO (Personal) -->
   <div id="modal-create-catalog-exercise" class="modal-overlay">
     <div class="modal-content glass modal-medium">
-      <button class="modal-close" data-action="close-modal" data-modal="modal-create-catalog-exercise"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-create-catalog-exercise" aria-label="Fechar criação de exercício"><i data-lucide="x"></i></button>
       <h2 class="modal-title"><i data-lucide="plus-circle"></i> Criar Exercício</h2>
       <p class="modal-subtitle">Adicione um novo exercício à sua biblioteca pessoal para poder associá-lo a qualquer treino.</p>
       
@@ -726,11 +726,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260717.9"></script>
-  <script src="js/safe-dom.js?v=20260717.9"></script>
-  <script src="js/app.js?v=20260717.9"></script>
-  <script src="js/personal.js?v=20260717.9"></script>
-  <script src="js/student.js?v=20260717.9"></script>
-  <script src="js/events.js?v=20260717.9"></script>
+  <script src="js/api.js?v=20260717.10"></script>
+  <script src="js/safe-dom.js?v=20260717.10"></script>
+  <script src="js/app.js?v=20260717.10"></script>
+  <script src="js/personal.js?v=20260717.10"></script>
+  <script src="js/student.js?v=20260717.10"></script>
+  <script src="js/events.js?v=20260717.10"></script>
 </body>
 </html>
