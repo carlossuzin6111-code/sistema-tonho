@@ -668,9 +668,10 @@ Resultados locais:
 - [x] Impedir que o helper de DOM volte a criar atributos `style`.
 - [x] Remover `'unsafe-inline'` de `style-src` na CSP.
 - [x] Testar, reconstruir e validar na base pública de testes.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `fix/remove-inline-styles`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/45
 
 Resultados:
 
