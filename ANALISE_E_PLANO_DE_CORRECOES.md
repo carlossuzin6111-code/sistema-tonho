@@ -384,3 +384,4 @@ Resultados locais:
 - Imagem da aplicação reconstruída e executada com `NODE_ENV=production`.
 - API e Nginx permaneceram saudáveis após mais de dois minutos; worker de tradução permaneceu ativo sem erros recentes.
 - Healthcheck público respondeu `200` e o HTML externo confirmou a versão de assets `20260717.1`.
+- GitHub Actions do PR #34: checks `Backend` e `Frontend and infrastructure` concluídos com sucesso; branch marcada como limpa para merge.
