@@ -750,9 +750,10 @@ Resultados:
 - [x] Cobrir alunos, catálogo e treinos do personal/aluno.
 - [x] Reutilizar fluxos existentes sem handlers inline.
 - [x] Testar, publicar e validar na base pública de testes.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `feat/actionable-empty-states`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/53
 
 Resultados:
 
