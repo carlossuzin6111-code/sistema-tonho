@@ -681,9 +681,10 @@ Resultados:
 - [x] Aplicar a mesma allowlist na API, renderização e CSP.
 - [x] Preservar uploads raster embutidos e imagens locais.
 - [x] Testar, publicar e validar na base pública de testes.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `security/exercise-image-allowlist`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/50
 
 Resultados:
 
