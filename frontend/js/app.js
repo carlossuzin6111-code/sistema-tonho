@@ -392,6 +392,7 @@ function showLoginScreen() {
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('app-screen').classList.add('hidden');
   API.disconnectChatStream();
+  setChatConnectionStatus('disconnected');
 }
 
 async function logout() {
@@ -406,8 +407,36 @@ async function logout() {
   }
 }
 
-// SSE Real-Time connection orchestrator
+const CHAT_CONNECTION_LABELS = Object.freeze({
+  connecting: 'Conectando...',
+  connected: 'Conectado',
+  reconnecting: 'Reconectando...',
+  offline: 'Sem conexão',
+  disconnected: 'Desconectado'
+});
+
+function setChatConnectionStatus(status) {
+  const normalizedStatus = Object.hasOwn(CHAT_CONNECTION_LABELS, status) ? status : 'offline';
+  document.querySelectorAll('[data-chat-status]').forEach(element => {
+    element.className = `chat-connection-status ${normalizedStatus}`;
+    element.textContent = CHAT_CONNECTION_LABELS[normalizedStatus];
+  });
+}
+
+function setChatSendState(form, state, message) {
+  const button = form.querySelector('button[type="submit"]');
+  const status = form.querySelector('[data-chat-send-status]');
+  const isSending = state === 'sending';
+  button.disabled = isSending;
+  button.setAttribute('aria-busy', String(isSending));
+  form.dataset.sendState = state;
+  if (status) status.textContent = message;
+}
+
+// EventSource owns its native retry cycle; opening parallel streams here would
+// duplicate messages after intermittent network failures.
 function connectRealTimeUpdates(user) {
+  setChatConnectionStatus(navigator.onLine ? 'connecting' : 'offline');
   API.connectChatStream((message) => {
     // 1. Check if active window is chat, and append message
     if (user.role === 'personal') {
@@ -415,12 +444,16 @@ function connectRealTimeUpdates(user) {
     } else {
       appendStudentLiveMessage(message);
     }
-  }, (err) => {
-    console.log('Chat stream error. Attempting reconnect in 5s...');
-    setTimeout(() => {
-      const activeUser = API.getCurrentUser();
-      if (activeUser) connectRealTimeUpdates(activeUser);
-    }, 5000);
+  }, {
+    onOpen: () => setChatConnectionStatus('connected'),
+    onError: () => setChatConnectionStatus(navigator.onLine ? 'reconnecting' : 'offline')
+  });
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('offline', () => setChatConnectionStatus('offline'));
+  window.addEventListener('online', () => {
+    if (API.getCurrentUser() && API.chatStream) setChatConnectionStatus('reconnecting');
   });
 }
 

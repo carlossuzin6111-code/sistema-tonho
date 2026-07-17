@@ -18,6 +18,8 @@
   
   --danger: #ef4444;           /* Soft elegant red */
   --danger-glow: rgba(239, 68, 68, 0.08);
+  --success: #15803d;
+  --warning: #b45309;
   
   --btn-primary-bg: #1c1c1c;
   --btn-primary-text: #fcfbf8;
@@ -999,6 +1001,43 @@ body.dark-theme .chat-thread-item:hover {
 .btn-chat-send:active {
   transform: scale(0.96);
 }
+
+.btn-chat-send:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.chat-connection-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.chat-connection-status::before {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  content: '';
+}
+
+.chat-connection-status.connected { color: var(--success); }
+.chat-connection-status.connecting,
+.chat-connection-status.reconnecting { color: var(--warning); }
+.chat-connection-status.offline,
+.chat-connection-status.disconnected { color: var(--danger); }
+
+.chat-send-status {
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: right;
+}
+
+.chat-input-form[data-send-state='failed'] .chat-send-status { color: var(--danger); }
+.chat-input-form[data-send-state='sent'] .chat-send-status { color: var(--success); }
 
 /* Workouts List */
 .workouts-list-container {

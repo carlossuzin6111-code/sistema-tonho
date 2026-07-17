@@ -11,9 +11,9 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Base Styles (Components, Colors, Lovable) -->
-  <link rel="stylesheet" href="css/style.css?v=20260717.2">
+  <link rel="stylesheet" href="css/style.css?v=20260717.3">
   <!-- Mobile Architecture Overrides (PWA Lock) -->
-  <link rel="stylesheet" href="css/mobile.css?v=20260717.2">
+  <link rel="stylesheet" href="css/mobile.css?v=20260717.3">
 </head>
 <body>
 
@@ -173,12 +173,13 @@
                 <div class="chat-active-header">
                   <button class="btn-icon" data-action="close-chat-thread"><i data-lucide="arrow-left"></i></button>
                   <div class="avatar" id="chat-active-avatar">A</div>
-                  <div><h3 id="chat-active-name">Nome</h3></div>
+                  <div><h3 id="chat-active-name">Nome</h3><span class="chat-connection-status connecting" data-chat-status role="status" aria-live="polite">Conectando...</span></div>
                 </div>
                 <div class="chat-messages" id="personal-chat-messages" style="height: 300px;"></div>
                 <form id="personal-chat-form" class="chat-input-form">
                   <input type="text" id="personal-chat-input" placeholder="Mensagem...">
-                  <button type="submit" class="btn-chat-send"><i data-lucide="send"></i></button>
+                  <span class="chat-send-status" data-chat-send-status role="status" aria-live="polite"></span>
+                  <button type="submit" class="btn-chat-send" aria-label="Enviar mensagem"><i data-lucide="send"></i></button>
                 </form>
               </div>
             </div>
@@ -244,12 +245,13 @@
           <div class="chat-container glass" style="height: 400px; display:flex; flex-direction:column;">
             <div class="chat-active-header">
               <div class="avatar" id="student-chat-trainer-avatar">P</div>
-              <div><h3 id="student-chat-trainer-name">Personal</h3></div>
+              <div><h3 id="student-chat-trainer-name">Personal</h3><span class="chat-connection-status connecting" data-chat-status role="status" aria-live="polite">Conectando...</span></div>
             </div>
             <div class="chat-messages" id="student-chat-messages" style="flex:1;"></div>
             <form id="student-chat-form" class="chat-input-form">
               <input type="text" id="student-chat-input" placeholder="Mensagem...">
-              <button type="submit" class="btn-chat-send"><i data-lucide="send"></i></button>
+              <span class="chat-send-status" data-chat-send-status role="status" aria-live="polite"></span>
+              <button type="submit" class="btn-chat-send" aria-label="Enviar mensagem"><i data-lucide="send"></i></button>
             </form>
           </div>
         </div>
@@ -421,11 +423,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260717.2"></script>
-  <script src="js/safe-dom.js?v=20260717.2"></script>
-  <script src="js/app.js?v=20260717.2"></script>
-  <script src="js/personal.js?v=20260717.2"></script>
-  <script src="js/student.js?v=20260717.2"></script>
-  <script src="js/events.js?v=20260717.2"></script>
+  <script src="js/api.js?v=20260717.3"></script>
+  <script src="js/safe-dom.js?v=20260717.3"></script>
+  <script src="js/app.js?v=20260717.3"></script>
+  <script src="js/personal.js?v=20260717.3"></script>
+  <script src="js/student.js?v=20260717.3"></script>
+  <script src="js/events.js?v=20260717.3"></script>
 </body>
 </html>
