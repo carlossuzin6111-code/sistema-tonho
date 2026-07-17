@@ -21,6 +21,7 @@ async function loadStudentWorkouts() {
           <p>Seu Personal Trainer ainda não criou sua ficha de treinos. Fale com ele via chat!</p>
         </div>
       `;
+      appendEmptyStateAction(container, { label: 'Conversar com meu personal', icon: 'message-square', onClick: () => switchStudentTab('chat') });
       lucide.createIcons();
       return;
     }

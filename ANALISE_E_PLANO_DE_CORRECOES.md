@@ -744,6 +744,27 @@ Resultados:
 - Backend: 88 de 88 testes aprovados em 11 suítes.
 - Healthcheck público respondeu `200`; JavaScript e CSS públicos confirmaram skeletons, estados ARIA e movimento reduzido.
 
+### 2026-07-17 — Bloco 26 concluído e publicado
+
+- [x] Transformar estados vazios em ações diretas e contextuais.
+- [x] Cobrir alunos, catálogo e treinos do personal/aluno.
+- [x] Reutilizar fluxos existentes sem handlers inline.
+- [x] Testar, publicar e validar na base pública de testes.
+- [ ] Abrir pull request.
+
+Branch de trabalho: `feat/actionable-empty-states`.
+
+Resultados:
+
+- Lista vazia de alunos oferece `Cadastrar primeiro aluno` e abre a aba correta.
+- Catálogo vazio oferece `Criar primeiro exercício` e abre o formulário existente.
+- Modal sem treinos oferece `Criar primeira ficha`; aluno sem ficha pode abrir diretamente o chat com o personal.
+- Helper reutilizável cria botões via `SafeDOM`, sem HTML ou handlers inline.
+- Assets atualizados para `20260717.16`.
+- Frontend e infraestrutura: 33 de 33 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- Healthcheck público respondeu `200`; JavaScript público confirmou as quatro ações contextuais.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.
