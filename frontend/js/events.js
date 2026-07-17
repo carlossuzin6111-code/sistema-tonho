@@ -84,6 +84,8 @@ document.addEventListener('submit', event => {
 document.addEventListener('change', event => {
   if (event.target.id === 'ex-select') handleExerciseSelectChange(event.target);
   if (event.target.id === 'cat-ex-gif-file') handleCatalogGifFileSelect(event.target);
+  if (event.target.id === 'students-sort') sortPersonalStudents(event.target.value);
+  if (event.target.id === 'exercises-sort') sortPersonalExercises(event.target.value);
 });
 
 document.addEventListener('input', event => {

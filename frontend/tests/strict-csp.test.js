@@ -400,6 +400,22 @@ test('student and exercise searches are accessible, local and accent-insensitive
   assert.doesNotMatch(filters, /API\./);
 });
 
+test('student and exercise sorting is local, accessible and search-compatible', () => {
+  for (const page of ['desktop.html', 'mobile.html']) {
+    const html = read(page);
+    assert.match(html, /id="students-sort"[^>]*aria-label="Ordenar alunos"/);
+    assert.match(html, /id="exercises-sort"[^>]*aria-label="Ordenar exercícios"/);
+  }
+  const personal = read(path.join('js', 'personal.js'));
+  const events = read(path.join('js', 'events.js'));
+  assert.match(personal, /function sortPersonalStudents/);
+  assert.match(personal, /Number\(b\.dataset\.unread\) - Number\(a\.dataset\.unread\)/);
+  assert.match(personal, /localeCompare\(b\.dataset\.sortName, 'pt-BR'\)/);
+  assert.match(personal, /filterPersonalStudents\(document\.getElementById\('students-search'\)\.value\)/);
+  assert.match(events, /students-sort.*sortPersonalStudents/);
+  assert.match(events, /exercises-sort.*sortPersonalExercises/);
+});
+
 test('dashboard tabs use restorable history routes and preserve them through interface selection', () => {
   const calls = [];
   const context = {

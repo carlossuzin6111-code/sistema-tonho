@@ -30,6 +30,28 @@ function filterPersonalExercises(query) {
   filterRenderedList({ containerId: 'exercises-catalog-list', cardSelector: '.exercise-db-card', emptyId: 'exercises-search-empty', countId: 'exercises-search-count', query });
 }
 
+function sortRenderedList(containerId, cardSelector, compare) {
+  const container = document.getElementById(containerId);
+  Array.from(container.querySelectorAll(cardSelector)).sort(compare).forEach(card => container.appendChild(card));
+}
+
+function sortPersonalStudents(value) {
+  sortRenderedList('students-grid', '.student-card', (a, b) => {
+    if (value === 'unread') return Number(b.dataset.unread) - Number(a.dataset.unread) || a.dataset.sortName.localeCompare(b.dataset.sortName, 'pt-BR');
+    const direction = value === 'name-desc' ? -1 : 1;
+    return direction * a.dataset.sortName.localeCompare(b.dataset.sortName, 'pt-BR');
+  });
+  filterPersonalStudents(document.getElementById('students-search').value);
+}
+
+function sortPersonalExercises(value) {
+  sortRenderedList('exercises-catalog-list', '.exercise-db-card', (a, b) => {
+    const direction = value === 'name-desc' ? -1 : 1;
+    return direction * a.dataset.sortName.localeCompare(b.dataset.sortName, 'pt-BR');
+  });
+  filterPersonalExercises(document.getElementById('exercises-search').value);
+}
+
 // Renders the list of students in the Personal Dashboard
 async function loadPersonalStudents() {
   const grid = document.getElementById('students-grid');
@@ -66,6 +88,8 @@ async function loadPersonalStudents() {
       const card = document.createElement('div');
       card.className = 'student-card glass';
       card.dataset.search = normalizeListSearch(`${student.name} ${student.email}`);
+      card.dataset.sortName = normalizeListSearch(student.name);
+      card.dataset.unread = String(student.unread_messages || 0);
       
       // Calculate age if birth_date exists
       let ageText = 'N/A';
@@ -121,6 +145,7 @@ async function loadPersonalStudents() {
     }
 
     lucide.createIcons();
+    sortPersonalStudents(document.getElementById('students-sort').value);
     filterPersonalStudents(document.getElementById('students-search').value);
   } catch (err) {
     SafeDOM.clear(grid);
@@ -879,6 +904,7 @@ async function loadPersonalExercises() {
       card.className = 'exercise-db-card glass';
       const descText = ex.description ? ex.description : 'Sem orientações técnicas cadastradas.';
       card.dataset.search = normalizeListSearch(`${ex.name} ${descText}`);
+      card.dataset.sortName = normalizeListSearch(ex.name);
       const image = SafeDOM.el('img', {
         className: 'exercise-thumb',
         attrs: { alt: 'Exercício' }
@@ -915,6 +941,7 @@ async function loadPersonalExercises() {
     });
 
     lucide.createIcons();
+    sortPersonalExercises(document.getElementById('exercises-sort').value);
     filterPersonalExercises(document.getElementById('exercises-search').value);
   } catch (err) {
     SafeDOM.clear(container);

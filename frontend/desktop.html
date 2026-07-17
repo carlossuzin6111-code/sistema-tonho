@@ -9,7 +9,7 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260717.13">
+  <link rel="stylesheet" href="css/style.css?v=20260717.14">
 </head>
 <body>
 
@@ -167,6 +167,7 @@
               <input type="search" id="students-search" placeholder="Buscar aluno por nome ou e-mail" aria-label="Buscar aluno por nome ou e-mail" autocomplete="off">
             </div>
             <span id="students-search-count" class="list-search-count" role="status" aria-live="polite"></span>
+            <select id="students-sort" class="list-sort-select" aria-label="Ordenar alunos"><option value="name-asc">Nome A–Z</option><option value="name-desc">Nome Z–A</option><option value="unread">Mensagens não lidas</option></select>
           </div>
           <!-- Students Grid -->
           <div id="students-grid" class="grid grid-3">
@@ -297,6 +298,7 @@
               <input type="search" id="exercises-search" placeholder="Buscar exercício por nome ou descrição" aria-label="Buscar exercício por nome ou descrição" autocomplete="off">
             </div>
             <span id="exercises-search-count" class="list-search-count" role="status" aria-live="polite"></span>
+            <select id="exercises-sort" class="list-sort-select" aria-label="Ordenar exercícios"><option value="name-asc">Nome A–Z</option><option value="name-desc">Nome Z–A</option></select>
           </div>
           <div id="exercises-catalog-list" class="grid grid-2">
             <!-- Dynamically populated from JS -->
@@ -726,11 +728,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260717.13"></script>
-  <script src="js/safe-dom.js?v=20260717.13"></script>
-  <script src="js/app.js?v=20260717.13"></script>
-  <script src="js/personal.js?v=20260717.13"></script>
-  <script src="js/student.js?v=20260717.13"></script>
-  <script src="js/events.js?v=20260717.13"></script>
+  <script src="js/api.js?v=20260717.14"></script>
+  <script src="js/safe-dom.js?v=20260717.14"></script>
+  <script src="js/app.js?v=20260717.14"></script>
+  <script src="js/personal.js?v=20260717.14"></script>
+  <script src="js/student.js?v=20260717.14"></script>
+  <script src="js/events.js?v=20260717.14"></script>
 </body>
 </html>
