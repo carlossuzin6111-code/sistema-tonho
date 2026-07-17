@@ -441,3 +441,4 @@ Resultados locais:
 - API e Nginx permaneceram saudáveis; healthcheck público respondeu `200`.
 - HTML público confirmou os quatro indicadores acessíveis e a versão `20260717.3`.
 - JavaScript público confirmou o mapeamento de reconexão e o controle de estado do envio.
+- GitHub Actions do PR #36: checks `Backend` e `Frontend and infrastructure` concluídos com sucesso.
