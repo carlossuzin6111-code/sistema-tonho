@@ -507,9 +507,10 @@ Resultados locais:
 - [x] Garantir funcionamento equivalente em desktop e mobile.
 - [x] Testar e atualizar a versão dos assets.
 - [x] Publicar e validar na base pública de testes.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `feat/catalog-list-search`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/39
 
 Resultados locais:
 
