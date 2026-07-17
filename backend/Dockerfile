@@ -1,4 +1,4 @@
-FROM node:20-slim AS dependencies
+FROM node:20-slim@sha256:2cf067cfed83d5ea958367df9f966191a942351a2df77d6f0193e162b5febfc0 AS dependencies
 
 # Install system dependencies for sqlite3 if needed (though prebuilts usually work)
 RUN apt-get update && apt-get install -y \
@@ -13,7 +13,7 @@ COPY package*.json ./
 
 RUN npm ci --omit=dev --build-from-source
 
-FROM node:20-slim AS runtime
+FROM node:20-slim@sha256:2cf067cfed83d5ea958367df9f966191a942351a2df77d6f0193e162b5febfc0 AS runtime
 
 WORKDIR /app
 

@@ -127,14 +127,25 @@ test('public Compose stack defaults application services to production', () => {
 
 test('backend runtime image is multi-stage, non-root and excludes build tools', () => {
   const dockerfile = fs.readFileSync(path.join(repositoryRoot, 'backend', 'Dockerfile'), 'utf8');
-  const runtimeStage = dockerfile.split(/FROM node:20-slim AS runtime/)[1];
+  const runtimeStage = dockerfile.split(/FROM node:20-slim@sha256:[a-f0-9]{64} AS runtime/)[1];
 
-  assert.match(dockerfile, /FROM node:20-slim AS dependencies/);
+  assert.match(dockerfile, /FROM node:20-slim@sha256:[a-f0-9]{64} AS dependencies/);
   assert.ok(runtimeStage, 'runtime stage is missing');
   assert.match(runtimeStage, /COPY --from=dependencies --chown=node:node/);
   assert.match(runtimeStage, /COPY --chown=node:node \. \./);
   assert.match(runtimeStage, /USER node/);
   assert.doesNotMatch(runtimeStage, /apt-get|python3|make|g\+\+/);
+});
+
+test('all external container images are pinned to immutable digests', () => {
+  const dockerfile = fs.readFileSync(path.join(repositoryRoot, 'backend', 'Dockerfile'), 'utf8');
+  const compose = fs.readFileSync(path.join(repositoryRoot, 'docker-compose.yml'), 'utf8');
+  const dockerfileImages = [...dockerfile.matchAll(/^FROM\s+(\S+)/gm)].map(match => match[1]);
+  const composeImages = [...compose.matchAll(/^\s+image:\s+(\S+)/gm)].map(match => match[1]);
+  const images = [...dockerfileImages, ...composeImages];
+
+  assert.ok(images.length >= 4);
+  for (const image of images) assert.match(image, /@sha256:[a-f0-9]{64}$/);
 });
 
 test('modal controller provides dialog semantics and keyboard focus management', () => {
