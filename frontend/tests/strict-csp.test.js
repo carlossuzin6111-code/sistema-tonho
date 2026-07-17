@@ -38,10 +38,16 @@ test('every declarative action is present in the event allowlist', () => {
   }
 });
 
-test('pages load external routing and event scripts', () => {
+test('pages load local routing, icons and event scripts', () => {
+  assert.ok(fs.statSync(path.join(frontendRoot, 'vendor/lucide/lucide-1.25.0.min.js')).size > 0);
+  assert.ok(fs.statSync(path.join(frontendRoot, 'vendor/lucide/LICENSE')).size > 0);
   assert.match(read('index.html'), /<script src="js\/router\.js\?v=[^"]+" defer><\/script>/);
+  assert.match(read('desktop.html'), /<script src="vendor\/lucide\/lucide-1\.25\.0\.min\.js"><\/script>/);
+  assert.match(read('mobile.html'), /<script src="vendor\/lucide\/lucide-1\.25\.0\.min\.js"><\/script>/);
   assert.match(read('desktop.html'), /<script src="js\/events\.js\?v=[^"]+"><\/script>/);
   assert.match(read('mobile.html'), /<script src="js\/events\.js\?v=[^"]+"><\/script>/);
+  assert.doesNotMatch(read('desktop.html'), /unpkg\.com|lucide@latest/);
+  assert.doesNotMatch(read('mobile.html'), /unpkg\.com|lucide@latest/);
 });
 
 test('local CSS and JavaScript assets use one cache-busting release version', () => {
@@ -68,8 +74,13 @@ test('Nginx script policy rejects inline JavaScript', () => {
   const scriptSource = policy.match(/script-src ([^;]+)/)?.[1];
   assert.ok(scriptSource, 'script-src directive is missing');
   assert.match(scriptSource, /'self'/);
-  assert.match(scriptSource, /https:\/\/unpkg\.com/);
+  assert.doesNotMatch(scriptSource, /https?:/);
   assert.doesNotMatch(scriptSource, /'unsafe-inline'/);
+});
+
+test('Nginx request limit matches the bounded embedded image payload', () => {
+  const nginx = fs.readFileSync(path.join(repositoryRoot, 'nginx.conf'), 'utf8');
+  assert.match(nginx, /client_max_body_size 600k;/);
 });
 
 test('proxy forwarding uses one canonical client IP and local-only host access', () => {
