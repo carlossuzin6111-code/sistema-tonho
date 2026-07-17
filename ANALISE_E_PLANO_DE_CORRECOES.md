@@ -614,9 +614,10 @@ Resultados:
 - [x] Garantir comportamento equivalente em desktop e mobile.
 - [x] Testar localmente e atualizar a versão dos assets.
 - [x] Publicar e validar na base pública de testes.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `feat/password-reset-modal`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/43
 
 Resultados locais:
 
