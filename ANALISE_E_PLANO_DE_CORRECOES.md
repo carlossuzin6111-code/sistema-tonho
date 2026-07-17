@@ -772,9 +772,10 @@ Resultados:
 - [x] Garantir apresentação equivalente em desktop e mobile.
 - [x] Atualizar indicadores sem chamadas adicionais à API.
 - [x] Testar, publicar e validar na base pública de testes.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `feat/dashboard-student-summary`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/54
 
 Resultados:
 
