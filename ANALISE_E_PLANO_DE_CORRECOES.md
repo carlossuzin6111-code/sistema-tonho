@@ -559,9 +559,10 @@ Resultados locais:
 - [x] Fixar por digest as imagens Nginx e Cloudflare Tunnel.
 - [x] Adicionar teste que impeça novas imagens externas flutuantes.
 - [x] Reconstruir, publicar e validar.
-- [ ] Abrir pull request.
+- [x] Abrir pull request.
 
 Branch de trabalho: `fix/pin-container-images`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/41
 
 Resultados:
 
