@@ -1265,6 +1265,7 @@ Pull request da fase 1: https://github.com/carlossuzin6111-code/sistema-tonho/pu
 - Auditorias npm de produção e desenvolvimento: zero vulnerabilidades.
 - Imagem de produção construída; API recriada e saudável; colunas `avatar_filename` e `avatar_updated_at` confirmadas.
 - Healthcheck público da API respondeu `200`; nenhuma conta ou foto foi alterada durante a validação pública.
+- CI da fase 1 aprovada nas verificações de frontend/infraestrutura e backend.
 
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
