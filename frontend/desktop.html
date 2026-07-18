@@ -9,7 +9,7 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260718.6">
+  <link rel="stylesheet" href="css/style.css?v=20260718.7">
 </head>
 <body>
 
@@ -112,13 +112,14 @@
       </div>
 
       <div class="header-right">
-        <div class="user-profile-info">
+        <button class="user-profile-info user-profile-btn" id="header-profile-btn" data-action="open-profile-modal" aria-label="Editar perfil" title="Editar perfil">
           <div class="avatar" id="header-avatar">P</div>
           <div class="profile-meta hide-mobile">
             <span class="profile-name" id="header-user-name">Nome do Usuário</span>
             <span class="profile-email" id="header-user-email">email@exemplo.com</span>
           </div>
-        </div>
+          <i data-lucide="pencil" class="profile-edit-hint hide-mobile"></i>
+        </button>
         <button class="btn-icon theme-toggle-button" data-action="toggle-theme" title="Alterar Tema" aria-label="Alterar tema">
           <i id="theme-toggle-icon" data-lucide="sun"></i>
         </button>
@@ -743,12 +744,108 @@
     </div>
   </div>
 
+  <!-- MODAL: EDITAR PERFIL (Nome, Senha, Foto) -->
+  <div id="modal-edit-profile" class="modal-overlay" data-clear-form-on-close="edit-profile-name-form">
+    <div class="modal-content glass modal-medium profile-modal-content">
+      <button class="modal-close" data-action="close-modal" data-modal="modal-edit-profile" aria-label="Fechar edição de perfil"><i data-lucide="x"></i></button>
+      <h2 class="modal-title"><i data-lucide="user-cog"></i> Editar Perfil</h2>
+
+      <!-- Avatar preview + upload -->
+      <div class="profile-modal-avatar-section">
+        <div class="profile-modal-avatar-wrapper">
+          <div class="avatar-large" id="profile-modal-avatar-preview">P</div>
+          <img id="profile-modal-avatar-img" alt="Foto de perfil" class="avatar-large avatar-img hidden">
+          <label for="profile-avatar-file" class="avatar-upload-overlay" title="Trocar foto" aria-label="Trocar foto de perfil">
+            <i data-lucide="camera"></i>
+          </label>
+          <input type="file" id="profile-avatar-file" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Selecionar foto de perfil">
+        </div>
+        <div class="profile-modal-avatar-actions">
+          <button type="button" class="btn btn-sm btn-accent" id="btn-save-avatar" data-action="save-profile-avatar" disabled>
+            <i data-lucide="upload-cloud"></i> <span>Salvar foto</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-danger-outline" id="btn-remove-avatar" data-action="remove-profile-avatar">
+            <i data-lucide="trash-2"></i> <span>Remover</span>
+          </button>
+        </div>
+        <p id="profile-avatar-status" class="form-error hidden" role="status" aria-live="polite"></p>
+        <div id="profile-avatar-crop-controls" class="profile-avatar-crop-controls hidden">
+          <label for="profile-avatar-zoom">Zoom <input type="range" id="profile-avatar-zoom" min="1" max="3" step="0.05" value="1"></label>
+          <label for="profile-avatar-x">Horizontal <input type="range" id="profile-avatar-x" min="0" max="100" value="50"></label>
+          <label for="profile-avatar-y">Vertical <input type="range" id="profile-avatar-y" min="0" max="100" value="50"></label>
+        </div>
+      </div>
+
+      <!-- Profile edit tabs -->
+      <div class="profile-modal-tabs" role="tablist" aria-label="Editar perfil">
+        <button id="profile-tab-name" class="profile-tab-btn active" role="tab" aria-selected="true" aria-controls="profile-panel-name" data-action="switch-profile-tab" data-tab="name">
+          <i data-lucide="user"></i> Nome
+        </button>
+        <button id="profile-tab-password" class="profile-tab-btn" role="tab" aria-selected="false" aria-controls="profile-panel-password" data-action="switch-profile-tab" data-tab="password">
+          <i data-lucide="lock"></i> Senha
+        </button>
+      </div>
+
+      <!-- Panel: change name -->
+      <div id="profile-panel-name" role="tabpanel" aria-labelledby="profile-tab-name">
+        <form id="edit-profile-name-form" class="form-with-feedback" novalidate>
+          <div class="input-group">
+            <label for="profile-new-name"><i data-lucide="user"></i> Novo nome</label>
+            <input type="text" id="profile-new-name" required minlength="2" maxlength="100" autocomplete="name" placeholder="Ex: João Silva">
+          </div>
+          <div class="grid grid-2 profile-readonly-grid">
+            <div class="input-group"><label for="profile-email-readonly">E-mail</label><input id="profile-email-readonly" type="email" readonly></div>
+            <div class="input-group"><label for="profile-role-readonly">Tipo de conta</label><input id="profile-role-readonly" type="text" readonly></div>
+          </div>
+          <p id="edit-profile-name-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+          <button type="submit" class="btn btn-primary btn-full" data-default-label="Salvar nome" data-loading-label="Salvando...">
+            <span data-submit-label>Salvar nome</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Panel: change password -->
+      <div id="profile-panel-password" role="tabpanel" aria-labelledby="profile-tab-password" hidden>
+        <form id="edit-profile-password-form" class="form-with-feedback" novalidate>
+          <div class="input-group">
+            <label for="profile-current-password"><i data-lucide="lock"></i> Senha atual</label>
+            <div class="password-field">
+              <input type="password" id="profile-current-password" required maxlength="128" autocomplete="current-password" placeholder="Sua senha atual">
+              <button type="button" class="password-toggle" data-action="toggle-password" data-target="profile-current-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="profile-new-password"><i data-lucide="key"></i> Nova senha</label>
+            <div class="password-field">
+              <input type="password" id="profile-new-password" required minlength="10" maxlength="128" autocomplete="new-password" placeholder="Mínimo 10 caracteres">
+              <button type="button" class="password-toggle" data-action="toggle-password" data-target="profile-new-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="profile-confirm-password"><i data-lucide="key"></i> Confirmar nova senha</label>
+            <div class="password-field">
+              <input type="password" id="profile-confirm-password" required minlength="10" maxlength="128" autocomplete="new-password" placeholder="Repita a nova senha">
+              <button type="button" class="password-toggle" data-action="toggle-password" data-target="profile-confirm-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+            </div>
+          </div>
+          <p id="edit-profile-password-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+          <p class="form-help">Ao alterar, as outras sessões serão encerradas.</p>
+          <button type="submit" class="btn btn-primary btn-full" data-default-label="Alterar senha" data-loading-label="Alterando...">
+            <span data-submit-label>Alterar senha</span>
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Scripts -->
-  <script src="js/api.js?v=20260718.6"></script>
-  <script src="js/safe-dom.js?v=20260718.6"></script>
-  <script src="js/app.js?v=20260718.6"></script>
-  <script src="js/personal.js?v=20260718.6"></script>
-  <script src="js/student.js?v=20260718.6"></script>
-  <script src="js/events.js?v=20260718.6"></script>
+  <script src="js/api.js?v=20260718.7"></script>
+  <script src="js/safe-dom.js?v=20260718.7"></script>
+  <script src="js/app.js?v=20260718.7"></script>
+  <script src="js/personal.js?v=20260718.7"></script>
+  <script src="js/student.js?v=20260718.7"></script>
+  <script src="js/profile.js?v=20260718.7"></script>
+  <script src="js/events.js?v=20260718.7"></script>
 </body>
 </html>

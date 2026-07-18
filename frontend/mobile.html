@@ -8,9 +8,9 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Base Styles (Components, Colors, Lovable) -->
-  <link rel="stylesheet" href="css/style.css?v=20260718.6">
+  <link rel="stylesheet" href="css/style.css?v=20260718.7">
   <!-- Mobile Architecture Overrides (PWA Lock) -->
-  <link rel="stylesheet" href="css/mobile.css?v=20260718.6">
+  <link rel="stylesheet" href="css/mobile.css?v=20260718.7">
 </head>
 <body>
 
@@ -98,12 +98,12 @@
         </div>
       </div>
       <div class="mobile-header-actions">
+        <button id="header-profile-btn" class="mobile-profile-button" data-action="open-profile-modal" aria-label="Abrir meu perfil"><span id="header-avatar" class="avatar">?</span></button>
         <button class="btn-icon" data-action="toggle-theme" aria-label="Alterar tema"><i id="theme-toggle-icon" data-lucide="sun"></i></button>
         <button class="btn-icon btn-logout" data-action="logout" aria-label="Sair da conta"><i data-lucide="log-out"></i></button>
       </div>
       <!-- Hidden data used by app.js -->
       <span id="user-role-badge" class="hidden"></span>
-      <span id="header-avatar" class="hidden"></span>
       <span id="header-user-name" class="hidden"></span>
       <span id="header-user-email" class="hidden"></span>
     </header>
@@ -495,6 +495,57 @@
     </div>
   </div>
 
+  <!-- MODAL: MEU PERFIL -->
+  <div id="modal-edit-profile" class="modal-overlay" data-clear-form-on-close="edit-profile-name-form">
+    <div class="modal-content glass modal-medium profile-modal-content">
+      <button class="modal-close" data-action="close-modal" data-modal="modal-edit-profile" aria-label="Fechar edição de perfil"><i data-lucide="x"></i></button>
+      <h2 class="modal-title"><i data-lucide="user-cog"></i> Meu Perfil</h2>
+      <div class="profile-modal-avatar-section">
+        <div class="profile-modal-avatar-wrapper">
+          <div class="avatar-large" id="profile-modal-avatar-preview">?</div>
+          <img id="profile-modal-avatar-img" alt="Foto de perfil" class="avatar-large hidden">
+          <label for="profile-avatar-file" class="avatar-upload-overlay" aria-label="Trocar foto de perfil"><i data-lucide="camera"></i></label>
+          <input type="file" id="profile-avatar-file" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Selecionar foto de perfil">
+        </div>
+        <div class="profile-modal-avatar-actions">
+          <button type="button" class="btn btn-sm btn-accent" id="btn-save-avatar" data-action="save-profile-avatar" disabled><i data-lucide="upload-cloud"></i> <span>Salvar foto</span></button>
+          <button type="button" class="btn btn-sm btn-danger-outline" id="btn-remove-avatar" data-action="remove-profile-avatar"><i data-lucide="trash-2"></i> <span>Remover</span></button>
+        </div>
+        <p id="profile-avatar-status" class="form-error hidden" role="status" aria-live="polite"></p>
+        <div id="profile-avatar-crop-controls" class="profile-avatar-crop-controls hidden">
+          <label for="profile-avatar-zoom">Zoom <input type="range" id="profile-avatar-zoom" min="1" max="3" step="0.05" value="1"></label>
+          <label for="profile-avatar-x">Horizontal <input type="range" id="profile-avatar-x" min="0" max="100" value="50"></label>
+          <label for="profile-avatar-y">Vertical <input type="range" id="profile-avatar-y" min="0" max="100" value="50"></label>
+        </div>
+      </div>
+      <div class="profile-modal-tabs" role="tablist" aria-label="Editar perfil">
+        <button id="profile-tab-name" class="profile-tab-btn active" role="tab" aria-selected="true" aria-controls="profile-panel-name" data-action="switch-profile-tab" data-tab="name"><i data-lucide="user"></i> Dados</button>
+        <button id="profile-tab-password" class="profile-tab-btn" role="tab" aria-selected="false" aria-controls="profile-panel-password" data-action="switch-profile-tab" data-tab="password"><i data-lucide="lock"></i> Senha</button>
+      </div>
+      <div id="profile-panel-name" role="tabpanel" aria-labelledby="profile-tab-name">
+        <form id="edit-profile-name-form" class="form-with-feedback" novalidate>
+          <div class="input-group"><label for="profile-new-name">Nome</label><input type="text" id="profile-new-name" required minlength="2" maxlength="100" autocomplete="name"></div>
+          <div class="grid grid-2 profile-readonly-grid">
+            <div class="input-group"><label for="profile-email-readonly">E-mail</label><input id="profile-email-readonly" type="email" readonly></div>
+            <div class="input-group"><label for="profile-role-readonly">Tipo de conta</label><input id="profile-role-readonly" type="text" readonly></div>
+          </div>
+          <p id="edit-profile-name-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+          <button type="submit" class="btn btn-primary btn-full" data-default-label="Salvar nome" data-loading-label="Salvando..."><span data-submit-label>Salvar nome</span></button>
+        </form>
+      </div>
+      <div id="profile-panel-password" role="tabpanel" aria-labelledby="profile-tab-password" hidden>
+        <form id="edit-profile-password-form" class="form-with-feedback" novalidate>
+          <div class="input-group"><label for="profile-current-password">Senha atual</label><div class="password-field"><input type="password" id="profile-current-password" required maxlength="128" autocomplete="current-password"><button type="button" class="password-toggle" data-action="toggle-password" data-target="profile-current-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button></div></div>
+          <div class="input-group"><label for="profile-new-password">Nova senha</label><div class="password-field"><input type="password" id="profile-new-password" required minlength="10" maxlength="128" autocomplete="new-password"><button type="button" class="password-toggle" data-action="toggle-password" data-target="profile-new-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button></div></div>
+          <div class="input-group"><label for="profile-confirm-password">Confirmar nova senha</label><div class="password-field"><input type="password" id="profile-confirm-password" required minlength="10" maxlength="128" autocomplete="new-password"><button type="button" class="password-toggle" data-action="toggle-password" data-target="profile-confirm-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button></div></div>
+          <p id="edit-profile-password-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+          <p class="form-help">Ao alterar, as outras sessões serão encerradas.</p>
+          <button type="submit" class="btn btn-primary btn-full" data-default-label="Alterar senha" data-loading-label="Alterando..."><span data-submit-label>Alterar senha</span></button>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- DRAWER LATERAL -->
   <div id="mobile-drawer" class="mobile-drawer-overlay" data-action="close-drawer">
     <aside class="mobile-drawer-panel" data-action="stop-propagation">
@@ -521,11 +572,12 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260718.6"></script>
-  <script src="js/safe-dom.js?v=20260718.6"></script>
-  <script src="js/app.js?v=20260718.6"></script>
-  <script src="js/personal.js?v=20260718.6"></script>
-  <script src="js/student.js?v=20260718.6"></script>
-  <script src="js/events.js?v=20260718.6"></script>
+  <script src="js/api.js?v=20260718.7"></script>
+  <script src="js/safe-dom.js?v=20260718.7"></script>
+  <script src="js/app.js?v=20260718.7"></script>
+  <script src="js/personal.js?v=20260718.7"></script>
+  <script src="js/student.js?v=20260718.7"></script>
+  <script src="js/profile.js?v=20260718.7"></script>
+  <script src="js/events.js?v=20260718.7"></script>
 </body>
 </html>

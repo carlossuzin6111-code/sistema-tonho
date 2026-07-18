@@ -80,6 +80,22 @@ const API = {
     }
   },
 
+  async patch(endpoint, data) {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PATCH', headers: this.getHeaders({ mutating: true }),
+      credentials: 'same-origin', body: JSON.stringify(data)
+    });
+    return this.handleResponse(response);
+  },
+
+  async put(endpoint, data) {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PUT', headers: this.getHeaders({ mutating: true }),
+      credentials: 'same-origin', body: JSON.stringify(data)
+    });
+    return this.handleResponse(response);
+  },
+
   // HTTP DELETE request
   async delete(endpoint) {
     try {

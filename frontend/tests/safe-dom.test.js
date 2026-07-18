@@ -72,6 +72,7 @@ test('accepts only web URLs and raster data URLs for images', () => {
   assert.equal(SafeDOM.isSafeImageSource('https://cdn.example/exercise.gif'), false);
   assert.equal(SafeDOM.isSafeImageSource('https://raw.githubusercontent.com/example/exercise.gif'), true);
   assert.equal(SafeDOM.isSafeImageSource('/images/exercise.png'), true);
+  assert.equal(SafeDOM.isSafeImageSource('/api/profile/avatar/1'), true);
   assert.equal(SafeDOM.isSafeImageSource('data:image/gif;base64,R0lGODlhAQABAAAAACw='), true);
   assert.equal(SafeDOM.isSafeImageSource('javascript:alert(1)'), false);
   assert.equal(SafeDOM.isSafeImageSource('data:image/svg+xml,<svg onload=alert(1)>'), false);

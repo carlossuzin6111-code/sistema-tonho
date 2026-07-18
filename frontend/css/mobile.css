@@ -81,6 +81,9 @@ body.dark-theme .mobile-header {
   align-items: center;
 }
 .mobile-header-brand, .mobile-header-actions { gap: 12px; }
+.mobile-header-actions { gap: 8px; }
+.mobile-profile-button { width: 40px; height: 40px; padding: 4px; border: 0; background: transparent; }
+.mobile-profile-button .avatar { width: 34px; height: 34px; }
 .mobile-brand-name { gap: 8px; }
 .mobile-menu-button { padding: 4px; }
 .mobile-brand-icon { width: 20px; height: 20px; }
@@ -388,6 +391,8 @@ body.dark-theme .mobile-bottom-nav {
 .modal-overlay.active .modal-content {
   transform: translateY(0);
 }
+.profile-modal-content { overflow-y: auto; padding: max(52px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left)); }
+.profile-readonly-grid { grid-template-columns: 1fr; gap: 0; }
 
 /* Chat adaptado para tela única */
 .chat-container {
