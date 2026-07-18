@@ -923,6 +923,31 @@ Resultados locais:
 - API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200` com `Cache-Control: no-store` e `Pragma: no-cache`, sem ETag.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
+### 2026-07-18 — Bloco 33 implementado e publicado
+
+- [x] Identificar cabeçalhos defensivos duplicados entre backend e Nginx.
+- [x] Manter as proteções do backend para acesso direto na rede interna.
+- [x] Fazer o Nginx ocultar somente as cópias sobrepostas do upstream.
+- [x] Garantir uma política pública única para os cinco cabeçalhos afetados.
+- [x] Adicionar cobertura automatizada e validar a sintaxe do Nginx.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Recriar o Nginx e validar os cabeçalhos na base pública de testes.
+- [ ] Abrir pull request e aguardar a CI.
+
+Branch de trabalho: `security/deduplicate-proxy-headers`.
+Pull request: pendente.
+
+Resultados locais:
+
+- O Nginx oculta do upstream apenas `Cross-Origin-Opener-Policy`, `Permissions-Policy`, `Referrer-Policy`, `X-Content-Type-Options` e `X-Frame-Options`.
+- Cada política continua sendo adicionada uma vez pelo Nginx para respostas estáticas e da API.
+- Cabeçalhos exclusivos do Helmet, HSTS, CORS e a política de cache continuam preservados.
+- Configuração do Nginx validada com sucesso.
+- Frontend e infraestrutura: 39 de 39 testes aprovados.
+- Backend: 89 de 89 testes aprovados em 11 suítes.
+- Somente o serviço web foi recriado; API, banco, workers e tunnel permaneceram ativos.
+- API e Nginx ficaram saudáveis; o healthcheck público respondeu `200` com uma ocorrência de cada política afetada e manteve `Cache-Control: no-store`.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.
