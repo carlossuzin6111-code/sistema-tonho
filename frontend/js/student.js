@@ -110,6 +110,24 @@ function toggleExerciseCheck(exerciseId, checkbox) {
   updateStudentWorkoutSummary();
 }
 
+function updateStudentMeasurementOverview() {
+  const latest = studentMeasurements[0];
+  const previous = studentMeasurements[1];
+  const latestWeight = latest?.weight === null || latest?.weight === undefined ? null : Number(latest.weight);
+  const previousWeight = previous?.weight === null || previous?.weight === undefined ? null : Number(previous.weight);
+  const change = Number.isFinite(latestWeight) && Number.isFinite(previousWeight) ? latestWeight - previousWeight : null;
+  const values = {
+    'student-latest-weight': Number.isFinite(latestWeight) ? `${latestWeight.toLocaleString('pt-BR')} kg` : '-',
+    'student-weight-change': change === null ? '-' : `${change > 0 ? '+' : ''}${change.toLocaleString('pt-BR')} kg`,
+    'student-latest-measurement-date': latest?.recorded_at ? new Date(latest.recorded_at).toLocaleDateString('pt-BR') : '-',
+    'student-measurement-count': studentMeasurements.length
+  };
+  for (const [id, value] of Object.entries(values)) {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  }
+}
+
 async function loadStudentMeasurements() {
   const tbody = document.getElementById('measurements-table-body');
   const metricsGrid = document.getElementById('latest-metrics-grid');
@@ -117,6 +135,7 @@ async function loadStudentMeasurements() {
   tbody.appendChild(SafeDOM.el('tr', {}, [SafeDOM.el('td', { attrs: { colspan: '7' } }, [SafeDOM.el('div', { className: 'spinner table-spinner', attrs: { 'aria-label': 'Carregando medidas' } })])]));
   try {
     studentMeasurements = await API.get('/student/measurements');
+    updateStudentMeasurementOverview();
     SafeDOM.clear(tbody);
     if (!studentMeasurements.length) {
       tbody.appendChild(tableMessageRow('Nenhuma medida cadastrada.'));
@@ -129,11 +148,13 @@ async function loadStudentMeasurements() {
       const row = SafeDOM.el('tr');
       const value = item => item === null || item === undefined ? '-' : `${item} cm`;
       SafeDOM.appendChildren(row, [
-        SafeDOM.el('td', { text: new Date(measurement.recorded_at).toLocaleDateString('pt-BR') }),
-        SafeDOM.el('td', { text: `${measurement.weight} kg`, className: 'metric-weight-value' }),
-        SafeDOM.el('td', { text: value(measurement.chest) }), SafeDOM.el('td', { text: value(measurement.waist) }),
-        SafeDOM.el('td', { text: value(measurement.hips) }), SafeDOM.el('td', { text: `${measurement.biceps_l ?? '-'} / ${measurement.biceps_r ?? '-'}` }),
-        SafeDOM.el('td', { text: `${measurement.thigh_l ?? '-'} / ${measurement.thigh_r ?? '-'}` })
+        SafeDOM.el('td', { text: new Date(measurement.recorded_at).toLocaleDateString('pt-BR'), attrs: { 'data-label': 'Data' } }),
+        SafeDOM.el('td', { text: `${measurement.weight} kg`, className: 'metric-weight-value', attrs: { 'data-label': 'Peso' } }),
+        SafeDOM.el('td', { text: value(measurement.chest), attrs: { 'data-label': 'Tórax' } }),
+        SafeDOM.el('td', { text: value(measurement.waist), attrs: { 'data-label': 'Cintura' } }),
+        SafeDOM.el('td', { text: value(measurement.hips), attrs: { 'data-label': 'Quadril' } }),
+        SafeDOM.el('td', { text: `${measurement.biceps_l ?? '-'} / ${measurement.biceps_r ?? '-'}`, attrs: { 'data-label': 'Bíceps E / D' } }),
+        SafeDOM.el('td', { text: `${measurement.thigh_l ?? '-'} / ${measurement.thigh_r ?? '-'}`, attrs: { 'data-label': 'Coxa E / D' } })
       ]);
       tbody.appendChild(row);
     }
@@ -146,10 +167,13 @@ async function loadStudentMeasurements() {
     ]);
     plotSvgChart('weight-chart-container', [...studentMeasurements].reverse().map(item => ({ label: new Date(item.recorded_at).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }), value: item.weight })));
   } catch (error) {
+    studentMeasurements = [];
+    updateStudentMeasurementOverview();
     SafeDOM.clear(tbody);
     tbody.appendChild(tableMessageRow(`Erro ao carregar medidas: ${error.message}`, 'no-data-msg text-danger'));
     SafeDOM.clear(metricsGrid);
     metricsGrid.appendChild(SafeDOM.errorAlert('Erro ao carregar medidas: ', error.message, 'grid-span-full'));
+    appendEmptyStateAction(metricsGrid, { label: 'Tentar novamente', icon: 'refresh-cw', onClick: loadStudentMeasurements });
     plotSvgChart('weight-chart-container', []);
   }
 }

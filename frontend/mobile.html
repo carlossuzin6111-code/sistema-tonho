@@ -8,9 +8,9 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Base Styles (Components, Colors, Lovable) -->
-  <link rel="stylesheet" href="css/style.css?v=20260718.9">
+  <link rel="stylesheet" href="css/style.css?v=20260718.10">
   <!-- Mobile Architecture Overrides (PWA Lock) -->
-  <link rel="stylesheet" href="css/mobile.css?v=20260718.9">
+  <link rel="stylesheet" href="css/mobile.css?v=20260718.10">
 </head>
 <body>
 
@@ -248,7 +248,16 @@
         </div>
 
         <div id="tab-s-measurements" class="tab-pane">
-          <h1 class="section-title mobile-section-title">Evolução</h1>
+          <div class="mobile-section-actions measurement-heading-actions">
+            <div><h1 class="section-title mobile-section-title">Minhas medidas</h1><p class="section-subtitle">Registre e acompanhe sua evolução.</p></div>
+            <button class="btn btn-primary btn-sm" data-action="open-modal" data-modal="modal-add-measurement" aria-label="Adicionar medidas"><i data-lucide="plus"></i><span>Adicionar</span></button>
+          </div>
+          <div class="stats-mini-grid measurement-overview" aria-label="Resumo das medidas">
+            <div class="stat-mini"><span class="stat-mini-label">Último peso</span><span id="student-latest-weight" class="stat-mini-value" aria-live="polite">-</span></div>
+            <div class="stat-mini"><span class="stat-mini-label">Variação</span><span id="student-weight-change" class="stat-mini-value" aria-live="polite">-</span></div>
+            <div class="stat-mini"><span class="stat-mini-label">Avaliação</span><span id="student-latest-measurement-date" class="stat-mini-value stat-mini-value-small" aria-live="polite">-</span></div>
+            <div class="stat-mini"><span class="stat-mini-label">Registros</span><span id="student-measurement-count" class="stat-mini-value" aria-live="polite">0</span></div>
+          </div>
           <div class="grid grid-2">
             <div class="chart-card glass">
               <h3 class="card-title">Peso</h3>
@@ -464,6 +473,10 @@
             <div class="input-group"><label for="meas-chest">Tórax</label><input type="number" id="meas-chest" step="0.1"></div>
             <div class="input-group"><label for="meas-waist">Cintura</label><input type="number" id="meas-waist" step="0.1"></div>
             <div class="input-group"><label for="meas-hips">Quadril</label><input type="number" id="meas-hips" step="0.1"></div>
+            <div class="input-group"><label for="meas-biceps-l">Bíceps esquerdo</label><input type="number" id="meas-biceps-l" step="0.1"></div>
+            <div class="input-group"><label for="meas-biceps-r">Bíceps direito</label><input type="number" id="meas-biceps-r" step="0.1"></div>
+            <div class="input-group"><label for="meas-thigh-l">Coxa esquerda</label><input type="number" id="meas-thigh-l" step="0.1"></div>
+            <div class="input-group"><label for="meas-thigh-r">Coxa direita</label><input type="number" id="meas-thigh-r" step="0.1"></div>
           </div>
           <p id="add-measurement-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
           <button type="submit" class="btn btn-primary btn-full" data-default-label="Gravar" data-loading-label="Gravando..."><span data-submit-label>Gravar</span></button>
@@ -580,12 +593,12 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260718.9"></script>
-  <script src="js/safe-dom.js?v=20260718.9"></script>
-  <script src="js/app.js?v=20260718.9"></script>
-  <script src="js/personal.js?v=20260718.9"></script>
-  <script src="js/student.js?v=20260718.9"></script>
-  <script src="js/profile.js?v=20260718.9"></script>
-  <script src="js/events.js?v=20260718.9"></script>
+  <script src="js/api.js?v=20260718.10"></script>
+  <script src="js/safe-dom.js?v=20260718.10"></script>
+  <script src="js/app.js?v=20260718.10"></script>
+  <script src="js/personal.js?v=20260718.10"></script>
+  <script src="js/student.js?v=20260718.10"></script>
+  <script src="js/profile.js?v=20260718.10"></script>
+  <script src="js/events.js?v=20260718.10"></script>
 </body>
 </html>
