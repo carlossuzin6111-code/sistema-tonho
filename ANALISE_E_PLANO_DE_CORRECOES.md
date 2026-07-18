@@ -1038,6 +1038,32 @@ Resultados locais:
 - `/api/api-docs/` e `/api/swagger.json` passaram a responder `404` publicamente.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
+### 2026-07-18 — Bloco 37 implementado e publicado
+
+- [x] Identificar claramente a base pública como ambiente de testes.
+- [x] Orientar usuários a não inserir dados pessoais reais.
+- [x] Apresentar o aviso antes dos campos de autenticação em desktop e mobile.
+- [x] Garantir semântica acessível e contraste nos temas claro e escuro.
+- [x] Atualizar a versão comum dos assets.
+- [x] Adicionar cobertura automatizada do aviso.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Publicar e validar na base pública de testes.
+- [ ] Abrir pull request e aguardar a CI.
+
+Branch de trabalho: `feat/test-environment-notice`.
+Pull request: pendente.
+
+Resultados locais:
+
+- Desktop e mobile exibem `Ambiente público de testes` antes das abas de login e cadastro.
+- O texto orienta explicitamente a não usar dados pessoais reais.
+- O aviso usa `role=note`, nome acessível e estilos específicos para os dois temas.
+- Assets atualizados para `20260718.3`.
+- Frontend e infraestrutura: 41 de 41 testes aprovados.
+- Backend: 94 de 94 testes aprovados em 12 suítes.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- HTML e CSS públicos confirmaram o aviso nas duas interfaces e os assets `20260718.3`.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.

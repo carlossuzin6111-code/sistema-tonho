@@ -433,6 +433,32 @@ body.dark-theme .btn-accent:hover {
   font-size: 0.9rem;
 }
 
+.test-environment-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px;
+  padding: 10px 12px;
+  border: 1px solid rgba(181, 124, 33, 0.35);
+  border-radius: 8px;
+  background: rgba(255, 191, 71, 0.1);
+  color: var(--text-main);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.test-environment-notice i {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  color: #a86600;
+}
+
+body.dark-theme .test-environment-notice {
+  border-color: rgba(255, 191, 71, 0.38);
+  background: rgba(255, 191, 71, 0.08);
+}
+
 .auth-tabs {
   display: flex;
   background: var(--bg-tertiary);
