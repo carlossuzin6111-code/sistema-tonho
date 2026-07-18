@@ -1829,6 +1829,16 @@ body.dark-theme .metric-item {
   color: var(--text-main);
 }
 
+.measurement-overview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0 0 20px;
+}
+.measurement-overview .stat-mini { min-width: 0; padding: 12px; }
+.stat-mini-value-small { font-size: 1rem; overflow-wrap: anywhere; }
+#tab-s-measurements .table-container { min-width: 0; }
+#tab-s-measurements .data-table td { overflow-wrap: anywhere; }
+
 /* Toast Notification */
 .toast {
   position: fixed;

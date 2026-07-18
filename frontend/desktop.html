@@ -9,7 +9,7 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260718.9">
+  <link rel="stylesheet" href="css/style.css?v=20260718.10">
 </head>
 <body>
 
@@ -363,9 +363,17 @@
         <div id="tab-s-measurements" class="tab-pane">
           <div class="section-header">
             <div>
-              <h1 class="section-title">Evolução e Medidas</h1>
-              <p class="section-subtitle">Acompanhe seu progresso físico através de avaliações e gráficos de evolução registrados pelo seu Personal.</p>
+              <h1 class="section-title">Minhas medidas</h1>
+              <p class="section-subtitle">Registre suas medidas e acompanhe a evolução ao longo do tempo.</p>
             </div>
+            <button class="btn btn-primary" data-action="open-modal" data-modal="modal-add-measurement"><i data-lucide="plus"></i> <span>Adicionar medidas</span></button>
+          </div>
+
+          <div class="stats-mini-grid measurement-overview" aria-label="Resumo das medidas">
+            <div class="stat-mini"><span class="stat-mini-label">Último peso</span><span id="student-latest-weight" class="stat-mini-value" aria-live="polite">-</span></div>
+            <div class="stat-mini"><span class="stat-mini-label">Variação</span><span id="student-weight-change" class="stat-mini-value" aria-live="polite">-</span></div>
+            <div class="stat-mini"><span class="stat-mini-label">Avaliação</span><span id="student-latest-measurement-date" class="stat-mini-value stat-mini-value-small" aria-live="polite">-</span></div>
+            <div class="stat-mini"><span class="stat-mini-label">Registros</span><span id="student-measurement-count" class="stat-mini-value" aria-live="polite">0</span></div>
           </div>
 
           <!-- Progress Charts and Metrics Grid -->
@@ -395,13 +403,13 @@
               <caption class="table-caption">Histórico completo das minhas medições</caption>
               <thead>
                 <tr>
-                  <th>Data</th>
-                  <th>Peso (kg)</th>
-                  <th>Tórax (cm)</th>
-                  <th>Cintura (cm)</th>
-                  <th>Quadril (cm)</th>
-                  <th>Bíceps E / D (cm)</th>
-                  <th>Coxa E / D (cm)</th>
+                  <th scope="col">Data</th>
+                  <th scope="col">Peso (kg)</th>
+                  <th scope="col">Tórax (cm)</th>
+                  <th scope="col">Cintura (cm)</th>
+                  <th scope="col">Quadril (cm)</th>
+                  <th scope="col">Bíceps E / D (cm)</th>
+                  <th scope="col">Coxa E / D (cm)</th>
                 </tr>
               </thead>
               <tbody id="measurements-table-body">
@@ -845,12 +853,12 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260718.9"></script>
-  <script src="js/safe-dom.js?v=20260718.9"></script>
-  <script src="js/app.js?v=20260718.9"></script>
-  <script src="js/personal.js?v=20260718.9"></script>
-  <script src="js/student.js?v=20260718.9"></script>
-  <script src="js/profile.js?v=20260718.9"></script>
-  <script src="js/events.js?v=20260718.9"></script>
+  <script src="js/api.js?v=20260718.10"></script>
+  <script src="js/safe-dom.js?v=20260718.10"></script>
+  <script src="js/app.js?v=20260718.10"></script>
+  <script src="js/personal.js?v=20260718.10"></script>
+  <script src="js/student.js?v=20260718.10"></script>
+  <script src="js/profile.js?v=20260718.10"></script>
+  <script src="js/events.js?v=20260718.10"></script>
 </body>
 </html>

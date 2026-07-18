@@ -1393,16 +1393,33 @@ Critérios de aceite do bloco 43:
 
 Estratégia: manter gráfico e tabela completos no desktop; no mobile, priorizar resumo, evolução e histórico em cartões responsivos.
 
-- [ ] Adicionar ação visível `Adicionar medidas` para o aluno em desktop e mobile, reutilizando o modal e as validações existentes.
-- [ ] Criar cabeçalho/resumo com último peso, variação, data da avaliação e quantidade de registros sem nova requisição.
-- [ ] Fazer gráfico respeitar largura, altura mínima e rótulos em 320–390 px sem cortar pontos, datas ou resumo textual.
-- [ ] Organizar métricas em duas colunas flexíveis e uma coluna quando o conteúdo ampliado exigir.
-- [ ] Substituir no mobile a tabela de 720 px por histórico em cartões ou linhas responsivas com data e rótulos explícitos.
-- [ ] Preservar tabela completa, `caption`, `scope` e leitura por teclado/leitor de tela no desktop.
-- [ ] Tratar zero como valor válido quando aplicável e distinguir ausente de zero.
-- [ ] Corrigir estados de carregamento, vazio, sucesso de inclusão e erro sem mudar altura abruptamente ou perder a aba atual.
-- [ ] Garantir rolagem vertical da tela e do modal em viewport baixo/teclado aberto, sem rolagem horizontal da página.
-- [ ] Executar procedimento completo e abrir PR exclusivo da tela.
+Branch de execução: `feat/student-measurements-responsive`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/74
+
+Progresso em 2026-07-18:
+
+- Ação `Adicionar medidas` adicionada ao cabeçalho do aluno em desktop e mobile, reutilizando o modal e o fluxo autenticado existentes.
+- Corrigido defeito funcional do modal mobile: os campos de bíceps e coxa acessados pelo JavaScript não existiam na página e agora os oito campos são equivalentes aos do desktop.
+- Resumo sem nova requisição apresenta último peso, variação para o registro anterior, data da avaliação e quantidade de registros; ausente e zero são tratados separadamente.
+- Gráfico e métricas foram organizados em uma coluna principal no mobile, com largura flexível, altura estável e métricas em duas colunas.
+- Tabela completa, `caption` e `scope` permanecem no desktop; no mobile cada linha é apresentada como cartão rotulado, sem a antiga largura mínima de 720 px na tela do aluno.
+- Modal de inclusão ganhou rolagem vertical, áreas seguras e reorganização para uma coluna em telas estreitas/teclado aberto.
+- Falha da API limpa o resumo, mantém erro local e oferece `Tentar novamente`; sucesso continua recarregando a aba atual.
+- Validação local concluída: backend `106/106`, frontend `48/48`, sintaxe JavaScript e `git diff --check` sem erros; auditorias de dependências sem vulnerabilidades.
+- Snapshot pré-publicação `database-block44-prepublish-20260718.sqlite` criado com 6.676.480 bytes, 12 tabelas e `integrity: ok`; todos os containers permaneceram saudáveis.
+- Publicação `20260718.10` confirmada com HTTP `200` em home, healthcheck, mobile e `student.js`; HTML público confirmou cabeçalho, resumo, campo mobile antes ausente e todos os assets versionados.
+- CI do PR #74 aprovado nos jobs `Backend` e `Frontend and infrastructure`.
+
+- [x] Adicionar ação visível `Adicionar medidas` para o aluno em desktop e mobile, reutilizando o modal e as validações existentes.
+- [x] Criar cabeçalho/resumo com último peso, variação, data da avaliação e quantidade de registros sem nova requisição.
+- [x] Fazer gráfico respeitar largura, altura mínima e rótulos em 320–390 px sem cortar pontos, datas ou resumo textual.
+- [x] Organizar métricas em duas colunas flexíveis e uma coluna quando o conteúdo ampliado exigir.
+- [x] Substituir no mobile a tabela de 720 px por histórico em cartões ou linhas responsivas com data e rótulos explícitos.
+- [x] Preservar tabela completa, `caption`, `scope` e leitura por teclado/leitor de tela no desktop.
+- [x] Tratar zero como valor válido quando aplicável e distinguir ausente de zero.
+- [x] Corrigir estados de carregamento, vazio, sucesso de inclusão e erro sem mudar altura abruptamente ou perder a aba atual.
+- [x] Garantir rolagem vertical da tela e do modal em viewport baixo/teclado aberto, sem rolagem horizontal da página.
+- [x] Executar procedimento completo e abrir PR exclusivo da tela.
 
 Critérios de aceite do bloco 44:
 

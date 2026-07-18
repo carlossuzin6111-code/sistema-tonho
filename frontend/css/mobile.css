@@ -302,7 +302,7 @@ body.dark-theme .mobile-header {
 }
 .mobile-chart-preview { min-height: 150px; margin-bottom: 16px; background: var(--bg-secondary); }
 .mobile-chart-preview .chart-svg { height: 150px; flex-basis: 150px; }
-.measurement-history-table { min-width: 720px; }
+.mobile-modal-body .measurement-history-table { min-width: 720px; }
 .mobile-modal-inner { padding: 24px; }
 .drawer-title { margin: 0; font-size: 1.2rem; }
 
@@ -422,6 +422,94 @@ body.dark-theme .mobile-header {
   #tab-s-workouts .student-workout-summary .stat-mini-label { font-size: 0.6rem; }
   #tab-s-workouts .student-workout-summary .stat-mini-value { font-size: 1.05rem; }
   #tab-s-workouts .workout-card { padding: 12px; }
+}
+
+/* Medidas do aluno: resumo, gráfico e histórico sem deslocamento lateral. */
+.measurement-heading-actions { align-items: flex-start; gap: 12px; }
+.measurement-heading-actions > div { min-width: 0; }
+.measurement-heading-actions .section-subtitle { margin-top: 4px; line-height: 1.4; }
+.measurement-heading-actions .btn { flex: 0 0 auto; min-height: 44px; }
+#tab-s-measurements .measurement-overview {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+#tab-s-measurements .measurement-overview .stat-mini { min-width: 0; padding: 10px 8px; }
+#tab-s-measurements > .grid.grid-2 { grid-template-columns: minmax(0, 1fr); }
+#tab-s-measurements .chart-card,
+#tab-s-measurements .metrics-summary,
+#tab-s-measurements .chart-container-svg,
+#tab-s-measurements .table-container { min-width: 0; max-width: 100%; }
+#tab-s-measurements .chart-container-svg { min-height: 200px; padding: 8px; }
+#tab-s-measurements .chart-svg { width: 100%; height: 180px; flex-basis: 180px; }
+#tab-s-measurements .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#tab-s-measurements .metric-item { min-width: 0; }
+#tab-s-measurements .metric-value { overflow-wrap: anywhere; }
+#tab-s-measurements .table-container { padding: 12px; overflow: visible; }
+#tab-s-measurements .measurement-history-table,
+#tab-s-measurements .measurement-history-table tbody { display: block; width: 100%; min-width: 0; }
+#tab-s-measurements .measurement-history-table thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+#tab-s-measurements .measurement-history-table tbody tr {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-passive);
+  border-radius: 10px;
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+#tab-s-measurements .measurement-history-table tbody tr:last-child { margin-bottom: 0; }
+#tab-s-measurements .measurement-history-table td {
+  display: flex;
+  min-width: 0;
+  min-height: 58px;
+  padding: 10px 12px;
+  flex-direction: column;
+  justify-content: center;
+  border-bottom: 1px solid var(--border-passive);
+  overflow-wrap: anywhere;
+}
+#tab-s-measurements .measurement-history-table td::before {
+  content: attr(data-label);
+  margin-bottom: 4px;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+#tab-s-measurements .measurement-history-table td:first-child,
+#tab-s-measurements .measurement-history-table td:nth-child(2) { background: rgba(28, 28, 28, 0.025); }
+body.dark-theme #tab-s-measurements .measurement-history-table td:first-child,
+body.dark-theme #tab-s-measurements .measurement-history-table td:nth-child(2) { background: rgba(245, 242, 235, 0.025); }
+#tab-s-measurements .measurement-history-table .no-data-msg { grid-column: 1 / -1; align-items: center; text-align: center; }
+#tab-s-measurements .measurement-history-table .no-data-msg::before { content: none; }
+#measurements-table-body { min-height: 100px; }
+#modal-add-measurement .mobile-modal-inner {
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top: max(56px, env(safe-area-inset-top));
+  padding-bottom: max(28px, env(safe-area-inset-bottom));
+}
+#modal-add-measurement .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+@media (max-width: 350px) {
+  .measurement-heading-actions { flex-wrap: wrap; }
+  .measurement-heading-actions .btn { width: 100%; justify-content: center; }
+  #modal-add-measurement .grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Barra inferior de navegação */

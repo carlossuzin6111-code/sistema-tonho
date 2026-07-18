@@ -647,7 +647,7 @@ test('own profile UI is shared, accessible and prepares a bounded cropped avatar
     assert.match(html, /id="profile-avatar-zoom"[^>]*max="3"/);
     assert.match(html, /id="profile-email-readonly"[^>]*readonly/);
     assert.match(html, /id="profile-role-readonly"[^>]*readonly/);
-    assert.match(html, /src="js\/profile\.js\?v=20260718\.9"/);
+    assert.match(html, /src="js\/profile\.js\?v=20260718\.10"/);
   }
 
   const profile = read(path.join('js', 'profile.js'));
@@ -695,6 +695,34 @@ test('student workouts preserve a semantic desktop table and become labeled mobi
   assert.match(mobile, /#tab-s-workouts \.workout-checkbox[^}]*width: 44px[^}]*height: 44px/s);
   assert.match(mobile, /#tab-s-workouts \.btn-pill-action[^}]*min-height: 44px/s);
   assert.doesNotMatch(mobile, /#tab-s-workouts[^{}]*\{[^}]*100vw/s);
+});
+
+test('student measurements are actionable, complete and responsive without losing table semantics', () => {
+  for (const page of ['desktop.html', 'mobile.html']) {
+    const html = read(page);
+    assert.match(html, /data-modal="modal-add-measurement"[^>]*>[\s\S]*?Adicionar/);
+    for (const id of ['student-latest-weight', 'student-weight-change', 'student-latest-measurement-date', 'student-measurement-count']) {
+      assert.match(html, new RegExp(`id="${id}"[^>]*aria-live="polite"`));
+    }
+  }
+  const desktop = read('desktop.html');
+  assert.equal((desktop.match(/id="measurements-table"[\s\S]*?<th scope="col">/g) || []).length, 1);
+  const mobileHtml = read('mobile.html');
+  for (const id of ['meas-weight', 'meas-chest', 'meas-waist', 'meas-hips', 'meas-biceps-l', 'meas-biceps-r', 'meas-thigh-l', 'meas-thigh-r']) {
+    assert.match(mobileHtml, new RegExp(`id="${id}"`));
+  }
+  const student = read(path.join('js', 'student.js'));
+  const mobile = read(path.join('css', 'mobile.css'));
+  assert.match(student, /function updateStudentMeasurementOverview/);
+  assert.match(student, /latest\?\.weight === null \|\| latest\?\.weight === undefined/);
+  for (const label of ['Data', 'Peso', 'Tórax', 'Cintura', 'Quadril', 'Bíceps E / D', 'Coxa E / D']) {
+    assert.match(student, new RegExp(`'data-label': '${label}'`));
+  }
+  assert.match(student, /appendEmptyStateAction\(metricsGrid, \{ label: 'Tentar novamente'/);
+  assert.match(mobile, /#tab-s-measurements \.measurement-history-table tbody tr[^}]*display: grid/s);
+  assert.match(mobile, /#tab-s-measurements \.measurement-history-table td::before[^}]*content: attr\(data-label\)/s);
+  assert.match(mobile, /#modal-add-measurement \.mobile-modal-inner[^}]*overflow-y: auto/s);
+  assert.doesNotMatch(mobile, /#tab-s-measurements[^{}]*\.measurement-history-table[^{}]*\{[^}]*min-width:\s*720px/s);
 });
 
 test('event delegation invokes only the allowlisted action and form handlers', () => {
