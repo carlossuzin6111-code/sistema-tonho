@@ -1446,7 +1446,7 @@ Progresso em 2026-07-18:
 - Validação local concluída: backend `107/107`, frontend `49/49`, sintaxe JavaScript e `git diff --check` sem erros; auditorias de dependências sem vulnerabilidades.
 - Imagem da API reconstruída; snapshot pré-publicação `database-block45-prepublish-20260718.sqlite` criado com 6.676.480 bytes, 12 tabelas e `integrity: ok`; API recriada saudável e demais containers permaneceram ativos.
 - Logs públicos confirmaram sessões desktop/mobile, SSE `200` e avatar autorizado após a troca da API. Publicação `20260718.11` respondeu HTTP `200` em home, healthcheck, mobile e `student.js`; HTML confirmou região `log`, limite de 2.000 caracteres, parceiro flexível e assets versionados.
-- Pull request e CI ainda pendentes.
+- CI do PR #75 aprovado nos jobs `Backend` e `Frontend and infrastructure`.
 
 - [x] Validar e ajustar altura com `dvh`, `min-height: 0`, áreas seguras e rolagem apenas na lista de mensagens.
 - [x] Impedir sobreposição entre cabeçalho, mensagens, estado de conexão, feedback de envio, formulário e navegação inferior.
@@ -1457,7 +1457,7 @@ Progresso em 2026-07-18:
 - [x] Validar reconexão SSE, badge, chegada de mensagem dentro/fora da aba e retorno ao chat.
 - [x] Incluir avatar autorizado do personal com fallback e geometria fixa.
 - [x] Testar teclado virtual, rota restaurada, viewport baixo, muitas mensagens, chat vazio, offline e movimento reduzido.
-- [ ] Executar procedimento completo e abrir PR exclusivo da tela.
+- [x] Executar procedimento completo e abrir PR exclusivo da tela.
 
 Critérios de aceite do bloco 45:
 
