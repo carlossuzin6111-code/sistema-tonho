@@ -199,12 +199,14 @@ async function loadStudentChat() {
   } catch (error) {
     SafeDOM.clear(box);
     box.appendChild(SafeDOM.el('p', { className: 'no-data-msg text-danger', text: error.message }));
+    appendEmptyStateAction(box, { label: 'Tentar novamente', icon: 'refresh-cw', onClick: loadStudentChat });
   }
 }
 
 async function sendStudentChatMessage(event) {
   event.preventDefault();
   const form = event.target;
+  if (form.dataset.sendState === 'sending') return;
   const input = document.getElementById('student-chat-input');
   const message = input.value.trim();
   if (!message) return;

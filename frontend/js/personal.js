@@ -156,6 +156,7 @@ async function loadPersonalStudents() {
 async function handleCreateStudent(event) {
   event.preventDefault();
   const form = event.target;
+  if (form.dataset.sendState === 'sending') return;
   if (form.dataset.submitting === 'true') return;
   clearFormError(form.id);
   setFormSubmitting(form, true);

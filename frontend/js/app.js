@@ -617,7 +617,13 @@ function setChatSendState(form, state, message) {
   button.disabled = isSending;
   button.setAttribute('aria-busy', String(isSending));
   form.dataset.sendState = state;
+  button.setAttribute('aria-label', state === 'failed' ? 'Tentar enviar mensagem novamente' : 'Enviar mensagem');
   if (status) status.textContent = message;
+}
+
+function resetChatSendFeedback(input) {
+  const form = input.closest('.chat-input-form');
+  if (form && form.dataset.sendState !== 'sending') setChatSendState(form, 'idle', '');
 }
 
 // EventSource owns its native retry cycle; opening parallel streams here would

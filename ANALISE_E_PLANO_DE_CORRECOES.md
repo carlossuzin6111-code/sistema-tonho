@@ -1431,16 +1431,33 @@ Critérios de aceite do bloco 44:
 
 Estratégia: manter o chat como uma coluna flexível que ocupa somente a altura disponível e preserva o campo de envio acima do teclado/navegação.
 
-- [ ] Validar e ajustar altura com `dvh`, `min-height: 0`, áreas seguras e rolagem apenas na lista de mensagens.
-- [ ] Impedir sobreposição entre cabeçalho, mensagens, estado de conexão, feedback de envio, formulário e navegação inferior.
-- [ ] Fazer nome do personal, mensagens, URLs e sequências longas quebrarem linha sem ampliar a tela.
-- [ ] Ajustar bolhas para proporção legível em 320–390 px e desktop, mantendo remetente visualmente distinguível.
-- [ ] Manter o campo com `min-width: 0`, botão de 44 px e feedback de envio em linha/linha separada conforme espaço.
-- [ ] Preservar texto digitado em falha, bloquear envio duplicado e oferecer nova tentativa clara sem criar timers paralelos.
-- [ ] Validar reconexão SSE, badge, chegada de mensagem dentro/fora da aba e retorno ao chat.
-- [ ] Incluir avatar autorizado do personal com fallback e geometria fixa.
-- [ ] Testar teclado virtual, rota restaurada, viewport baixo, muitas mensagens, chat vazio, offline e movimento reduzido.
-- [ ] Executar procedimento completo e abrir PR exclusivo da tela.
+Branch de execução: `feat/student-chat-resilience`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/75
+
+Progresso em 2026-07-18:
+
+- Aba mobile passou a ocupar exatamente a altura disponível com `height: 100%`, `min-height: 0` e container interno flexível; cabeçalho e formulário são fixos no fluxo e somente a lista de mensagens possui rolagem.
+- Formulário foi reorganizado em grid com campo flexível, botão de 44 px e feedback em linha própria; fonte mobile de 16 px evita zoom automático e áreas seguras preservam o envio acima da navegação/teclado.
+- Nome do personal, feedback, mensagens, URLs e sequências longas usam quebra segura sem ampliar a viewport; bolhas usam até 88% no mobile e largura limitada no desktop.
+- Região de mensagens agora é um `role="log"` anunciado de forma incremental; avatar autorizado mantém geometria quadrada fixa e fallback compartilhado.
+- Texto digitado permanece em falha, submit duplicado é bloqueado também por estado do formulário, botão anuncia `Tentar enviar mensagem novamente` e novo input limpa feedback antigo sem timer adicional.
+- Falha ao carregar o histórico oferece tentativa local; fluxo SSE continua único, com estados conectado/reconectando/offline, leitura ao entrar na aba e badge fora dela.
+- Mensagens passaram a ser aparadas e limitadas a 2.000 caracteres no frontend, validação central e defesa do controller, impedindo armazenamento ilimitado.
+- Validação local concluída: backend `107/107`, frontend `49/49`, sintaxe JavaScript e `git diff --check` sem erros; auditorias de dependências sem vulnerabilidades.
+- Imagem da API reconstruída; snapshot pré-publicação `database-block45-prepublish-20260718.sqlite` criado com 6.676.480 bytes, 12 tabelas e `integrity: ok`; API recriada saudável e demais containers permaneceram ativos.
+- Logs públicos confirmaram sessões desktop/mobile, SSE `200` e avatar autorizado após a troca da API. Publicação `20260718.11` respondeu HTTP `200` em home, healthcheck, mobile e `student.js`; HTML confirmou região `log`, limite de 2.000 caracteres, parceiro flexível e assets versionados.
+- CI do PR #75 aprovado nos jobs `Backend` e `Frontend and infrastructure`.
+
+- [x] Validar e ajustar altura com `dvh`, `min-height: 0`, áreas seguras e rolagem apenas na lista de mensagens.
+- [x] Impedir sobreposição entre cabeçalho, mensagens, estado de conexão, feedback de envio, formulário e navegação inferior.
+- [x] Fazer nome do personal, mensagens, URLs e sequências longas quebrarem linha sem ampliar a tela.
+- [x] Ajustar bolhas para proporção legível em 320–390 px e desktop, mantendo remetente visualmente distinguível.
+- [x] Manter o campo com `min-width: 0`, botão de 44 px e feedback de envio em linha/linha separada conforme espaço.
+- [x] Preservar texto digitado em falha, bloquear envio duplicado e oferecer nova tentativa clara sem criar timers paralelos.
+- [x] Validar reconexão SSE, badge, chegada de mensagem dentro/fora da aba e retorno ao chat.
+- [x] Incluir avatar autorizado do personal com fallback e geometria fixa.
+- [x] Testar teclado virtual, rota restaurada, viewport baixo, muitas mensagens, chat vazio, offline e movimento reduzido.
+- [x] Executar procedimento completo e abrir PR exclusivo da tela.
 
 Critérios de aceite do bloco 45:
 

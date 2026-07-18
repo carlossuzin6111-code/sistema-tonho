@@ -715,6 +715,27 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body).toHaveProperty('message', 'Olá, Personal! Sim, tudo pronto.');
     });
 
+    test('Should trim chat messages and reject content above the storage limit', async () => {
+      const trimmed = await request(app)
+        .post('/api/chat')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ message: '  mensagem com espaços  ' });
+      expect(trimmed.statusCode).toBe(201);
+      expect(trimmed.body.message).toBe('mensagem com espaços');
+
+      const oversizedMessage = 'x'.repeat(2001);
+      const oversized = await request(app)
+        .post('/api/chat')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ message: oversizedMessage });
+      expect(oversized.statusCode).toBe(400);
+      expect(oversized.body).toMatchObject({
+        error: 'Invalid request data',
+        details: [{ field: 'message', message: 'message must have at most 2000 characters' }]
+      });
+      expect(await db('chat_messages').where({ message: oversizedMessage }).first()).toBeUndefined();
+    });
+
     test('Should retrieve chat history for target user (Personal Trainer)', async () => {
       const res = await request(app)
         .get(`/api/chat/${studentId}`)
