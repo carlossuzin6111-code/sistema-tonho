@@ -988,10 +988,11 @@ Resultados locais:
 - [x] Adicionar testes de serviço, API e migração.
 - [x] Executar testes locais de frontend, infraestrutura e backend.
 - [x] Criar backup, aplicar a migração e validar a base pública de testes.
-- [ ] Abrir pull request e aguardar a CI.
+- [x] Abrir pull request.
+- [ ] Aguardar a CI.
 
 Branch de trabalho: `security/expire-registration-keys`.
-Pull request: pendente.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/62
 
 Resultados locais:
 
