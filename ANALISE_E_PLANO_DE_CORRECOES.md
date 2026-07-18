@@ -978,7 +978,7 @@ Resultados locais:
 - HTML e JavaScript públicos confirmaram os assets `20260718.2` e a remoção da rota privada no logout.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
-### 2026-07-18 — Bloco 35 implementado e publicado
+### 2026-07-18 — Bloco 35 concluído e publicado
 
 - [x] Adicionar expiração às chaves de cadastro de personal.
 - [x] Definir validade de 7 dias para novas chaves.
@@ -989,7 +989,7 @@ Resultados locais:
 - [x] Executar testes locais de frontend, infraestrutura e backend.
 - [x] Criar backup, aplicar a migração e validar a base pública de testes.
 - [x] Abrir pull request.
-- [ ] Aguardar a CI.
+- [x] Aguardar a CI.
 
 Branch de trabalho: `security/expire-registration-keys`.
 Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/62
@@ -1007,6 +1007,7 @@ Resultados locais:
 - Das quatro chaves geradas anteriormente, uma já havia sido utilizada e as três restantes receberam validade até `2026-08-17`, sem expor valores ou hashes durante a verificação.
 - A verificação pelo módulo normal do banco completou 32 exercícios padrão ausentes do personal ID 4, conforme a rotina de inicialização existente.
 - API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
