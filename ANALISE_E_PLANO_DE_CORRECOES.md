@@ -932,10 +932,11 @@ Resultados locais:
 - [x] Adicionar cobertura automatizada e validar a sintaxe do Nginx.
 - [x] Executar testes locais de frontend, infraestrutura e backend.
 - [x] Recriar o Nginx e validar os cabeçalhos na base pública de testes.
-- [ ] Abrir pull request e aguardar a CI.
+- [x] Abrir pull request.
+- [ ] Aguardar a CI.
 
 Branch de trabalho: `security/deduplicate-proxy-headers`.
-Pull request: pendente.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/60
 
 Resultados locais:
 
