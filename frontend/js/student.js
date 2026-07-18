@@ -12,12 +12,30 @@ function tableMessageRow(message, className = 'no-data-msg') {
   return SafeDOM.el('tr', {}, [SafeDOM.el('td', { className, text: message, attrs: { colspan: '7' } })]);
 }
 
+function updateStudentWorkoutSummary() {
+  const exercises = studentWorkouts.flatMap(workout => workout.exercises || []);
+  const completed = exercises.reduce((total, exercise) => {
+    const key = exerciseCheckKey(exercise.id);
+    return total + (key && localStorage.getItem(key) === 'true' ? 1 : 0);
+  }, 0);
+  const values = {
+    'student-workout-count': studentWorkouts.length,
+    'student-exercise-count': exercises.length,
+    'student-completed-count': completed
+  };
+  for (const [id, value] of Object.entries(values)) {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  }
+}
+
 async function loadStudentWorkouts() {
   const container = document.getElementById('student-workouts-container');
   renderLoadingSkeletons(container, { count: 3, variant: 'workout', label: 'Carregando ficha de treinos' });
   try {
     studentWorkouts = await API.get('/student/workouts');
     finishLoadingState(container);
+    updateStudentWorkoutSummary();
     if (!studentWorkouts.length) {
       container.appendChild(SafeDOM.el('div', { className: 'chat-empty-state glass empty-state-large' }, [
         SafeDOM.icon('dumbbell', 'chat-empty-icon icon-50 text-muted'),
@@ -53,7 +71,7 @@ async function loadStudentWorkouts() {
           checkbox.addEventListener('change', () => toggleExerciseCheck(exercise.id, checkbox));
           const checkLabel = SafeDOM.el('label', { className: 'checkbox-container workout-checkbox' }, [checkbox, SafeDOM.el('span', { className: 'checkmark workout-checkmark' })]);
           const name = SafeDOM.el('span', { text: exercise.name, attrs: { id: `ex-name-${exercise.id}` }, className: `exercise-name exercise-name-strong ${checked ? 'strike-completed' : ''}` });
-          const nameCell = SafeDOM.el('td', {}, [name]);
+          const nameCell = SafeDOM.el('td', { className: 'workout-exercise-main', attrs: { 'data-label': 'Exercício' } }, [name]);
           if (exercise.notes) nameCell.appendChild(SafeDOM.el('div', { className: 'exercise-notes', text: exercise.notes }));
           const execution = SafeDOM.el('button', {
             className: 'btn-pill-action',
@@ -61,12 +79,12 @@ async function loadStudentWorkouts() {
             on: exercise.gif_url ? { click: () => openExerciseExecutionModal(exercise.name, exercise.gif_url, exercise.exercise_description || '') } : {}
           }, [SafeDOM.icon(exercise.gif_url ? 'play-circle' : 'help-circle'), exercise.gif_url ? ' Ver execução' : ' Sem GIF']);
           tbody.appendChild(SafeDOM.el('tr', { attrs: { id: `ex-row-${exercise.id}` } }, [
-            SafeDOM.el('td', { className: 'workout-check-cell' }, [checkLabel]), nameCell,
-            SafeDOM.el('td', { text: exercise.sets, className: 'workout-cell workout-cell-strong' }),
-            SafeDOM.el('td', { text: exercise.reps, className: 'workout-cell' }),
-            SafeDOM.el('td', { text: exercise.weight || 'Sem carga', className: 'workout-cell workout-cell-muted' }),
-            SafeDOM.el('td', { text: exercise.rest_time || 'Sem pausa', className: 'workout-cell workout-cell-muted' }),
-            SafeDOM.el('td', { className: 'workout-cell' }, [execution])
+            SafeDOM.el('td', { className: 'workout-check-cell', attrs: { 'data-label': 'Status' } }, [checkLabel]), nameCell,
+            SafeDOM.el('td', { text: exercise.sets, className: 'workout-cell workout-cell-strong', attrs: { 'data-label': 'Séries' } }),
+            SafeDOM.el('td', { text: exercise.reps, className: 'workout-cell', attrs: { 'data-label': 'Repetições' } }),
+            SafeDOM.el('td', { text: exercise.weight || 'Sem carga', className: 'workout-cell workout-cell-muted', attrs: { 'data-label': 'Carga' } }),
+            SafeDOM.el('td', { text: exercise.rest_time || 'Sem pausa', className: 'workout-cell workout-cell-muted', attrs: { 'data-label': 'Descanso' } }),
+            SafeDOM.el('td', { className: 'workout-cell workout-execution-cell', attrs: { 'data-label': 'Execução' } }, [execution])
           ]));
         }
       }
@@ -76,8 +94,11 @@ async function loadStudentWorkouts() {
     }
     lucide.createIcons();
   } catch (error) {
+    studentWorkouts = [];
+    updateStudentWorkoutSummary();
     SafeDOM.clear(container);
     container.appendChild(SafeDOM.errorAlert('Erro ao carregar treinos: ', error.message));
+    appendEmptyStateAction(container, { label: 'Tentar novamente', icon: 'refresh-cw', onClick: loadStudentWorkouts });
     lucide.createIcons();
   }
 }
@@ -86,6 +107,7 @@ function toggleExerciseCheck(exerciseId, checkbox) {
   const key = exerciseCheckKey(exerciseId);
   if (key) localStorage.setItem(key, checkbox.checked);
   document.getElementById(`ex-name-${exerciseId}`)?.classList.toggle('strike-completed', checkbox.checked);
+  updateStudentWorkoutSummary();
 }
 
 async function loadStudentMeasurements() {

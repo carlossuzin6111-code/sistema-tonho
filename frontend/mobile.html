@@ -8,9 +8,9 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Base Styles (Components, Colors, Lovable) -->
-  <link rel="stylesheet" href="css/style.css?v=20260718.8">
+  <link rel="stylesheet" href="css/style.css?v=20260718.9">
   <!-- Mobile Architecture Overrides (PWA Lock) -->
-  <link rel="stylesheet" href="css/mobile.css?v=20260718.8">
+  <link rel="stylesheet" href="css/mobile.css?v=20260718.9">
 </head>
 <body>
 
@@ -235,7 +235,15 @@
       <div class="mobile-content-area">
         
         <div id="tab-s-workouts" class="tab-pane active">
-          <h1 class="section-title mobile-section-title">Meu Treino</h1>
+          <div class="student-workout-heading">
+            <h1 class="section-title mobile-section-title">Meus exercícios</h1>
+            <p class="section-subtitle">Acompanhe sua ficha e marque o que concluir.</p>
+          </div>
+          <div class="stats-mini-grid mobile-summary-grid student-workout-summary" aria-label="Resumo da ficha">
+            <div class="stat-mini"><span class="stat-mini-label">Treinos</span><span id="student-workout-count" class="stat-mini-value" aria-live="polite">0</span></div>
+            <div class="stat-mini"><span class="stat-mini-label">Exercícios</span><span id="student-exercise-count" class="stat-mini-value" aria-live="polite">0</span></div>
+            <div class="stat-mini"><span class="stat-mini-label">Concluídos</span><span id="student-completed-count" class="stat-mini-value" aria-live="polite">0</span></div>
+          </div>
           <div id="student-workouts-container" class="workouts-list-container"></div>
         </div>
 
@@ -572,12 +580,12 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260718.8"></script>
-  <script src="js/safe-dom.js?v=20260718.8"></script>
-  <script src="js/app.js?v=20260718.8"></script>
-  <script src="js/personal.js?v=20260718.8"></script>
-  <script src="js/student.js?v=20260718.8"></script>
-  <script src="js/profile.js?v=20260718.8"></script>
-  <script src="js/events.js?v=20260718.8"></script>
+  <script src="js/api.js?v=20260718.9"></script>
+  <script src="js/safe-dom.js?v=20260718.9"></script>
+  <script src="js/app.js?v=20260718.9"></script>
+  <script src="js/personal.js?v=20260718.9"></script>
+  <script src="js/student.js?v=20260718.9"></script>
+  <script src="js/profile.js?v=20260718.9"></script>
+  <script src="js/events.js?v=20260718.9"></script>
 </body>
 </html>

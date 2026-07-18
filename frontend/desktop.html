@@ -9,7 +9,7 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260718.8">
+  <link rel="stylesheet" href="css/style.css?v=20260718.9">
 </head>
 <body>
 
@@ -344,8 +344,13 @@
         <div id="tab-s-workouts" class="tab-pane active">
           <div class="section-header">
             <div>
-              <h1 class="section-title">Minha Ficha de Treinos</h1>
-              <p class="section-subtitle">Veja a lista de treinos que seu personal organizou para você hoje.</p>
+              <h1 class="section-title">Meus exercícios</h1>
+              <p class="section-subtitle">Acompanhe sua ficha e marque cada exercício conforme concluir.</p>
+            </div>
+            <div class="stats-mini-grid student-workout-summary" aria-label="Resumo da ficha">
+              <div class="stat-mini"><span class="stat-mini-label">Treinos</span><span id="student-workout-count" class="stat-mini-value" aria-live="polite">0</span></div>
+              <div class="stat-mini"><span class="stat-mini-label">Exercícios</span><span id="student-exercise-count" class="stat-mini-value" aria-live="polite">0</span></div>
+              <div class="stat-mini"><span class="stat-mini-label">Concluídos</span><span id="student-completed-count" class="stat-mini-value" aria-live="polite">0</span></div>
             </div>
           </div>
 
@@ -840,12 +845,12 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260718.8"></script>
-  <script src="js/safe-dom.js?v=20260718.8"></script>
-  <script src="js/app.js?v=20260718.8"></script>
-  <script src="js/personal.js?v=20260718.8"></script>
-  <script src="js/student.js?v=20260718.8"></script>
-  <script src="js/profile.js?v=20260718.8"></script>
-  <script src="js/events.js?v=20260718.8"></script>
+  <script src="js/api.js?v=20260718.9"></script>
+  <script src="js/safe-dom.js?v=20260718.9"></script>
+  <script src="js/app.js?v=20260718.9"></script>
+  <script src="js/personal.js?v=20260718.9"></script>
+  <script src="js/student.js?v=20260718.9"></script>
+  <script src="js/profile.js?v=20260718.9"></script>
+  <script src="js/events.js?v=20260718.9"></script>
 </body>
 </html>
