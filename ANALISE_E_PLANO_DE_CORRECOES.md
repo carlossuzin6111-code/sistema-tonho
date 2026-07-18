@@ -1109,7 +1109,7 @@ Resultados locais:
 - [ ] Remover arquivos órfãos e registrar alterações relevantes na auditoria.
 - [ ] Cobrir upload, autorização, fallback, privacidade e renderização desktop/mobile com testes.
 
-### 2026-07-18 — Bloco 39 implementado e publicado
+### 2026-07-18 — Bloco 39 concluído e publicado
 
 - [x] Reorganizar os cartões de treino para impedir compressão e sobreposição no acompanhamento mobile.
 - [x] Distribuir as ações do treino e as estatísticas dos exercícios em grades responsivas.
@@ -1119,7 +1119,7 @@ Resultados locais:
 - [x] Adicionar cobertura automatizada contra regressão de sobreposição.
 - [x] Executar testes locais de frontend, infraestrutura e backend.
 - [x] Validar os assets na base pública de testes.
-- [ ] Abrir pull request e aguardar a CI.
+- [x] Abrir pull request e aguardar a CI.
 
 Branch de trabalho: `fix/mobile-student-detail-content`.
 Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/66
@@ -1135,6 +1135,7 @@ Resultados locais:
 - Backend: 94 de 94 testes aprovados em 12 suítes.
 - Os cinco serviços permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
 - HTML e CSS públicos confirmaram os assets `20260718.5`, as classes estruturais do gráfico e das medidas e as grades responsivas do conteúdo.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
