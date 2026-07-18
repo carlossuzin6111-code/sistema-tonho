@@ -1164,6 +1164,89 @@ Resultados locais:
 - HTML e CSS públicos confirmaram os assets `20260718.6`, as abas flexíveis, a alternância de conversa e a área segura do formulário.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
+### 2026-07-18 — Bloco 41 planejado — perfil do próprio usuário
+
+Objetivo: permitir que aluno e personal abram o próprio perfil clicando no avatar do cabeçalho e alterem nome, senha e foto com a mesma experiência em desktop e mobile.
+
+Branch de planejamento: `docs/profile-implementation-plan`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/68
+
+#### Decisões de produto e segurança
+
+- O perfil editará somente a conta autenticada; o reset de senha de aluno feito pelo personal continuará separado.
+- O e-mail e o papel da conta serão apenas informativos nesta primeira versão, reduzindo risco de tomada de conta e conflitos de identidade.
+- Troca de senha exigirá senha atual, nova senha e confirmação; a nova senha manterá o limite de 10 a 128 caracteres.
+- Uma troca de senha incrementará `session_version`, invalidará outras sessões e emitirá novos cookies para preservar somente a sessão atual.
+- Fotos aceitarão somente JPEG, PNG ou WebP; SVG, GIF animado, URL externa e conteúdo cuja assinatura não corresponda ao MIME serão rejeitados.
+- O servidor voltará a decodificar e normalizar a imagem, limitando dimensão de entrada, tamanho decodificado e saída quadrada WebP de até 512 × 512 px.
+- Arquivos ficarão no volume privado `/app/data`, nunca na pasta pública do frontend; nomes serão gerados pelo servidor e não derivados do upload.
+- A foto continuará opcional; remoção ou falha de carregamento restaurará as iniciais sem quebrar o layout.
+- Nome, senha e foto serão atualizados por operações independentes para evitar perda parcial e facilitar mensagens de erro claras.
+
+#### Fase 1 — banco, armazenamento e contrato da API
+
+- [ ] Criar migração aditiva em `users` com referência/versionamento da foto e data de atualização, sem armazenar caminho fornecido pelo cliente.
+- [ ] Criar serviço de avatar com diretório controlado, escrita atômica, substituição e remoção segura de arquivo órfão.
+- [ ] Adicionar processamento server-side da imagem e limites compatíveis com o `client_max_body_size` atual.
+- [ ] Ampliar `GET /api/auth/me` para retornar metadados do avatar, nunca caminho interno.
+- [ ] Criar `PATCH /api/profile` para alterar o nome do próprio usuário, com normalização, limite e rejeição de campos extras.
+- [ ] Criar `PUT /api/profile/password` exigindo senha atual e aplicando hash bcrypt, rota autenticada, CSRF e limite de tentativas.
+- [ ] Criar `PUT /api/profile/avatar` e `DELETE /api/profile/avatar` para substituir e remover a própria foto.
+- [ ] Criar `GET /api/profile/avatar/:userId` com cache privado/condicional e autorização para o próprio usuário ou para o par aluno/personal realmente vinculado.
+- [ ] Retornar `404` genérico para foto ausente ou não autorizada, sem revelar relacionamentos entre contas.
+
+#### Fase 2 — auditoria e proteções
+
+- [ ] Registrar eventos `profile.name_updated`, `profile.password_changed`, `profile.avatar_updated` e `profile.avatar_removed`, sem nome anterior, senha, arquivo ou imagem nos metadados.
+- [ ] Impedir enumeração de usuários e travessia de diretórios; usar apenas ID validado e nome interno gerado.
+- [ ] Remover metadados EXIF e reprocessar pixels antes de persistir a imagem.
+- [ ] Garantir que respostas da foto usem MIME fixado pelo servidor, `X-Content-Type-Options: nosniff` e política de cache que não exponha conteúdo privado.
+- [ ] Incluir as fotos na estratégia de backup do volume e documentar restauração consistente entre banco e arquivos.
+- [ ] Definir limpeza transacional compensatória: falha no banco remove arquivo novo; sucesso remove arquivo anterior somente após persistência.
+
+#### Fase 3 — tela de perfil desktop e mobile
+
+- [ ] Transformar o avatar do cabeçalho desktop em botão acessível com o nome `Abrir meu perfil`.
+- [ ] Exibir um avatar real clicável no cabeçalho mobile, atualmente oculto, preservando tema, logout e largura mínima de toque de 44 px.
+- [ ] Criar uma tela/modal único de perfil: modal médio no desktop e painel de tela inteira no mobile, com gerenciamento de foco, Escape e retorno ao avatar.
+- [ ] Separar a interface em `Dados pessoais`, `Foto` e `Segurança`, sem esconder erros nem misturar submissões.
+- [ ] Em `Dados pessoais`, permitir nome e mostrar e-mail/papel como somente leitura.
+- [ ] Em `Foto`, oferecer selecionar, pré-visualizar, recortar quadrado, ampliar/reposicionar, salvar, substituir e remover.
+- [ ] Em `Segurança`, oferecer senha atual, nova senha e confirmação, controles mostrar/ocultar e aviso de encerramento das outras sessões.
+- [ ] Bloquear duplo envio, anunciar carregamento/sucesso/erro e manter o formulário aberto quando a API falhar.
+
+#### Fase 4 — propagação visual
+
+- [ ] Criar componente/helper comum que renderize `<img>` segura quando houver avatar e iniciais quando não houver.
+- [ ] Atualizar imediatamente cache local, nome e avatar do cabeçalho depois de salvar, sem recarregar a página.
+- [ ] Propagar fotos para cartões/lista de alunos, detalhes do aluno e cabeçalhos de chat respeitando a autorização do endpoint.
+- [ ] Usar URL versionada pelo `avatar_updated_at` para invalidar somente a foto alterada, sem desabilitar cache global.
+- [ ] Fixar `aspect-ratio: 1`, `object-fit: cover`, recorte central e dimensões estáveis em todos os avatares para impedir esticamento e deslocamento de layout.
+- [ ] Tratar erro de imagem removendo o `<img>` e restaurando as iniciais de forma segura.
+
+#### Fase 5 — testes, publicação e aceite
+
+- [ ] Testar migração em banco vazio e legado, incluindo rollback sem apagar contas.
+- [ ] Testar autorização de foto: próprio usuário, par vinculado, usuário sem vínculo, ID inválido e sessão ausente.
+- [ ] Testar arquivos válidos e ataques: SVG, MIME falso, assinatura divergente, imagem enorme, payload truncado, EXIF e nome malicioso.
+- [ ] Testar senha atual incorreta, senha fraca, confirmação divergente, revogação das outras sessões e continuidade da sessão atual.
+- [ ] Testar edição de nome, validação, auditoria e atualização imediata da interface.
+- [ ] Testar teclado, leitor de tela, foco, estados de erro, toque e layouts de 320 px a desktop.
+- [ ] Executar frontend/infraestrutura, backend, `npm audit`, build e recriação do container da API.
+- [ ] Fazer backup antes da migração, validar healthchecks, rotas, cabeçalhos e persistência após recriar os containers.
+- [ ] Validar publicamente sem alterar contas reais: usar conta controlada da base de testes e remover a foto de ensaio ao final.
+- [ ] Abrir PR em blocos revisáveis, aguardar a CI e registrar resultados neste documento.
+
+#### Critérios de aceite
+
+- Aluno e personal conseguem abrir o próprio perfil pelo avatar em desktop e mobile.
+- Nome atualizado aparece imediatamente no cabeçalho e nos contextos autorizados.
+- Senha só muda com a senha atual correta; outras sessões deixam de funcionar e a atual permanece ativa.
+- Foto válida pode ser recortada, substituída e removida; imagens inválidas nunca são persistidas ou servidas.
+- Nenhuma foto fica acessível como arquivo público ou para usuário sem vínculo.
+- Todos os avatares mantêm proporção quadrada sem esticar, com iniciais como fallback.
+- O recurso permanece funcional depois de rebuild/recreate e está incluído no backup.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.
