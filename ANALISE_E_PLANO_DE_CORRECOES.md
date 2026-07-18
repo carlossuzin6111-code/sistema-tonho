@@ -1019,10 +1019,11 @@ Resultados locais:
 - [x] Adicionar testes automatizados da política de exposição.
 - [x] Executar testes locais de frontend, infraestrutura e backend.
 - [x] Reconstruir o backend e validar as rotas na base pública de testes.
-- [ ] Abrir pull request e aguardar a CI.
+- [x] Abrir pull request.
+- [ ] Aguardar a CI.
 
 Branch de trabalho: `security/disable-production-api-docs`.
-Pull request: pendente.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/63
 
 Resultados locais:
 
