@@ -134,6 +134,22 @@ test('Nginx policy rejects inline JavaScript and CSS', () => {
   }
 });
 
+test('Nginx publishes one canonical copy of overlapping security headers', () => {
+  const nginx = fs.readFileSync(path.join(repositoryRoot, 'nginx.conf'), 'utf8');
+  const canonicalHeaders = [
+    'Cross-Origin-Opener-Policy',
+    'Permissions-Policy',
+    'Referrer-Policy',
+    'X-Content-Type-Options',
+    'X-Frame-Options'
+  ];
+
+  for (const header of canonicalHeaders) {
+    assert.match(nginx, new RegExp(`proxy_hide_header ${header};`, 'i'));
+    assert.equal((nginx.match(new RegExp(`add_header ${header} `, 'gi')) || []).length, 1);
+  }
+});
+
 test('Nginx request limit matches the bounded embedded image payload', () => {
   const nginx = fs.readFileSync(path.join(repositoryRoot, 'nginx.conf'), 'utf8');
   assert.match(nginx, /client_max_body_size 600k;/);
