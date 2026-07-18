@@ -1250,6 +1250,7 @@ Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/68
 #### Execução da fase 1 — API e armazenamento
 
 Branch de trabalho: `feat/profile-api`.
+Pull request da fase 1: https://github.com/carlossuzin6111-code/sistema-tonho/pull/69
 
 - Migração `202607180002_add_user_avatars.js` aplicada em banco vazio, legado e na base pública de testes.
 - `sharp` normaliza a entrada para WebP 512 × 512, remove metadados e limita arquivo a 400 KB e dimensões a 4096 × 4096.
