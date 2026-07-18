@@ -57,7 +57,16 @@ const options = {
 
 const swaggerSpec = swaggerJSDoc(options);
 
-function setupSwagger(app) {
+function apiDocsEnabled(environment = process.env.NODE_ENV, explicitValue = process.env.API_DOCS_ENABLED) {
+  if (explicitValue !== undefined && explicitValue !== '') {
+    return String(explicitValue).toLowerCase() === 'true';
+  }
+  return environment !== 'production';
+}
+
+function setupSwagger(app, options = {}) {
+  if (!apiDocsEnabled(options.environment, options.enabled)) return false;
+
   // Serve swagger docs
   app.use('/api/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   
@@ -68,6 +77,8 @@ function setupSwagger(app) {
   });
 
   console.log('Swagger API docs available at: /api/api-docs');
+  return true;
 }
 
 module.exports = setupSwagger;
+module.exports.apiDocsEnabled = apiDocsEnabled;

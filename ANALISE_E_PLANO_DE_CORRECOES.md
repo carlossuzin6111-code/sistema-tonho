@@ -1009,6 +1009,35 @@ Resultados locais:
 - API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
+### 2026-07-18 — Bloco 36 concluído e publicado
+
+- [x] Auditar dependências de produção e desenvolvimento.
+- [x] Desabilitar Swagger e o JSON OpenAPI por padrão em produção.
+- [x] Preservar a documentação por padrão em desenvolvimento.
+- [x] Permitir ativação explícita por `API_DOCS_ENABLED=true`.
+- [x] Atualizar Compose, `.env.example` e README.
+- [x] Adicionar testes automatizados da política de exposição.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Reconstruir o backend e validar as rotas na base pública de testes.
+- [x] Abrir pull request.
+- [x] Aguardar a CI.
+
+Branch de trabalho: `security/disable-production-api-docs`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/63
+
+Resultados locais:
+
+- Auditorias npm retornaram zero vulnerabilidades nas dependências de produção e também incluindo desenvolvimento.
+- Em `production`, `/api/api-docs` e `/api/swagger.json` não são registrados sem ativação explícita.
+- Em `development`, Swagger continua disponível quando a variável não é definida.
+- A configuração do Compose permaneceu válida com os cinco serviços.
+- Frontend e infraestrutura: 40 de 40 testes aprovados.
+- Backend: 94 de 94 testes aprovados em 12 suítes.
+- Backend reconstruído e recriado sem substituir o volume persistente do banco.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- `/api/api-docs/` e `/api/swagger.json` passaram a responder `404` publicamente.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.
