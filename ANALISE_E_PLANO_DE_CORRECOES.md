@@ -1122,6 +1122,7 @@ Resultados locais:
 - [ ] Abrir pull request e aguardar a CI.
 
 Branch de trabalho: `fix/mobile-student-detail-content`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/66
 
 Resultados locais:
 
