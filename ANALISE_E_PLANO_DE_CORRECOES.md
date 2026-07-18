@@ -1287,6 +1287,143 @@ Pull request da fase visual: https://github.com/carlossuzin6111-code/sistema-ton
 - A validação pública foi estrutural e não alterou nome, senha ou foto de nenhuma conta.
 - CI da fase visual aprovada nas verificações de frontend/infraestrutura e backend.
 
+### 2026-07-18 — Programa planejado — reestruturação das telas do aluno
+
+Objetivo: revisar e reestruturar, em partes independentes, `Meus exercícios`, `Minhas medidas` e `Chat com personal`, corrigindo proporção, sobreposição, rolagem, estados de erro e consistência entre desktop e mobile sem regredir o que já funciona.
+
+#### Diagnóstico inicial confirmado
+
+- `Meus exercícios` reutiliza uma tabela de sete colunas no mobile; o invólucro permite rolagem horizontal, mas não oferece uma leitura realmente adaptada a 320–390 px.
+- O estado concluído de um exercício usa `localStorage` apenas pelo ID do exercício e pode ser reaproveitado indevidamente quando outra conta usa o mesmo navegador.
+- `Minhas medidas` fixa a tabela mobile em no mínimo 720 px, obrigando deslocamento horizontal e escondendo a relação entre rótulo e valor.
+- O estado vazio de medidas orienta clicar em `Adicionar Medidas`, mas essa ação não está visível na tela principal do aluno.
+- O tratamento de erro de `loadStudentMeasurements()` referencia `container`, variável inexistente nesse escopo, podendo esconder a falha original com um segundo erro JavaScript.
+- `Chat com personal` já recebeu altura flexível, mas ainda precisa ser validado com teclado virtual, viewport baixo, nome longo, mensagem/URL longa, estados de conexão e falha de envio.
+- As renderizações do aluno ainda misturam DOM seguro com trechos estáticos em `innerHTML`; a reestruturação deve convergir para componentes seguros e testáveis.
+- O perfil recém-publicado ainda possui duas pendências prioritárias: backup automático das fotos e propagação autorizada dos avatares.
+
+#### Ordem obrigatória dos blocos
+
+1. Bloco 42: confiabilidade compartilhada e conclusão do perfil.
+2. Bloco 43: reestruturação de `Meus exercícios`.
+3. Bloco 44: reestruturação de `Minhas medidas`.
+4. Bloco 45: reestruturação de `Chat com personal`.
+5. Bloco 46: auditoria visual e funcional cruzada da área do aluno.
+
+Cada bloco usará branch e pull request próprios. Um bloco só começa após o merge e a sincronização da `main` do bloco anterior.
+
+### Bloco 42 planejado — confiabilidade antes da reestruturação visual
+
+Prioridade: alta, porque protege dados e remove erros de base que afetariam as três telas.
+
+- [ ] Incluir o diretório privado de avatares no backup automático com manifesto, restauração consistente e retenção conjunta com o SQLite.
+- [ ] Testar backup sem avatares, com avatares, arquivo ausente, falha parcial e restauração em diretório limpo.
+- [ ] Propagar metadados autorizados de avatar para lista/detalhes de alunos e para o par vinculado no chat, sem expor caminhos internos.
+- [ ] Criar helper único de avatar com dimensão fixa, `aspect-ratio: 1`, `object-fit: cover`, URL versionada e iniciais como fallback.
+- [ ] Corrigir o erro de escopo no tratamento de falha de medidas antes de alterar o layout.
+- [ ] Remover `innerHTML` remanescente dos fluxos do aluno e construir estados vazios, cabeçalhos e spinners com DOM seguro.
+- [ ] Separar por usuário as preferências locais permitidas; nenhum estado de uma conta pode aparecer para outra conta no mesmo navegador.
+- [ ] Adicionar testes preventivos para os itens anteriores.
+- [ ] Executar testes, audit, build, backup controlado, publicação, validação pública e CI.
+
+Critérios de aceite do bloco 42:
+
+- Recriar containers não remove fotos e uma restauração recupera banco e avatares correspondentes.
+- Nenhum caminho de erro do aluno gera exceção secundária.
+- Trocar de conta no mesmo navegador não reaproveita marcações privadas da conta anterior.
+- Avatares autorizados não deformam nem ampliam cards, cabeçalhos ou chat.
+
+### Bloco 43 planejado — `Meus exercícios`
+
+Estratégia: preservar a tabela pedagógica no desktop e oferecer leitura em cartões/linhas empilhadas no mobile, sem rolagem horizontal obrigatória.
+
+- [ ] Criar cabeçalho consistente com título, orientação curta e resumo de treinos/exercícios/concluídos.
+- [ ] Garantir uma coluna principal flexível com `min-width: 0` e quebra segura de nome, descrição, observações, repetições e carga.
+- [ ] No mobile, apresentar cada exercício com status, nome, séries, repetições, carga, descanso e execução em hierarquia vertical legível.
+- [ ] Manter checkbox e botão de execução com alvo de toque mínimo de 44 px e sem sobreposição.
+- [ ] Fazer o card inteiro caber entre as margens em 320, 360 e 390 px, sem `100vw`, largura fixa ou scroll horizontal da página.
+- [ ] Preservar tabela semântica e cabeçalhos no desktop; adicionar `scope` e nomes acessíveis onde faltarem.
+- [ ] Corrigir vazio, carregamento e erro com espaço estável e ação contextual para o chat.
+- [ ] Validar modal de execução em imagem horizontal, vertical, ausente e texto longo.
+- [ ] Testar tema claro/escuro, movimento reduzido, teclado e toque.
+- [ ] Executar procedimento completo e abrir PR exclusivo da tela.
+
+Critérios de aceite do bloco 43:
+
+- Nenhum exercício exige rolagem horizontal no mobile.
+- Todos os valores permanecem associados ao rótulo correto e textos longos não deslocam ações.
+- Marcar concluído afeta somente o usuário atual e sobrevive ao recarregamento conforme a regra local definida.
+
+### Bloco 44 planejado — `Minhas medidas`
+
+Estratégia: manter gráfico e tabela completos no desktop; no mobile, priorizar resumo, evolução e histórico em cartões responsivos.
+
+- [ ] Adicionar ação visível `Adicionar medidas` para o aluno em desktop e mobile, reutilizando o modal e as validações existentes.
+- [ ] Criar cabeçalho/resumo com último peso, variação, data da avaliação e quantidade de registros sem nova requisição.
+- [ ] Fazer gráfico respeitar largura, altura mínima e rótulos em 320–390 px sem cortar pontos, datas ou resumo textual.
+- [ ] Organizar métricas em duas colunas flexíveis e uma coluna quando o conteúdo ampliado exigir.
+- [ ] Substituir no mobile a tabela de 720 px por histórico em cartões ou linhas responsivas com data e rótulos explícitos.
+- [ ] Preservar tabela completa, `caption`, `scope` e leitura por teclado/leitor de tela no desktop.
+- [ ] Tratar zero como valor válido quando aplicável e distinguir ausente de zero.
+- [ ] Corrigir estados de carregamento, vazio, sucesso de inclusão e erro sem mudar altura abruptamente ou perder a aba atual.
+- [ ] Garantir rolagem vertical da tela e do modal em viewport baixo/teclado aberto, sem rolagem horizontal da página.
+- [ ] Executar procedimento completo e abrir PR exclusivo da tela.
+
+Critérios de aceite do bloco 44:
+
+- O aluno encontra e usa `Adicionar medidas` sem depender de outra tela.
+- Histórico mobile pode ser lido sem deslocamento lateral.
+- Falha da API apresenta erro local recuperável e não gera exceção JavaScript secundária.
+
+### Bloco 45 planejado — `Chat com personal`
+
+Estratégia: manter o chat como uma coluna flexível que ocupa somente a altura disponível e preserva o campo de envio acima do teclado/navegação.
+
+- [ ] Validar e ajustar altura com `dvh`, `min-height: 0`, áreas seguras e rolagem apenas na lista de mensagens.
+- [ ] Impedir sobreposição entre cabeçalho, mensagens, estado de conexão, feedback de envio, formulário e navegação inferior.
+- [ ] Fazer nome do personal, mensagens, URLs e sequências longas quebrarem linha sem ampliar a tela.
+- [ ] Ajustar bolhas para proporção legível em 320–390 px e desktop, mantendo remetente visualmente distinguível.
+- [ ] Manter o campo com `min-width: 0`, botão de 44 px e feedback de envio em linha/linha separada conforme espaço.
+- [ ] Preservar texto digitado em falha, bloquear envio duplicado e oferecer nova tentativa clara sem criar timers paralelos.
+- [ ] Validar reconexão SSE, badge, chegada de mensagem dentro/fora da aba e retorno ao chat.
+- [ ] Incluir avatar autorizado do personal com fallback e geometria fixa.
+- [ ] Testar teclado virtual, rota restaurada, viewport baixo, muitas mensagens, chat vazio, offline e movimento reduzido.
+- [ ] Executar procedimento completo e abrir PR exclusivo da tela.
+
+Critérios de aceite do bloco 45:
+
+- Campo de envio permanece alcançável com teclado aberto e navegação inferior visível.
+- Somente mensagens rolam; cabeçalho e formulário não se sobrepõem.
+- Mensagem com texto/URL longa não cria scroll horizontal.
+
+### Bloco 46 planejado — auditoria final da área do aluno
+
+- [ ] Revisar login, cabeçalho/perfil, exercícios, medidas, chat, modais e navegação como um fluxo único.
+- [ ] Validar 320, 360, 390, 768, 1024 e desktop amplo em tema claro e escuro.
+- [ ] Validar zoom de texto/navegador, teclado, foco, Escape, leitor de tela, toque e `prefers-reduced-motion`.
+- [ ] Procurar overflow horizontal, corte vertical, sobreposição, elemento sem scroll, alvo menor que 44 px e imagem deformada.
+- [ ] Confirmar rotas restauráveis, estados vazios, carregamento, erro e recuperação em cada tela.
+- [ ] Executar frontend/infraestrutura, backend, audit, build e healthchecks.
+- [ ] Fazer validação pública controlada e registrar evidências por tela no documento.
+- [ ] Abrir PR final somente para correções cruzadas encontradas na auditoria.
+
+#### Procedimento obrigatório para cada bloco
+
+1. Confirmar merge anterior, sincronizar `main` e exigir worktree limpo.
+2. Registrar no documento o diagnóstico e a branch antes de marcar implementação concluída.
+3. Alterar somente a tela/bloco em escopo; mudança transversal precisa ser explicitamente justificada.
+4. Revisar o diff completo procurando seletor amplo, ID duplicado, evento fora da allowlist, `innerHTML`, estado global e largura/altura fixa.
+5. Adicionar teste de regressão que falhe sem a correção.
+6. Executar frontend/infraestrutura e backend; quando houver dependência ou backend, executar `npm audit` e Docker build.
+7. Publicar com versão única de assets e validar health `200`, HTML, CSS e JavaScript diretamente no domínio.
+8. Não criar ou alterar dados públicos sem conta controlada e plano de limpeza.
+9. Rodar `git diff --check`, documentar resultados, criar commit, push e PR.
+10. Aguardar CI do commit final; somente então marcar o bloco concluído.
+
+#### Regra de parada
+
+Se um teste falhar, o healthcheck não ficar saudável, a publicação não corresponder ao diff ou surgir alteração fora do escopo, o bloco não será marcado como concluído nem seguirá para o próximo. A causa será corrigida ou documentada como bloqueio real.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.
