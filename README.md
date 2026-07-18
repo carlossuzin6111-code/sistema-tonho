@@ -35,7 +35,7 @@ Defina `NODE_ENV` para selecionar o ambiente do `knexfile.js` e `DB_PATH` para i
 
 #### Chaves de cadastro
 
-As chaves de cadastro são geradas com 256 bits de entropia criptográfica, armazenadas no banco somente como hashes SHA-256 e consumidas na mesma transação que cria o personal. Para gerar uma chave:
+As chaves de cadastro são geradas com 256 bits de entropia criptográfica, armazenadas no banco somente como hashes SHA-256, expiram após 7 dias e são consumidas na mesma transação que cria o personal. Para gerar uma chave:
 
 ```bash
 cd backend

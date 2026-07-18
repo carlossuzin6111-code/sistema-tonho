@@ -34,6 +34,7 @@ describe('access key service', () => {
 
     expect(storedKey.key_hash).toBe(hashAccessKey(accessKey));
     expect(storedKey.key_hash).not.toContain(accessKey);
+    expect(storedKey.expires_at).toBeTruthy();
     await expect(findUnusedAccessKeyId(db, accessKey)).resolves.toBe(storedKey.id);
 
     await db('registration_keys')
@@ -42,5 +43,14 @@ describe('access key service', () => {
 
     await expect(findUnusedAccessKeyId(db, accessKey)).resolves.toBeNull();
     await expect(findUnusedAccessKeyId(db, 'invalid-key')).resolves.toBeNull();
+  });
+
+  test('rejects expired registration keys', async () => {
+    const accessKey = await issueAccessKey(db);
+    await db('registration_keys').update({
+      expires_at: db.raw("datetime('now', '-1 day')")
+    });
+
+    await expect(findUnusedAccessKeyId(db, accessKey)).resolves.toBeNull();
   });
 });

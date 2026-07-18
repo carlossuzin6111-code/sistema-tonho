@@ -19,7 +19,8 @@ const migrations = [
   '202607140003_create_registration_keys.js',
   '202607160001_normalize_user_emails.js',
   '202607160002_add_session_version.js',
-  '202607170001_create_audit_logs.js'
+  '202607170001_create_audit_logs.js',
+  '202607180001_add_registration_key_expiry.js'
 ];
 
 function createDatabase() {
@@ -49,6 +50,7 @@ describe('database migrations', () => {
     }
     await expect(db.schema.hasColumn('exercises', 'is_translated')).resolves.toBe(true);
     await expect(db.schema.hasColumn('users', 'session_version')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('registration_keys', 'expires_at')).resolves.toBe(true);
     const emailIndex = await db('sqlite_master')
       .select('name')
       .where({ type: 'index', name: 'users_email_normalized_unique' })
@@ -122,6 +124,24 @@ describe('database migrations', () => {
     await expect(db.migrate.latest()).rejects.toThrow(
       'Cannot normalize user emails while case-insensitive duplicates exist'
     );
+  });
+
+  test('gives legacy unused registration keys a grace period', async () => {
+    db = createDatabase();
+    await db.migrate.up({ name: '202607140001_initial_schema.js' });
+    await db.migrate.up({ name: '202607140002_add_query_indexes.js' });
+    await db.migrate.up({ name: '202607140003_create_registration_keys.js' });
+    await db('registration_keys').insert([
+      { key_hash: 'a'.repeat(64) },
+      { key_hash: 'b'.repeat(64), used_at: db.fn.now() }
+    ]);
+
+    await db.migrate.up({ name: '202607180001_add_registration_key_expiry.js' });
+
+    const unused = await db('registration_keys').where({ key_hash: 'a'.repeat(64) }).first();
+    const used = await db('registration_keys').where({ key_hash: 'b'.repeat(64) }).first();
+    expect(unused.expires_at).toBeTruthy();
+    expect(used.expires_at).toBeNull();
   });
 
   test('rolls back the application schema in reverse dependency order', async () => {

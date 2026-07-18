@@ -35,7 +35,8 @@ function cookieHeader(response) {
 
 async function insertAccessKey(accessKey) {
   const [id] = await db('registration_keys').insert({
-    key_hash: hashAccessKey(accessKey)
+    key_hash: hashAccessKey(accessKey),
+    expires_at: db.raw("datetime('now', '+7 days')")
   });
   return id;
 }

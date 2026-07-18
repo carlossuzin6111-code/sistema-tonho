@@ -37,6 +37,7 @@ async function registerPersonal(req, res) {
       const claimedKeys = await trx('registration_keys')
         .where({ id: accessKeyId })
         .whereNull('used_at')
+        .where('expires_at', '>', trx.fn.now())
         .update({ used_at: trx.fn.now() });
 
       if (claimedKeys !== 1) {
