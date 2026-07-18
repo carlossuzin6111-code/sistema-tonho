@@ -1408,7 +1408,7 @@ Progresso em 2026-07-18:
 - Validação local concluída: backend `106/106`, frontend `48/48`, sintaxe JavaScript e `git diff --check` sem erros; auditorias de dependências sem vulnerabilidades.
 - Snapshot pré-publicação `database-block44-prepublish-20260718.sqlite` criado com 6.676.480 bytes, 12 tabelas e `integrity: ok`; todos os containers permaneceram saudáveis.
 - Publicação `20260718.10` confirmada com HTTP `200` em home, healthcheck, mobile e `student.js`; HTML público confirmou cabeçalho, resumo, campo mobile antes ausente e todos os assets versionados.
-- Pull request e CI ainda pendentes.
+- CI do PR #74 aprovado nos jobs `Backend` e `Frontend and infrastructure`.
 
 - [x] Adicionar ação visível `Adicionar medidas` para o aluno em desktop e mobile, reutilizando o modal e as validações existentes.
 - [x] Criar cabeçalho/resumo com último peso, variação, data da avaliação e quantidade de registros sem nova requisição.
@@ -1419,7 +1419,7 @@ Progresso em 2026-07-18:
 - [x] Tratar zero como valor válido quando aplicável e distinguir ausente de zero.
 - [x] Corrigir estados de carregamento, vazio, sucesso de inclusão e erro sem mudar altura abruptamente ou perder a aba atual.
 - [x] Garantir rolagem vertical da tela e do modal em viewport baixo/teclado aberto, sem rolagem horizontal da página.
-- [ ] Executar procedimento completo e abrir PR exclusivo da tela.
+- [x] Executar procedimento completo e abrir PR exclusivo da tela.
 
 Critérios de aceite do bloco 44:
 
