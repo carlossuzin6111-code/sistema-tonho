@@ -52,6 +52,12 @@ function permissionsPolicy(req, res, next) {
   next();
 }
 
+function preventResponseCaching(req, res, next) {
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Pragma', 'no-cache');
+  next();
+}
+
 function createAuthRateLimiter(options = {}) {
   const windowMs = positiveInteger(
     options.windowMs ?? process.env.AUTH_RATE_LIMIT_WINDOW_MS,
@@ -93,5 +99,6 @@ module.exports = {
   createCorsOptions,
   createHelmetMiddleware,
   jsonErrorHandler,
-  permissionsPolicy
+  permissionsPolicy,
+  preventResponseCaching
 };

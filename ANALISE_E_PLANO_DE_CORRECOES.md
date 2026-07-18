@@ -898,6 +898,29 @@ Resultados locais:
 - HTML e CSS públicos confirmaram os assets `20260718.1`, as duas tabelas completas e a largura mínima responsiva.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
+### 2026-07-18 — Bloco 32 implementado e publicado
+
+- [x] Impedir armazenamento de respostas da API em caches de navegador e intermediários.
+- [x] Remover ETag das respostas potencialmente autenticadas.
+- [x] Preservar a política `no-cache` específica do stream SSE do chat.
+- [x] Adicionar testes automatizados para respostas comuns e para o stream.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Reconstruir o backend e validar os cabeçalhos na base pública de testes.
+- [ ] Abrir pull request e aguardar a CI.
+
+Branch de trabalho: `security/no-store-api-responses`.
+Pull request: pendente.
+
+Resultados locais:
+
+- Respostas comuns recebem `Cache-Control: no-store` e `Pragma: no-cache` antes da autenticação e das rotas.
+- O Express deixa de gerar ETag, evitando validadores reutilizáveis para respostas com dados privados.
+- O controlador SSE continua sobrescrevendo a política com `Cache-Control: no-cache`, sem quebrar reconexões do EventSource.
+- Frontend e infraestrutura: 38 de 38 testes aprovados.
+- Backend: 89 de 89 testes aprovados em 11 suítes.
+- Backend reconstruído e recriado sem substituir o volume persistente do banco.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200` com `Cache-Control: no-store` e `Pragma: no-cache`, sem ETag.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.

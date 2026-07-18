@@ -7,7 +7,8 @@ const {
   createCorsOptions,
   createHelmetMiddleware,
   jsonErrorHandler,
-  permissionsPolicy
+  permissionsPolicy,
+  preventResponseCaching
 } = require('./middleware/httpSecurity');
 const { validateBody, validateIdParam } = require('./middleware/validateRequest');
 const {
@@ -40,8 +41,10 @@ const loginRateLimiter = createAuthRateLimiter({ identifier: 'login' });
 // authoritative client address before proxying the request.
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
+app.disable('etag');
 app.use(createHelmetMiddleware());
 app.use(permissionsPolicy);
+app.use(preventResponseCaching);
 app.use(cors(createCorsOptions()));
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || DEFAULT_BODY_LIMIT }));
 app.use(optionalAuthentication);

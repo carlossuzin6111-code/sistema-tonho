@@ -6,7 +6,8 @@ const {
   createCorsOptions,
   createHelmetMiddleware,
   jsonErrorHandler,
-  permissionsPolicy
+  permissionsPolicy,
+  preventResponseCaching
 } = require('../middleware/httpSecurity');
 const { validateBody, validateIdParam } = require('../middleware/validateRequest');
 
@@ -45,6 +46,20 @@ describe('HTTP security middleware', () => {
     expect(allowed.headers['access-control-allow-credentials']).toBe('true');
     expect(blocked.headers['access-control-allow-origin']).toBeUndefined();
     expect(noOrigin.statusCode).toBe(200);
+  });
+
+  test('prevents API responses from being stored by browsers or intermediaries', async () => {
+    const app = express();
+    app.disable('etag');
+    app.use(preventResponseCaching);
+    app.get('/private-data', (req, res) => res.json({ weight: 78.4 }));
+
+    const response = await request(app).get('/private-data');
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(response.headers.pragma).toBe('no-cache');
+    expect(response.headers.etag).toBeUndefined();
   });
 
   test('returns 429 after repeated failed authentication attempts', async () => {
