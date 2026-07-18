@@ -563,6 +563,11 @@ test('dashboard tabs use restorable history routes and preserve them through int
   assert.match(app, /historyMode: 'none'/);
 });
 
+test('logout removes the private dashboard route from browser history', () => {
+  const app = read(path.join('js', 'app.js'));
+  assert.match(app, /API\.clearSession\(\);\s*window\.history\.replaceState\(null, '', window\.location\.pathname\);\s*showLoginScreen\(\)/);
+});
+
 test('dashboard and modal tabs expose state, panels and keyboard navigation', () => {
   for (const page of ['desktop.html', 'mobile.html']) {
     const html = read(page);
