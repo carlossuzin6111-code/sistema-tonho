@@ -1291,6 +1291,9 @@ Pull request da fase visual: https://github.com/carlossuzin6111-code/sistema-ton
 
 Objetivo: revisar e reestruturar, em partes independentes, `Meus exercícios`, `Minhas medidas` e `Chat com personal`, corrigindo proporção, sobreposição, rolagem, estados de erro e consistência entre desktop e mobile sem regredir o que já funciona.
 
+Branch de planejamento: `docs/student-screen-restructure-plan`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/71
+
 #### Diagnóstico inicial confirmado
 
 - `Meus exercícios` reutiliza uma tabela de sete colunas no mobile; o invólucro permite rolagem horizontal, mas não oferece uma leitura realmente adaptada a 320–390 px.
