@@ -1357,6 +1357,7 @@ Critérios de aceite do bloco 42:
 Estratégia: preservar a tabela pedagógica no desktop e oferecer leitura em cartões/linhas empilhadas no mobile, sem rolagem horizontal obrigatória.
 
 Branch de execução: `feat/student-workouts-responsive`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/73
 
 Progresso em 2026-07-18:
 
