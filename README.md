@@ -44,6 +44,10 @@ npm run access-key:create
 
 O valor é exibido uma única vez. Armazene-o em um canal seguro e não o inclua em commits, logs ou tickets. As chaves do antigo `keys_aut.json` não são importadas automaticamente: como foram versionadas, devem ser revogadas e substituídas por novas chaves após alinhamento com o mantenedor.
 
+#### Documentação da API
+
+O Swagger fica disponível em `/api/api-docs` e `/api/swagger.json` por padrão somente em `development`. Em produção, as rotas não são registradas. Para habilitá-las explicitamente em um ambiente controlado, defina `API_DOCS_ENABLED=true` e reinicie a aplicação.
+
 ### 3. Layout PWA Móvel Híbrido (Drawer Sidebar)
 - **Roteamento Inteligente:** O arquivo `index.html` agora roteia o usuário de forma autônoma: Desktop vai para `desktop.html`, Smartphone vai para `mobile.html`.
 - **Isolamento Completo (Sem Vazamento de Estilos):** Sem uso de `@media` queries mirabolantes. O layout mobile é independente, possuindo:

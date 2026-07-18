@@ -51,7 +51,10 @@ app.use(optionalAuthentication);
 app.use(csrfProtection);
 
 // Setup Swagger UI API documentation
-setupSwagger(app);
+setupSwagger(app, {
+  environment: process.env.NODE_ENV,
+  enabled: process.env.API_DOCS_ENABLED
+});
 
 // Readiness endpoint used by Compose. It verifies both the HTTP process and the
 // database connection without exposing schema or environment details.
