@@ -950,7 +950,7 @@ Resultados locais:
 - API e Nginx ficaram saudáveis; o healthcheck público respondeu `200` com uma ocorrência de cada política afetada e manteve `Cache-Control: no-store`.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
-### 2026-07-18 — Bloco 34 implementado e publicado
+### 2026-07-18 — Bloco 34 concluído e publicado
 
 - [x] Reforçar o logout com limpeza explícita de cache e cookies da origem.
 - [x] Preservar preferências e progresso local que não representam credenciais.
@@ -960,7 +960,7 @@ Resultados locais:
 - [x] Executar testes locais de frontend, infraestrutura e backend.
 - [x] Reconstruir o backend e validar a publicação na base pública de testes.
 - [x] Abrir pull request.
-- [ ] Aguardar a CI.
+- [x] Aguardar a CI.
 
 Branch de trabalho: `security/harden-logout-cleanup`.
 Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/61
@@ -976,6 +976,7 @@ Resultados locais:
 - Backend reconstruído e recriado sem substituir o volume persistente do banco.
 - API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
 - HTML e JavaScript públicos confirmaram os assets `20260718.2` e a remoção da rota privada no logout.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
