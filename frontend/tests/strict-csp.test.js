@@ -375,6 +375,19 @@ test('mobile student detail keeps profile geometry stable and content separated'
   assert.match(baseCss, /\.avatar-large img\s*\{[^}]*object-fit:\s*cover/);
 });
 
+test('mobile student detail content reflows cards and statistics without overlap', () => {
+  const html = read('mobile.html');
+  const css = read(path.join('css', 'mobile.css'));
+
+  assert.match(html, /id="modal-weight-chart-container" class="chart-container-svg mobile-chart-preview"/);
+  assert.match(html, /id="modal-latest-metrics-grid" class="metrics-grid mobile-metrics-grid"/);
+  assert.match(css, /\.mobile-modal-body \.workout-header\s*\{[^}]*flex-direction:\s*column/);
+  assert.match(css, /\.mobile-modal-body \.inline-actions\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(css, /\.mobile-modal-body \.exercise-stats\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(css, /\.mobile-modal-body \.exercise-row-info\s*\{[^}]*min-width:\s*0/);
+  assert.match(css, /\.mobile-modal-body \.table-container\s*\{[^}]*max-width:\s*100%/);
+});
+
 test('weight charts expose a textual trend with period, units and variation', () => {
   const personal = read(path.join('js', 'personal.js'));
   const css = read(path.join('css', 'style.css'));

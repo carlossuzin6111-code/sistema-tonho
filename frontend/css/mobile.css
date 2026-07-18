@@ -167,6 +167,96 @@ body.dark-theme .mobile-header {
   padding: 16px max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   overscroll-behavior: contain;
 }
+.mobile-modal-body .workouts-list-container {
+  gap: 12px;
+}
+.mobile-modal-body .workout-card {
+  min-width: 0;
+  padding: 14px;
+}
+.mobile-modal-body .workout-header {
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.mobile-modal-body .workout-header > :first-child {
+  width: 100%;
+  min-width: 0;
+}
+.mobile-modal-body .workout-title,
+.mobile-modal-body .workout-desc,
+.mobile-modal-body .exercise-name,
+.mobile-modal-body .exercise-notes {
+  overflow-wrap: anywhere;
+}
+.mobile-modal-body .inline-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  gap: 8px;
+}
+.mobile-modal-body .inline-actions .btn {
+  min-width: 0;
+  min-height: 40px;
+  justify-content: center;
+  padding-inline: 8px;
+}
+.mobile-modal-body .exercise-row {
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px;
+}
+.mobile-modal-body .exercise-row-info {
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+.mobile-modal-body .exercise-row-info > :first-child {
+  min-width: 0;
+}
+.mobile-modal-body .exercise-name {
+  display: block;
+  line-height: 1.35;
+}
+.mobile-modal-body .execution-inline-action {
+  margin: 7px 0 0;
+}
+.mobile-modal-body .exercise-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+}
+.mobile-modal-body .exercise-stat-box {
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--border-passive);
+  border-radius: 6px;
+  background: var(--bg-primary);
+}
+.mobile-modal-body .exercise-stat-value {
+  overflow-wrap: anywhere;
+}
+.mobile-modal-body .exercise-row > .btn-icon {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+}
+.mobile-metrics-grid {
+  margin: 0 0 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.mobile-modal-body .metric-item {
+  min-width: 0;
+}
+.mobile-modal-body .metric-value {
+  overflow-wrap: anywhere;
+}
+.mobile-modal-body .table-container {
+  max-width: 100%;
+  padding: 12px;
+}
 .mobile-sticky-action {
   position: sticky;
   top: -16px;

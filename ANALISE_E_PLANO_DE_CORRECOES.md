@@ -1109,6 +1109,34 @@ Resultados locais:
 - [ ] Remover arquivos órfãos e registrar alterações relevantes na auditoria.
 - [ ] Cobrir upload, autorização, fallback, privacidade e renderização desktop/mobile com testes.
 
+### 2026-07-18 — Bloco 39 concluído e publicado
+
+- [x] Reorganizar os cartões de treino para impedir compressão e sobreposição no acompanhamento mobile.
+- [x] Distribuir as ações do treino e as estatísticas dos exercícios em grades responsivas.
+- [x] Permitir quebra segura de nomes, descrições, observações e valores longos.
+- [x] Corrigir as classes estruturais do gráfico e do resumo de medidas no mobile.
+- [x] Limitar a tabela de medidas à largura do corpo rolável do modal.
+- [x] Adicionar cobertura automatizada contra regressão de sobreposição.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Validar os assets na base pública de testes.
+- [x] Abrir pull request e aguardar a CI.
+
+Branch de trabalho: `fix/mobile-student-detail-content`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/66
+
+Resultados locais:
+
+- Cabeçalhos de treino passam a empilhar conteúdo e ações dentro da largura disponível.
+- Botões de ação e estatísticas usam duas colunas com `minmax(0, 1fr)`, evitando que o conteúdo force a largura do modal.
+- Linhas de exercício reservam 40 px para a ação por ícone e permitem que o restante do conteúdo encolha e quebre linha.
+- Gráfico, resumo de medidas e tabela reutilizam suas estruturas visuais corretas com limites específicos para o mobile.
+- Assets atualizados para `20260718.5`.
+- Frontend e infraestrutura: 43 de 43 testes aprovados.
+- Backend: 94 de 94 testes aprovados em 12 suítes.
+- Os cinco serviços permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
+- HTML e CSS públicos confirmaram os assets `20260718.5`, as classes estruturais do gráfico e das medidas e as grades responsivas do conteúdo.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.
