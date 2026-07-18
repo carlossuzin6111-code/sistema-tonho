@@ -1206,23 +1206,23 @@ Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/68
 
 #### Fase 3 — tela de perfil desktop e mobile
 
-- [ ] Transformar o avatar do cabeçalho desktop em botão acessível com o nome `Abrir meu perfil`.
-- [ ] Exibir um avatar real clicável no cabeçalho mobile, atualmente oculto, preservando tema, logout e largura mínima de toque de 44 px.
-- [ ] Criar uma tela/modal único de perfil: modal médio no desktop e painel de tela inteira no mobile, com gerenciamento de foco, Escape e retorno ao avatar.
-- [ ] Separar a interface em `Dados pessoais`, `Foto` e `Segurança`, sem esconder erros nem misturar submissões.
-- [ ] Em `Dados pessoais`, permitir nome e mostrar e-mail/papel como somente leitura.
-- [ ] Em `Foto`, oferecer selecionar, pré-visualizar, recortar quadrado, ampliar/reposicionar, salvar, substituir e remover.
-- [ ] Em `Segurança`, oferecer senha atual, nova senha e confirmação, controles mostrar/ocultar e aviso de encerramento das outras sessões.
-- [ ] Bloquear duplo envio, anunciar carregamento/sucesso/erro e manter o formulário aberto quando a API falhar.
+- [x] Transformar o avatar do cabeçalho desktop em botão acessível com o nome `Abrir meu perfil`.
+- [x] Exibir um avatar real clicável no cabeçalho mobile, anteriormente oculto, preservando tema, logout e área de toque.
+- [x] Criar uma tela/modal único de perfil: modal médio no desktop e painel de tela inteira no mobile, com gerenciamento de foco, Escape e retorno ao avatar.
+- [x] Separar a interface em `Dados pessoais`, `Foto` e `Segurança`, sem esconder erros nem misturar submissões.
+- [x] Em `Dados pessoais`, permitir nome e mostrar e-mail/papel como somente leitura.
+- [x] Em `Foto`, oferecer selecionar, pré-visualizar, recortar quadrado, ampliar/reposicionar, salvar, substituir e remover.
+- [x] Em `Segurança`, oferecer senha atual, nova senha e confirmação, controles mostrar/ocultar e aviso de encerramento das outras sessões.
+- [x] Bloquear duplo envio, anunciar carregamento/sucesso/erro e manter o formulário aberto quando a API falhar.
 
 #### Fase 4 — propagação visual
 
 - [ ] Criar componente/helper comum que renderize `<img>` segura quando houver avatar e iniciais quando não houver.
-- [ ] Atualizar imediatamente cache local, nome e avatar do cabeçalho depois de salvar, sem recarregar a página.
+- [x] Atualizar imediatamente cache local, nome e avatar do cabeçalho depois de salvar, sem recarregar a página.
 - [ ] Propagar fotos para cartões/lista de alunos, detalhes do aluno e cabeçalhos de chat respeitando a autorização do endpoint.
-- [ ] Usar URL versionada pelo `avatar_updated_at` para invalidar somente a foto alterada, sem desabilitar cache global.
+- [x] Usar URL versionada pelo `avatar_updated_at` para invalidar somente a foto alterada, sem desabilitar cache global.
 - [ ] Fixar `aspect-ratio: 1`, `object-fit: cover`, recorte central e dimensões estáveis em todos os avatares para impedir esticamento e deslocamento de layout.
-- [ ] Tratar erro de imagem removendo o `<img>` e restaurando as iniciais de forma segura.
+- [x] Tratar erro de imagem removendo o `<img>` e restaurando as iniciais de forma segura.
 
 #### Fase 5 — testes, publicação e aceite
 
@@ -1266,6 +1266,26 @@ Pull request da fase 1: https://github.com/carlossuzin6111-code/sistema-tonho/pu
 - Imagem de produção construída; API recriada e saudável; colunas `avatar_filename` e `avatar_updated_at` confirmadas.
 - Healthcheck público da API respondeu `200`; nenhuma conta ou foto foi alterada durante a validação pública.
 - CI da fase 1 aprovada nas verificações de frontend/infraestrutura e backend.
+
+#### Execução da fase 2 — tela de perfil próprio
+
+Branch de trabalho: `feat/profile-edit-ui`.
+Pull request da fase visual: https://github.com/carlossuzin6111-code/sistema-tonho/pull/70
+
+- Avatar do cabeçalho abre o perfil tanto para aluno quanto para personal em desktop e mobile.
+- E-mail e tipo de conta aparecem como somente leitura; nome usa submissão independente com retorno local.
+- Senha atual, nova senha e confirmação possuem visibilidade controlada, validação e aviso de revogação das demais sessões.
+- JPEG, PNG e WebP podem ser pré-visualizados e recortados em 512 × 512 com zoom e posicionamento horizontal/vertical.
+- O navegador gera WebP de até 400 KB e o backend permanece responsável pela revalidação e normalização final.
+- Renderização da foto usa DOM seguro, sem `innerHTML`, atributo de evento inline ou URL externa.
+- Falha de carregamento e remoção restauram imediatamente a inicial do nome; ausência de foto desabilita a remoção.
+- Assets preparados na versão `20260718.7`.
+- Frontend e infraestrutura: 45 de 45 testes aprovados.
+- Backend: 99 de 99 testes aprovados em 12 suítes.
+- Os cinco serviços permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
+- HTML, CSS e JavaScript públicos confirmaram o modal desktop/mobile, avatar clicável, recorte, limite de 400 KB, DOM seguro e assets `20260718.7`.
+- A validação pública foi estrutural e não alterou nome, senha ou foto de nenhuma conta.
+- CI da fase visual aprovada nas verificações de frontend/infraestrutura e backend.
 
 ### 2026-07-17 — Bloco 20 concluído e publicado
 

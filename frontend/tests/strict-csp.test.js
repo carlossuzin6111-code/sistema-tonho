@@ -242,9 +242,9 @@ test('modal controller provides dialog semantics and keyboard focus management',
 test('authentication forms expose loading, inline error and password visibility controls', () => {
   for (const page of ['desktop.html', 'mobile.html']) {
     const html = fs.readFileSync(path.join(frontendRoot, page), 'utf8');
-    assert.equal((html.match(/data-action="toggle-password"/g) || []).length, 4);
-    assert.equal((html.match(/role="alert" aria-live="assertive"/g) || []).length, 9);
-    assert.equal((html.match(/data-submit-label/g) || []).length, 9);
+    assert.equal((html.match(/data-action="toggle-password"/g) || []).length, 7);
+    assert.equal((html.match(/role="alert" aria-live="assertive"/g) || []).length, 11);
+    assert.equal((html.match(/data-submit-label/g) || []).length, 11);
   }
 
   const input = { type: 'password' };
@@ -626,7 +626,7 @@ test('logout removes the private dashboard route from browser history', () => {
 test('dashboard and modal tabs expose state, panels and keyboard navigation', () => {
   for (const page of ['desktop.html', 'mobile.html']) {
     const html = read(page);
-    assert.equal((html.match(/role="tablist"/g) || []).length, 4);
+    assert.equal((html.match(/role="tablist"/g) || []).length, 5);
     assert.match(html, /aria-label="Áreas do personal"/);
     assert.match(html, /aria-label="Áreas do aluno"/);
     assert.match(html, /aria-label="Detalhes do aluno"/);
@@ -636,6 +636,29 @@ test('dashboard and modal tabs expose state, panels and keyboard navigation', ()
   assert.match(app, /panel\.hidden = !active/);
   assert.match(app, /'ArrowLeft'.*'ArrowRight'.*'Home'.*'End'/);
   assert.match(app, /target\.focus\(\);\s*target\.click\(\)/);
+});
+
+test('own profile UI is shared, accessible and prepares a bounded cropped avatar', () => {
+  for (const page of ['desktop.html', 'mobile.html']) {
+    const html = read(page);
+    assert.match(html, /data-action="open-profile-modal"[^>]*aria-label="(?:Abrir meu perfil|Editar perfil)"/);
+    assert.match(html, /id="modal-edit-profile"/);
+    assert.match(html, /id="profile-avatar-file"[^>]*accept="image\/jpeg,image\/png,image\/webp"/);
+    assert.match(html, /id="profile-avatar-zoom"[^>]*max="3"/);
+    assert.match(html, /id="profile-email-readonly"[^>]*readonly/);
+    assert.match(html, /id="profile-role-readonly"[^>]*readonly/);
+    assert.match(html, /src="js\/profile\.js\?v=20260718\.7"/);
+  }
+
+  const profile = read(path.join('js', 'profile.js'));
+  const api = read(path.join('js', 'api.js'));
+  assert.match(profile, /canvas\.toBlob\([^]*'image\/webp', 0\.82/);
+  assert.match(profile, /blob\.size > 400000/);
+  assert.match(profile, /naturalWidth > 4096/);
+  assert.match(profile, /SafeDOM\.setSafeImageSource/);
+  assert.doesNotMatch(profile, /innerHTML|onerror\s*=\s*["']/i);
+  assert.match(api, /async patch\(endpoint, data\)/);
+  assert.match(api, /async put\(endpoint, data\)/);
 });
 
 test('event delegation invokes only the allowlisted action and form handlers', () => {

@@ -69,7 +69,7 @@
     try {
       const base = new URL(baseUrl || document.baseURI);
       const url = new URL(source, base);
-      return url.protocol === 'https:' && (url.origin === base.origin || url.hostname === 'raw.githubusercontent.com');
+      return url.origin === base.origin || (url.protocol === 'https:' && url.hostname === 'raw.githubusercontent.com');
     } catch (err) {
       return false;
     }

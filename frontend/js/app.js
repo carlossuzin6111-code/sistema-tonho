@@ -552,6 +552,7 @@ function setupAppShell(user) {
   document.getElementById('header-user-name').textContent = user.name;
   document.getElementById('header-user-email').textContent = user.email;
   document.getElementById('header-avatar').textContent = user.name.charAt(0).toUpperCase();
+  if (typeof applyProfileAvatarToHeader === 'function') applyProfileAvatarToHeader(user);
 
   const roleBadge = document.getElementById('user-role-badge');
   roleBadge.textContent = user.role === 'personal' ? 'Personal Trainer' : 'Aluno';

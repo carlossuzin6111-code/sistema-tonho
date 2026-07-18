@@ -48,7 +48,11 @@ const clickActions = Object.freeze({
   'drawer-student-tab': element => {
     switchStudentTab(element.dataset.tab);
     toggleMobileDrawer();
-  }
+  },
+  'open-profile-modal': () => openEditProfileModal(),
+  'switch-profile-tab': element => switchProfileTab(element.dataset.tab),
+  'save-profile-avatar': () => handleSaveAvatar(),
+  'remove-profile-avatar': () => handleRemoveAvatar()
 });
 
 const submitHandlers = Object.freeze({
@@ -62,7 +66,9 @@ const submitHandlers = Object.freeze({
   'create-workout-form': event => handleCreateWorkoutSubmit(event),
   'add-exercise-form': event => handleAddExerciseSubmit(event),
   'add-measurement-form': event => handleAddMeasurementSubmit(event),
-  'create-catalog-exercise-form': event => handleCreateCatalogExerciseSubmit(event)
+  'create-catalog-exercise-form': event => handleCreateCatalogExerciseSubmit(event),
+  'edit-profile-name-form': event => handleUpdateProfileName(event),
+  'edit-profile-password-form': event => handleUpdateProfilePassword(event)
 });
 
 document.addEventListener('click', event => {
@@ -86,12 +92,14 @@ document.addEventListener('change', event => {
   if (event.target.id === 'cat-ex-gif-file') handleCatalogGifFileSelect(event.target);
   if (event.target.id === 'students-sort') sortPersonalStudents(event.target.value);
   if (event.target.id === 'exercises-sort') sortPersonalExercises(event.target.value);
+  if (event.target.id === 'profile-avatar-file') handleAvatarFileSelected(event);
 });
 
 document.addEventListener('input', event => {
   if (event.target.id === 'cat-ex-gif-url') handleCatalogGifUrlInput();
   if (event.target.id === 'students-search') filterPersonalStudents(event.target.value);
   if (event.target.id === 'exercises-search') filterPersonalExercises(event.target.value);
+  if (['profile-avatar-zoom', 'profile-avatar-x', 'profile-avatar-y'].includes(event.target.id)) renderProfileAvatarCrop();
   const feedbackForm = event.target.closest?.('.auth-form, .form-with-feedback');
   if (feedbackForm) clearFormError(feedbackForm.id);
 });
