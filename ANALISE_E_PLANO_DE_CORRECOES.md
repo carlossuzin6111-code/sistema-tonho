@@ -1285,6 +1285,7 @@ Pull request da fase visual: https://github.com/carlossuzin6111-code/sistema-ton
 - Os cinco serviços permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
 - HTML, CSS e JavaScript públicos confirmaram o modal desktop/mobile, avatar clicável, recorte, limite de 400 KB, DOM seguro e assets `20260718.7`.
 - A validação pública foi estrutural e não alterou nome, senha ou foto de nenhuma conta.
+- CI da fase visual aprovada nas verificações de frontend/infraestrutura e backend.
 
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
