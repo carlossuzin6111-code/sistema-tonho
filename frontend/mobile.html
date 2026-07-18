@@ -8,9 +8,9 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Base Styles (Components, Colors, Lovable) -->
-  <link rel="stylesheet" href="css/style.css?v=20260718.3">
+  <link rel="stylesheet" href="css/style.css?v=20260718.4">
   <!-- Mobile Architecture Overrides (PWA Lock) -->
-  <link rel="stylesheet" href="css/mobile.css?v=20260718.3">
+  <link rel="stylesheet" href="css/mobile.css?v=20260718.4">
 </head>
 <body>
 
@@ -305,7 +305,7 @@
   <!-- MODALS -->
   <div id="modal-student-detail" class="modal-overlay">
     <div class="modal-content glass student-detail-modal">
-      <div class="mobile-modal-close-row">
+      <div class="mobile-modal-close-row student-detail-close-row">
         <button class="modal-close mobile-modal-close" data-action="close-modal" data-modal="modal-student-detail" aria-label="Fechar detalhes do aluno"><i data-lucide="x"></i></button>
       </div>
       <div class="modal-header-profile mobile-modal-profile">
@@ -314,7 +314,7 @@
           <h2 id="modal-sd-name">Nome do Aluno</h2>
           <p id="modal-sd-email"></p>
           <div class="meta-tags">
-            <span class="meta-tag">H: <strong id="modal-sd-height">-</strong></span>
+            <span class="meta-tag">Altura: <strong id="modal-sd-height">-</strong></span>
             <span class="meta-tag">Meta: <strong id="modal-sd-target">-</strong></span>
             <span class="meta-tag">Idade: <strong id="modal-sd-age">-</strong></span>
           </div>
@@ -322,7 +322,7 @@
         </div>
       </div>
 
-      <div class="modal-subtabs modal-subtabs-spaced" role="tablist" aria-label="Detalhes do aluno">
+      <div class="modal-subtabs modal-subtabs-spaced mobile-student-detail-tabs" role="tablist" aria-label="Detalhes do aluno">
         <button id="modal-tab-workouts" class="modal-subtab active" data-action="switch-modal-tab" data-tab="workouts">Ficha</button>
         <button id="modal-tab-metrics" class="modal-subtab" data-action="switch-modal-tab" data-tab="metrics">Medidas</button>
       </div>
@@ -521,11 +521,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260718.3"></script>
-  <script src="js/safe-dom.js?v=20260718.3"></script>
-  <script src="js/app.js?v=20260718.3"></script>
-  <script src="js/personal.js?v=20260718.3"></script>
-  <script src="js/student.js?v=20260718.3"></script>
-  <script src="js/events.js?v=20260718.3"></script>
+  <script src="js/api.js?v=20260718.4"></script>
+  <script src="js/safe-dom.js?v=20260718.4"></script>
+  <script src="js/app.js?v=20260718.4"></script>
+  <script src="js/personal.js?v=20260718.4"></script>
+  <script src="js/student.js?v=20260718.4"></script>
+  <script src="js/events.js?v=20260718.4"></script>
 </body>
 </html>

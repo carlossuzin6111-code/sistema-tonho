@@ -361,6 +361,20 @@ test('mobile primary actions remain reachable without viewport overflow', () => 
   assert.doesNotMatch(css, /\.modal-content\s*\{[^}]*width:\s*100vw/);
 });
 
+test('mobile student detail keeps profile geometry stable and content separated', () => {
+  const html = read('mobile.html');
+  const mobileCss = read(path.join('css', 'mobile.css'));
+  const baseCss = read(path.join('css', 'style.css'));
+
+  assert.match(html, /student-detail-close-row/);
+  assert.match(html, /mobile-student-detail-tabs/);
+  assert.match(mobileCss, /\.mobile-modal-profile \.avatar-large\s*\{[^}]*flex:\s*0 0 64px/);
+  assert.match(mobileCss, /\.mobile-modal-profile \.modal-profile-info\s*\{[^}]*min-width:\s*0/);
+  assert.match(mobileCss, /\.mobile-modal-body\s*\{[^}]*min-height:\s*0/);
+  assert.match(mobileCss, /\.modal-content\s*\{[^}]*overflow:\s*hidden/);
+  assert.match(baseCss, /\.avatar-large img\s*\{[^}]*object-fit:\s*cover/);
+});
+
 test('weight charts expose a textual trend with period, units and variation', () => {
   const personal = read(path.join('js', 'personal.js'));
   const css = read(path.join('css', 'style.css'));

@@ -1066,6 +1066,47 @@ Resultados locais:
 - HTML e CSS públicos confirmaram o aviso nas duas interfaces e os assets `20260718.3`.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
+### 2026-07-18 — Bloco 38 implementado e publicado
+
+- [x] Corrigir margens e espaçamentos do acompanhamento de aluno no mobile.
+- [x] Impedir sobreposição entre fechamento, perfil, abas e conteúdo rolável.
+- [x] Impedir compressão e esticamento do avatar em nomes ou e-mails longos.
+- [x] Melhorar quebra de texto, metadados e localização da ação de senha.
+- [x] Garantir alvos de toque adequados nas abas internas.
+- [x] Corrigir o fundo do gráfico no tema escuro.
+- [x] Preparar o recorte visual do avatar para uma futura imagem real.
+- [x] Adicionar cobertura automatizada da geometria e separação do modal.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Publicar e validar na base pública de testes.
+- [ ] Abrir pull request e aguardar a CI.
+
+Branch de trabalho: `fix/mobile-student-detail-layout`.
+Pull request: pendente.
+
+Resultados locais:
+
+- O avatar mobile usa caixa fixa de 64 × 64 px, `aspect-ratio: 1` e `flex: 0 0 64px`, sem deformação por pressão do layout.
+- Nome e e-mail podem quebrar linha sem ampliar a largura do modal nem deslocar os demais objetos.
+- Cabeçalho, perfil, abas e corpo possuem áreas independentes; somente o conteúdo principal rola e o modal corta sobreposições externas.
+- Abas ocupam larguras equivalentes e possuem altura mínima de 44 px.
+- Espaçamentos laterais e inferiores respeitam as áreas seguras do dispositivo.
+- Uma futura `<img>` dentro do avatar já terá recorte central com `object-fit: cover`, mas nenhum upload ou dado de foto foi implementado neste bloco.
+- Assets atualizados para `20260718.4`.
+- Frontend e infraestrutura: 42 de 42 testes aprovados.
+- Backend: 94 de 94 testes aprovados em 12 suítes.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- HTML e CSS públicos confirmaram os assets `20260718.4`, a estrutura separada do modal, o avatar fixo e o recorte futuro com `object-fit: cover`.
+
+#### Catálogo futuro — foto de perfil do aluno (não implementado)
+
+- [ ] Definir armazenamento privado ou controlado na mesma origem, sem aceitar URL arbitrária externa.
+- [ ] Criar coluna e migração para a referência da foto, preservando as iniciais como fallback.
+- [ ] Aceitar somente PNG, JPEG ou WebP com assinatura validada, limite de tamanho e rejeição de SVG.
+- [ ] Oferecer corte quadrado, pré-visualização, substituição e remoção da foto.
+- [ ] Aplicar autorização para que somente o aluno ou seu personal vinculado possam alterar a imagem, conforme regra de produto a decidir.
+- [ ] Remover arquivos órfãos e registrar alterações relevantes na auditoria.
+- [ ] Cobrir upload, autorização, fallback, privacidade e renderização desktop/mobile com testes.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.
