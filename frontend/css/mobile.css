@@ -114,6 +114,7 @@ body.dark-theme .mobile-header {
 }
 .mobile-chart-preview { min-height: 150px; margin-bottom: 16px; background: #fff; }
 .mobile-chart-preview .chart-svg { height: 150px; flex-basis: 150px; }
+.measurement-history-table { min-width: 720px; }
 .mobile-modal-inner { padding: 24px; }
 .drawer-title { margin: 0; font-size: 1.2rem; }
 

@@ -1399,6 +1399,14 @@ body.dark-theme .pedagogical-table th {
   text-align: left;
 }
 
+.table-caption {
+  padding: 0 0 12px;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+}
+
 .data-table th,
 .data-table td {
   padding: 12px 14px;

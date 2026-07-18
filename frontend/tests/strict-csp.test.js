@@ -344,6 +344,21 @@ test('weight charts expose a textual trend with period, units and variation', ()
   assert.match(css, /\.chart-trend-summary\s*\{/);
 });
 
+test('measurement histories use valid accessible tables on desktop and mobile', () => {
+  for (const page of ['desktop.html', 'mobile.html']) {
+    const html = read(page);
+    assert.equal((html.match(/<caption class="table-caption">/g) || []).length, 2);
+    assert.equal((html.match(/id="modal-measurements-table-body"/g) || []).length, 1);
+    assert.match(html, /<table[^>]*>[\s\S]*?<tbody id="modal-measurements-table-body"[\s\S]*?<\/table>/);
+  }
+
+  const mobile = read('mobile.html');
+  const mobileCss = read(path.join('css', 'mobile.css'));
+  assert.equal((mobile.match(/class="data-table measurement-history-table"/g) || []).length, 2);
+  assert.equal((mobile.match(/<th scope="col">/g) || []).length >= 14, true);
+  assert.match(mobileCss, /\.measurement-history-table\s*\{[^}]*min-width:\s*720px/);
+});
+
 test('login submission blocks duplicates and restores the form after an API error', async () => {
   let rejectLogin;
   let apiCalls = 0;
