@@ -1,6 +1,6 @@
 const knex = require('knex');
 const config = require('../../knexfile');
-const { issueAccessKey } = require('../services/accessKeyService');
+const { ACCESS_KEY_TTL_DAYS, issueAccessKey } = require('../services/accessKeyService');
 
 const env = process.env.NODE_ENV || 'development';
 
@@ -13,6 +13,7 @@ async function main() {
 
     console.log('Access key created. Store it securely; it will be shown only once:');
     console.log(accessKey);
+    console.log(`This key expires in ${ACCESS_KEY_TTL_DAYS} days.`);
   } finally {
     await db.destroy();
   }

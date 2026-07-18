@@ -978,6 +978,37 @@ Resultados locais:
 - HTML e JavaScript públicos confirmaram os assets `20260718.2` e a remoção da rota privada no logout.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
+### 2026-07-18 — Bloco 35 concluído e publicado
+
+- [x] Adicionar expiração às chaves de cadastro de personal.
+- [x] Definir validade de 7 dias para novas chaves.
+- [x] Conceder 30 dias às chaves antigas ainda não utilizadas.
+- [x] Revalidar a expiração dentro da transação que consome a chave.
+- [x] Informar a validade no comando de geração e atualizar o README.
+- [x] Adicionar testes de serviço, API e migração.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Criar backup, aplicar a migração e validar a base pública de testes.
+- [x] Abrir pull request.
+- [x] Aguardar a CI.
+
+Branch de trabalho: `security/expire-registration-keys`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/62
+
+Resultados locais:
+
+- Novas chaves recebem `expires_at` sete dias após a emissão e continuam armazenadas apenas como hash.
+- Busca e consumo transacional exigem chave não utilizada e com validade futura.
+- A migração atribui 30 dias de transição somente às chaves antigas ainda disponíveis; chaves usadas permanecem inalteradas.
+- O comando de geração informa que a nova chave expira em 7 dias.
+- Frontend e infraestrutura: 40 de 40 testes aprovados.
+- Backend: 91 de 91 testes aprovados em 11 suítes.
+- Backup consistente criado em `/app/data/database.sqlite.backup`, com integridade `ok`, antes da migração.
+- Backend reconstruído; as sete migrações ficaram concluídas e sem pendências.
+- Das quatro chaves geradas anteriormente, uma já havia sido utilizada e as três restantes receberam validade até `2026-08-17`, sem expor valores ou hashes durante a verificação.
+- A verificação pelo módulo normal do banco completou 32 exercícios padrão ausentes do personal ID 4, conforme a rotina de inicialização existente.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.
