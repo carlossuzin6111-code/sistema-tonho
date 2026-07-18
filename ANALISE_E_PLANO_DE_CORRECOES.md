@@ -1137,7 +1137,7 @@ Resultados locais:
 - HTML e CSS públicos confirmaram os assets `20260718.5`, as classes estruturais do gráfico e das medidas e as grades responsivas do conteúdo.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
-### 2026-07-18 — Bloco 40 implementado e publicado
+### 2026-07-18 — Bloco 40 concluído e publicado
 
 - [x] Remover as alturas rígidas de 300 px e 400 px dos chats mobile.
 - [x] Fazer as abas de chat ocuparem a altura útil entre o cabeçalho e a navegação inferior.
@@ -1146,7 +1146,7 @@ Resultados locais:
 - [x] Adicionar cobertura automatizada para o layout e a navegação mobile.
 - [x] Executar testes locais de frontend, infraestrutura e backend.
 - [x] Validar os assets na base pública de testes.
-- [ ] Abrir pull request e aguardar a CI.
+- [x] Abrir pull request e aguardar a CI.
 
 Branch de trabalho: `fix/mobile-chat-layout`.
 Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/67
@@ -1162,6 +1162,7 @@ Resultados locais:
 - Backend: 94 de 94 testes aprovados em 12 suítes.
 - Os cinco serviços permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
 - HTML e CSS públicos confirmaram os assets `20260718.6`, as abas flexíveis, a alternância de conversa e a área segura do formulário.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
