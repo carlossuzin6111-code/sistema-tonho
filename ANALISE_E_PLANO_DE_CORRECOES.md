@@ -1009,7 +1009,7 @@ Resultados locais:
 - API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
-### 2026-07-18 — Bloco 36 implementado e publicado
+### 2026-07-18 — Bloco 36 concluído e publicado
 
 - [x] Auditar dependências de produção e desenvolvimento.
 - [x] Desabilitar Swagger e o JSON OpenAPI por padrão em produção.
@@ -1020,7 +1020,7 @@ Resultados locais:
 - [x] Executar testes locais de frontend, infraestrutura e backend.
 - [x] Reconstruir o backend e validar as rotas na base pública de testes.
 - [x] Abrir pull request.
-- [ ] Aguardar a CI.
+- [x] Aguardar a CI.
 
 Branch de trabalho: `security/disable-production-api-docs`.
 Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/63
@@ -1036,6 +1036,7 @@ Resultados locais:
 - Backend reconstruído e recriado sem substituir o volume persistente do banco.
 - API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
 - `/api/api-docs/` e `/api/swagger.json` passaram a responder `404` publicamente.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
