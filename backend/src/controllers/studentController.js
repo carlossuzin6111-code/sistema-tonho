@@ -3,6 +3,11 @@ const db = require('../database');
 const { isEmailUniqueConstraint, normalizeEmail } = require('../services/userIdentityService');
 const { AUDIT_ACTIONS, recordAudit } = require('../services/auditService');
 
+function withAvatarMetadata(user) {
+  const { avatar_filename, avatar_updated_at, ...publicFields } = user;
+  return { ...publicFields, hasAvatar: Boolean(avatar_filename), avatarUpdatedAt: avatar_updated_at || null };
+}
+
 // Create a new student (Personal Trainer only)
 async function createStudent(req, res) {
   const { name, email, password, height, targetWeight, birthDate } = req.body;
@@ -66,14 +71,14 @@ async function getStudents(req, res) {
   try {
     const students = await db('users as u')
       .join('student_profiles as sp', 'u.id', 'sp.student_id')
-      .select('u.id', 'u.name', 'u.email', 'sp.height', 'sp.target_weight', 'sp.birth_date')
+      .select('u.id', 'u.name', 'u.email', 'u.avatar_filename', 'u.avatar_updated_at', 'sp.height', 'sp.target_weight', 'sp.birth_date')
       .select(db.raw('(SELECT weight FROM measurements WHERE student_id = u.id ORDER BY recorded_at DESC LIMIT 1) as latest_weight'))
       .select(db.raw('(SELECT recorded_at FROM measurements WHERE student_id = u.id ORDER BY recorded_at DESC LIMIT 1) as latest_weight_date'))
       .select(db.raw('(SELECT COUNT(*) FROM chat_messages WHERE sender_id = u.id AND receiver_id = ? AND read_status = 0) as unread_messages', [personalId]))
       .where('sp.personal_id', personalId)
       .orderBy('u.name', 'asc');
 
-    res.status(200).json(students);
+    res.status(200).json(students.map(withAvatarMetadata));
   } catch (err) {
     console.error('Get students error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
@@ -100,7 +105,7 @@ async function getStudentDetails(req, res) {
 
     const student = await db('users as u')
       .join('student_profiles as sp', 'u.id', 'sp.student_id')
-      .select('u.id', 'u.name', 'u.email', 'sp.height', 'sp.target_weight', 'sp.birth_date', 'sp.personal_id')
+      .select('u.id', 'u.name', 'u.email', 'u.avatar_filename', 'u.avatar_updated_at', 'sp.height', 'sp.target_weight', 'sp.birth_date', 'sp.personal_id')
       .where('u.id', studentId)
       .first();
 
@@ -121,7 +126,7 @@ async function getStudentDetails(req, res) {
     }
 
     res.status(200).json({
-      student,
+      student: withAvatarMetadata(student),
       measurements,
       workouts
     });

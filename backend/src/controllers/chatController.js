@@ -5,6 +5,27 @@ const db = require('../database');
 const activeClients = new Map();
 const SSE_HEARTBEAT_INTERVAL_MS = 25_000;
 
+async function getChatPartner(req, res) {
+  if (req.user.role !== 'student') return res.status(403).json({ error: 'Chat partner is available to students only' });
+  try {
+    const partner = await db('student_profiles as sp')
+      .join('users as u', 'u.id', 'sp.personal_id')
+      .select('u.id', 'u.name', 'u.avatar_filename', 'u.avatar_updated_at')
+      .where('sp.student_id', req.user.id)
+      .first();
+    if (!partner) return res.status(404).json({ error: 'Personal Trainer profile not found' });
+    return res.json({
+      id: partner.id,
+      name: partner.name,
+      hasAvatar: Boolean(partner.avatar_filename),
+      avatarUpdatedAt: partner.avatar_updated_at || null
+    });
+  } catch (error) {
+    console.error('Get chat partner error:', error.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 // Helper to send real-time event to a user if connected
 function notifyUser(userId, data) {
   const userStreams = activeClients.get(userId.toString());
@@ -186,6 +207,7 @@ function handleChatStream(req, res) {
 }
 
 module.exports = {
+  getChatPartner,
   getMessages,
   sendMessage,
   handleChatStream

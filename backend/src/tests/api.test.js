@@ -399,6 +399,8 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(Array.isArray(res.body)).toBe(true);
       expect(res.body.length).toBeGreaterThan(0);
       expect(res.body[0]).toHaveProperty('email', 'test_student@fitlife.com');
+      expect(res.body[0]).toMatchObject({ hasAvatar: false, avatarUpdatedAt: null });
+      expect(res.body[0]).not.toHaveProperty('avatar_filename');
     });
 
     test('Should get student details (Personal Trainer)', async () => {
@@ -408,6 +410,8 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveProperty('student');
       expect(res.body.student).toHaveProperty('email', 'test_student@fitlife.com');
+      expect(res.body.student).toMatchObject({ hasAvatar: false, avatarUpdatedAt: null });
+      expect(res.body.student).not.toHaveProperty('avatar_filename');
     });
 
     test('Should get own student details (Student)', async () => {
@@ -726,6 +730,22 @@ describe('FitLife Sync API Integration Tests', () => {
         .set('Authorization', `Bearer ${studentToken}`);
       expect(res.statusCode).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    test('Should expose only the linked Personal Trainer public avatar metadata to a Student', async () => {
+      const res = await request(app)
+        .get('/api/chat/partner')
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toMatchObject({ id: expect.any(Number), name: 'Test Personal', hasAvatar: false, avatarUpdatedAt: null });
+      expect(res.body).not.toHaveProperty('avatar_filename');
+    });
+
+    test('Should deny the Student chat partner helper to a Personal Trainer', async () => {
+      const res = await request(app)
+        .get('/api/chat/partner')
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(res.statusCode).toBe(403);
     });
 
     test('Should deny a Personal Trainer access to another trainer student messages', async () => {

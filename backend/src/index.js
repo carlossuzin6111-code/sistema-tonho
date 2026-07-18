@@ -727,6 +727,7 @@ app.delete('/api/catalog/exercises/:id', authenticateToken, requireRole('persona
  *         description: Erro interno do servidor.
  */
 app.get('/api/chat/stream', authenticateToken, chatController.handleChatStream);
+app.get('/api/chat/partner', authenticateToken, chatController.getChatPartner);
 
 /**
  * @openapi

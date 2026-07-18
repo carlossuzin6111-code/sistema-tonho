@@ -1319,15 +1319,31 @@ Cada bloco usará branch e pull request próprios. Um bloco só começa após o 
 
 Prioridade: alta, porque protege dados e remove erros de base que afetariam as três telas.
 
-- [ ] Incluir o diretório privado de avatares no backup automático com manifesto, restauração consistente e retenção conjunta com o SQLite.
-- [ ] Testar backup sem avatares, com avatares, arquivo ausente, falha parcial e restauração em diretório limpo.
-- [ ] Propagar metadados autorizados de avatar para lista/detalhes de alunos e para o par vinculado no chat, sem expor caminhos internos.
-- [ ] Criar helper único de avatar com dimensão fixa, `aspect-ratio: 1`, `object-fit: cover`, URL versionada e iniciais como fallback.
-- [ ] Corrigir o erro de escopo no tratamento de falha de medidas antes de alterar o layout.
-- [ ] Remover `innerHTML` remanescente dos fluxos do aluno e construir estados vazios, cabeçalhos e spinners com DOM seguro.
-- [ ] Separar por usuário as preferências locais permitidas; nenhum estado de uma conta pode aparecer para outra conta no mesmo navegador.
-- [ ] Adicionar testes preventivos para os itens anteriores.
-- [ ] Executar testes, audit, build, backup controlado, publicação, validação pública e CI.
+Branch de execução: `fix/shared-student-reliability`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/72
+
+Progresso em 2026-07-18:
+
+- Backup automático convertido em conjunto atômico com SQLite, avatares privados, manifesto e SHA-256; a retenção agora remove o conjunto completo.
+- Restauração adicionada por `npm run db:restore -- <backup> <destino>`; banco e avatares são validados antes da cópia e promovidos ao destino somente após a preparação completa.
+- Lista/detalhes de alunos e o novo `GET /api/chat/partner` propagam apenas `hasAvatar` e `avatarUpdatedAt`, sem caminho ou nome interno.
+- Um helper compartilhado renderiza foto autorizada com URL versionada e fallback por iniciais nos cards, detalhes e chats.
+- Fluxos do aluno foram migrados para DOM seguro; o erro secundário de medidas foi eliminado, valores zero foram preservados e marcações de exercício passaram a ser isoladas pelo ID do usuário.
+- Validação local concluída: backend `106/106`, frontend `46/46`, verificações sintáticas/diff sem erro e auditorias de dependência de produção sem vulnerabilidades.
+- Build de `app` e `backup-worker` concluído; snapshot pré-publicação `database-block42-prepublish-20260718.sqlite` validado com `integrity: ok` e 5.566.464 bytes.
+- Serviços recriados saudáveis. O primeiro conjunto automático `backup-20260718T140726005Z` preservou banco e 2 avatares com checksums; a restauração real em diretório temporário recuperou os 2 arquivos e foi removida após a validação.
+- Ambiente público respondeu `200` no healthcheck e no asset `student.js?v=20260718.8`; rotas privadas `auth/me` e `chat/partner` responderam `401` sem sessão, como esperado.
+- CI do PR #72 aprovado nos jobs `Backend` e `Frontend and infrastructure`.
+
+- [x] Incluir o diretório privado de avatares no backup automático com manifesto, restauração consistente e retenção conjunta com o SQLite.
+- [x] Testar backup sem avatares, com avatares, arquivo ausente, falha parcial e restauração em diretório limpo.
+- [x] Propagar metadados autorizados de avatar para lista/detalhes de alunos e para o par vinculado no chat, sem expor caminhos internos.
+- [x] Criar helper único de avatar com dimensão fixa, `aspect-ratio: 1`, `object-fit: cover`, URL versionada e iniciais como fallback.
+- [x] Corrigir o erro de escopo no tratamento de falha de medidas antes de alterar o layout.
+- [x] Remover `innerHTML` remanescente dos fluxos do aluno e construir estados vazios, cabeçalhos e spinners com DOM seguro.
+- [x] Separar por usuário as preferências locais permitidas; nenhum estado de uma conta pode aparecer para outra conta no mesmo navegador.
+- [x] Adicionar testes preventivos para os itens anteriores.
+- [x] Executar testes, audit, build, backup controlado, publicação, validação pública e CI.
 
 Critérios de aceite do bloco 42:
 
