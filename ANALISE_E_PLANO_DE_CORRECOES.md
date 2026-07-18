@@ -1168,6 +1168,9 @@ Resultados locais:
 
 Objetivo: permitir que aluno e personal abram o próprio perfil clicando no avatar do cabeçalho e alterem nome, senha e foto com a mesma experiência em desktop e mobile.
 
+Branch de planejamento: `docs/profile-implementation-plan`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/68
+
 #### Decisões de produto e segurança
 
 - O perfil editará somente a conta autenticada; o reset de senha de aluno feito pelo personal continuará separado.
