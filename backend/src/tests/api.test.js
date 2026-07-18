@@ -792,6 +792,7 @@ describe('FitLife Sync API Integration Tests', () => {
       }, (res) => {
         expect(res.statusCode).toBe(200);
         expect(res.headers['content-type']).toContain('text/event-stream');
+        expect(res.headers['cache-control']).toBe('no-cache');
         expect(res.headers['connection']).toBe('keep-alive');
         res.destroy(); // Close the connection
         setTimeout(done, 50);
