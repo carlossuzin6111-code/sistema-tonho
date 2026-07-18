@@ -1370,7 +1370,7 @@ Progresso em 2026-07-18:
 - Validação local concluída: backend `106/106`, frontend `47/47`, sintaxe JavaScript e `git diff --check` sem erros; auditorias de dependências sem vulnerabilidades.
 - Snapshot pré-publicação `database-block43-prepublish-20260718.sqlite` criado com 6.631.424 bytes, 12 tabelas e `integrity: ok`; todos os containers permaneceram saudáveis.
 - Como o frontend é montado em modo somente leitura no Nginx, não há imagem específica para reconstruir. Publicação `20260718.9` confirmada com HTTP `200` em home, healthcheck, mobile e `student.js`; HTML público confirmou o novo cabeçalho, resumo e todos os assets versionados.
-- Pull request e CI ainda pendentes.
+- CI do PR #73 aprovado nos jobs `Backend` e `Frontend and infrastructure`.
 
 - [x] Criar cabeçalho consistente com título, orientação curta e resumo de treinos/exercícios/concluídos.
 - [x] Garantir uma coluna principal flexível com `min-width: 0` e quebra segura de nome, descrição, observações, repetições e carga.
@@ -1381,7 +1381,7 @@ Progresso em 2026-07-18:
 - [x] Corrigir vazio, carregamento e erro com espaço estável e ação contextual para o chat.
 - [x] Validar modal de execução em imagem horizontal, vertical, ausente e texto longo.
 - [x] Testar tema claro/escuro, movimento reduzido, teclado e toque.
-- [ ] Executar procedimento completo e abrir PR exclusivo da tela.
+- [x] Executar procedimento completo e abrir PR exclusivo da tela.
 
 Critérios de aceite do bloco 43:
 
