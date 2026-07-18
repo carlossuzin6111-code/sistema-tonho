@@ -1270,6 +1270,7 @@ Pull request da fase 1: https://github.com/carlossuzin6111-code/sistema-tonho/pu
 #### Execução da fase 2 — tela de perfil próprio
 
 Branch de trabalho: `feat/profile-edit-ui`.
+Pull request da fase visual: https://github.com/carlossuzin6111-code/sistema-tonho/pull/70
 
 - Avatar do cabeçalho abre o perfil tanto para aluno quanto para personal em desktop e mobile.
 - E-mail e tipo de conta aparecem como somente leitura; nome usa submissão independente com retorno local.
