@@ -26,6 +26,7 @@ const workoutController = require('./controllers/workoutController');
 const chatController = require('./controllers/chatController');
 const exerciseController = require('./controllers/exerciseController');
 const auditController = require('./controllers/auditController');
+const profileController = require('./controllers/profileController');
 
 // Initialize database
 const db = require('./database');
@@ -34,6 +35,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const registrationRateLimiter = createAuthRateLimiter({ identifier: 'registration' });
 const loginRateLimiter = createAuthRateLimiter({ identifier: 'login' });
+const passwordChangeRateLimiter = createAuthRateLimiter({ identifier: 'profile-password' });
 
 // Middleware
 // The app is private on the Compose network and receives requests from exactly
@@ -68,6 +70,12 @@ app.get('/api/health', async (req, res) => {
     res.status(503).json({ status: 'unavailable' });
   }
 });
+
+app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
+app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
+app.put('/api/profile/avatar', authenticateToken, validateBody('profileAvatar'), profileController.updateAvatar);
+app.delete('/api/profile/avatar', authenticateToken, profileController.deleteAvatar);
+app.get('/api/profile/avatar/:userId', authenticateToken, validateIdParam('userId'), profileController.getAvatar);
 
 
 // --- API ROUTES ---

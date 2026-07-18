@@ -28,7 +28,7 @@ function createCorsOptions(origins = allowedOrigins()) {
       callback(null, !origin || allowlist.has(origin));
     },
     credentials: true,
-    methods: ['GET', 'HEAD', 'POST', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type', 'X-CSRF-Token'],
     exposedHeaders: ['RateLimit', 'RateLimit-Policy', 'Retry-After'],
     maxAge: 600

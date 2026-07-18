@@ -3,7 +3,11 @@ const AUDIT_ACTIONS = Object.freeze({
   PASSWORD_RESET: 'student.password_reset',
   WORKOUT_DELETED: 'workout.deleted',
   WORKOUT_EXERCISE_DELETED: 'workout_exercise.deleted',
-  CATALOG_EXERCISE_DELETED: 'catalog_exercise.deleted'
+  CATALOG_EXERCISE_DELETED: 'catalog_exercise.deleted',
+  PROFILE_NAME_UPDATED: 'profile.name_updated',
+  PROFILE_PASSWORD_CHANGED: 'profile.password_changed',
+  PROFILE_AVATAR_UPDATED: 'profile.avatar_updated',
+  PROFILE_AVATAR_REMOVED: 'profile.avatar_removed'
 });
 
 async function recordAudit(database, { actorUserId, action, targetType, targetId, metadata = null }) {
