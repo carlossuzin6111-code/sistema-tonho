@@ -1,7 +1,9 @@
 // Centralized bindings for static HTML actions. Keeping behavior in this
 // allowlist lets the application use a CSP without script-src 'unsafe-inline'.
 
-function toggleMobileDrawer() {
+let mobileDrawerTrigger = null;
+
+function toggleMobileDrawer(trigger) {
   const drawer = document.getElementById('mobile-drawer');
   if (!drawer) return;
 
@@ -11,13 +13,21 @@ function toggleMobileDrawer() {
 
   if (drawer.classList.contains('active')) {
     drawer.classList.remove('active');
+    drawer.setAttribute('aria-hidden', 'true');
+    document.querySelector('.mobile-menu-button')?.setAttribute('aria-expanded', 'false');
+    mobileDrawerTrigger?.focus();
+    mobileDrawerTrigger = null;
     return;
   }
 
+  mobileDrawerTrigger = trigger || document.activeElement;
   drawer.classList.add('active');
+  drawer.setAttribute('aria-hidden', 'false');
+  document.querySelector('.mobile-menu-button')?.setAttribute('aria-expanded', 'true');
   const isPersonal = role.includes('Personal');
   personalNavigation?.classList.toggle('hidden', !isPersonal);
   studentNavigation?.classList.toggle('hidden', isPersonal);
+  drawer.querySelector('[aria-label="Fechar menu"]')?.focus();
 }
 
 const clickActions = Object.freeze({
@@ -36,7 +46,7 @@ const clickActions = Object.freeze({
   'open-workout-modal': () => openCreateWorkoutModal(),
   'open-modal': element => openModal(element.dataset.modal),
   'toggle-password': element => togglePasswordVisibility(element),
-  'toggle-drawer': () => toggleMobileDrawer(),
+  'toggle-drawer': element => toggleMobileDrawer(element),
   'close-drawer': (element, event) => {
     if (event.target === element) toggleMobileDrawer();
   },
@@ -103,4 +113,27 @@ document.addEventListener('input', event => {
   if (['profile-avatar-zoom', 'profile-avatar-x', 'profile-avatar-y'].includes(event.target.id)) renderProfileAvatarCrop();
   const feedbackForm = event.target.closest?.('.auth-form, .form-with-feedback');
   if (feedbackForm) clearFormError(feedbackForm.id);
+});
+
+document.addEventListener('keydown', event => {
+  const drawer = document.getElementById('mobile-drawer');
+  if (!drawer?.classList.contains('active')) return;
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    toggleMobileDrawer();
+    return;
+  }
+  if (event.key !== 'Tab') return;
+  const focusable = [...drawer.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+    .filter(element => !element.closest('.hidden'));
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
 });

@@ -868,6 +868,7 @@ body.dark-theme .student-stats-row {
 .single-window-chat {
   grid-template-columns: 1fr;
   height: clamp(420px, calc(100dvh - 190px), 760px);
+  min-height: min(480px, calc(100dvh - 190px));
 }
 
 .chat-sidebar {

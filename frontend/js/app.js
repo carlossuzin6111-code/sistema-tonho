@@ -676,7 +676,7 @@ function openExerciseExecutionModal(name, gifUrl, description) {
   if (SafeDOM.setSafeImageSource(gifImg, gifUrl)) {
     gifImg.parentElement.classList.remove('hidden');
   } else {
-    gifImg.src = '';
+    gifImg.removeAttribute('src');
     gifImg.parentElement.classList.add('hidden');
   }
   
