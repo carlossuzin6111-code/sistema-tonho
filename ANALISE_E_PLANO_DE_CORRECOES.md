@@ -906,10 +906,11 @@ Resultados locais:
 - [x] Adicionar testes automatizados para respostas comuns e para o stream.
 - [x] Executar testes locais de frontend, infraestrutura e backend.
 - [x] Reconstruir o backend e validar os cabeçalhos na base pública de testes.
-- [ ] Abrir pull request e aguardar a CI.
+- [x] Abrir pull request.
+- [ ] Aguardar a CI.
 
 Branch de trabalho: `security/no-store-api-responses`.
-Pull request: pendente.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/59
 
 Resultados locais:
 
