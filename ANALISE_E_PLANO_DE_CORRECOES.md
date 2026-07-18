@@ -1432,6 +1432,7 @@ Critérios de aceite do bloco 44:
 Estratégia: manter o chat como uma coluna flexível que ocupa somente a altura disponível e preserva o campo de envio acima do teclado/navegação.
 
 Branch de execução: `feat/student-chat-resilience`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/75
 
 Progresso em 2026-07-18:
 
