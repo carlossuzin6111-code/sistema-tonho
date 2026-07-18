@@ -1320,6 +1320,7 @@ Cada bloco usará branch e pull request próprios. Um bloco só começa após o 
 Prioridade: alta, porque protege dados e remove erros de base que afetariam as três telas.
 
 Branch de execução: `fix/shared-student-reliability`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/72
 
 Progresso em 2026-07-18:
 
