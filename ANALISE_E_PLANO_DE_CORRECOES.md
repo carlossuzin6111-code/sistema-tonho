@@ -898,7 +898,7 @@ Resultados locais:
 - HTML e CSS públicos confirmaram os assets `20260718.1`, as duas tabelas completas e a largura mínima responsiva.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
-### 2026-07-18 — Bloco 32 implementado e publicado
+### 2026-07-18 — Bloco 32 concluído e publicado
 
 - [x] Impedir armazenamento de respostas da API em caches de navegador e intermediários.
 - [x] Remover ETag das respostas potencialmente autenticadas.
@@ -907,7 +907,7 @@ Resultados locais:
 - [x] Executar testes locais de frontend, infraestrutura e backend.
 - [x] Reconstruir o backend e validar os cabeçalhos na base pública de testes.
 - [x] Abrir pull request.
-- [ ] Aguardar a CI.
+- [x] Aguardar a CI.
 
 Branch de trabalho: `security/no-store-api-responses`.
 Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/59
@@ -921,6 +921,7 @@ Resultados locais:
 - Backend: 89 de 89 testes aprovados em 11 suítes.
 - Backend reconstruído e recriado sem substituir o volume persistente do banco.
 - API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200` com `Cache-Control: no-store` e `Pragma: no-cache`, sem ETag.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
