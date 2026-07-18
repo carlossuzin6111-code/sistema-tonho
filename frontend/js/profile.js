@@ -12,16 +12,19 @@ function setAvatarFallback(container, user) {
   container.textContent = (user?.name || '?').charAt(0).toUpperCase();
 }
 
-function applyProfileAvatarToHeader(user) {
-  const container = document.getElementById('header-avatar');
+function renderUserAvatar(container, user, { imageClass = 'avatar-header-img' } = {}) {
   if (!container) return;
   setAvatarFallback(container, user);
   const source = profileAvatarUrl(user);
   if (!source) return;
-
-  const image = SafeDOM.el('img', { className: 'avatar-header-img', attrs: { alt: '' } });
+  const image = SafeDOM.el('img', { className: imageClass, attrs: { alt: '' } });
   image.addEventListener('error', () => setAvatarFallback(container, user), { once: true });
   if (SafeDOM.setSafeImageSource(image, source)) container.replaceChildren(image);
+}
+
+function applyProfileAvatarToHeader(user) {
+  const container = document.getElementById('header-avatar');
+  renderUserAvatar(container, user);
 }
 
 function showProfileAvatarStatus(message, isError = false) {

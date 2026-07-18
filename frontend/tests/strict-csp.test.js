@@ -647,7 +647,7 @@ test('own profile UI is shared, accessible and prepares a bounded cropped avatar
     assert.match(html, /id="profile-avatar-zoom"[^>]*max="3"/);
     assert.match(html, /id="profile-email-readonly"[^>]*readonly/);
     assert.match(html, /id="profile-role-readonly"[^>]*readonly/);
-    assert.match(html, /src="js\/profile\.js\?v=20260718\.7"/);
+    assert.match(html, /src="js\/profile\.js\?v=20260718\.8"/);
   }
 
   const profile = read(path.join('js', 'profile.js'));
@@ -659,6 +659,18 @@ test('own profile UI is shared, accessible and prepares a bounded cropped avatar
   assert.doesNotMatch(profile, /innerHTML|onerror\s*=\s*["']/i);
   assert.match(api, /async patch\(endpoint, data\)/);
   assert.match(api, /async put\(endpoint, data\)/);
+});
+
+test('student flows use safe DOM, user-scoped progress and authorized partner metadata', () => {
+  const student = read(path.join('js', 'student.js'));
+  const personal = read(path.join('js', 'personal.js'));
+  assert.doesNotMatch(student, /innerHTML/i);
+  assert.match(student, /fitlife_chk_user_\$\{userId\}_exercise_\$\{exerciseId\}/);
+  assert.match(student, /Promise\.all\(\[API\.get\('\/chat'\), API\.get\('\/chat\/partner'\)\]\)/);
+  assert.match(student, /renderUserAvatar\(document\.getElementById\('student-chat-trainer-avatar'\), partner\)/);
+  assert.match(student, /tableMessageRow\(`Erro ao carregar medidas:/);
+  assert.match(student, /plotSvgChart\('weight-chart-container', \[\]\)/);
+  assert.match(personal, /renderUserAvatar/);
 });
 
 test('event delegation invokes only the allowlisted action and form handlers', () => {

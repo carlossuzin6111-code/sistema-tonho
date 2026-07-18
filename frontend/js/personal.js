@@ -103,8 +103,10 @@ async function loadPersonalStudents() {
       }
 
       const studentName = String(student.name ?? '');
+      const studentAvatar = SafeDOM.el('div', { className: 'avatar' });
+      renderUserAvatar(studentAvatar, student);
       card.appendChild(SafeDOM.el('div', { className: 'student-card-header' }, [
-        SafeDOM.el('div', { className: 'avatar', text: studentName.charAt(0).toUpperCase() }),
+        studentAvatar,
         SafeDOM.el('div', {}, [
           SafeDOM.el('h3', { text: studentName }),
           SafeDOM.el('p', { text: student.email })
@@ -209,7 +211,7 @@ async function openStudentDetails(studentId) {
     // Fill profile info
     document.getElementById('modal-sd-name').textContent = student.name;
     document.getElementById('modal-sd-email').textContent = student.email;
-    document.getElementById('modal-sd-avatar').textContent = student.name.charAt(0).toUpperCase();
+    renderUserAvatar(document.getElementById('modal-sd-avatar'), student);
     document.getElementById('modal-sd-height').textContent = student.height ? `${student.height} m` : '-';
     document.getElementById('modal-sd-target').textContent = student.target_weight ? `${student.target_weight} kg` : '-';
     
@@ -721,8 +723,10 @@ async function loadPersonalChatThreads() {
       thread.className = `chat-thread-item ${activeChatStudentId === student.id ? 'active' : ''}`;
       thread.onclick = () => openPersonalChatThread(student.id, student.name);
       const studentName = String(student.name ?? '');
+      const threadAvatar = SafeDOM.el('div', { className: 'avatar' });
+      renderUserAvatar(threadAvatar, student);
       SafeDOM.appendChildren(thread, [
-        SafeDOM.el('div', { className: 'avatar', text: studentName.charAt(0).toUpperCase() }),
+        threadAvatar,
         SafeDOM.el('div', { className: 'thread-details' }, [
           SafeDOM.el('div', { className: 'thread-name', text: studentName }),
           SafeDOM.el('div', { className: 'thread-preview', text: 'Ver histórico de conversa...' })
@@ -764,7 +768,8 @@ async function openPersonalChatThread(studentId, studentName) {
   document.getElementById('personal-chat-active').classList.remove('hidden');
 
   document.getElementById('chat-active-name').textContent = studentName;
-  document.getElementById('chat-active-avatar').textContent = studentName.charAt(0).toUpperCase();
+  const activeStudent = personalStudents.find(student => String(student.id) === String(studentId));
+  renderUserAvatar(document.getElementById('chat-active-avatar'), activeStudent || { id: studentId, name: studentName });
 
   const chatMessagesBox = document.getElementById('personal-chat-messages');
   chatMessagesBox.innerHTML = '<div class="spinner"></div>';
