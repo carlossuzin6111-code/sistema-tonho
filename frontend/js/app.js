@@ -666,6 +666,7 @@ function openExerciseExecutionModal(name, gifUrl, description) {
   title.appendChild(document.createTextNode(` Execução: ${name ?? ''}`));
   
   const gifImg = document.getElementById('execution-modal-gif');
+  gifImg.alt = name ? `Demonstração do exercício ${name}` : 'Demonstração do exercício';
   if (SafeDOM.setSafeImageSource(gifImg, gifUrl)) {
     gifImg.parentElement.classList.remove('hidden');
   } else {

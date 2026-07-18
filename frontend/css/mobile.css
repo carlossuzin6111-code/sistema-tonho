@@ -324,6 +324,106 @@ body.dark-theme .mobile-header {
   -webkit-overflow-scrolling: touch; /* Smooth scroll no iOS */
 }
 
+/* Ficha do aluno: cada linha semântica vira um cartão legível sem scroll horizontal. */
+#tab-s-workouts,
+#tab-s-workouts .workouts-list-container,
+#tab-s-workouts .workout-card,
+#tab-s-workouts .pedagogical-table-wrapper { min-width: 0; max-width: 100%; }
+.student-workout-heading { margin-bottom: 12px; }
+.student-workout-heading .section-subtitle { margin-top: 4px; line-height: 1.45; }
+#tab-s-workouts .student-workout-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+#tab-s-workouts .student-workout-summary .stat-mini { min-width: 0; padding: 10px 4px; }
+#tab-s-workouts .workout-card { padding: 14px; overflow: hidden; }
+#tab-s-workouts .workout-header { margin-bottom: 12px; padding-bottom: 10px; }
+#tab-s-workouts .workout-title { display: block; line-height: 1.35; overflow-wrap: anywhere; }
+#tab-s-workouts .workout-desc { margin-top: 6px; line-height: 1.45; }
+#tab-s-workouts .pedagogical-table-wrapper { overflow: visible; border: 0; background: transparent; }
+#tab-s-workouts .pedagogical-table,
+#tab-s-workouts .pedagogical-table tbody { display: block; width: 100%; }
+#tab-s-workouts .pedagogical-table thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+#tab-s-workouts .pedagogical-table tbody tr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0;
+  width: 100%;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-passive);
+  border-radius: 10px;
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+#tab-s-workouts .pedagogical-table tbody tr:last-child { margin-bottom: 0; }
+#tab-s-workouts .pedagogical-table td {
+  display: flex;
+  min-width: 0;
+  min-height: 54px;
+  padding: 10px 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  border-bottom: 1px solid var(--border-passive);
+  overflow-wrap: anywhere;
+}
+#tab-s-workouts .pedagogical-table td::before {
+  content: attr(data-label);
+  margin-bottom: 4px;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+#tab-s-workouts .pedagogical-table .workout-exercise-main {
+  grid-column: 1 / -1;
+  min-height: 72px;
+}
+#tab-s-workouts .pedagogical-table .workout-check-cell {
+  width: auto;
+  text-align: left;
+}
+#tab-s-workouts .pedagogical-table .workout-execution-cell { grid-column: 1 / -1; border-bottom: 0; }
+#tab-s-workouts .pedagogical-table .no-data-msg { grid-column: 1 / -1; align-items: center; text-align: center; }
+#tab-s-workouts .pedagogical-table .no-data-msg::before { content: none; }
+#tab-s-workouts .workout-checkbox {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+}
+#tab-s-workouts .workout-checkmark { position: relative; inset: auto; transform: none; width: 22px; height: 22px; }
+#tab-s-workouts .btn-pill-action { width: 100%; min-height: 44px; justify-content: center; white-space: normal; }
+#student-workouts-container { min-height: 180px; }
+#modal-exercise-execution .mobile-modal-inner {
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+#modal-exercise-execution .execution-gif { width: 100%; height: auto; max-height: min(42dvh, 320px); }
+
+@media (max-width: 350px) {
+  #tab-s-workouts .student-workout-summary .stat-mini-label { font-size: 0.6rem; }
+  #tab-s-workouts .student-workout-summary .stat-mini-value { font-size: 1.05rem; }
+  #tab-s-workouts .workout-card { padding: 12px; }
+}
+
 /* Barra inferior de navegação */
 .mobile-bottom-nav {
   flex: 0 0 65px;

@@ -647,7 +647,7 @@ test('own profile UI is shared, accessible and prepares a bounded cropped avatar
     assert.match(html, /id="profile-avatar-zoom"[^>]*max="3"/);
     assert.match(html, /id="profile-email-readonly"[^>]*readonly/);
     assert.match(html, /id="profile-role-readonly"[^>]*readonly/);
-    assert.match(html, /src="js\/profile\.js\?v=20260718\.8"/);
+    assert.match(html, /src="js\/profile\.js\?v=20260718\.9"/);
   }
 
   const profile = read(path.join('js', 'profile.js'));
@@ -671,6 +671,30 @@ test('student flows use safe DOM, user-scoped progress and authorized partner me
   assert.match(student, /tableMessageRow\(`Erro ao carregar medidas:/);
   assert.match(student, /plotSvgChart\('weight-chart-container', \[\]\)/);
   assert.match(personal, /renderUserAvatar/);
+});
+
+test('student workouts preserve a semantic desktop table and become labeled mobile cards', () => {
+  for (const page of ['desktop.html', 'mobile.html']) {
+    const html = read(page);
+    assert.match(html, /id="student-workout-count"[^>]*aria-live="polite"/);
+    assert.match(html, /id="student-exercise-count"[^>]*aria-live="polite"/);
+    assert.match(html, /id="student-completed-count"[^>]*aria-live="polite"/);
+  }
+  const student = read(path.join('js', 'student.js'));
+  const app = read(path.join('js', 'app.js'));
+  const mobile = read(path.join('css', 'mobile.css'));
+  assert.match(student, /function updateStudentWorkoutSummary/);
+  assert.match(student, /attrs: \{ 'data-label': 'Exercício' \}/);
+  for (const label of ['Status', 'Séries', 'Repetições', 'Carga', 'Descanso', 'Execução']) {
+    assert.match(student, new RegExp(`'data-label': '${label}'`));
+  }
+  assert.match(student, /appendEmptyStateAction\(container, \{ label: 'Tentar novamente'/);
+  assert.match(app, /gifImg\.alt = name \? `Demonstração do exercício/);
+  assert.match(mobile, /#tab-s-workouts \.pedagogical-table tbody tr[^}]*display: grid/s);
+  assert.match(mobile, /content: attr\(data-label\)/);
+  assert.match(mobile, /#tab-s-workouts \.workout-checkbox[^}]*width: 44px[^}]*height: 44px/s);
+  assert.match(mobile, /#tab-s-workouts \.btn-pill-action[^}]*min-height: 44px/s);
+  assert.doesNotMatch(mobile, /#tab-s-workouts[^{}]*\{[^}]*100vw/s);
 });
 
 test('event delegation invokes only the allowlisted action and form handlers', () => {

@@ -1356,15 +1356,30 @@ Critérios de aceite do bloco 42:
 
 Estratégia: preservar a tabela pedagógica no desktop e oferecer leitura em cartões/linhas empilhadas no mobile, sem rolagem horizontal obrigatória.
 
-- [ ] Criar cabeçalho consistente com título, orientação curta e resumo de treinos/exercícios/concluídos.
-- [ ] Garantir uma coluna principal flexível com `min-width: 0` e quebra segura de nome, descrição, observações, repetições e carga.
-- [ ] No mobile, apresentar cada exercício com status, nome, séries, repetições, carga, descanso e execução em hierarquia vertical legível.
-- [ ] Manter checkbox e botão de execução com alvo de toque mínimo de 44 px e sem sobreposição.
-- [ ] Fazer o card inteiro caber entre as margens em 320, 360 e 390 px, sem `100vw`, largura fixa ou scroll horizontal da página.
-- [ ] Preservar tabela semântica e cabeçalhos no desktop; adicionar `scope` e nomes acessíveis onde faltarem.
-- [ ] Corrigir vazio, carregamento e erro com espaço estável e ação contextual para o chat.
-- [ ] Validar modal de execução em imagem horizontal, vertical, ausente e texto longo.
-- [ ] Testar tema claro/escuro, movimento reduzido, teclado e toque.
+Branch de execução: `feat/student-workouts-responsive`.
+
+Progresso em 2026-07-18:
+
+- Cabeçalho unificado como `Meus exercícios`, com orientação curta e resumo calculado localmente de treinos, exercícios e concluídos.
+- A tabela semântica e seus cabeçalhos foram preservados no desktop; no mobile, cada `tr` passa a ser apresentado como cartão de duas colunas, com `data-label` explícito para cada valor e sem duplicar os dados no DOM.
+- Nome, descrição, observações, repetições e carga agora podem quebrar linha sem ampliar o card; wrappers usam `min-width: 0` e não dependem de `100vw` ou largura fixa.
+- Checkbox e ação de execução receberam alvo mínimo de 44 px, foco visível e organização sem sobreposição; marcar/desmarcar atualiza imediatamente o resumo e continua isolado por usuário.
+- Estado de erro passou a limpar o resumo e oferecer `Tentar novamente`; vazio mantém ação contextual para o chat.
+- Modal de execução ganhou texto alternativo contextual, contenção de imagem horizontal/vertical, quebra de instruções longas e rolagem vertical no mobile.
+- Validação local concluída: backend `106/106`, frontend `47/47`, sintaxe JavaScript e `git diff --check` sem erros; auditorias de dependências sem vulnerabilidades.
+- Snapshot pré-publicação `database-block43-prepublish-20260718.sqlite` criado com 6.631.424 bytes, 12 tabelas e `integrity: ok`; todos os containers permaneceram saudáveis.
+- Como o frontend é montado em modo somente leitura no Nginx, não há imagem específica para reconstruir. Publicação `20260718.9` confirmada com HTTP `200` em home, healthcheck, mobile e `student.js`; HTML público confirmou o novo cabeçalho, resumo e todos os assets versionados.
+- Pull request e CI ainda pendentes.
+
+- [x] Criar cabeçalho consistente com título, orientação curta e resumo de treinos/exercícios/concluídos.
+- [x] Garantir uma coluna principal flexível com `min-width: 0` e quebra segura de nome, descrição, observações, repetições e carga.
+- [x] No mobile, apresentar cada exercício com status, nome, séries, repetições, carga, descanso e execução em hierarquia vertical legível.
+- [x] Manter checkbox e botão de execução com alvo de toque mínimo de 44 px e sem sobreposição.
+- [x] Fazer o card inteiro caber entre as margens em 320, 360 e 390 px, sem `100vw`, largura fixa ou scroll horizontal da página.
+- [x] Preservar tabela semântica e cabeçalhos no desktop; adicionar `scope` e nomes acessíveis onde faltarem.
+- [x] Corrigir vazio, carregamento e erro com espaço estável e ação contextual para o chat.
+- [x] Validar modal de execução em imagem horizontal, vertical, ausente e texto longo.
+- [x] Testar tema claro/escuro, movimento reduzido, teclado e toque.
 - [ ] Executar procedimento completo e abrir PR exclusivo da tela.
 
 Critérios de aceite do bloco 43:
