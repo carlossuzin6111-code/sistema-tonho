@@ -923,7 +923,7 @@ Resultados locais:
 - API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200` com `Cache-Control: no-store` e `Pragma: no-cache`, sem ETag.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
-### 2026-07-18 — Bloco 33 implementado e publicado
+### 2026-07-18 — Bloco 33 concluído e publicado
 
 - [x] Identificar cabeçalhos defensivos duplicados entre backend e Nginx.
 - [x] Manter as proteções do backend para acesso direto na rede interna.
@@ -933,7 +933,7 @@ Resultados locais:
 - [x] Executar testes locais de frontend, infraestrutura e backend.
 - [x] Recriar o Nginx e validar os cabeçalhos na base pública de testes.
 - [x] Abrir pull request.
-- [ ] Aguardar a CI.
+- [x] Aguardar a CI.
 
 Branch de trabalho: `security/deduplicate-proxy-headers`.
 Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/60
@@ -948,6 +948,7 @@ Resultados locais:
 - Backend: 89 de 89 testes aprovados em 11 suítes.
 - Somente o serviço web foi recriado; API, banco, workers e tunnel permaneceram ativos.
 - API e Nginx ficaram saudáveis; o healthcheck público respondeu `200` com uma ocorrência de cada política afetada e manteve `Cache-Control: no-store`.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
