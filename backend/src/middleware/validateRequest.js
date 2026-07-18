@@ -156,6 +156,16 @@ const bodySchemas = {
   chatMessage: {
     receiverId: optionalPositiveInteger('receiverId'),
     message: text('message', 2000)
+  },
+  profileName: {
+    name: text('name', 100, 2)
+  },
+  profilePassword: {
+    currentPassword: text('currentPassword', 128, 1),
+    newPassword: optionalString({ label: 'newPassword', min: 10, max: 128 })
+  },
+  profileAvatar: {
+    imageDataUrl: text('imageDataUrl', 540000, 1)
   }
 };
 
@@ -174,6 +184,11 @@ function validateBody(schemaName) {
     }
 
     const details = [];
+    if (schemaName.startsWith('profile')) {
+      for (const field of Object.keys(req.body)) {
+        if (!Object.hasOwn(schema, field)) details.push({ field, message: `${field} is not allowed` });
+      }
+    }
     for (const [field, validator] of Object.entries(schema)) {
       const message = validator(req.body[field]);
       if (message) details.push({ field, message });

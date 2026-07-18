@@ -124,13 +124,21 @@ function logout(req, res) {
 async function getMe(req, res) {
   try {
     const user = await db('users')
-      .select('id', 'name', 'email', 'role', 'created_at')
+      .select('id', 'name', 'email', 'role', 'created_at', 'avatar_filename', 'avatar_updated_at')
       .where('id', req.user.id)
       .first();
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.status(200).json(user);
+    res.status(200).json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      created_at: user.created_at,
+      hasAvatar: Boolean(user.avatar_filename),
+      avatarUpdatedAt: user.avatar_updated_at || null
+    });
   } catch (err) {
     console.error('getMe error:', err.message);
     res.status(500).json({ error: 'Internal server error' });

@@ -801,4 +801,130 @@ describe('FitLife Sync API Integration Tests', () => {
       });
     });
   });
+
+  describe('Own profile endpoints', () => {
+    async function createAvatarDataUrl() {
+      const avatarBytes = await require('sharp')({
+        create: { width: 8, height: 8, channels: 3, background: '#336699' }
+      }).png().toBuffer();
+      return `data:image/png;base64,${avatarBytes.toString('base64')}`;
+    }
+
+    test('Should update and normalize only the authenticated user name', async () => {
+      const res = await request(app)
+        .patch('/api/profile')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ name: '  Student   Updated  ' });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.user.name).toBe('Student Updated');
+      const stored = await db('users').where({ id: studentId }).first();
+      expect(stored.name).toBe('Student Updated');
+    });
+
+    test('Should reject unknown profile fields', async () => {
+      const res = await request(app)
+        .patch('/api/profile')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ name: 'Student Updated', role: 'personal' });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.details).toContainEqual({ field: 'role', message: 'role is not allowed' });
+    });
+
+    test('Should store a normalized private avatar and expose it only to linked users', async () => {
+      const avatarDataUrl = await createAvatarDataUrl();
+      const upload = await request(app)
+        .put('/api/profile/avatar')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ imageDataUrl: avatarDataUrl });
+
+      expect(upload.statusCode).toBe(200);
+      expect(upload.body.user.hasAvatar).toBe(true);
+      expect(upload.body.user.avatarUpdatedAt).toBeTruthy();
+
+      const own = await request(app)
+        .get(`/api/profile/avatar/${studentId}`)
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(own.statusCode).toBe(200);
+      expect(own.headers['content-type']).toContain('image/webp');
+      expect(own.headers['x-content-type-options']).toBe('nosniff');
+
+      const linkedPersonal = await request(app)
+        .get(`/api/profile/avatar/${studentId}`)
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(linkedPersonal.statusCode).toBe(200);
+
+      const unrelated = await request(app)
+        .get(`/api/profile/avatar/${studentId}`)
+        .set('Authorization', `Bearer ${otherPersonalToken}`);
+      expect(unrelated.statusCode).toBe(404);
+    });
+
+    test('Should reject unsupported avatar content and remove the current avatar', async () => {
+      const invalid = await request(app)
+        .put('/api/profile/avatar')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ imageDataUrl: 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=' });
+      expect(invalid.statusCode).toBe(400);
+
+      const avatarDataUrl = await createAvatarDataUrl();
+      const mismatched = await request(app)
+        .put('/api/profile/avatar')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ imageDataUrl: avatarDataUrl.replace('data:image/png', 'data:image/jpeg') });
+      expect(mismatched.statusCode).toBe(400);
+
+      const removed = await request(app)
+        .delete('/api/profile/avatar')
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(removed.statusCode).toBe(200);
+
+      const profile = await request(app)
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(profile.body.hasAvatar).toBe(false);
+
+      const missing = await request(app)
+        .get(`/api/profile/avatar/${studentId}`)
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(missing.statusCode).toBe(404);
+    });
+
+    test('Should require the current password, revoke the old session and preserve a new session', async () => {
+      const wrong = await request(app)
+        .put('/api/profile/password')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ currentPassword: 'incorrect-password', newPassword: 'replacement-password123' });
+      expect(wrong.statusCode).toBe(400);
+
+      const changed = await request(app)
+        .put('/api/profile/password')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ currentPassword: 'new_student_password123', newPassword: 'replacement-password123' });
+      expect(changed.statusCode).toBe(200);
+      const refreshedCookies = cookieHeader(changed);
+      expect(refreshedCookies).toContain(SESSION_COOKIE);
+
+      const oldSession = await request(app)
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(oldSession.statusCode).toBe(403);
+
+      const currentSession = await request(app)
+        .get('/api/auth/me')
+        .set('Cookie', refreshedCookies);
+      expect(currentSession.statusCode).toBe(200);
+
+      const oldPassword = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'test_student@fitlife.com', password: 'new_student_password123' });
+      expect(oldPassword.statusCode).toBe(400);
+
+      const newPassword = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'test_student@fitlife.com', password: 'replacement-password123' });
+      expect(newPassword.statusCode).toBe(200);
+    });
+  });
 });
