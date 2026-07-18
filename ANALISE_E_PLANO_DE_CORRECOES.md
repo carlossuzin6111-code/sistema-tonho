@@ -1066,7 +1066,7 @@ Resultados locais:
 - HTML e CSS públicos confirmaram o aviso nas duas interfaces e os assets `20260718.3`.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
-### 2026-07-18 — Bloco 38 implementado e publicado
+### 2026-07-18 — Bloco 38 concluído e publicado
 
 - [x] Corrigir margens e espaçamentos do acompanhamento de aluno no mobile.
 - [x] Impedir sobreposição entre fechamento, perfil, abas e conteúdo rolável.
@@ -1079,7 +1079,7 @@ Resultados locais:
 - [x] Executar testes locais de frontend, infraestrutura e backend.
 - [x] Publicar e validar na base pública de testes.
 - [x] Abrir pull request.
-- [ ] Aguardar a CI.
+- [x] Aguardar a CI.
 
 Branch de trabalho: `fix/mobile-student-detail-layout`.
 Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/65
@@ -1097,6 +1097,7 @@ Resultados locais:
 - Backend: 94 de 94 testes aprovados em 12 suítes.
 - API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
 - HTML e CSS públicos confirmaram os assets `20260718.4`, a estrutura separada do modal, o avatar fixo e o recorte futuro com `object-fit: cover`.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
 #### Catálogo futuro — foto de perfil do aluno (não implementado)
 
