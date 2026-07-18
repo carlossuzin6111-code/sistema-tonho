@@ -1394,6 +1394,7 @@ Critérios de aceite do bloco 43:
 Estratégia: manter gráfico e tabela completos no desktop; no mobile, priorizar resumo, evolução e histórico em cartões responsivos.
 
 Branch de execução: `feat/student-measurements-responsive`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/74
 
 Progresso em 2026-07-18:
 
