@@ -1468,6 +1468,7 @@ Critérios de aceite do bloco 45:
 ### Bloco 46 planejado — auditoria final da área do aluno
 
 Branch de execução: `fix/student-area-final-audit`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/76
 
 Progresso em 2026-07-18:
 
@@ -1488,7 +1489,7 @@ Progresso em 2026-07-18:
 - [x] Confirmar rotas restauráveis, estados vazios, carregamento, erro e recuperação em cada tela.
 - [x] Executar frontend/infraestrutura, backend, audit, build e healthchecks.
 - [x] Fazer validação pública controlada e registrar evidências por tela no documento.
-- [ ] Abrir PR final somente para correções cruzadas encontradas na auditoria.
+- [x] Abrir PR final somente para correções cruzadas encontradas na auditoria.
 
 #### Procedimento obrigatório para cada bloco
 
