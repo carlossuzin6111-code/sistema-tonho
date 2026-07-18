@@ -388,6 +388,21 @@ test('mobile student detail content reflows cards and statistics without overlap
   assert.match(css, /\.mobile-modal-body \.table-container\s*\{[^}]*max-width:\s*100%/);
 });
 
+test('mobile chats fill available space and switch cleanly between threads and messages', () => {
+  const html = read('mobile.html');
+  const css = read(path.join('css', 'mobile.css'));
+
+  assert.match(html, /id="tab-p-chat" class="tab-pane mobile-chat-tab"/);
+  assert.match(html, /class="chat-container personal-chat-container"/);
+  assert.match(html, /id="tab-s-chat" class="tab-pane mobile-chat-tab"/);
+  assert.doesNotMatch(css, /personal-chat-messages\s*\{[^}]*height:\s*300px/);
+  assert.doesNotMatch(css, /student-chat-container\s*\{[^}]*height:\s*400px/);
+  assert.match(css, /\.mobile-chat-tab\.active\s*\{[^}]*min-height:\s*100%[^}]*display:\s*flex\s*!important/);
+  assert.match(css, /\.personal-chat-container:not\(\.show-window\) \.chat-window\s*\{[^}]*display:\s*none/);
+  assert.match(css, /\.personal-chat-container\.show-window #chat-students-list\s*\{[^}]*display:\s*none/);
+  assert.match(css, /\.chat-input-form\s*\{[^}]*padding-bottom:\s*max\(10px, env\(safe-area-inset-bottom\)\)/);
+});
+
 test('weight charts expose a textual trend with period, units and variation', () => {
   const personal = read(path.join('js', 'personal.js'));
   const css = read(path.join('css', 'style.css'));
