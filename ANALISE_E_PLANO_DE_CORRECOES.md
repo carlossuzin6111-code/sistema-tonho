@@ -1149,6 +1149,7 @@ Resultados locais:
 - [ ] Abrir pull request e aguardar a CI.
 
 Branch de trabalho: `fix/mobile-chat-layout`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/67
 
 Resultados locais:
 
