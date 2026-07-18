@@ -587,6 +587,7 @@ async function logout() {
     console.warn('Server logout failed; clearing local cache.', err.message);
   } finally {
     API.clearSession();
+    window.history.replaceState(null, '', window.location.pathname);
     showLoginScreen();
     showToast('Sessão encerrada.', 'info');
   }

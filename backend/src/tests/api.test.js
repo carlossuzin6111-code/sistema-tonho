@@ -295,6 +295,7 @@ describe('FitLife Sync API Integration Tests', () => {
         .set('X-CSRF-Token', csrf);
 
       expect(res.statusCode).toBe(200);
+      expect(res.headers['clear-site-data']).toBe('"cache", "cookies"');
       const cleared = setCookies(res);
       expect(cleared.filter(cookie => cookie.includes('Max-Age=0'))).toHaveLength(2);
     });

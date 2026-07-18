@@ -116,6 +116,7 @@ async function login(req, res) {
 
 function logout(req, res) {
   clearSessionCookies(res);
+  res.setHeader('Clear-Site-Data', '"cache", "cookies"');
   return res.status(200).json({ message: 'Logout successful' });
 }
 
