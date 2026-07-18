@@ -273,6 +273,19 @@ test('authentication forms expose loading, inline error and password visibility 
   assert.equal(icon['data-lucide'], 'eye-off');
 });
 
+test('authentication screens identify the public test environment', () => {
+  for (const page of ['desktop.html', 'mobile.html']) {
+    const html = read(page);
+    assert.match(html, /class="test-environment-notice"[^>]*role="note"/);
+    assert.match(html, /Ambiente público de testes\./);
+    assert.match(html, /Não use dados pessoais reais\./);
+  }
+
+  const css = read(path.join('css', 'style.css'));
+  assert.match(css, /\.test-environment-notice\s*\{/);
+  assert.match(css, /body\.dark-theme \.test-environment-notice/);
+});
+
 test('student password reset uses an accessible confirmed form instead of a browser prompt', () => {
   for (const page of ['desktop.html', 'mobile.html']) {
     const html = fs.readFileSync(path.join(frontendRoot, page), 'utf8');
