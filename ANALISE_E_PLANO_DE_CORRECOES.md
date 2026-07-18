@@ -1048,10 +1048,11 @@ Resultados locais:
 - [x] Adicionar cobertura automatizada do aviso.
 - [x] Executar testes locais de frontend, infraestrutura e backend.
 - [x] Publicar e validar na base pública de testes.
-- [ ] Abrir pull request e aguardar a CI.
+- [x] Abrir pull request.
+- [ ] Aguardar a CI.
 
 Branch de trabalho: `feat/test-environment-notice`.
-Pull request: pendente.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/64
 
 Resultados locais:
 
