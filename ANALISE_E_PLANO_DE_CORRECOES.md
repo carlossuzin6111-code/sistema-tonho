@@ -1137,6 +1137,33 @@ Resultados locais:
 - HTML e CSS públicos confirmaram os assets `20260718.5`, as classes estruturais do gráfico e das medidas e as grades responsivas do conteúdo.
 - CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
 
+### 2026-07-18 — Bloco 40 concluído e publicado
+
+- [x] Remover as alturas rígidas de 300 px e 400 px dos chats mobile.
+- [x] Fazer as abas de chat ocuparem a altura útil entre o cabeçalho e a navegação inferior.
+- [x] Manter mensagens roláveis e o campo de envio dentro da área segura do dispositivo.
+- [x] Alternar corretamente entre a lista de conversas e a janela ativa no chat do personal.
+- [x] Adicionar cobertura automatizada para o layout e a navegação mobile.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Validar os assets na base pública de testes.
+- [x] Abrir pull request e aguardar a CI.
+
+Branch de trabalho: `fix/mobile-chat-layout`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/67
+
+Resultados locais:
+
+- As abas de chat usam layout flexível e aproveitam a altura disponível sem valores fixos por dispositivo.
+- A lista de conversas e a janela ativa do personal deixam de disputar espaço: apenas o contexto atual permanece visível.
+- A área de mensagens pode encolher e rolar internamente sem empurrar o formulário para fora da tela.
+- O campo de envio respeita `safe-area-inset-bottom`, inclusive em dispositivos com indicador de início.
+- Assets atualizados para `20260718.6`.
+- Frontend e infraestrutura: 44 de 44 testes aprovados.
+- Backend: 94 de 94 testes aprovados em 12 suítes.
+- Os cinco serviços permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
+- HTML e CSS públicos confirmaram os assets `20260718.6`, as abas flexíveis, a alternância de conversa e a área segura do formulário.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
 ### 2026-07-17 — Bloco 20 concluído e publicado
 
 - [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.
