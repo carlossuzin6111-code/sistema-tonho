@@ -1332,7 +1332,8 @@ Progresso em 2026-07-18:
 - Validação local concluída: backend `106/106`, frontend `46/46`, verificações sintáticas/diff sem erro e auditorias de dependência de produção sem vulnerabilidades.
 - Build de `app` e `backup-worker` concluído; snapshot pré-publicação `database-block42-prepublish-20260718.sqlite` validado com `integrity: ok` e 5.566.464 bytes.
 - Serviços recriados saudáveis. O primeiro conjunto automático `backup-20260718T140726005Z` preservou banco e 2 avatares com checksums; a restauração real em diretório temporário recuperou os 2 arquivos e foi removida após a validação.
-- Ambiente público respondeu `200` no healthcheck e no asset `student.js?v=20260718.8`; rotas privadas `auth/me` e `chat/partner` responderam `401` sem sessão, como esperado. CI ainda pendente.
+- Ambiente público respondeu `200` no healthcheck e no asset `student.js?v=20260718.8`; rotas privadas `auth/me` e `chat/partner` responderam `401` sem sessão, como esperado.
+- CI do PR #72 aprovado nos jobs `Backend` e `Frontend and infrastructure`.
 
 - [x] Incluir o diretório privado de avatares no backup automático com manifesto, restauração consistente e retenção conjunta com o SQLite.
 - [x] Testar backup sem avatares, com avatares, arquivo ausente, falha parcial e restauração em diretório limpo.
@@ -1342,7 +1343,7 @@ Progresso em 2026-07-18:
 - [x] Remover `innerHTML` remanescente dos fluxos do aluno e construir estados vazios, cabeçalhos e spinners com DOM seguro.
 - [x] Separar por usuário as preferências locais permitidas; nenhum estado de uma conta pode aparecer para outra conta no mesmo navegador.
 - [x] Adicionar testes preventivos para os itens anteriores.
-- [ ] Executar testes, audit, build, backup controlado, publicação, validação pública e CI.
+- [x] Executar testes, audit, build, backup controlado, publicação, validação pública e CI.
 
 Critérios de aceite do bloco 42:
 
