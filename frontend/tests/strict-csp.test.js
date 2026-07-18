@@ -397,7 +397,7 @@ test('mobile chats fill available space and switch cleanly between threads and m
   assert.match(html, /id="tab-s-chat" class="tab-pane mobile-chat-tab"/);
   assert.doesNotMatch(css, /personal-chat-messages\s*\{[^}]*height:\s*300px/);
   assert.doesNotMatch(css, /student-chat-container\s*\{[^}]*height:\s*400px/);
-  assert.match(css, /\.mobile-chat-tab\.active\s*\{[^}]*min-height:\s*100%[^}]*display:\s*flex\s*!important/);
+  assert.match(css, /\.mobile-chat-tab\.active\s*\{[^}]*height:\s*100%[^}]*min-height:\s*0[^}]*display:\s*flex\s*!important/);
   assert.match(css, /\.personal-chat-container:not\(\.show-window\) \.chat-window\s*\{[^}]*display:\s*none/);
   assert.match(css, /\.personal-chat-container\.show-window #chat-students-list\s*\{[^}]*display:\s*none/);
   assert.match(css, /\.chat-input-form\s*\{[^}]*padding-bottom:\s*max\(10px, env\(safe-area-inset-bottom\)\)/);
@@ -647,7 +647,7 @@ test('own profile UI is shared, accessible and prepares a bounded cropped avatar
     assert.match(html, /id="profile-avatar-zoom"[^>]*max="3"/);
     assert.match(html, /id="profile-email-readonly"[^>]*readonly/);
     assert.match(html, /id="profile-role-readonly"[^>]*readonly/);
-    assert.match(html, /src="js\/profile\.js\?v=20260718\.10"/);
+    assert.match(html, /src="js\/profile\.js\?v=20260718\.11"/);
   }
 
   const profile = read(path.join('js', 'profile.js'));
@@ -723,6 +723,34 @@ test('student measurements are actionable, complete and responsive without losin
   assert.match(mobile, /#tab-s-measurements \.measurement-history-table td::before[^}]*content: attr\(data-label\)/s);
   assert.match(mobile, /#modal-add-measurement \.mobile-modal-inner[^}]*overflow-y: auto/s);
   assert.doesNotMatch(mobile, /#tab-s-measurements[^{}]*\.measurement-history-table[^{}]*\{[^}]*min-width:\s*720px/s);
+});
+
+test('student chat keeps only messages scrollable and offers bounded resilient sending', () => {
+  for (const page of ['desktop.html', 'mobile.html']) {
+    const html = read(page);
+    assert.match(html, /id="student-chat-messages"[^>]*role="log"[^>]*aria-live="polite"/);
+    assert.match(html, /id="student-chat-input"[^>]*maxlength="2000"[^>]*enterkeyhint="send"/);
+    assert.match(html, /id="student-chat-trainer-avatar"/);
+  }
+  const style = read(path.join('css', 'style.css'));
+  const mobile = read(path.join('css', 'mobile.css'));
+  const app = read(path.join('js', 'app.js'));
+  const events = read(path.join('js', 'events.js'));
+  const student = read(path.join('js', 'student.js'));
+  const personal = read(path.join('js', 'personal.js'));
+  const controller = fs.readFileSync(path.join(repositoryRoot, 'backend', 'src', 'controllers', 'chatController.js'), 'utf8');
+  assert.match(style, /\.chat-messages[^}]*overflow-y: auto[^}]*overflow-x: hidden/s);
+  assert.match(style, /\.chat-bubble[^}]*overflow-wrap: anywhere[^}]*word-break: break-word/s);
+  assert.match(style, /\.chat-input-form[^}]*grid-template-columns: minmax\(0, 1fr\) 44px/s);
+  assert.match(style, /\.btn-chat-send[^}]*width: 44px[^}]*height: 44px/s);
+  assert.match(mobile, /\.mobile-chat-tab > \.chat-container[^}]*height: auto[^}]*overflow: hidden/s);
+  assert.match(mobile, /\.chat-input-form input[^}]*font-size: 16px/s);
+  assert.match(app, /state === 'failed' \? 'Tentar enviar mensagem novamente'/);
+  assert.match(events, /\['personal-chat-input', 'student-chat-input'\][^\n]*resetChatSendFeedback/);
+  assert.match(student, /form\.dataset\.sendState === 'sending'/);
+  assert.match(personal, /form\.dataset\.sendState === 'sending'/);
+  assert.match(student, /appendEmptyStateAction\(box, \{ label: 'Tentar novamente'/);
+  assert.match(controller, /message\.length > 2000/);
 });
 
 test('event delegation invokes only the allowlisted action and form handlers', () => {

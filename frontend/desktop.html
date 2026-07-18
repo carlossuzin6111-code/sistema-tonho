@@ -9,7 +9,7 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260718.10">
+  <link rel="stylesheet" href="css/style.css?v=20260718.11">
 </head>
 <body>
 
@@ -425,16 +425,16 @@
             <div class="chat-window">
               <div class="chat-active-header">
                 <div class="avatar" id="student-chat-trainer-avatar">P</div>
-                <div>
+                <div class="chat-partner-details">
                   <h3 id="student-chat-trainer-name">Personal Trainer</h3>
                   <span class="chat-connection-status connecting" data-chat-status role="status" aria-live="polite">Conectando...</span>
                 </div>
               </div>
-              <div class="chat-messages" id="student-chat-messages">
+              <div class="chat-messages" id="student-chat-messages" role="log" aria-live="polite" aria-relevant="additions">
                 <!-- Dynamic messages loaded here -->
               </div>
               <form id="student-chat-form" class="chat-input-form">
-                <input type="text" id="student-chat-input" placeholder="Tire dúvidas, mande feedbacks de treinos..." autocomplete="off" aria-label="Mensagem para o personal">
+                <input type="text" id="student-chat-input" placeholder="Tire dúvidas, mande feedbacks de treinos..." autocomplete="off" maxlength="2000" enterkeyhint="send" aria-label="Mensagem para o personal">
                 <span class="chat-send-status" data-chat-send-status role="status" aria-live="polite"></span>
                 <button type="submit" class="btn-chat-send btn-glow" aria-label="Enviar mensagem">
                   <i data-lucide="send"></i>
@@ -853,12 +853,12 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260718.10"></script>
-  <script src="js/safe-dom.js?v=20260718.10"></script>
-  <script src="js/app.js?v=20260718.10"></script>
-  <script src="js/personal.js?v=20260718.10"></script>
-  <script src="js/student.js?v=20260718.10"></script>
-  <script src="js/profile.js?v=20260718.10"></script>
-  <script src="js/events.js?v=20260718.10"></script>
+  <script src="js/api.js?v=20260718.11"></script>
+  <script src="js/safe-dom.js?v=20260718.11"></script>
+  <script src="js/app.js?v=20260718.11"></script>
+  <script src="js/personal.js?v=20260718.11"></script>
+  <script src="js/student.js?v=20260718.11"></script>
+  <script src="js/profile.js?v=20260718.11"></script>
+  <script src="js/events.js?v=20260718.11"></script>
 </body>
 </html>

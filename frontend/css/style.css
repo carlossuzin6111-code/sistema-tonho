@@ -867,6 +867,7 @@ body.dark-theme .student-stats-row {
 
 .single-window-chat {
   grid-template-columns: 1fr;
+  height: clamp(420px, calc(100dvh - 190px), 760px);
 }
 
 .chat-sidebar {
@@ -961,6 +962,8 @@ body.dark-theme .chat-thread-item:hover {
 }
 
 .chat-active-header {
+  flex: 0 0 auto;
+  min-width: 0;
   padding: 14px 20px;
   border-bottom: 1px solid var(--border-passive);
   display: flex;
@@ -968,6 +971,16 @@ body.dark-theme .chat-thread-item:hover {
   gap: 12px;
   background: var(--bg-secondary);
 }
+
+.chat-active-header > .avatar {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+.chat-partner-details { flex: 1 1 auto; min-width: 0; }
+.chat-partner-details h3 { overflow-wrap: anywhere; }
 
 .chat-active-header h3 {
   font-size: 0.95rem;
@@ -998,17 +1011,23 @@ body.dark-theme .chat-thread-item:hover {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 /* Message Bubbles */
 .chat-bubble {
-  max-width: 65%;
+  max-width: min(75%, 42rem);
+  min-width: 0;
   padding: 10px 14px;
   border-radius: 12px;
   font-size: 0.9rem;
   position: relative;
   line-height: 1.4;
-  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .chat-bubble.sent {
@@ -1038,7 +1057,9 @@ body.dark-theme .chat-thread-item:hover {
 .chat-input-form {
   padding: 14px 20px;
   border-top: 1px solid var(--border-passive);
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  align-items: center;
   gap: 12px;
   background: var(--bg-secondary);
 }
@@ -1054,6 +1075,9 @@ body.dark-theme .chat-thread-item:hover {
   font-family: inherit;
   font-size: 0.95rem;
   transition: var(--transition-smooth);
+  min-width: 0;
+  grid-column: 1;
+  grid-row: 1;
 }
 
 .chat-input-form input:focus {
@@ -1064,14 +1088,16 @@ body.dark-theme .chat-thread-item:hover {
   background-color: var(--text-main);
   border: none;
   color: var(--bg-primary);
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: var(--transition-fast);
+  grid-column: 2;
+  grid-row: 1;
 }
 .btn-chat-send:active {
   transform: scale(0.96);
@@ -1109,6 +1135,10 @@ body.dark-theme .chat-thread-item:hover {
   color: var(--text-muted);
   font-size: 0.75rem;
   text-align: right;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-height: 1em;
+  overflow-wrap: anywhere;
 }
 
 .chat-input-form[data-send-state='failed'] .chat-send-status { color: var(--danger); }

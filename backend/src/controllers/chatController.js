@@ -102,9 +102,11 @@ async function sendMessage(req, res) {
   const userRole = req.user.role;
   let { receiverId, message } = req.body;
 
-  if (!message || message.trim() === '') {
+  if (typeof message !== 'string' || message.trim() === '') {
     return res.status(400).json({ error: 'Message content cannot be empty' });
   }
+  message = message.trim();
+  if (message.length > 2000) return res.status(400).json({ error: 'Message content must be at most 2000 characters' });
 
   try {
     // If student, resolve their Personal Trainer ID

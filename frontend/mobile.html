@@ -8,9 +8,9 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Base Styles (Components, Colors, Lovable) -->
-  <link rel="stylesheet" href="css/style.css?v=20260718.10">
+  <link rel="stylesheet" href="css/style.css?v=20260718.11">
   <!-- Mobile Architecture Overrides (PWA Lock) -->
-  <link rel="stylesheet" href="css/mobile.css?v=20260718.10">
+  <link rel="stylesheet" href="css/mobile.css?v=20260718.11">
 </head>
 <body>
 
@@ -292,11 +292,11 @@
           <div class="chat-container glass student-chat-container">
             <div class="chat-active-header">
               <div class="avatar" id="student-chat-trainer-avatar">P</div>
-              <div><h3 id="student-chat-trainer-name">Personal</h3><span class="chat-connection-status connecting" data-chat-status role="status" aria-live="polite">Conectando...</span></div>
+              <div class="chat-partner-details"><h3 id="student-chat-trainer-name">Personal</h3><span class="chat-connection-status connecting" data-chat-status role="status" aria-live="polite">Conectando...</span></div>
             </div>
-            <div class="chat-messages flex-fill" id="student-chat-messages"></div>
+            <div class="chat-messages flex-fill" id="student-chat-messages" role="log" aria-live="polite" aria-relevant="additions"></div>
             <form id="student-chat-form" class="chat-input-form">
-              <input type="text" id="student-chat-input" placeholder="Mensagem..." aria-label="Mensagem para o personal">
+              <input type="text" id="student-chat-input" placeholder="Mensagem..." autocomplete="off" maxlength="2000" enterkeyhint="send" aria-label="Mensagem para o personal">
               <span class="chat-send-status" data-chat-send-status role="status" aria-live="polite"></span>
               <button type="submit" class="btn-chat-send" aria-label="Enviar mensagem"><i data-lucide="send"></i></button>
             </form>
@@ -593,12 +593,12 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260718.10"></script>
-  <script src="js/safe-dom.js?v=20260718.10"></script>
-  <script src="js/app.js?v=20260718.10"></script>
-  <script src="js/personal.js?v=20260718.10"></script>
-  <script src="js/student.js?v=20260718.10"></script>
-  <script src="js/profile.js?v=20260718.10"></script>
-  <script src="js/events.js?v=20260718.10"></script>
+  <script src="js/api.js?v=20260718.11"></script>
+  <script src="js/safe-dom.js?v=20260718.11"></script>
+  <script src="js/app.js?v=20260718.11"></script>
+  <script src="js/personal.js?v=20260718.11"></script>
+  <script src="js/student.js?v=20260718.11"></script>
+  <script src="js/profile.js?v=20260718.11"></script>
+  <script src="js/events.js?v=20260718.11"></script>
 </body>
 </html>
