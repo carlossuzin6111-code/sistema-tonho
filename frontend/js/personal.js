@@ -4,6 +4,7 @@ let personalStudents = [];
 let selectedStudentId = null;
 let activeWorkoutId = null;
 let activeChatStudentId = null;
+let exerciseCatalogList = [];
 
 function normalizeListSearch(value) {
   return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
@@ -27,6 +28,17 @@ function filterPersonalStudents(query) {
 }
 
 function filterPersonalExercises(query) {
+  const prioritySection = document.getElementById('exercises-priority-section');
+  if (prioritySection) {
+    if (query && query.trim() !== '') {
+      prioritySection.classList.add('hidden');
+    } else {
+      const prioritized = exerciseCatalogList.filter(ex => ex.is_favorite || ex.is_custom);
+      if (prioritized.length > 0) {
+        prioritySection.classList.remove('hidden');
+      }
+    }
+  }
   filterRenderedList({ containerId: 'exercises-catalog-list', cardSelector: '.exercise-db-card', emptyId: 'exercises-search-empty', countId: 'exercises-search-count', query });
 }
 
@@ -589,13 +601,63 @@ async function openAddExercise(workoutId) {
     const list = await API.get('/catalog/exercises');
     select.innerHTML = '<option value="">-- Selecionar da Biblioteca --</option>';
     
-    list.forEach(ex => {
+    // Split and sort exercises
+    const prioritized = list.filter(ex => ex.is_favorite || ex.is_custom);
+    const others = list.filter(ex => !ex.is_favorite && !ex.is_custom);
+
+    // Sort prioritized list using the same ordering rules as the track
+    prioritized.sort((a, b) => {
+      const aOrder = (a.display_order !== null && a.display_order !== undefined) ? a.display_order : 999999;
+      const bOrder = (b.display_order !== null && b.display_order !== undefined) ? b.display_order : 999999;
+      
+      if (aOrder !== bOrder) {
+        return aOrder - bOrder;
+      }
+      
+      if (a.is_favorite && b.is_favorite) {
+        return new Date(b.favorited_at || 0) - new Date(a.favorited_at || 0);
+      }
+      if (a.is_favorite) return -1;
+      if (b.is_favorite) return 1;
+      
+      if (a.is_custom && b.is_custom) {
+        return b.id - a.id;
+      }
+      if (a.is_custom) return -1;
+      if (b.is_custom) return 1;
+      
+      return 0;
+    });
+
+    // Sort other exercises alphabetically
+    others.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Render grouped options
+    if (prioritized.length > 0) {
+      const optGroupPrioritized = document.createElement('optgroup');
+      optGroupPrioritized.label = "★ Exercícios Prioritários / Favoritos";
+      
+      prioritized.forEach(ex => {
+        const option = document.createElement('option');
+        option.value = ex.id;
+        option.textContent = ex.name;
+        option.setAttribute('data-name', ex.name);
+        optGroupPrioritized.appendChild(option);
+      });
+      select.appendChild(optGroupPrioritized);
+    }
+
+    const optGroupOthers = document.createElement('optgroup');
+    optGroupOthers.label = "Biblioteca Geral";
+    
+    others.forEach(ex => {
       const option = document.createElement('option');
       option.value = ex.id;
       option.textContent = ex.name;
       option.setAttribute('data-name', ex.name);
-      select.appendChild(option);
+      optGroupOthers.appendChild(option);
     });
+    select.appendChild(optGroupOthers);
 
     const customOption = document.createElement('option');
     customOption.value = 'custom';
@@ -935,65 +997,18 @@ async function loadPersonalExercises() {
 
   try {
     const list = await API.get('/catalog/exercises');
+    exerciseCatalogList = list;
     finishLoadingState(container);
-    container.innerHTML = '';
-
-    if (list.length === 0) {
-      container.innerHTML = `
-        <div class="chat-empty-state glass grid-span-full empty-state-catalog">
-          <i data-lucide="dumbbell" class="chat-empty-icon icon-40"></i>
-          <h3>Sua biblioteca está vazia</h3>
-          <p>Cadastre seu primeiro exercício personalizado clicando no botão "Novo Exercício".</p>
-        </div>
-      `;
-      appendEmptyStateAction(container, { label: 'Criar primeiro exercício', icon: 'plus-circle', onClick: () => openCreateCatalogExerciseModal() });
-      lucide.createIcons();
-      filterPersonalExercises(document.getElementById('exercises-search').value);
-      return;
+    
+    // Reset search query input on load
+    const searchInput = document.getElementById('exercises-search');
+    if (searchInput) {
+      searchInput.value = '';
     }
 
-    list.forEach(ex => {
-      const card = document.createElement('div');
-      card.className = 'exercise-db-card glass';
-      const descText = ex.description ? ex.description : 'Sem orientações técnicas cadastradas.';
-      card.dataset.search = normalizeListSearch(`${ex.name} ${descText}`);
-      card.dataset.sortName = normalizeListSearch(ex.name);
-      const image = SafeDOM.el('img', {
-        className: 'exercise-thumb',
-        attrs: { alt: 'Exercício' }
-      });
-      const hasSafeImage = SafeDOM.setSafeImageSource(image, ex.gif_url);
-      const thumb = hasSafeImage
-        ? image
-        : SafeDOM.el('div', {
-            className: 'exercise-thumb exercise-thumb-placeholder'
-          }, [SafeDOM.icon('dumbbell')]);
-
-      const info = SafeDOM.el('div', { className: 'exercise-db-info' }, [
-        thumb,
-        SafeDOM.el('div', { className: 'exercise-db-details' }, [
-          SafeDOM.el('h4', { text: ex.name }),
-          SafeDOM.el('p', { text: descText })
-        ])
-      ]);
-      const actions = SafeDOM.el('div', { className: 'catalog-actions' });
-      if (hasSafeImage) {
-        actions.appendChild(SafeDOM.el('button', {
-          className: 'btn btn-tertiary btn-sm',
-          attrs: { title: 'Visualizar execução', 'aria-label': `Visualizar execução de ${ex.name}` },
-          on: { click: () => openExerciseExecutionModal(ex.name, ex.gif_url, descText) }
-        }, [SafeDOM.icon('eye')]));
-      }
-      actions.appendChild(SafeDOM.el('button', {
-        className: 'btn btn-danger btn-sm',
-        attrs: { title: 'Excluir da biblioteca', 'aria-label': `Excluir ${ex.name} da biblioteca` },
-        on: { click: () => deleteCatalogExercise(ex.id, ex.name) }
-      }, [SafeDOM.icon('trash-2')]));
-      SafeDOM.appendChildren(card, [info, actions]);
-      container.appendChild(card);
-    });
-
-    lucide.createIcons();
+    renderPersonalExercises();
+    
+    // Trigger initial sort and filter to keep UI consistent
     sortPersonalExercises(document.getElementById('exercises-sort').value);
     filterPersonalExercises(document.getElementById('exercises-search').value);
   } catch (err) {
@@ -1001,6 +1016,298 @@ async function loadPersonalExercises() {
     SafeDOM.clear(container);
     container.appendChild(SafeDOM.errorAlert('Erro ao carregar catálogo: ', err.message, 'grid-span-full'));
     lucide.createIcons();
+  }
+}
+
+function renderPersonalExercises() {
+  renderPriorityExercises();
+  renderCatalogExercisesGrid();
+}
+
+function renderPriorityExercises() {
+  const prioritySection = document.getElementById('exercises-priority-section');
+  const priorityList = document.getElementById('exercises-priority-list');
+  
+  const prioritized = exerciseCatalogList.filter(ex => ex.is_favorite || ex.is_custom);
+  
+  if (prioritized.length === 0) {
+    prioritySection.classList.add('hidden');
+    priorityList.innerHTML = '';
+    return;
+  }
+  
+  prioritySection.classList.remove('hidden');
+  priorityList.innerHTML = '';
+  
+  // Sort prioritized: display_order ASC (if present), then favorited_at DESC, then custom/newest ID DESC
+  prioritized.sort((a, b) => {
+    const aOrder = (a.display_order !== null && a.display_order !== undefined) ? a.display_order : 999999;
+    const bOrder = (b.display_order !== null && b.display_order !== undefined) ? b.display_order : 999999;
+    
+    if (aOrder !== bOrder) {
+      return aOrder - bOrder;
+    }
+    
+    if (a.is_favorite && b.is_favorite) {
+      return new Date(b.favorited_at || 0) - new Date(a.favorited_at || 0);
+    }
+    if (a.is_favorite) return -1;
+    if (b.is_favorite) return 1;
+    
+    if (a.is_custom && b.is_custom) {
+      return b.id - a.id;
+    }
+    if (a.is_custom) return -1;
+    if (b.is_custom) return 1;
+    
+    return 0;
+  });
+  
+  prioritized.forEach(ex => {
+    const card = document.createElement('div');
+    card.className = 'exercise-db-card priority-card glass';
+    card.setAttribute('draggable', 'true');
+    card.setAttribute('data-id', ex.id);
+    
+    const descText = ex.description ? ex.description : 'Sem orientações técnicas cadastradas.';
+    
+    const image = SafeDOM.el('img', {
+      className: 'exercise-thumb',
+      attrs: { alt: 'Exercício' }
+    });
+    const hasSafeImage = SafeDOM.setSafeImageSource(image, ex.gif_url);
+    const thumb = hasSafeImage
+      ? image
+      : SafeDOM.el('div', {
+          className: 'exercise-thumb exercise-thumb-placeholder'
+        }, [SafeDOM.icon('dumbbell')]);
+        
+    const gripIcon = SafeDOM.icon('grip-vertical', {
+      className: 'drag-handle',
+      attrs: { title: 'Arraste para ordenar' }
+    });
+    
+    const details = SafeDOM.el('div', { className: 'exercise-db-details' }, [
+      SafeDOM.el('h4', { text: ex.name }),
+      SafeDOM.el('p', { text: descText })
+    ]);
+    
+    const info = SafeDOM.el('div', { className: 'exercise-db-info' }, [
+      gripIcon,
+      thumb,
+      details
+    ]);
+    
+    const btnFavorite = SafeDOM.el('button', {
+      className: 'btn-favorite',
+      attrs: { title: 'Desfavoritar' },
+      on: {
+        click: (e) => {
+          e.stopPropagation();
+          toggleExerciseFavorite(ex.id, e);
+        }
+      }
+    }, [
+      SafeDOM.icon('star', { className: `star-icon ${ex.is_favorite ? 'filled' : ''}` })
+    ]);
+    
+    const actions = SafeDOM.el('div', { className: 'catalog-actions' });
+    if (hasSafeImage) {
+      actions.appendChild(SafeDOM.el('button', {
+        className: 'btn btn-tertiary btn-sm',
+        attrs: { title: 'Visualizar execução', 'aria-label': `Visualizar execução de ${ex.name}` },
+        on: {
+          click: (e) => {
+            e.stopPropagation();
+            openExerciseExecutionModal(ex.name, ex.gif_url, descText);
+          }
+        }
+      }, [SafeDOM.icon('eye')]));
+    }
+    actions.appendChild(SafeDOM.el('button', {
+      className: 'btn btn-danger btn-sm',
+      attrs: { title: 'Excluir da biblioteca', 'aria-label': `Excluir ${ex.name} da biblioteca` },
+      on: {
+        click: (e) => {
+          e.stopPropagation();
+          deleteCatalogExercise(ex.id, ex.name);
+        }
+      }
+    }, [SafeDOM.icon('trash-2')]));
+    
+    SafeDOM.appendChildren(card, [info, btnFavorite, actions]);
+    priorityList.appendChild(card);
+  });
+  
+  lucide.createIcons();
+  setupPriorityDragAndDrop();
+}
+
+function renderCatalogExercisesGrid() {
+  const container = document.getElementById('exercises-catalog-list');
+  container.innerHTML = '';
+  
+  if (exerciseCatalogList.length === 0) {
+    container.innerHTML = `
+      <div class="chat-empty-state glass grid-span-full empty-state-catalog">
+        <i data-lucide="dumbbell" class="chat-empty-icon icon-40"></i>
+        <h3>Sua biblioteca está vazia</h3>
+        <p>Cadastre seu primeiro exercício personalizado clicando no botão "Novo Exercício".</p>
+      </div>
+    `;
+    appendEmptyStateAction(container, { label: 'Criar primeiro exercício', icon: 'plus-circle', onClick: () => openCreateCatalogExerciseModal() });
+    lucide.createIcons();
+    return;
+  }
+  
+  exerciseCatalogList.forEach(ex => {
+    const card = document.createElement('div');
+    card.className = 'exercise-db-card glass';
+    const descText = ex.description ? ex.description : 'Sem orientações técnicas cadastradas.';
+    
+    card.dataset.search = normalizeListSearch(`${ex.name} ${descText}`);
+    card.dataset.sortName = normalizeListSearch(ex.name);
+    
+    const image = SafeDOM.el('img', {
+      className: 'exercise-thumb',
+      attrs: { alt: 'Exercício' }
+    });
+    const hasSafeImage = SafeDOM.setSafeImageSource(image, ex.gif_url);
+    const thumb = hasSafeImage
+      ? image
+      : SafeDOM.el('div', {
+          className: 'exercise-thumb exercise-thumb-placeholder'
+        }, [SafeDOM.icon('dumbbell')]);
+
+    const info = SafeDOM.el('div', { className: 'exercise-db-info' }, [
+      thumb,
+      SafeDOM.el('div', { className: 'exercise-db-details' }, [
+        SafeDOM.el('h4', { text: ex.name }),
+        SafeDOM.el('p', { text: descText })
+      ])
+    ]);
+
+    const btnFavorite = SafeDOM.el('button', {
+      className: 'btn-favorite',
+      attrs: { title: ex.is_favorite ? 'Remover dos Favoritos' : 'Adicionar aos Favoritos' },
+      on: {
+        click: (e) => {
+          e.stopPropagation();
+          toggleExerciseFavorite(ex.id, e);
+        }
+      }
+    }, [
+      SafeDOM.icon('star', { className: `star-icon ${ex.is_favorite ? 'filled' : ''}` })
+    ]);
+
+    const actions = SafeDOM.el('div', { className: 'catalog-actions' });
+    if (hasSafeImage) {
+      actions.appendChild(SafeDOM.el('button', {
+        className: 'btn btn-tertiary btn-sm',
+        attrs: { title: 'Visualizar execução', 'aria-label': `Visualizar execução de ${ex.name}` },
+        on: { click: () => openExerciseExecutionModal(ex.name, ex.gif_url, descText) }
+      }, [SafeDOM.icon('eye')]));
+    }
+    actions.appendChild(SafeDOM.el('button', {
+      className: 'btn btn-danger btn-sm',
+      attrs: { title: 'Excluir da biblioteca', 'aria-label': `Excluir ${ex.name} da biblioteca` },
+      on: { click: () => deleteCatalogExercise(ex.id, ex.name) }
+    }, [SafeDOM.icon('trash-2')]));
+    
+    SafeDOM.appendChildren(card, [info, btnFavorite, actions]);
+    container.appendChild(card);
+  });
+  
+  lucide.createIcons();
+}
+
+async function toggleExerciseFavorite(id, event) {
+  if (event) event.stopPropagation();
+  
+  try {
+    const res = await API.patch(`/catalog/exercises/${id}/favorite`);
+    showToast(res.message === 'Exercise favorited' ? 'Adicionado aos favoritos!' : 'Removido dos favoritos!', 'success');
+    
+    const ex = exerciseCatalogList.find(e => e.id === id);
+    if (ex) {
+      ex.is_favorite = res.is_favorite;
+      ex.favorited_at = res.is_favorite ? new Date().toISOString() : null;
+    }
+    
+    renderPersonalExercises();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+function setupPriorityDragAndDrop() {
+  const list = document.getElementById('exercises-priority-list');
+  let draggedItem = null;
+
+  list.querySelectorAll('.priority-card').forEach(item => {
+    item.addEventListener('dragstart', (e) => {
+      draggedItem = item;
+      e.dataTransfer.effectAllowed = 'move';
+      item.classList.add('dragging');
+    });
+
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      draggedItem = null;
+      saveNewPriorityOrder();
+    });
+
+    item.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    item.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      if (item !== draggedItem) {
+        item.classList.add('drag-over');
+      }
+    });
+
+    item.addEventListener('dragleave', () => {
+      item.classList.remove('drag-over');
+    });
+
+    item.addEventListener('drop', (e) => {
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      
+      if (item !== draggedItem) {
+        const allItems = [...list.querySelectorAll('.priority-card')];
+        const draggedIndex = allItems.indexOf(draggedItem);
+        const targetIndex = allItems.indexOf(item);
+        
+        if (draggedIndex < targetIndex) {
+          list.insertBefore(draggedItem, item.nextSibling);
+        } else {
+          list.insertBefore(draggedItem, item);
+        }
+      }
+    });
+  });
+}
+
+async function saveNewPriorityOrder() {
+  const list = document.getElementById('exercises-priority-list');
+  const cards = [...list.querySelectorAll('.priority-card')];
+  const ids = cards.map(c => parseInt(c.getAttribute('data-id')));
+  
+  try {
+    await API.put('/catalog/exercises/reorder', { ids });
+    
+    // Sync local list order positions
+    ids.forEach((id, index) => {
+      const ex = exerciseCatalogList.find(e => e.id === id);
+      if (ex) {
+        ex.display_order = index;
+      }
+    });
+  } catch (err) {
+    showToast('Erro ao salvar nova ordenação: ' + err.message, 'error');
   }
 }
 

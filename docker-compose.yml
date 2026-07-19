@@ -4,7 +4,6 @@ services:
     container_name: fitlife_web
     ports:
       # Public traffic enters through the outbound-only Cloudflare Tunnel.
-      # Keep host access local so visitor-IP headers cannot be forged remotely.
       - "127.0.0.1:3000:3000"
     volumes:
       - ./frontend:/usr/share/nginx/html:ro

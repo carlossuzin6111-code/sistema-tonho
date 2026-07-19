@@ -1330,7 +1330,8 @@ body.dark-theme .pedagogical-table th {
 
 /* Exercise Database tab list items */
 .exercise-db-card {
-  padding: 16px;
+  position: relative;
+  padding: 16px 48px 16px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1354,12 +1355,147 @@ body.dark-theme .pedagogical-table th {
 .exercise-db-details h4 {
   font-size: 0.95rem;
   font-weight: 600;
+  padding-right: 8px;
 }
 
 .exercise-db-details p {
   font-size: 0.8rem;
   color: var(--text-muted);
   margin-top: 2px;
+}
+
+/* Search Bar styling */
+.search-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-passive);
+  border-radius: 9999px;
+  transition: var(--transition-smooth);
+}
+.search-bar-container:focus-within {
+  border-color: var(--border-active);
+  box-shadow: var(--focus-shadow);
+}
+.search-icon {
+  color: var(--text-muted);
+  width: 18px;
+  height: 18px;
+}
+.search-bar-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+.search-bar-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Floating Favorite Star styling */
+.btn-favorite {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-passive);
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  z-index: 2;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.btn-favorite:hover {
+  border-color: var(--border-active);
+  color: var(--text-main);
+  transform: scale(1.1);
+}
+.btn-favorite .star-icon {
+  width: 14px;
+  height: 14px;
+  transition: var(--transition-smooth);
+}
+.btn-favorite .star-icon.filled {
+  fill: #eab308;
+  color: #eab308;
+}
+
+/* Priority / Favorites Section styling */
+.priority-section {
+  background-color: rgba(28, 28, 28, 0.02);
+  border: 1px dashed var(--border-passive);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  transition: var(--transition-smooth);
+}
+body.dark-theme .priority-section {
+  background-color: rgba(245, 242, 235, 0.02);
+}
+.priority-section-header {
+  margin-bottom: 14px;
+}
+.priority-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.priority-icon {
+  width: 16px;
+  height: 16px;
+  color: #eab308;
+  fill: #eab308;
+}
+.priority-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.priority-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Priority Draggable Card adjustment */
+.priority-card {
+  cursor: grab;
+  user-select: none;
+}
+.priority-card:active {
+  cursor: grabbing;
+}
+.priority-card.dragging {
+  opacity: 0.4;
+  border-style: dashed;
+  transform: scale(0.98);
+}
+.priority-card.drag-over {
+  border-color: var(--text-main);
+  box-shadow: var(--focus-shadow);
+  transform: translateY(-1px);
+}
+.drag-handle {
+  color: var(--text-muted);
+  opacity: 0.4;
+  cursor: grab;
+  width: 14px;
+  height: 14px;
+  transition: var(--transition-fast);
+}
+.priority-card:hover .drag-handle {
+  opacity: 0.8;
 }
 
 /* Execution Modal Popup styles */
@@ -1719,6 +1855,8 @@ body.dark-theme .pedagogical-table th {
 .modal-body-scroll {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
+  max-width: 100%;
   padding-right: 5px;
 }
 
@@ -1983,7 +2121,7 @@ body.dark-theme .metric-item {
   }
 
   .dashboard-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 16px;
     padding: 16px;
     padding-bottom: 80px; /* Space for bottom nav */
@@ -2043,7 +2181,38 @@ body.dark-theme .metric-item {
   }
   
   .grid-2, .grid-3 {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .section-header .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .measurement-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px;
+  }
+
+  .measurement-overview .stat-mini {
+    padding: 10px 8px;
+  }
+
+  .stats-mini-grid {
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .stats-mini-grid .stat-mini {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 100px;
   }
   
   .hide-mobile {
@@ -2153,18 +2322,23 @@ body.dark-theme .metric-item {
     display: inline-flex !important;
   }
 
-  .chat-container:not(.show-window) .chat-sidebar {
+  .chat-container:not(.single-window-chat):not(.show-window) .chat-sidebar {
     display: flex !important;
     width: 100% !important;
   }
-  .chat-container:not(.show-window) .chat-window {
+  .chat-container:not(.single-window-chat):not(.show-window) .chat-window {
     display: none !important;
   }
 
-  .chat-container.show-window .chat-sidebar {
+  .chat-container:not(.single-window-chat).show-window .chat-sidebar {
     display: none !important;
   }
-  .chat-container.show-window .chat-window {
+  .chat-container:not(.single-window-chat).show-window .chat-window {
+    display: flex !important;
+    width: 100% !important;
+  }
+
+  .chat-container.single-window-chat .chat-window {
     display: flex !important;
     width: 100% !important;
   }
@@ -2176,3 +2350,395 @@ body.dark-theme .metric-item {
     padding: 12px;
   }
 }
+
+/* ==========================================================================
+   MEUS EXERCÍCIOS — BIBLIOTECA (search, cards, favoritos, drag & drop)
+   ========================================================================== */
+
+/* ---- Search Bar ---- */
+.search-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-passive);
+  background: var(--bg-secondary);
+  transition: var(--transition-smooth);
+}
+
+.search-bar-container:focus-within {
+  border-color: var(--border-active);
+  box-shadow: var(--focus-shadow);
+}
+
+.search-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.search-bar-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.search-bar-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ---- Exercise Catalog Card ---- */
+.exercise-db-card {
+  position: relative;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-passive);
+  background: var(--bg-secondary);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: var(--transition-smooth);
+  overflow: visible;
+}
+
+.exercise-db-card:hover {
+  border-color: var(--border-active);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  transform: translateY(-1px);
+}
+
+.exercise-db-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.exercise-thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--bg-tertiary);
+  flex-shrink: 0;
+  border: 1px solid var(--border-passive);
+}
+
+.exercise-db-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.exercise-db-details h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.exercise-db-details p {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---- Favorite Star Button (floating top-right) ---- */
+.btn-favorite {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--bg-primary);
+  border: 1.5px solid var(--border-passive);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: var(--transition-smooth);
+  padding: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.btn-favorite:hover {
+  background: #fefce8;
+  border-color: #eab308;
+  transform: scale(1.12);
+  box-shadow: 0 2px 8px rgba(234,179,8,0.2);
+}
+
+.star-icon {
+  width: 15px;
+  height: 15px;
+  color: var(--text-muted);
+  transition: var(--transition-smooth);
+  fill: transparent;
+}
+
+.star-icon.filled {
+  color: #eab308;
+  fill: #eab308;
+}
+
+/* ---- Drag Handle (inside priority cards) ---- */
+.drag-handle {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  cursor: grab;
+  flex-shrink: 0;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.priority-card:hover .drag-handle {
+  opacity: 1;
+}
+
+/* ---- Priority / Favorites Section ---- */
+.priority-section {
+  border: 2px dashed var(--border-passive);
+  border-radius: 14px;
+  padding: 18px;
+  background: var(--bg-primary);
+  margin-bottom: 28px;
+  transition: border-color 0.2s;
+}
+
+.priority-section:has(.priority-card) {
+  border-color: rgba(234, 179, 8, 0.35);
+}
+
+.priority-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.priority-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.priority-icon {
+  width: 18px;
+  height: 18px;
+  color: #eab308;
+  fill: #eab308;
+}
+
+.priority-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.priority-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ---- Priority Card variant (inside sortable area) ---- */
+.priority-card {
+  border-color: rgba(234, 179, 8, 0.3) !important;
+  background: var(--bg-secondary) !important;
+}
+
+/* ---- Drag & Drop State ---- */
+.dragging {
+  opacity: 0.45;
+  transform: scale(0.97);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.drag-over {
+  border-color: #eab308 !important;
+  background: #fefce8 !important;
+  box-shadow: 0 0 0 2px rgba(234,179,8,0.25);
+}
+
+/* ---- Sortable container ---- */
+.sortable-container {
+  min-height: 60px;
+}
+
+/* ---- Empty state for priority section ---- */
+.priority-empty-hint {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+/* Dark theme overrides for exercise components */
+body.dark-theme .exercise-db-card {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.1);
+}
+
+body.dark-theme .exercise-db-card:hover {
+  border-color: rgba(255,255,255,0.25);
+}
+
+body.dark-theme .search-bar-container {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.12);
+}
+
+body.dark-theme .btn-favorite {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.15);
+}
+
+body.dark-theme .btn-favorite:hover {
+  background: rgba(234,179,8,0.12);
+}
+
+body.dark-theme .priority-section {
+  background: rgba(255,255,255,0.02);
+  border-color: rgba(255,255,255,0.1);
+}
+
+body.dark-theme .drag-over {
+  background: rgba(234,179,8,0.08) !important;
+}
+
+/* Responsive Pedagogical Table formatting for clean mobile display */
+@media (max-width: 768px) {
+  .pedagogical-table-wrapper {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    margin-top: 10px;
+  }
+
+  .pedagogical-table,
+  .pedagogical-table tbody,
+  .pedagogical-table tbody tr {
+    display: block;
+    width: 100%;
+  }
+
+  .pedagogical-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .pedagogical-table tbody tr {
+    margin-bottom: 16px;
+    border: 1.5px solid var(--border-passive);
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .pedagogical-table tbody tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .pedagogical-table td {
+    display: flex;
+    min-width: 0;
+    min-height: 48px;
+    padding: 10px 14px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-passive);
+    box-sizing: border-box;
+    font-size: 0.9rem;
+  }
+
+  .pedagogical-table td::before {
+    content: attr(data-label);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .pedagogical-table .workout-exercise-main {
+    flex-direction: column;
+    align-items: flex-start;
+    background: rgba(28, 28, 28, 0.02);
+    padding: 14px;
+    gap: 4px;
+  }
+  body.dark-theme .pedagogical-table .workout-exercise-main {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .pedagogical-table .workout-exercise-main::before {
+    display: none;
+  }
+
+  .pedagogical-table .exercise-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .pedagogical-table .workout-check-cell {
+    width: 100% !important;
+    flex-direction: row-reverse;
+    background: rgba(28, 28, 28, 0.04);
+    padding: 8px 14px;
+  }
+  body.dark-theme .pedagogical-table .workout-check-cell {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .pedagogical-table .workout-execution-cell {
+    border-bottom: 0;
+    padding: 12px 14px;
+  }
+
+  .pedagogical-table .workout-execution-cell::before {
+    display: none;
+  }
+
+  .pedagogical-table .btn-pill-action {
+    width: 100%;
+    min-height: 40px;
+    justify-content: center;
+    white-space: normal;
+    margin: 0;
+  }
+}
+

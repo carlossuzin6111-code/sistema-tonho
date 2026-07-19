@@ -8,9 +8,9 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Base Styles (Components, Colors, Lovable) -->
-  <link rel="stylesheet" href="css/style.css?v=20260718.14">
+  <link rel="stylesheet" href="css/style.css?v=20260719.19">
   <!-- Mobile Architecture Overrides (PWA Lock) -->
-  <link rel="stylesheet" href="css/mobile.css?v=20260718.14">
+  <link rel="stylesheet" href="css/mobile.css?v=20260719.19">
 </head>
 <body>
 
@@ -207,6 +207,18 @@
             <div class="list-search-field"><i data-lucide="search"></i><input type="search" id="exercises-search" placeholder="Buscar exercício" aria-label="Buscar exercício por nome ou descrição" autocomplete="off"></div>
             <span id="exercises-search-count" class="list-search-count" role="status" aria-live="polite"></span>
             <select id="exercises-sort" class="list-sort-select" aria-label="Ordenar exercícios"><option value="name-asc">A–Z</option><option value="name-desc">Z–A</option></select>
+          </div>
+
+          <!-- Priority Section -->
+          <div id="exercises-priority-section" class="priority-section hidden mb-16">
+            <div class="priority-section-header">
+              <div class="priority-title-container">
+                <i data-lucide="star" class="priority-icon"></i>
+                <h3 class="priority-title">Prioritários</h3>
+              </div>
+              <p class="priority-subtitle">Arraste para ordenar.</p>
+            </div>
+            <div id="exercises-priority-list" class="grid grid-2 sortable-container"></div>
           </div>
           <div id="exercises-catalog-list" class="grid grid-2"></div>
           <p id="exercises-search-empty" class="search-empty hidden">Nenhum exercício corresponde à busca.</p>
@@ -593,12 +605,12 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260718.14"></script>
-  <script src="js/safe-dom.js?v=20260718.14"></script>
-  <script src="js/app.js?v=20260718.14"></script>
-  <script src="js/personal.js?v=20260718.14"></script>
-  <script src="js/student.js?v=20260718.14"></script>
-  <script src="js/profile.js?v=20260718.14"></script>
-  <script src="js/events.js?v=20260718.14"></script>
+  <script src="js/api.js?v=20260719.19"></script>
+  <script src="js/safe-dom.js?v=20260719.19"></script>
+  <script src="js/app.js?v=20260719.19"></script>
+  <script src="js/personal.js?v=20260719.19"></script>
+  <script src="js/student.js?v=20260719.19"></script>
+  <script src="js/profile.js?v=20260719.19"></script>
+  <script src="js/events.js?v=20260719.19"></script>
 </body>
 </html>

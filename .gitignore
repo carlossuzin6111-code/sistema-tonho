@@ -7,3 +7,4 @@ keys_aut.json
 *.sqlite-shm
 *.sqlite-wal
 node_modules/
+**/node_modules/

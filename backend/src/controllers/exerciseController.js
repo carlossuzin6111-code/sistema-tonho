@@ -15,7 +15,8 @@ async function createExercise(req, res) {
       personal_id: personalId,
       name,
       gif_url: gifUrl || null,
-      description: description || null
+      description: description || null,
+      is_custom: true
     });
 
     res.status(201).json({
@@ -91,8 +92,64 @@ async function deleteExercise(req, res) {
   }
 }
 
+// Toggle favorite status of an exercise (Personal Trainer only)
+async function toggleFavorite(req, res) {
+  const exerciseId = req.params.id;
+  const personalId = req.user.id;
+
+  try {
+    const exercise = await db('exercises').where({ id: exerciseId, personal_id: personalId }).first();
+    if (!exercise) {
+      return res.status(404).json({ error: 'Exercise not found' });
+    }
+
+    const newFavoriteState = !exercise.is_favorite;
+    const updateData = {
+      is_favorite: newFavoriteState,
+      favorited_at: newFavoriteState ? new Date().toISOString() : null
+    };
+
+    await db('exercises').where({ id: exerciseId, personal_id: personalId }).update(updateData);
+
+    res.status(200).json({
+      message: newFavoriteState ? 'Exercise favorited' : 'Exercise unfavorited',
+      is_favorite: newFavoriteState
+    });
+  } catch (err) {
+    console.error('Toggle favorite error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+// Reorder exercises display order (Personal Trainer only)
+async function reorderExercises(req, res) {
+  const { ids } = req.body;
+  const personalId = req.user.id;
+
+  if (!Array.isArray(ids)) {
+    return res.status(400).json({ error: 'ids must be an array' });
+  }
+
+  try {
+    await db.transaction(async trx => {
+      for (let i = 0; i < ids.length; i++) {
+        await trx('exercises')
+          .where({ id: ids[i], personal_id: personalId })
+          .update({ display_order: i });
+      }
+    });
+
+    res.status(200).json({ message: 'Exercises reordered successfully' });
+  } catch (err) {
+    console.error('Reorder exercises error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 module.exports = {
   createExercise,
   getExercises,
-  deleteExercise
+  deleteExercise,
+  toggleFavorite,
+  reorderExercises
 };

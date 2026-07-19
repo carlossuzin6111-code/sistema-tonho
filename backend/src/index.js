@@ -706,6 +706,8 @@ app.post('/api/catalog/exercises', authenticateToken, requireRole('personal'), v
  *         description: Erro interno do servidor.
  */
 app.delete('/api/catalog/exercises/:id', authenticateToken, requireRole('personal'), validateIdParam(), exerciseController.deleteExercise);
+app.patch('/api/catalog/exercises/:id/favorite', authenticateToken, requireRole('personal'), validateIdParam(), exerciseController.toggleFavorite);
+app.put('/api/catalog/exercises/reorder', authenticateToken, requireRole('personal'), exerciseController.reorderExercises);
 
 
 // Chat (Tempo Real com SSE)

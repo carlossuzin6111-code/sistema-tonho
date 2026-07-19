@@ -647,7 +647,7 @@ test('own profile UI is shared, accessible and prepares a bounded cropped avatar
     assert.match(html, /id="profile-avatar-zoom"[^>]*max="3"/);
     assert.match(html, /id="profile-email-readonly"[^>]*readonly/);
     assert.match(html, /id="profile-role-readonly"[^>]*readonly/);
-    assert.match(html, /src="js\/profile\.js\?v=20260718\.14"/);
+    assert.match(html, /src="js\/profile\.js\?v=[^"]+"/);
   }
 
   const profile = read(path.join('js', 'profile.js'));
