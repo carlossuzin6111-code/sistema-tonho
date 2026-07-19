@@ -7,22 +7,37 @@
 body, html {
   margin: 0;
   padding: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden !important; /* Bloqueia scroll no root, imitando app nativo */
+  width: 100%;
+  min-height: 100%;
   background-color: var(--bg-primary); /* Cream background */
+}
+
+body {
+  min-height: 100dvh;
+  overflow-x: hidden;
 }
 
 /* Tela de login ocupa tudo */
 #login-screen {
-  height: 100vh;
-  width: 100vw;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   overflow-y: auto;
-  padding: 20px;
+  overflow-x: hidden;
+  padding: max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  box-sizing: border-box;
+}
+
+.mobile-login-card {
+  width: min(440px, calc(100vw - 32px));
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  box-shadow: none;
 }
 
 /* O container principal do aplicativo autenticado */
@@ -30,7 +45,8 @@ body, html {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  width: 100vw;
+  height: 100dvh;
+  width: 100%;
   overflow: hidden;
 }
 
@@ -60,6 +76,240 @@ body.dark-theme .mobile-header {
   letter-spacing: -0.5px;
 }
 
+.mobile-header-brand, .mobile-brand-name, .mobile-header-actions {
+  display: flex;
+  align-items: center;
+}
+.mobile-header-brand, .mobile-header-actions { gap: 12px; }
+.mobile-header-actions { gap: 8px; }
+.mobile-profile-button { width: 40px; height: 40px; padding: 4px; border: 0; background: transparent; }
+.mobile-profile-button .avatar { width: 34px; height: 34px; }
+.mobile-brand-name { gap: 8px; }
+.mobile-menu-button { padding: 4px; }
+.mobile-brand-icon { width: 20px; height: 20px; }
+.mobile-brand-text { font-size: 1.1rem; }
+.mobile-section-title { font-size: 24px; }
+.mobile-summary-grid { margin: 12px 0 18px; }
+.mobile-summary-grid .stat-mini { flex: 1; padding: 12px 14px; }
+.mobile-section-actions {
+  position: sticky;
+  top: -16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: -8px -4px 16px;
+  padding: 8px 4px 12px;
+  background: var(--bg-primary);
+}
+.mobile-chat-tab.active {
+  height: 100%;
+  min-height: 0;
+  display: flex !important;
+  flex-direction: column;
+}
+.mobile-chat-tab > .section-title {
+  flex: 0 0 auto;
+}
+.mobile-chat-tab > .chat-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
+}
+.personal-chat-container {
+  display: flex;
+  flex-direction: column;
+}
+.personal-chat-container #chat-students-list {
+  min-height: 0;
+  margin-bottom: 0;
+}
+.personal-chat-container:not(.show-window) .chat-window {
+  display: none;
+}
+.personal-chat-container.show-window #chat-students-list {
+  display: none;
+}
+.personal-chat-container.show-window .chat-window {
+  display: flex;
+  min-height: 0;
+}
+.personal-chat-messages { min-height: 0; }
+.student-chat-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: auto;
+}
+.mobile-modal-close-row { display: flex; justify-content: flex-end; padding: 16px; }
+.mobile-modal-close { position: relative; top: 0; right: 0; }
+.student-detail-close-row {
+  flex: 0 0 auto;
+  padding: max(10px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 4px max(16px, env(safe-area-inset-left));
+  background: var(--bg-primary);
+}
+.mobile-modal-profile {
+  flex: 0 0 auto;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 0;
+  padding: 8px max(20px, env(safe-area-inset-right)) 18px max(20px, env(safe-area-inset-left));
+  border-bottom: 1px solid var(--border-passive);
+}
+.mobile-modal-profile .avatar-large {
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  min-height: 64px;
+  flex: 0 0 64px;
+  aspect-ratio: 1;
+}
+.mobile-modal-profile .modal-profile-info {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.mobile-modal-profile .modal-profile-info h2 {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.mobile-modal-profile .modal-profile-info p {
+  margin: 0 0 10px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.mobile-modal-profile .meta-tags {
+  gap: 6px;
+}
+.mobile-modal-profile .meta-tag {
+  padding: 4px 8px;
+  font-size: 0.7rem;
+}
+.mobile-modal-profile .btn-sensitive {
+  width: 100%;
+  margin-top: 12px;
+}
+.modal-subtabs-spaced { margin-top: 20px; }
+.mobile-student-detail-tabs {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+  background: var(--bg-primary);
+}
+.mobile-student-detail-tabs .modal-subtab {
+  flex: 1 1 50%;
+  min-height: 44px;
+  padding: 10px 8px;
+}
+.mobile-modal-body {
+  min-height: 0;
+  padding: 16px max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  overscroll-behavior: contain;
+}
+.mobile-modal-body .workouts-list-container {
+  gap: 12px;
+}
+.mobile-modal-body .workout-card {
+  min-width: 0;
+  padding: 14px;
+}
+.mobile-modal-body .workout-header {
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.mobile-modal-body .workout-header > :first-child {
+  width: 100%;
+  min-width: 0;
+}
+.mobile-modal-body .workout-title,
+.mobile-modal-body .workout-desc,
+.mobile-modal-body .exercise-name,
+.mobile-modal-body .exercise-notes {
+  overflow-wrap: anywhere;
+}
+.mobile-modal-body .inline-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  gap: 8px;
+}
+.mobile-modal-body .inline-actions .btn {
+  min-width: 0;
+  min-height: 40px;
+  justify-content: center;
+  padding-inline: 8px;
+}
+.mobile-modal-body .exercise-row {
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px;
+}
+.mobile-modal-body .exercise-row-info {
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+.mobile-modal-body .exercise-row-info > :first-child {
+  min-width: 0;
+}
+.mobile-modal-body .exercise-name {
+  display: block;
+  line-height: 1.35;
+}
+.mobile-modal-body .execution-inline-action {
+  margin: 7px 0 0;
+}
+.mobile-modal-body .exercise-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+}
+.mobile-modal-body .exercise-stat-box {
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--border-passive);
+  border-radius: 6px;
+  background: var(--bg-primary);
+}
+.mobile-modal-body .exercise-stat-value {
+  overflow-wrap: anywhere;
+}
+.mobile-modal-body .exercise-row > .btn-icon {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+}
+.mobile-metrics-grid {
+  margin: 0 0 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.mobile-modal-body .metric-item {
+  min-width: 0;
+}
+.mobile-modal-body .metric-value {
+  overflow-wrap: anywhere;
+}
+.mobile-modal-body .table-container {
+  max-width: 100%;
+  padding: 12px;
+}
+.mobile-sticky-action {
+  position: sticky;
+  top: -16px;
+  z-index: 10;
+  box-shadow: 0 8px 18px rgba(28, 28, 28, 0.12);
+}
+.mobile-chart-preview { min-height: 150px; margin-bottom: 16px; background: var(--bg-secondary); }
+.mobile-chart-preview .chart-svg { height: 150px; flex-basis: 150px; }
+.mobile-modal-body .measurement-history-table { min-width: 720px; }
+.mobile-modal-inner { padding: 24px; }
+.drawer-title { margin: 0; font-size: 1.2rem; }
+
 /* Container de Dashboards do personal e aluno */
 .mobile-dashboard-wrapper {
   display: flex;
@@ -76,6 +326,194 @@ body.dark-theme .mobile-header {
   padding: 16px;
   padding-bottom: 24px;
   -webkit-overflow-scrolling: touch; /* Smooth scroll no iOS */
+}
+
+/* Ficha do aluno: cada linha semântica vira um cartão legível sem scroll horizontal. */
+#tab-s-workouts,
+#tab-s-workouts .workouts-list-container,
+#tab-s-workouts .workout-card,
+#tab-s-workouts .pedagogical-table-wrapper { min-width: 0; max-width: 100%; }
+.student-workout-heading { margin-bottom: 12px; }
+.student-workout-heading .section-subtitle { margin-top: 4px; line-height: 1.45; }
+#tab-s-workouts .student-workout-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+#tab-s-workouts .student-workout-summary .stat-mini { min-width: 0; padding: 10px 4px; }
+#tab-s-workouts .workout-card { padding: 14px; overflow: hidden; }
+#tab-s-workouts .workout-header { margin-bottom: 12px; padding-bottom: 10px; }
+#tab-s-workouts .workout-title { display: block; line-height: 1.35; overflow-wrap: anywhere; }
+#tab-s-workouts .workout-desc { margin-top: 6px; line-height: 1.45; }
+#tab-s-workouts .pedagogical-table-wrapper { overflow: visible; border: 0; background: transparent; }
+#tab-s-workouts .pedagogical-table,
+#tab-s-workouts .pedagogical-table tbody { display: block; width: 100%; }
+#tab-s-workouts .pedagogical-table thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+#tab-s-workouts .pedagogical-table tbody tr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0;
+  width: 100%;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-passive);
+  border-radius: 10px;
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+#tab-s-workouts .pedagogical-table tbody tr:last-child { margin-bottom: 0; }
+#tab-s-workouts .pedagogical-table td {
+  display: flex;
+  min-width: 0;
+  min-height: 54px;
+  padding: 10px 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  border-bottom: 1px solid var(--border-passive);
+  overflow-wrap: anywhere;
+}
+#tab-s-workouts .pedagogical-table td::before {
+  content: attr(data-label);
+  margin-bottom: 4px;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+#tab-s-workouts .pedagogical-table .workout-exercise-main {
+  grid-column: 1 / -1;
+  min-height: 72px;
+}
+#tab-s-workouts .pedagogical-table .workout-check-cell {
+  width: auto;
+  text-align: left;
+}
+#tab-s-workouts .pedagogical-table .workout-execution-cell { grid-column: 1 / -1; border-bottom: 0; }
+#tab-s-workouts .pedagogical-table .no-data-msg { grid-column: 1 / -1; align-items: center; text-align: center; }
+#tab-s-workouts .pedagogical-table .no-data-msg::before { content: none; }
+#tab-s-workouts .workout-checkbox {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+}
+#tab-s-workouts .workout-checkmark { position: relative; inset: auto; transform: none; width: 22px; height: 22px; }
+#tab-s-workouts .btn-pill-action { width: 100%; min-height: 44px; justify-content: center; white-space: normal; }
+#student-workouts-container { min-height: 180px; }
+#modal-exercise-execution .mobile-modal-inner {
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+#modal-exercise-execution .execution-gif { width: 100%; height: auto; max-height: min(42dvh, 320px); }
+
+@media (max-width: 350px) {
+  #tab-s-workouts .student-workout-summary .stat-mini-label { font-size: 0.6rem; }
+  #tab-s-workouts .student-workout-summary .stat-mini-value { font-size: 1.05rem; }
+  #tab-s-workouts .workout-card { padding: 12px; }
+}
+
+/* Medidas do aluno: resumo, gráfico e histórico sem deslocamento lateral. */
+.measurement-heading-actions { align-items: flex-start; gap: 12px; }
+.measurement-heading-actions > div { min-width: 0; }
+.measurement-heading-actions .section-subtitle { margin-top: 4px; line-height: 1.4; }
+.measurement-heading-actions .btn { flex: 0 0 auto; min-height: 44px; }
+#tab-s-measurements .measurement-overview {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+#tab-s-measurements .measurement-overview .stat-mini { min-width: 0; padding: 10px 8px; }
+#tab-s-measurements > .grid.grid-2 { grid-template-columns: minmax(0, 1fr); }
+#tab-s-measurements .chart-card,
+#tab-s-measurements .metrics-summary,
+#tab-s-measurements .chart-container-svg,
+#tab-s-measurements .table-container { min-width: 0; max-width: 100%; }
+#tab-s-measurements .chart-container-svg { min-height: 200px; padding: 8px; }
+#tab-s-measurements .chart-svg { width: 100%; height: 180px; flex-basis: 180px; }
+#tab-s-measurements .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#tab-s-measurements .metric-item { min-width: 0; }
+#tab-s-measurements .metric-value { overflow-wrap: anywhere; }
+#tab-s-measurements .table-container { padding: 12px; overflow: visible; }
+#tab-s-measurements .measurement-history-table,
+#tab-s-measurements .measurement-history-table tbody { display: block; width: 100%; min-width: 0; }
+#tab-s-measurements .measurement-history-table thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+#tab-s-measurements .measurement-history-table tbody tr {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-passive);
+  border-radius: 10px;
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+#tab-s-measurements .measurement-history-table tbody tr:last-child { margin-bottom: 0; }
+#tab-s-measurements .measurement-history-table td {
+  display: flex;
+  min-width: 0;
+  min-height: 58px;
+  padding: 10px 12px;
+  flex-direction: column;
+  justify-content: center;
+  border-bottom: 1px solid var(--border-passive);
+  overflow-wrap: anywhere;
+}
+#tab-s-measurements .measurement-history-table td::before {
+  content: attr(data-label);
+  margin-bottom: 4px;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+#tab-s-measurements .measurement-history-table td:first-child,
+#tab-s-measurements .measurement-history-table td:nth-child(2) { background: rgba(28, 28, 28, 0.025); }
+body.dark-theme #tab-s-measurements .measurement-history-table td:first-child,
+body.dark-theme #tab-s-measurements .measurement-history-table td:nth-child(2) { background: rgba(245, 242, 235, 0.025); }
+#tab-s-measurements .measurement-history-table .no-data-msg { grid-column: 1 / -1; align-items: center; text-align: center; }
+#tab-s-measurements .measurement-history-table .no-data-msg::before { content: none; }
+#measurements-table-body { min-height: 100px; }
+#modal-add-measurement .mobile-modal-inner {
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top: max(56px, env(safe-area-inset-top));
+  padding-bottom: max(28px, env(safe-area-inset-bottom));
+}
+#modal-add-measurement .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+@media (max-width: 350px) {
+  .measurement-heading-actions { flex-wrap: wrap; }
+  .measurement-heading-actions .btn { width: 100%; justify-content: center; }
+  #modal-add-measurement .grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Barra inferior de navegação */
@@ -128,10 +566,14 @@ body.dark-theme .mobile-bottom-nav {
 }
 
 .modal-content {
-  width: 100vw !important;
+  width: 100% !important;
   height: 100vh !important;
-  max-width: 100vw !important;
+  height: 100dvh !important;
+  max-width: 100% !important;
   max-height: 100vh !important;
+  max-height: 100dvh !important;
+  box-sizing: border-box;
+  overflow: hidden;
   border-radius: 0 !important;
   border: none !important;
   transform: translateY(100%);
@@ -141,21 +583,44 @@ body.dark-theme .mobile-bottom-nav {
 .modal-overlay.active .modal-content {
   transform: translateY(0);
 }
+.profile-modal-content { overflow-y: auto; padding: max(52px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left)); }
+.profile-readonly-grid { grid-template-columns: 1fr; gap: 0; }
 
 /* Chat adaptado para tela única */
 .chat-container {
   height: 100%;
+  min-height: 0;
   border: none;
   border-radius: 0;
   background: transparent;
 }
 .chat-messages {
+  min-width: 0;
+  min-height: 0;
   padding: 10px;
+  overscroll-behavior: contain;
+  overflow-x: hidden;
+  overflow-wrap: anywhere;
 }
 .chat-input-form {
+  flex: 0 0 auto;
+  min-width: 0;
   padding: 10px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--border-passive);
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: 6px 10px;
 }
+.chat-input-form input {
+  min-width: 0;
+  min-height: 44px;
+  font-size: 16px;
+}
+.chat-input-form .chat-send-status { text-align: left; }
+.student-chat-container .chat-active-header { padding: 10px 12px; }
+.student-chat-container .chat-active-header > .avatar { flex-basis: 40px; }
+.student-chat-container .chat-bubble { max-width: 88%; }
+.mobile-chat-tab > .section-title { margin-bottom: 10px; }
 
 /* Menu Lateral (Hamburger Drawer) */
 .mobile-drawer-overlay {

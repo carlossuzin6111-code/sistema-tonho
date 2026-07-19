@@ -1,302 +1,240 @@
 // FitLife Sync - Student Dashboard Logic
-
 let studentWorkouts = [];
 let studentMeasurements = [];
 let personalTrainerId = null;
 
-// Loads student workouts from server and renders checklists
+function exerciseCheckKey(exerciseId) {
+  const userId = API.getCurrentUser()?.id;
+  return userId ? `fitlife_chk_user_${userId}_exercise_${exerciseId}` : null;
+}
+
+function tableMessageRow(message, className = 'no-data-msg') {
+  return SafeDOM.el('tr', {}, [SafeDOM.el('td', { className, text: message, attrs: { colspan: '7' } })]);
+}
+
+function updateStudentWorkoutSummary() {
+  const exercises = studentWorkouts.flatMap(workout => workout.exercises || []);
+  const completed = exercises.reduce((total, exercise) => {
+    const key = exerciseCheckKey(exercise.id);
+    return total + (key && localStorage.getItem(key) === 'true' ? 1 : 0);
+  }, 0);
+  const values = {
+    'student-workout-count': studentWorkouts.length,
+    'student-exercise-count': exercises.length,
+    'student-completed-count': completed
+  };
+  for (const [id, value] of Object.entries(values)) {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  }
+}
+
 async function loadStudentWorkouts() {
   const container = document.getElementById('student-workouts-container');
-  container.innerHTML = `
-    <div class="loading-placeholder">
-      <div class="spinner"></div>
-      <span>Carregando sua ficha de treinos...</span>
-    </div>
-  `;
-
+  renderLoadingSkeletons(container, { count: 3, variant: 'workout', label: 'Carregando ficha de treinos' });
   try {
     studentWorkouts = await API.get('/student/workouts');
-    
-    if (studentWorkouts.length === 0) {
-      container.innerHTML = `
-        <div class="chat-empty-state glass" style="padding: 50px;">
-          <i data-lucide="dumbbell" class="chat-empty-icon" style="width: 50px; height: 50px; color: var(--text-muted);"></i>
-          <h3>Nenhum treino prescrito</h3>
-          <p>Seu Personal Trainer ainda não criou sua ficha de treinos. Fale com ele via chat!</p>
-        </div>
-      `;
+    finishLoadingState(container);
+    updateStudentWorkoutSummary();
+    if (!studentWorkouts.length) {
+      container.appendChild(SafeDOM.el('div', { className: 'chat-empty-state glass empty-state-large' }, [
+        SafeDOM.icon('dumbbell', 'chat-empty-icon icon-50 text-muted'),
+        SafeDOM.el('h3', { text: 'Nenhum treino prescrito' }),
+        SafeDOM.el('p', { text: 'Seu Personal Trainer ainda não criou sua ficha de treinos. Fale com ele via chat!' })
+      ]));
+      appendEmptyStateAction(container, { label: 'Conversar com meu personal', icon: 'message-square', onClick: () => switchStudentTab('chat') });
       lucide.createIcons();
       return;
     }
 
-    container.innerHTML = '';
-    studentWorkouts.forEach(workout => {
-      // Save personal trainer ID if we don't have it yet, helps with chat mapping
+    for (const workout of studentWorkouts) {
       personalTrainerId = workout.personal_id;
-
-      const card = document.createElement('div');
-      card.className = 'workout-card glass';
-
-      let exerciseRows = '';
-      if (workout.exercises.length === 0) {
-        exerciseRows = '<tr><td colspan="7" class="no-data-msg">Nenhum exercício cadastrado nesta ficha.</td></tr>';
+      const card = SafeDOM.el('div', { className: 'workout-card glass' });
+      const titleBlock = SafeDOM.el('div', {}, [SafeDOM.el('span', { className: 'workout-title', text: workout.name })]);
+      if (workout.description) titleBlock.appendChild(SafeDOM.el('p', { className: 'workout-desc', text: workout.description }));
+      card.appendChild(SafeDOM.el('div', { className: 'workout-header' }, [titleBlock]));
+      const table = SafeDOM.el('table', { className: 'pedagogical-table' });
+      table.appendChild(SafeDOM.el('thead', {}, [SafeDOM.el('tr', {}, [
+        SafeDOM.el('th', { text: 'Status', className: 'workout-status-heading', attrs: { scope: 'col' } }),
+        ...['Exercício', 'Séries', 'Repetições', 'Carga', 'Descanso'].map(label => SafeDOM.el('th', { text: label, attrs: { scope: 'col' } })),
+        SafeDOM.el('th', { text: 'Execução', className: 'workout-execution-heading', attrs: { scope: 'col' } })
+      ])]));
+      const tbody = SafeDOM.el('tbody');
+      if (!workout.exercises.length) {
+        tbody.appendChild(tableMessageRow('Nenhum exercício cadastrado nesta ficha.'));
       } else {
-        workout.exercises.forEach(ex => {
-          const weightVal = ex.weight ? ex.weight : 'Sem carga';
-          const restVal = ex.rest_time ? ex.rest_time : 'Sem pausa';
-          const noteText = ex.notes ? `<div class="exercise-notes">${ex.notes}</div>` : '';
-          
-          // Check if cached as checked in local storage
-          const isChecked = localStorage.getItem(`fitlife_chk_${ex.id}`) === 'true';
-          const checkedAttr = isChecked ? 'checked' : '';
-
-          const executionBtn = ex.gif_url 
-            ? `<button class="btn-pill-action" onclick="openExerciseExecutionModal('${ex.name.replace(/'/g, "\\'")}', '${ex.gif_url}', '${(ex.exercise_description || '').replace(/'/g, "\\'")}')"><i data-lucide="play-circle"></i> Ver execução</button>`
-            : `<button class="btn-pill-action" disabled title="Sem GIF de execução"><i data-lucide="help-circle"></i> Sem GIF</button>`;
-
-          exerciseRows += `
-            <tr id="ex-row-${ex.id}">
-              <td style="width: 50px; text-align: center; vertical-align: middle;">
-                <label class="checkbox-container" style="padding-left: 18px; margin: 0 auto; display: inline-block;">
-                  <input type="checkbox" ${checkedAttr} onchange="toggleExerciseCheck(${ex.id}, this)">
-                  <span class="checkmark" style="left: 0;"></span>
-                </label>
-              </td>
-              <td>
-                <span class="exercise-name ${isChecked ? 'strike-completed' : ''}" id="ex-name-${ex.id}" style="font-weight:600;">${ex.name}</span>
-                ${noteText}
-              </td>
-              <td style="font-weight: 600; vertical-align: middle;">${ex.sets}</td>
-              <td style="vertical-align: middle;">${ex.reps}</td>
-              <td style="color: var(--text-muted); vertical-align: middle;">${weightVal}</td>
-              <td style="color: var(--text-muted); vertical-align: middle;">${restVal}</td>
-              <td style="vertical-align: middle;">${executionBtn}</td>
-            </tr>
-          `;
-        });
+        for (const exercise of workout.exercises) {
+          const key = exerciseCheckKey(exercise.id);
+          const checked = key ? localStorage.getItem(key) === 'true' : false;
+          const checkbox = SafeDOM.el('input', { attrs: { type: 'checkbox', 'aria-label': `Marcar ${exercise.name} como concluído` } });
+          checkbox.checked = checked;
+          checkbox.addEventListener('change', () => toggleExerciseCheck(exercise.id, checkbox));
+          const checkLabel = SafeDOM.el('label', { className: 'checkbox-container workout-checkbox' }, [checkbox, SafeDOM.el('span', { className: 'checkmark workout-checkmark' })]);
+          const name = SafeDOM.el('span', { text: exercise.name, attrs: { id: `ex-name-${exercise.id}` }, className: `exercise-name exercise-name-strong ${checked ? 'strike-completed' : ''}` });
+          const nameCell = SafeDOM.el('td', { className: 'workout-exercise-main', attrs: { 'data-label': 'Exercício' } }, [name]);
+          if (exercise.notes) nameCell.appendChild(SafeDOM.el('div', { className: 'exercise-notes', text: exercise.notes }));
+          const execution = SafeDOM.el('button', {
+            className: 'btn-pill-action',
+            attrs: exercise.gif_url ? { 'aria-label': `Ver execução de ${exercise.name}` } : { disabled: '', title: 'Sem GIF de execução' },
+            on: exercise.gif_url ? { click: () => openExerciseExecutionModal(exercise.name, exercise.gif_url, exercise.exercise_description || '') } : {}
+          }, [SafeDOM.icon(exercise.gif_url ? 'play-circle' : 'help-circle'), exercise.gif_url ? ' Ver execução' : ' Sem GIF']);
+          tbody.appendChild(SafeDOM.el('tr', { attrs: { id: `ex-row-${exercise.id}` } }, [
+            SafeDOM.el('td', { className: 'workout-check-cell', attrs: { 'data-label': 'Status' } }, [checkLabel]), nameCell,
+            SafeDOM.el('td', { text: exercise.sets, className: 'workout-cell workout-cell-strong', attrs: { 'data-label': 'Séries' } }),
+            SafeDOM.el('td', { text: exercise.reps, className: 'workout-cell', attrs: { 'data-label': 'Repetições' } }),
+            SafeDOM.el('td', { text: exercise.weight || 'Sem carga', className: 'workout-cell workout-cell-muted', attrs: { 'data-label': 'Carga' } }),
+            SafeDOM.el('td', { text: exercise.rest_time || 'Sem pausa', className: 'workout-cell workout-cell-muted', attrs: { 'data-label': 'Descanso' } }),
+            SafeDOM.el('td', { className: 'workout-cell workout-execution-cell', attrs: { 'data-label': 'Execução' } }, [execution])
+          ]));
+        }
       }
-
-      card.innerHTML = `
-        <div class="workout-header">
-          <div>
-            <span class="workout-title">${workout.name}</span>
-            ${workout.description ? `<p class="workout-desc">${workout.description}</p>` : ''}
-          </div>
-        </div>
-        
-        <div class="pedagogical-table-wrapper">
-          <table class="pedagogical-table">
-            <thead>
-              <tr>
-                <th style="width: 60px; text-align: center;">Status</th>
-                <th>Exercício</th>
-                <th>Séries</th>
-                <th>Repetições</th>
-                <th>Carga</th>
-                <th>Descanso</th>
-                <th style="width: 150px;">Execução</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${exerciseRows}
-            </tbody>
-          </table>
-        </div>
-      `;
-
+      table.appendChild(tbody);
+      card.appendChild(SafeDOM.el('div', { className: 'pedagogical-table-wrapper' }, [table]));
       container.appendChild(card);
-    });
-
-    lucide.createIcons();
-  } catch (err) {
-    container.innerHTML = `
-      <div class="info-alert" style="border-color: var(--danger); background: rgba(239, 68, 68, 0.05); color: var(--danger);">
-        <i data-lucide="alert-circle"></i>
-        <span>Erro ao carregar treinos: ${err.message}</span>
-      </div>
-    `;
-    lucide.createIcons();
-  }
-}
-
-// Stores toggle checkmark state for workouts in localStorage
-function toggleExerciseCheck(exerciseId, checkbox) {
-  localStorage.setItem(`fitlife_chk_${exerciseId}`, checkbox.checked);
-  
-  const nameSpan = document.getElementById(`ex-name-${exerciseId}`);
-  if (nameSpan) {
-    if (checkbox.checked) {
-      nameSpan.classList.add('strike-completed');
-    } else {
-      nameSpan.classList.remove('strike-completed');
     }
+    lucide.createIcons();
+  } catch (error) {
+    studentWorkouts = [];
+    updateStudentWorkoutSummary();
+    SafeDOM.clear(container);
+    container.appendChild(SafeDOM.errorAlert('Erro ao carregar treinos: ', error.message));
+    appendEmptyStateAction(container, { label: 'Tentar novamente', icon: 'refresh-cw', onClick: loadStudentWorkouts });
+    lucide.createIcons();
   }
 }
 
-// Load and plot student body measurements
+function toggleExerciseCheck(exerciseId, checkbox) {
+  const key = exerciseCheckKey(exerciseId);
+  if (key) localStorage.setItem(key, checkbox.checked);
+  document.getElementById(`ex-name-${exerciseId}`)?.classList.toggle('strike-completed', checkbox.checked);
+  updateStudentWorkoutSummary();
+}
+
+function updateStudentMeasurementOverview() {
+  const latest = studentMeasurements[0];
+  const previous = studentMeasurements[1];
+  const latestWeight = latest?.weight === null || latest?.weight === undefined ? null : Number(latest.weight);
+  const previousWeight = previous?.weight === null || previous?.weight === undefined ? null : Number(previous.weight);
+  const change = Number.isFinite(latestWeight) && Number.isFinite(previousWeight) ? latestWeight - previousWeight : null;
+  const values = {
+    'student-latest-weight': Number.isFinite(latestWeight) ? `${latestWeight.toLocaleString('pt-BR')} kg` : '-',
+    'student-weight-change': change === null ? '-' : `${change > 0 ? '+' : ''}${change.toLocaleString('pt-BR')} kg`,
+    'student-latest-measurement-date': latest?.recorded_at ? new Date(latest.recorded_at).toLocaleDateString('pt-BR') : '-',
+    'student-measurement-count': studentMeasurements.length
+  };
+  for (const [id, value] of Object.entries(values)) {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  }
+}
+
 async function loadStudentMeasurements() {
   const tbody = document.getElementById('measurements-table-body');
   const metricsGrid = document.getElementById('latest-metrics-grid');
-  
-  tbody.innerHTML = '<tr><td colspan="7"><div class="spinner" style="margin: 10px auto;"></div></td></tr>';
-
+  SafeDOM.clear(tbody);
+  tbody.appendChild(SafeDOM.el('tr', {}, [SafeDOM.el('td', { attrs: { colspan: '7' } }, [SafeDOM.el('div', { className: 'spinner table-spinner', attrs: { 'aria-label': 'Carregando medidas' } })])]));
   try {
     studentMeasurements = await API.get('/student/measurements');
-    tbody.innerHTML = '';
-
-    if (studentMeasurements.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" class="no-data-msg">Nenhuma medida cadastrada. Clique em "Adicionar Medidas" para registrar!</td></tr>';
-      metricsGrid.innerHTML = `
-        <div class="no-data-msg" style="grid-column: 1 / -1;">
-          Nenhum dado cadastrado.
-        </div>
-      `;
+    updateStudentMeasurementOverview();
+    SafeDOM.clear(tbody);
+    if (!studentMeasurements.length) {
+      tbody.appendChild(tableMessageRow('Nenhuma medida cadastrada.'));
+      SafeDOM.clear(metricsGrid);
+      metricsGrid.appendChild(SafeDOM.el('div', { className: 'no-data-msg grid-span-full', text: 'Nenhum dado cadastrado.' }));
       plotSvgChart('weight-chart-container', []);
       return;
     }
-
-    // Populate history table
-    studentMeasurements.forEach(m => {
-      const row = document.createElement('tr');
-      const dateFormatted = new Date(m.recorded_at).toLocaleDateString('pt-BR');
-      
-      row.innerHTML = `
-        <td>${dateFormatted}</td>
-        <td style="font-weight:600; color:var(--accent-secondary);">${m.weight} kg</td>
-        <td>${m.chest ? `${m.chest} cm` : '-'}</td>
-        <td>${m.waist ? `${m.waist} cm` : '-'}</td>
-        <td>${m.hips ? `${m.hips} cm` : '-'}</td>
-        <td>${m.biceps_l || '-'} / ${m.biceps_r || '-'}</td>
-        <td>${m.thigh_l || '-'} / ${m.thigh_r || '-'}</td>
-      `;
+    for (const measurement of studentMeasurements) {
+      const row = SafeDOM.el('tr');
+      const value = item => item === null || item === undefined ? '-' : `${item} cm`;
+      SafeDOM.appendChildren(row, [
+        SafeDOM.el('td', { text: new Date(measurement.recorded_at).toLocaleDateString('pt-BR'), attrs: { 'data-label': 'Data' } }),
+        SafeDOM.el('td', { text: `${measurement.weight} kg`, className: 'metric-weight-value', attrs: { 'data-label': 'Peso' } }),
+        SafeDOM.el('td', { text: value(measurement.chest), attrs: { 'data-label': 'Tórax' } }),
+        SafeDOM.el('td', { text: value(measurement.waist), attrs: { 'data-label': 'Cintura' } }),
+        SafeDOM.el('td', { text: value(measurement.hips), attrs: { 'data-label': 'Quadril' } }),
+        SafeDOM.el('td', { text: `${measurement.biceps_l ?? '-'} / ${measurement.biceps_r ?? '-'}`, attrs: { 'data-label': 'Bíceps E / D' } }),
+        SafeDOM.el('td', { text: `${measurement.thigh_l ?? '-'} / ${measurement.thigh_r ?? '-'}`, attrs: { 'data-label': 'Coxa E / D' } })
+      ]);
       tbody.appendChild(row);
-    });
-
-    // Populate dashboard cards
+    }
     const latest = studentMeasurements[0];
-    metricsGrid.innerHTML = `
-      <div class="metric-item">
-        <span class="metric-label">Peso</span>
-        <span class="metric-value">${latest.weight} kg</span>
-      </div>
-      <div class="metric-item">
-        <span class="metric-label">Cintura</span>
-        <span class="metric-value">${latest.waist ? `${latest.waist} cm` : '-'}</span>
-      </div>
-      <div class="metric-item">
-        <span class="metric-label">Tórax</span>
-        <span class="metric-value">${latest.chest ? `${latest.chest} cm` : '-'}</span>
-      </div>
-      <div class="metric-item">
-        <span class="metric-label">Quadril</span>
-        <span class="metric-value">${latest.hips ? `${latest.hips} cm` : '-'}</span>
-      </div>
-    `;
-
-    // Extract weights chronological trends
-    const chartData = [...studentMeasurements].reverse().map(m => ({
-      label: new Date(m.recorded_at).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }),
-      value: m.weight
-    }));
-
-    plotSvgChart('weight-chart-container', chartData);
-
-  } catch (err) {
-    showToast(err.message, 'error');
+    SafeDOM.clear(metricsGrid);
+    SafeDOM.appendChildren(metricsGrid, [
+      SafeDOM.metricItem('Peso', `${latest.weight} kg`), SafeDOM.metricItem('Cintura', latest.waist === null || latest.waist === undefined ? '-' : `${latest.waist} cm`),
+      SafeDOM.metricItem('Tórax', latest.chest === null || latest.chest === undefined ? '-' : `${latest.chest} cm`),
+      SafeDOM.metricItem('Quadril', latest.hips === null || latest.hips === undefined ? '-' : `${latest.hips} cm`)
+    ]);
+    plotSvgChart('weight-chart-container', [...studentMeasurements].reverse().map(item => ({ label: new Date(item.recorded_at).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }), value: item.weight })));
+  } catch (error) {
+    studentMeasurements = [];
+    updateStudentMeasurementOverview();
+    SafeDOM.clear(tbody);
+    tbody.appendChild(tableMessageRow(`Erro ao carregar medidas: ${error.message}`, 'no-data-msg text-danger'));
+    SafeDOM.clear(metricsGrid);
+    metricsGrid.appendChild(SafeDOM.errorAlert('Erro ao carregar medidas: ', error.message, 'grid-span-full'));
+    appendEmptyStateAction(metricsGrid, { label: 'Tentar novamente', icon: 'refresh-cw', onClick: loadStudentMeasurements });
+    plotSvgChart('weight-chart-container', []);
   }
 }
 
-// Add body measurements submit (moved to app.js globally)
-
-// Loads and clears badges for chat history
 async function loadStudentChat() {
   const box = document.getElementById('student-chat-messages');
-  box.innerHTML = '<div class="spinner"></div>';
-
+  SafeDOM.clear(box);
+  box.appendChild(SafeDOM.el('div', { className: 'spinner', attrs: { 'aria-label': 'Carregando mensagens' } }));
   try {
-    // Call server to fetch history. It marks incoming messages as read automatically
-    const messages = await API.get('/chat');
-    box.innerHTML = '';
-
-    if (messages.length === 0) {
-      box.innerHTML = `
-        <div class="no-data-msg" style="padding: 20px; align-self: center;">
-          Inicie o papo! Mande um alô para seu Personal Trainer aqui.
-        </div>
-      `;
-    } else {
-      messages.forEach(msg => {
-        const bubble = document.createElement('div');
-        const cachedUser = API.getCurrentUser();
-        const isMe = cachedUser && msg.sender_id.toString() === cachedUser.id.toString();
-        bubble.className = `chat-bubble ${isMe ? 'sent' : 'received'}`;
-
-        const time = new Date(msg.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        bubble.innerHTML = `${msg.message} <span class="chat-time">${time}</span>`;
-        box.appendChild(bubble);
-      });
+    const [messages, partner] = await Promise.all([API.get('/chat'), API.get('/chat/partner')]);
+    personalTrainerId = partner.id;
+    document.getElementById('student-chat-trainer-name').textContent = partner.name;
+    renderUserAvatar(document.getElementById('student-chat-trainer-avatar'), partner);
+    SafeDOM.clear(box);
+    if (!messages.length) box.appendChild(SafeDOM.el('div', { className: 'no-data-msg chat-empty-message', text: 'Inicie o papo! Mande um alô para seu Personal Trainer aqui.' }));
+    else for (const message of messages) {
+      const currentUser = API.getCurrentUser();
+      const isMe = currentUser && String(message.sender_id) === String(currentUser.id);
+      box.appendChild(SafeDOM.chatBubble(message.message, new Date(message.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), isMe ? 'sent' : 'received'));
     }
-
     box.scrollTop = box.scrollHeight;
-    
-    // Clear notification badge
     document.getElementById('student-unread-badge').classList.add('hidden');
-  } catch (err) {
-    box.innerHTML = `<p class="no-data-msg" style="color:var(--danger);">${err.message}</p>`;
+  } catch (error) {
+    SafeDOM.clear(box);
+    box.appendChild(SafeDOM.el('p', { className: 'no-data-msg text-danger', text: error.message }));
+    appendEmptyStateAction(box, { label: 'Tentar novamente', icon: 'refresh-cw', onClick: loadStudentChat });
   }
 }
 
-// Send message to coach
 async function sendStudentChatMessage(event) {
   event.preventDefault();
+  const form = event.target;
+  if (form.dataset.sendState === 'sending') return;
   const input = document.getElementById('student-chat-input');
   const message = input.value.trim();
-
-  if (message === '') return;
-
+  if (!message) return;
+  setChatSendState(form, 'sending', 'Enviando...');
   try {
     await API.post('/chat', { message });
     input.value = '';
-  } catch (err) {
-    showToast(err.message, 'error');
+    setChatSendState(form, 'sent', 'Mensagem enviada.');
+  } catch (error) {
+    setChatSendState(form, 'failed', 'Falha no envio. Tente novamente.');
+    showToast(error.message, 'error');
   }
 }
 
-// SSE live updates append
 function appendStudentLiveMessage(message) {
-  const isChatTabActive = document.getElementById('tab-s-chat').classList.contains('active');
-
-  if (isChatTabActive) {
+  const active = document.getElementById('tab-s-chat').classList.contains('active');
+  const currentUser = API.getCurrentUser();
+  const isMe = currentUser && String(message.sender_id) === String(currentUser.id);
+  if (active) {
     const box = document.getElementById('student-chat-messages');
-    
-    // Clear blank threads instructions if first message
-    const emptyMsg = box.querySelector('.no-data-msg');
-    if (emptyMsg) emptyMsg.remove();
-
-    const bubble = document.createElement('div');
-    const cachedUser = API.getCurrentUser();
-    const isMe = cachedUser && message.sender_id.toString() === cachedUser.id.toString();
-    bubble.className = `chat-bubble ${isMe ? 'sent' : 'received'}`;
-
-    const time = new Date(message.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    bubble.innerHTML = `${message.message} <span class="chat-time">${time}</span>`;
-    box.appendChild(bubble);
+    box.querySelector('.no-data-msg')?.remove();
+    box.appendChild(SafeDOM.chatBubble(message.message, new Date(message.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), isMe ? 'sent' : 'received'));
     box.scrollTop = box.scrollHeight;
-
-    // Silently mark read on backend
-    if (!isMe) {
-      API.get('/chat').catch(() => {});
-    }
-  } else {
-    // If user is on workouts or measurements tab, update badges & toast alerts
-    const cachedUser = API.getCurrentUser();
-    if (cachedUser && message.sender_id.toString() !== cachedUser.id.toString()) {
-      showToast(`Personal mandou uma mensagem!`, 'info');
-      
-      const badge = document.getElementById('student-unread-badge');
-      badge.classList.remove('hidden');
-      // Set to 1 or increment
-      badge.textContent = '●';
-    }
+    if (!isMe) API.get('/chat').catch(() => {});
+  } else if (!isMe) {
+    showToast('Personal mandou uma mensagem!', 'info');
+    const badge = document.getElementById('student-unread-badge');
+    badge.classList.remove('hidden');
+    badge.textContent = '•';
   }
 }

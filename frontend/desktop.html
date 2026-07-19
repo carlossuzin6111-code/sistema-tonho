@@ -2,17 +2,14 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>FitLife Sync - Personal Trainer & Alunos</title>
   <meta name="description" content="Portal moderno de acompanhamento fitness para personal trainers e alunos. Conectando treinos, medidas e comunicação instantânea.">
   <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Lucide Icons for premium modern icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Fixed, locally served Lucide Icons bundle -->
+  <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20260718.11">
 </head>
 <body>
 
@@ -21,7 +18,7 @@
   <div class="bg-glow bg-glow-2"></div>
 
   <!-- Notification Toast -->
-  <div id="toast" class="toast hidden">
+  <div id="toast" class="toast hidden" role="status" aria-live="polite" aria-atomic="true">
     <div class="toast-content">
       <i data-lucide="info" id="toast-icon"></i>
       <span id="toast-message">Mensagem de alerta</span>
@@ -39,51 +36,64 @@
         <p class="login-subtitle">Conectando treinos, medidas e evolução em tempo real</p>
       </div>
 
+      <div class="test-environment-notice" role="note" aria-label="Aviso sobre o ambiente">
+        <i data-lucide="flask-conical"></i>
+        <span><strong>Ambiente público de testes.</strong> Não use dados pessoais reais.</span>
+      </div>
+
       <!-- Auth Switch Tabs -->
-      <div class="auth-tabs">
-        <button id="tab-btn-login" class="auth-tab-btn active" onclick="switchAuthTab('login')">Entrar</button>
-        <button id="tab-btn-register" class="auth-tab-btn" onclick="switchAuthTab('register')">Criar Conta Personal</button>
+      <div class="auth-tabs" role="tablist" aria-label="Acesso à conta">
+        <button id="tab-btn-login" class="auth-tab-btn active" role="tab" aria-selected="true" aria-controls="login-form" data-action="switch-auth-tab" data-tab="login">Entrar</button>
+        <button id="tab-btn-register" class="auth-tab-btn" role="tab" aria-selected="false" aria-controls="register-form" data-action="switch-auth-tab" data-tab="register">Criar Conta Personal</button>
       </div>
 
       <!-- Login Form -->
-      <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+      <form id="login-form" class="auth-form" role="tabpanel" aria-labelledby="tab-btn-login" aria-describedby="login-form-error">
         <div class="input-group">
           <label for="login-email"><i data-lucide="mail"></i> E-mail</label>
-          <input type="email" id="login-email" required placeholder="seuemail@exemplo.com">
+          <input type="email" id="login-email" required autocomplete="email" inputmode="email" placeholder="seuemail@exemplo.com">
         </div>
         <div class="input-group">
           <label for="login-password"><i data-lucide="lock"></i> Senha</label>
-          <input type="password" id="login-password" required placeholder="Sua senha de acesso">
+          <div class="password-field">
+            <input type="password" id="login-password" required autocomplete="current-password" placeholder="Sua senha de acesso">
+            <button type="button" class="password-toggle" data-action="toggle-password" data-target="login-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary btn-full btn-glow">
-          <span>Acessar Painel</span> <i data-lucide="arrow-right"></i>
+        <p id="login-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+        <button type="submit" class="btn btn-primary btn-full btn-glow" data-default-label="Acessar Painel" data-loading-label="Entrando...">
+          <span data-submit-label>Acessar Painel</span> <i data-lucide="arrow-right"></i>
         </button>
       </form>
 
       <!-- Register Form (Only Personal) -->
-      <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)">
+      <form id="register-form" class="auth-form hidden" role="tabpanel" aria-labelledby="tab-btn-register" aria-describedby="register-form-error">
         <div class="input-group">
           <label for="reg-name"><i data-lucide="user"></i> Nome Completo</label>
-          <input type="text" id="reg-name" placeholder="Ex: Professor Silva">
+          <input type="text" id="reg-name" required autocomplete="name" placeholder="Ex: Professor Silva">
         </div>
         <div class="input-group">
           <label for="reg-email"><i data-lucide="mail"></i> E-mail Profissional</label>
-          <input type="email" id="reg-email" placeholder="nome@personal.com">
+          <input type="email" id="reg-email" required autocomplete="email" inputmode="email" placeholder="nome@personal.com">
         </div>
         <div class="input-group">
           <label for="reg-password"><i data-lucide="lock"></i> Senha Segura</label>
-          <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres">
+          <div class="password-field">
+            <input type="password" id="reg-password" required minlength="10" maxlength="128" autocomplete="new-password" placeholder="Mínimo 10 caracteres">
+            <button type="button" class="password-toggle" data-action="toggle-password" data-target="reg-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+          </div>
         </div>
         <div class="input-group">
           <label for="reg-access-key"><i data-lucide="key"></i> Chave de Acesso (Access Key)</label>
-          <input type="text" id="reg-access-key" required placeholder="Insira sua chave convite">
+          <input type="text" id="reg-access-key" required autocomplete="off" spellcheck="false" placeholder="Insira sua chave convite">
         </div>
         <div class="info-alert">
           <i data-lucide="shield-check"></i>
           <span>O cadastro direto é exclusivo para <strong>Personal Trainers</strong> com uma Access Key válida.</span>
         </div>
-        <button type="submit" class="btn btn-accent btn-full btn-glow">
-          <span>Cadastrar-se como Personal</span> <i data-lucide="user-plus"></i>
+        <p id="register-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+        <button type="submit" class="btn btn-accent btn-full btn-glow" data-default-label="Cadastrar-se como Personal" data-loading-label="Criando conta...">
+          <span data-submit-label>Cadastrar-se como Personal</span> <i data-lucide="user-plus"></i>
         </button>
       </form>
     </div>
@@ -102,17 +112,18 @@
       </div>
 
       <div class="header-right">
-        <div class="user-profile-info">
+        <button class="user-profile-info user-profile-btn" id="header-profile-btn" data-action="open-profile-modal" aria-label="Editar perfil" title="Editar perfil">
           <div class="avatar" id="header-avatar">P</div>
           <div class="profile-meta hide-mobile">
             <span class="profile-name" id="header-user-name">Nome do Usuário</span>
             <span class="profile-email" id="header-user-email">email@exemplo.com</span>
           </div>
-        </div>
-        <button class="btn-icon" onclick="toggleTheme()" title="Alterar Tema" style="margin-right: 5px;">
+          <i data-lucide="pencil" class="profile-edit-hint hide-mobile"></i>
+        </button>
+        <button class="btn-icon theme-toggle-button" data-action="toggle-theme" title="Alterar Tema" aria-label="Alterar tema">
           <i id="theme-toggle-icon" data-lucide="sun"></i>
         </button>
-        <button class="btn-icon btn-logout" onclick="logout()" title="Sair da Conta">
+        <button class="btn-icon btn-logout" data-action="logout" title="Sair da Conta" aria-label="Sair da conta">
           <i data-lucide="log-out"></i>
         </button>
       </div>
@@ -122,18 +133,18 @@
     <main id="personal-dashboard" class="dashboard-layout hidden">
       <!-- Sidebar / Navegação Lateral -->
       <aside class="sidebar glass">
-        <nav class="sidebar-nav">
-          <button id="nav-p-students" class="nav-item active" onclick="switchPersonalTab('students')">
+        <nav class="sidebar-nav" role="tablist" aria-label="Áreas do personal">
+          <button id="nav-p-students" class="nav-item active" data-action="switch-personal-tab" data-tab="students">
             <i data-lucide="users"></i> <span>Meus Alunos</span>
           </button>
-          <button id="nav-p-create" class="nav-item" onclick="switchPersonalTab('create')">
+          <button id="nav-p-create" class="nav-item" data-action="switch-personal-tab" data-tab="create">
             <i data-lucide="user-plus"></i> <span>Cadastrar Aluno</span>
           </button>
-          <button id="nav-p-chat" class="nav-item" onclick="switchPersonalTab('chat')">
+          <button id="nav-p-chat" class="nav-item" data-action="switch-personal-tab" data-tab="chat">
             <i data-lucide="message-square"></i> <span>Chat Central</span>
             <span id="global-unread-badge" class="badge-count hidden">0</span>
           </button>
-          <button id="nav-p-exercises" class="nav-item" onclick="switchPersonalTab('exercises')">
+          <button id="nav-p-exercises" class="nav-item" data-action="switch-personal-tab" data-tab="exercises">
             <i data-lucide="dumbbell"></i> <span>Meus Exercícios</span>
           </button>
         </nav>
@@ -151,11 +162,23 @@
             <div class="stats-mini-grid hide-mobile">
               <div class="stat-mini glass">
                 <span class="stat-mini-label">Total Alunos</span>
-                <span class="stat-mini-value" id="stat-total-students">0</span>
+                <span class="stat-mini-value" id="stat-total-students" aria-live="polite">0</span>
+              </div>
+              <div class="stat-mini glass">
+                <span class="stat-mini-label">Mensagens não lidas</span>
+                <span class="stat-mini-value" id="stat-unread-messages" aria-live="polite">0</span>
               </div>
             </div>
           </div>
 
+          <div class="list-search-toolbar">
+            <div class="list-search-field">
+              <i data-lucide="search"></i>
+              <input type="search" id="students-search" placeholder="Buscar aluno por nome ou e-mail" aria-label="Buscar aluno por nome ou e-mail" autocomplete="off">
+            </div>
+            <span id="students-search-count" class="list-search-count" role="status" aria-live="polite"></span>
+            <select id="students-sort" class="list-sort-select" aria-label="Ordenar alunos"><option value="name-asc">Nome A–Z</option><option value="name-desc">Nome Z–A</option><option value="unread">Mensagens não lidas</option></select>
+          </div>
           <!-- Students Grid -->
           <div id="students-grid" class="grid grid-3">
             <!-- Dynamic student cards go here -->
@@ -164,6 +187,7 @@
               <span>Carregando sua lista de alunos...</span>
             </div>
           </div>
+          <p id="students-search-empty" class="search-empty hidden">Nenhum aluno corresponde à busca.</p>
         </div>
 
         <!-- Aba 2: Cadastrar Aluno -->
@@ -176,7 +200,7 @@
           </div>
 
           <div class="form-container-card glass">
-            <form id="create-student-form" onsubmit="handleCreateStudent(event)">
+            <form id="create-student-form" class="form-with-feedback">
               <div class="grid grid-2">
                 <div class="input-group">
                   <label for="new-student-name"><i data-lucide="user"></i> Nome Completo do Aluno *</label>
@@ -191,7 +215,7 @@
               <div class="grid grid-2">
                 <div class="input-group">
                   <label for="new-student-password"><i data-lucide="lock"></i> Senha Provisória *</label>
-                  <input type="password" id="new-student-password" required placeholder="Mínimo 6 caracteres">
+                  <input type="password" id="new-student-password" required minlength="10" maxlength="128" autocomplete="new-password" placeholder="Mínimo 10 caracteres">
                 </div>
                 <div class="input-group">
                   <label for="new-student-birth"><i data-lucide="calendar"></i> Data de Nascimento</label>
@@ -210,8 +234,9 @@
                 </div>
               </div>
 
-              <button type="submit" class="btn btn-primary btn-glow">
-                <i data-lucide="user-plus"></i> <span>Criar Conta do Aluno</span>
+              <p id="create-student-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+              <button type="submit" class="btn btn-primary btn-glow" data-default-label="Criar Conta do Aluno" data-loading-label="Criando conta...">
+                <i data-lucide="user-plus"></i> <span data-submit-label>Criar Conta do Aluno</span>
               </button>
             </form>
           </div>
@@ -240,13 +265,13 @@
               <!-- Active Chat Area -->
               <div class="chat-active-area hidden" id="personal-chat-active">
                 <div class="chat-active-header">
-                  <button class="btn-icon hide-desktop btn-chat-back" onclick="closeChatThreadMobile()" style="margin-right: 10px;">
+                  <button class="btn-icon hide-desktop btn-chat-back chat-back-button" data-action="close-chat-thread" aria-label="Voltar para conversas">
                     <i data-lucide="arrow-left"></i>
                   </button>
                   <div class="avatar" id="chat-active-avatar">A</div>
                   <div>
                     <h3 id="chat-active-name">Nome do Aluno</h3>
-                    <span class="status-online"><span class="dot"></span> Ativo no chat</span>
+                    <span class="chat-connection-status connecting" data-chat-status role="status" aria-live="polite">Conectando...</span>
                   </div>
                 </div>
                 <!-- Messages List -->
@@ -254,9 +279,10 @@
                   <!-- Messages dynamically loaded here -->
                 </div>
                 <!-- Input Area -->
-                <form class="chat-input-form" onsubmit="sendPersonalChatMessage(event)">
-                  <input type="text" id="personal-chat-input" placeholder="Digite uma mensagem para o aluno..." autocomplete="off">
-                  <button type="submit" class="btn-chat-send btn-glow">
+                <form id="personal-chat-form" class="chat-input-form">
+                  <input type="text" id="personal-chat-input" placeholder="Digite uma mensagem para o aluno..." autocomplete="off" aria-label="Mensagem para o aluno">
+                  <span class="chat-send-status" data-chat-send-status role="status" aria-live="polite"></span>
+                  <button type="submit" class="btn-chat-send btn-glow" aria-label="Enviar mensagem">
                     <i data-lucide="send"></i>
                   </button>
                 </form>
@@ -272,15 +298,18 @@
               <h1 class="section-title">Biblioteca de Exercícios</h1>
               <p class="section-subtitle">Crie e gerencie seus exercícios personalizados com instruções e GIFs ilustrativos.</p>
             </div>
-            <button class="btn btn-primary" onclick="openCreateCatalogExerciseModal()">
+            <button class="btn btn-primary" data-action="open-catalog-exercise">
               <i data-lucide="plus"></i> <span>Novo Exercício</span>
             </button>
           </div>
 
-          <!-- Search Bar -->
-          <div class="search-bar-container glass" style="margin-bottom: 24px;">
-            <i data-lucide="search" class="search-icon"></i>
-            <input type="text" id="exercise-search-input" class="search-bar-input" placeholder="Buscar exercícios pelo nome..." oninput="handleExerciseSearch()" />
+          <div class="list-search-toolbar">
+            <div class="list-search-field">
+              <i data-lucide="search"></i>
+              <input type="search" id="exercises-search" placeholder="Buscar exercício por nome ou descrição" aria-label="Buscar exercício por nome ou descrição" autocomplete="off">
+            </div>
+            <span id="exercises-search-count" class="list-search-count" role="status" aria-live="polite"></span>
+            <select id="exercises-sort" class="list-sort-select" aria-label="Ordenar exercícios"><option value="name-asc">Nome A–Z</option><option value="name-desc">Nome Z–A</option></select>
           </div>
 
           <!-- Priority / Favorites Section -->
@@ -296,10 +325,10 @@
               <!-- Dynamically populated from JS -->
             </div>
           </div>
-
           <div id="exercises-catalog-list" class="grid grid-2">
             <!-- Dynamically populated from JS -->
           </div>
+          <p id="exercises-search-empty" class="search-empty hidden">Nenhum exercício corresponde à busca.</p>
         </div>
       </section>
     </main>
@@ -309,14 +338,14 @@
     <main id="student-dashboard" class="dashboard-layout hidden">
       <!-- Sidebar / Navegação Lateral -->
       <aside class="sidebar glass">
-        <nav class="sidebar-nav">
-          <button id="nav-s-workouts" class="nav-item active" onclick="switchStudentTab('workouts')">
+        <nav class="sidebar-nav" role="tablist" aria-label="Áreas do aluno">
+          <button id="nav-s-workouts" class="nav-item active" data-action="switch-student-tab" data-tab="workouts">
             <i data-lucide="dumbbell"></i> <span>Meus Treinos</span>
           </button>
-          <button id="nav-s-measurements" class="nav-item" onclick="switchStudentTab('measurements')">
+          <button id="nav-s-measurements" class="nav-item" data-action="switch-student-tab" data-tab="measurements">
             <i data-lucide="ruler"></i> <span>Minhas Medidas</span>
           </button>
-          <button id="nav-s-chat" class="nav-item" onclick="switchStudentTab('chat')">
+          <button id="nav-s-chat" class="nav-item" data-action="switch-student-tab" data-tab="chat">
             <i data-lucide="message-square"></i> <span>Chat com Personal</span>
             <span id="student-unread-badge" class="badge-count hidden">0</span>
           </button>
@@ -329,8 +358,13 @@
         <div id="tab-s-workouts" class="tab-pane active">
           <div class="section-header">
             <div>
-              <h1 class="section-title">Minha Ficha de Treinos</h1>
-              <p class="section-subtitle">Veja a lista de treinos que seu personal organizou para você hoje.</p>
+              <h1 class="section-title">Meus exercícios</h1>
+              <p class="section-subtitle">Acompanhe sua ficha e marque cada exercício conforme concluir.</p>
+            </div>
+            <div class="stats-mini-grid student-workout-summary" aria-label="Resumo da ficha">
+              <div class="stat-mini"><span class="stat-mini-label">Treinos</span><span id="student-workout-count" class="stat-mini-value" aria-live="polite">0</span></div>
+              <div class="stat-mini"><span class="stat-mini-label">Exercícios</span><span id="student-exercise-count" class="stat-mini-value" aria-live="polite">0</span></div>
+              <div class="stat-mini"><span class="stat-mini-label">Concluídos</span><span id="student-completed-count" class="stat-mini-value" aria-live="polite">0</span></div>
             </div>
           </div>
 
@@ -343,9 +377,17 @@
         <div id="tab-s-measurements" class="tab-pane">
           <div class="section-header">
             <div>
-              <h1 class="section-title">Evolução e Medidas</h1>
-              <p class="section-subtitle">Acompanhe seu progresso físico através de avaliações e gráficos de evolução registrados pelo seu Personal.</p>
+              <h1 class="section-title">Minhas medidas</h1>
+              <p class="section-subtitle">Registre suas medidas e acompanhe a evolução ao longo do tempo.</p>
             </div>
+            <button class="btn btn-primary" data-action="open-modal" data-modal="modal-add-measurement"><i data-lucide="plus"></i> <span>Adicionar medidas</span></button>
+          </div>
+
+          <div class="stats-mini-grid measurement-overview" aria-label="Resumo das medidas">
+            <div class="stat-mini"><span class="stat-mini-label">Último peso</span><span id="student-latest-weight" class="stat-mini-value" aria-live="polite">-</span></div>
+            <div class="stat-mini"><span class="stat-mini-label">Variação</span><span id="student-weight-change" class="stat-mini-value" aria-live="polite">-</span></div>
+            <div class="stat-mini"><span class="stat-mini-label">Avaliação</span><span id="student-latest-measurement-date" class="stat-mini-value stat-mini-value-small" aria-live="polite">-</span></div>
+            <div class="stat-mini"><span class="stat-mini-label">Registros</span><span id="student-measurement-count" class="stat-mini-value" aria-live="polite">0</span></div>
           </div>
 
           <!-- Progress Charts and Metrics Grid -->
@@ -372,15 +414,16 @@
           <div class="table-container glass">
             <h3 class="card-title"><i data-lucide="history"></i> Histórico Completo de Medições</h3>
             <table class="data-table" id="measurements-table">
+              <caption class="table-caption">Histórico completo das minhas medições</caption>
               <thead>
                 <tr>
-                  <th>Data</th>
-                  <th>Peso (kg)</th>
-                  <th>Tórax (cm)</th>
-                  <th>Cintura (cm)</th>
-                  <th>Quadril (cm)</th>
-                  <th>Bíceps E / D (cm)</th>
-                  <th>Coxa E / D (cm)</th>
+                  <th scope="col">Data</th>
+                  <th scope="col">Peso (kg)</th>
+                  <th scope="col">Tórax (cm)</th>
+                  <th scope="col">Cintura (cm)</th>
+                  <th scope="col">Quadril (cm)</th>
+                  <th scope="col">Bíceps E / D (cm)</th>
+                  <th scope="col">Coxa E / D (cm)</th>
                 </tr>
               </thead>
               <tbody id="measurements-table-body">
@@ -396,17 +439,18 @@
             <div class="chat-window">
               <div class="chat-active-header">
                 <div class="avatar" id="student-chat-trainer-avatar">P</div>
-                <div>
+                <div class="chat-partner-details">
                   <h3 id="student-chat-trainer-name">Personal Trainer</h3>
-                  <span class="status-online"><span class="dot"></span> Online</span>
+                  <span class="chat-connection-status connecting" data-chat-status role="status" aria-live="polite">Conectando...</span>
                 </div>
               </div>
-              <div class="chat-messages" id="student-chat-messages">
+              <div class="chat-messages" id="student-chat-messages" role="log" aria-live="polite" aria-relevant="additions">
                 <!-- Dynamic messages loaded here -->
               </div>
-              <form class="chat-input-form" onsubmit="sendStudentChatMessage(event)">
-                <input type="text" id="student-chat-input" placeholder="Tire dúvidas, mande feedbacks de treinos..." autocomplete="off">
-                <button type="submit" class="btn-chat-send btn-glow">
+              <form id="student-chat-form" class="chat-input-form">
+                <input type="text" id="student-chat-input" placeholder="Tire dúvidas, mande feedbacks de treinos..." autocomplete="off" maxlength="2000" enterkeyhint="send" aria-label="Mensagem para o personal">
+                <span class="chat-send-status" data-chat-send-status role="status" aria-live="polite"></span>
+                <button type="submit" class="btn-chat-send btn-glow" aria-label="Enviar mensagem">
                   <i data-lucide="send"></i>
                 </button>
               </form>
@@ -423,7 +467,7 @@
   <!-- MODAL 1: DETALHES DO ALUNO (Visualização do Personal) -->
   <div id="modal-student-detail" class="modal-overlay">
     <div class="modal-content glass student-detail-modal">
-      <button class="modal-close" onclick="closeModal('modal-student-detail')"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-student-detail" aria-label="Fechar detalhes do aluno"><i data-lucide="x"></i></button>
       <div class="modal-header-profile">
         <div class="avatar-large" id="modal-sd-avatar">A</div>
         <div class="modal-profile-info">
@@ -434,16 +478,16 @@
             <span class="meta-tag"><i data-lucide="target"></i> Meta: <strong id="modal-sd-target">-</strong></span>
             <span class="meta-tag"><i data-lucide="calendar"></i> Idade: <strong id="modal-sd-age">-</strong></span>
           </div>
-          <button class="btn btn-sm" style="margin-top: 10px; background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid var(--danger);" onclick="promptResetPassword()">
+          <button class="btn btn-sm btn-sensitive" data-action="reset-password">
             <i data-lucide="key"></i> Redefinir Senha do Aluno
           </button>
         </div>
       </div>
 
       <!-- Tabs Inside Student Detail Modal -->
-      <div class="modal-subtabs">
-        <button id="modal-tab-workouts" class="modal-subtab active" onclick="switchModalSubtab('workouts')">Ficha de Treino</button>
-        <button id="modal-tab-metrics" class="modal-subtab" onclick="switchModalSubtab('metrics')">Medidas e Evolução</button>
+      <div class="modal-subtabs" role="tablist" aria-label="Detalhes do aluno">
+        <button id="modal-tab-workouts" class="modal-subtab active" data-action="switch-modal-tab" data-tab="workouts">Ficha de Treino</button>
+        <button id="modal-tab-metrics" class="modal-subtab" data-action="switch-modal-tab" data-tab="metrics">Medidas e Evolução</button>
       </div>
 
       <div class="modal-body-scroll">
@@ -451,7 +495,7 @@
         <div id="modal-subpane-workouts" class="modal-subpane active">
           <div class="subpane-actions">
             <h3>Treinos Prescritos</h3>
-            <button class="btn btn-accent btn-sm" onclick="openCreateWorkoutModal()">
+            <button class="btn btn-accent btn-sm" data-action="open-workout-modal">
               <i data-lucide="plus"></i> <span>Criar Ficha de Treino</span>
             </button>
           </div>
@@ -462,9 +506,9 @@
 
         <!-- Subtab Metrics -->
         <div id="modal-subpane-metrics" class="modal-subpane">
-          <div class="subpane-actions" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+          <div class="subpane-actions subpane-actions-spaced">
             <h3>Evolução Física do Aluno</h3>
-            <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-measurement')">
+            <button class="btn btn-primary btn-sm" data-action="open-modal" data-modal="modal-add-measurement">
               <i data-lucide="plus"></i> <span>Lançar Medidas</span>
             </button>
           </div>
@@ -484,6 +528,7 @@
           </div>
           <div class="table-container glass mt-4">
             <table class="data-table">
+              <caption class="table-caption">Histórico completo de medições do aluno</caption>
               <thead>
                 <tr>
                   <th>Data</th>
@@ -505,12 +550,58 @@
     </div>
   </div>
 
+  <!-- MODAL: REDEFINIR SENHA DO ALUNO -->
+  <div id="modal-reset-password" class="modal-overlay" data-return-modal="modal-student-detail" data-clear-form-on-close="reset-password-form">
+    <div class="modal-content glass modal-small">
+      <button class="modal-close" data-action="close-reset-password" aria-label="Cancelar redefinição de senha"><i data-lucide="x"></i></button>
+      <h2 class="modal-title"><i data-lucide="key-round"></i> Redefinir senha</h2>
+      <form id="reset-password-form">
+        <p>Defina uma senha temporária com pelo menos 10 caracteres. O aluno poderá alterá-la depois.</p>
+        <div class="input-group">
+          <label for="reset-student-password">Nova senha *</label>
+          <div class="password-field">
+            <input type="password" id="reset-student-password" required minlength="10" maxlength="128" autocomplete="new-password">
+            <button type="button" class="password-toggle" data-action="toggle-password" data-target="reset-student-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="reset-student-password-confirm">Confirmar nova senha *</label>
+          <div class="password-field">
+            <input type="password" id="reset-student-password-confirm" required minlength="10" maxlength="128" autocomplete="new-password">
+            <button type="button" class="password-toggle" data-action="toggle-password" data-target="reset-student-password-confirm" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+          </div>
+        </div>
+        <p id="reset-password-form-error" class="auth-form-error hidden" role="alert" aria-live="assertive"></p>
+        <button type="submit" class="btn btn-primary btn-full" data-default-label="Redefinir senha" data-loading-label="Redefinindo...">
+          <span data-submit-label>Redefinir senha</span>
+        </button>
+        <button type="button" class="btn btn-full" data-action="close-reset-password">Cancelar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRMAR AÇÃO DESTRUTIVA -->
+  <div id="modal-destructive-confirmation" class="modal-overlay" data-clear-form-on-close="destructive-confirmation-form">
+    <div class="modal-content glass modal-small">
+      <button class="modal-close" data-action="close-destructive-confirmation" aria-label="Cancelar exclusão"><i data-lucide="x"></i></button>
+      <h2 id="destructive-confirmation-title" class="modal-title"><i data-lucide="triangle-alert"></i> Confirmar exclusão</h2>
+      <form id="destructive-confirmation-form">
+        <p id="destructive-confirmation-message"></p>
+        <p id="destructive-confirmation-form-error" class="auth-form-error hidden" role="alert" aria-live="assertive"></p>
+        <button type="submit" class="btn btn-danger btn-full" data-default-label="Excluir" data-loading-label="Excluindo...">
+          <span data-submit-label>Excluir</span>
+        </button>
+        <button type="button" class="btn btn-full" data-action="close-destructive-confirmation">Cancelar</button>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL 2: CRIAR NOVO TREINO (Personal -> Aluno) -->
   <div id="modal-create-workout" class="modal-overlay">
     <div class="modal-content glass modal-small">
-      <button class="modal-close" onclick="closeModal('modal-create-workout')"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-create-workout" aria-label="Fechar criação de treino"><i data-lucide="x"></i></button>
       <h2 class="modal-title"><i data-lucide="plus-circle"></i> Nova Ficha de Treino</h2>
-      <form id="create-workout-form" onsubmit="handleCreateWorkoutSubmit(event)">
+      <form id="create-workout-form" class="form-with-feedback">
         <div class="input-group">
           <label for="workout-name">Nome do Treino *</label>
           <input type="text" id="workout-name" required placeholder="Ex: Treino A - Hipertrofia Peito">
@@ -519,7 +610,8 @@
           <label for="workout-description">Foco ou Observação</label>
           <input type="text" id="workout-description" placeholder="Ex: Foco em cadência e amplitude de movimento">
         </div>
-        <button type="submit" class="btn btn-primary btn-full">Criar Treino</button>
+        <p id="create-workout-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+        <button type="submit" class="btn btn-primary btn-full" data-default-label="Criar Treino" data-loading-label="Criando treino..."><span data-submit-label>Criar Treino</span></button>
       </form>
     </div>
   </div>
@@ -527,12 +619,12 @@
   <!-- MODAL 3: ADICIONAR EXERCÍCIO AO TREINO (Personal) -->
   <div id="modal-add-exercise" class="modal-overlay">
     <div class="modal-content glass modal-small">
-      <button class="modal-close" onclick="closeModal('modal-add-exercise')"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-add-exercise" aria-label="Fechar adição de exercício"><i data-lucide="x"></i></button>
       <h2 class="modal-title"><i data-lucide="plus"></i> Adicionar Exercício</h2>
-      <form id="add-exercise-form" onsubmit="handleAddExerciseSubmit(event)">
+      <form id="add-exercise-form" class="form-with-feedback">
         <div class="input-group">
           <label for="ex-select"><i data-lucide="dumbbell"></i> Escolher da Biblioteca *</label>
-          <select id="ex-select" onchange="handleExerciseSelectChange(this)" required>
+          <select id="ex-select" required>
             <!-- dynamically loaded -->
           </select>
         </div>
@@ -564,7 +656,8 @@
           <label for="ex-notes">Instrução Técnica</label>
           <input type="text" id="ex-notes" placeholder="Ex: Manter escapulas travadas">
         </div>
-        <button type="submit" class="btn btn-primary btn-full">Adicionar</button>
+        <p id="add-exercise-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+        <button type="submit" class="btn btn-primary btn-full" data-default-label="Adicionar" data-loading-label="Adicionando..."><span data-submit-label>Adicionar</span></button>
       </form>
     </div>
   </div>
@@ -572,11 +665,11 @@
   <!-- MODAL 4: REGISTRAR MEDIDAS (Aluno) -->
   <div id="modal-add-measurement" class="modal-overlay">
     <div class="modal-content glass modal-medium">
-      <button class="modal-close" onclick="closeModal('modal-add-measurement')"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-add-measurement" aria-label="Fechar lançamento de medidas"><i data-lucide="x"></i></button>
       <h2 class="modal-title"><i data-lucide="ruler"></i> Lançar Minhas Medidas</h2>
       <p class="modal-subtitle">Preencha os campos abaixo. O peso é obrigatório, os demais campos ajudam seu personal a ver sua evolução física.</p>
       
-      <form id="add-measurement-form" onsubmit="handleAddMeasurementSubmit(event)">
+      <form id="add-measurement-form" class="form-with-feedback">
         <div class="grid grid-3">
           <div class="input-group">
             <label for="meas-weight">Peso (kg) *</label>
@@ -618,14 +711,15 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-full">Gravar Registro</button>
+        <p id="add-measurement-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+        <button type="submit" class="btn btn-primary btn-full" data-default-label="Gravar Registro" data-loading-label="Gravando..."><span data-submit-label>Gravar Registro</span></button>
       </form>
     </div>
   </div>
   <!-- MODAL 5: POPUP DE EXECUÇÃO DO EXERCÍCIO (Aluno/Personal) -->
   <div id="modal-exercise-execution" class="modal-overlay">
     <div class="modal-content glass modal-medium">
-      <button class="modal-close" onclick="closeModal('modal-exercise-execution')"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-exercise-execution" aria-label="Fechar execução do exercício"><i data-lucide="x"></i></button>
       <h2 class="modal-title" id="execution-modal-title"><i data-lucide="play-circle"></i> Execução do Exercício</h2>
       <p class="modal-subtitle">Siga as instruções técnicas abaixo para a execução do movimento.</p>
       
@@ -642,11 +736,11 @@
   <!-- MODAL 6: CADASTRAR EXERCÍCIO NO CATÁLOGO (Personal) -->
   <div id="modal-create-catalog-exercise" class="modal-overlay">
     <div class="modal-content glass modal-medium">
-      <button class="modal-close" onclick="closeModal('modal-create-catalog-exercise')"><i data-lucide="x"></i></button>
+      <button class="modal-close" data-action="close-modal" data-modal="modal-create-catalog-exercise" aria-label="Fechar criação de exercício"><i data-lucide="x"></i></button>
       <h2 class="modal-title"><i data-lucide="plus-circle"></i> Criar Exercício</h2>
       <p class="modal-subtitle">Adicione um novo exercício à sua biblioteca pessoal para poder associá-lo a qualquer treino.</p>
       
-      <form id="create-catalog-exercise-form" onsubmit="handleCreateCatalogExerciseSubmit(event)">
+      <form id="create-catalog-exercise-form" class="form-with-feedback">
         <div class="input-group">
           <label for="cat-ex-name"><i data-lucide="edit-2"></i> Nome do Exercício *</label>
           <input type="text" id="cat-ex-name" required placeholder="Ex: Cadeira Extensora Unilateral">
@@ -654,12 +748,12 @@
         
         <div class="grid grid-2">
           <div class="input-group">
-            <label for="cat-ex-gif-url"><i data-lucide="link"></i> Link do GIF (.gif, .png, .jpg)</label>
-            <input type="url" id="cat-ex-gif-url" placeholder="https://exemplo.com/video.gif" oninput="handleCatalogGifUrlInput()">
+            <label for="cat-ex-gif-url"><i data-lucide="link"></i> Link do dataset aprovado (raw.githubusercontent.com)</label>
+            <input type="url" id="cat-ex-gif-url" placeholder="https://raw.githubusercontent.com/.../exercicio.gif">
           </div>
           <div class="input-group">
-            <label for="cat-ex-gif-file"><i data-lucide="upload-cloud"></i> Ou Enviar Arquivo GIF/Imagem</label>
-            <input type="file" id="cat-ex-gif-file" accept="image/gif, image/png, image/jpeg" onchange="handleCatalogGifFileSelect(this)">
+            <label for="cat-ex-gif-file"><i data-lucide="upload-cloud"></i> Ou enviar imagem (máx. 380 KB)</label>
+            <input type="file" id="cat-ex-gif-file" accept="image/gif,image/png,image/jpeg,image/webp">
           </div>
         </div>
         
@@ -671,15 +765,114 @@
         <!-- Hidden inputs for Base64 -->
         <input type="hidden" id="cat-ex-base64" />
         
-        <button type="submit" class="btn btn-primary btn-full">Salvar Exercício na Biblioteca</button>
+        <p id="create-catalog-exercise-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+        <button type="submit" class="btn btn-primary btn-full" data-default-label="Salvar Exercício na Biblioteca" data-loading-label="Salvando exercício..."><span data-submit-label>Salvar Exercício na Biblioteca</span></button>
       </form>
     </div>
   </div>
 
+  <!-- MODAL: EDITAR PERFIL (Nome, Senha, Foto) -->
+  <div id="modal-edit-profile" class="modal-overlay" data-clear-form-on-close="edit-profile-name-form">
+    <div class="modal-content glass modal-medium profile-modal-content">
+      <button class="modal-close" data-action="close-modal" data-modal="modal-edit-profile" aria-label="Fechar edição de perfil"><i data-lucide="x"></i></button>
+      <h2 class="modal-title"><i data-lucide="user-cog"></i> Editar Perfil</h2>
+
+      <!-- Avatar preview + upload -->
+      <div class="profile-modal-avatar-section">
+        <div class="profile-modal-avatar-wrapper">
+          <div class="avatar-large" id="profile-modal-avatar-preview">P</div>
+          <img id="profile-modal-avatar-img" alt="Foto de perfil" class="avatar-large avatar-img hidden">
+          <label for="profile-avatar-file" class="avatar-upload-overlay" title="Trocar foto" aria-label="Trocar foto de perfil">
+            <i data-lucide="camera"></i>
+          </label>
+          <input type="file" id="profile-avatar-file" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Selecionar foto de perfil">
+        </div>
+        <div class="profile-modal-avatar-actions">
+          <button type="button" class="btn btn-sm btn-accent" id="btn-save-avatar" data-action="save-profile-avatar" disabled>
+            <i data-lucide="upload-cloud"></i> <span>Salvar foto</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-danger-outline" id="btn-remove-avatar" data-action="remove-profile-avatar">
+            <i data-lucide="trash-2"></i> <span>Remover</span>
+          </button>
+        </div>
+        <p id="profile-avatar-status" class="form-error hidden" role="status" aria-live="polite"></p>
+        <div id="profile-avatar-crop-controls" class="profile-avatar-crop-controls hidden">
+          <label for="profile-avatar-zoom">Zoom <input type="range" id="profile-avatar-zoom" min="1" max="3" step="0.05" value="1"></label>
+          <label for="profile-avatar-x">Horizontal <input type="range" id="profile-avatar-x" min="0" max="100" value="50"></label>
+          <label for="profile-avatar-y">Vertical <input type="range" id="profile-avatar-y" min="0" max="100" value="50"></label>
+        </div>
+      </div>
+
+      <!-- Profile edit tabs -->
+      <div class="profile-modal-tabs" role="tablist" aria-label="Editar perfil">
+        <button id="profile-tab-name" class="profile-tab-btn active" role="tab" aria-selected="true" aria-controls="profile-panel-name" data-action="switch-profile-tab" data-tab="name">
+          <i data-lucide="user"></i> Nome
+        </button>
+        <button id="profile-tab-password" class="profile-tab-btn" role="tab" aria-selected="false" aria-controls="profile-panel-password" data-action="switch-profile-tab" data-tab="password">
+          <i data-lucide="lock"></i> Senha
+        </button>
+      </div>
+
+      <!-- Panel: change name -->
+      <div id="profile-panel-name" role="tabpanel" aria-labelledby="profile-tab-name">
+        <form id="edit-profile-name-form" class="form-with-feedback" novalidate>
+          <div class="input-group">
+            <label for="profile-new-name"><i data-lucide="user"></i> Novo nome</label>
+            <input type="text" id="profile-new-name" required minlength="2" maxlength="100" autocomplete="name" placeholder="Ex: João Silva">
+          </div>
+          <div class="grid grid-2 profile-readonly-grid">
+            <div class="input-group"><label for="profile-email-readonly">E-mail</label><input id="profile-email-readonly" type="email" readonly></div>
+            <div class="input-group"><label for="profile-role-readonly">Tipo de conta</label><input id="profile-role-readonly" type="text" readonly></div>
+          </div>
+          <p id="edit-profile-name-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+          <button type="submit" class="btn btn-primary btn-full" data-default-label="Salvar nome" data-loading-label="Salvando...">
+            <span data-submit-label>Salvar nome</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Panel: change password -->
+      <div id="profile-panel-password" role="tabpanel" aria-labelledby="profile-tab-password" hidden>
+        <form id="edit-profile-password-form" class="form-with-feedback" novalidate>
+          <div class="input-group">
+            <label for="profile-current-password"><i data-lucide="lock"></i> Senha atual</label>
+            <div class="password-field">
+              <input type="password" id="profile-current-password" required maxlength="128" autocomplete="current-password" placeholder="Sua senha atual">
+              <button type="button" class="password-toggle" data-action="toggle-password" data-target="profile-current-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="profile-new-password"><i data-lucide="key"></i> Nova senha</label>
+            <div class="password-field">
+              <input type="password" id="profile-new-password" required minlength="10" maxlength="128" autocomplete="new-password" placeholder="Mínimo 10 caracteres">
+              <button type="button" class="password-toggle" data-action="toggle-password" data-target="profile-new-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="profile-confirm-password"><i data-lucide="key"></i> Confirmar nova senha</label>
+            <div class="password-field">
+              <input type="password" id="profile-confirm-password" required minlength="10" maxlength="128" autocomplete="new-password" placeholder="Repita a nova senha">
+              <button type="button" class="password-toggle" data-action="toggle-password" data-target="profile-confirm-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+            </div>
+          </div>
+          <p id="edit-profile-password-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+          <p class="form-help">Ao alterar, as outras sessões serão encerradas.</p>
+          <button type="submit" class="btn btn-primary btn-full" data-default-label="Alterar senha" data-loading-label="Alterando...">
+            <span data-submit-label>Alterar senha</span>
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Scripts -->
-  <script src="js/api.js"></script>
-  <script src="js/app.js"></script>
-  <script src="js/personal.js"></script>
-  <script src="js/student.js"></script>
+  <script src="js/api.js?v=20260718.11"></script>
+  <script src="js/safe-dom.js?v=20260718.11"></script>
+  <script src="js/app.js?v=20260718.11"></script>
+  <script src="js/personal.js?v=20260718.11"></script>
+  <script src="js/student.js?v=20260718.11"></script>
+  <script src="js/profile.js?v=20260718.11"></script>
+  <script src="js/events.js?v=20260718.11"></script>
 </body>
 </html>

@@ -1,15 +1,79 @@
-# Solução de Problemas: Acesso Mobile ao Docker (Windows)
+# Diagnóstico de acesso mobile ao Docker no Windows
 
-Ao analisar o ambiente com a skill `@error-handling-patterns`, identificamos o motivo de o celular não conseguir acessar o sistema pelo IP local, mesmo com o firewall desligado.
+Este guia trata do acesso ao FitLife Sync por outro dispositivo na mesma rede.
+Não interrompa processos ou abra portas públicas antes de identificar onde a
+conexão está falhando.
 
-## O Problema Encontrado
-1. **Conflito de Portas**: Existem múltiplos processos tentando usar a porta `3000` ao mesmo tempo (o `node index.js` que está rodando no seu terminal e o container Docker).
-2. **Isolamento de Rede do WSL2/Docker**: No Windows, o Docker geralmente roda sobre o WSL2. O WSL2 cria uma rede virtualizada que, por padrão, **não roteia** tráfego externo (do seu celular na rede Wi-Fi) diretamente para o container sem configurações complexas de *portproxy* no Windows.
+## 1. Confirmar que os contêineres estão ativos
 
-## Passos para Resolver (O que a IA vai fazer agora)
-Para contornar o isolamento de rede do Windows e o conflito de portas de forma definitiva e rápida:
+```powershell
+docker compose ps
+docker compose logs --tail 100 web app
+```
 
-1. **Passo 1: Eliminar os processos conflitantes**. Vou forçar a parada de qualquer processo extra que esteja segurando a porta 3000 (deixando apenas o Docker que já está no ar).
-2. **Passo 2: Usar o padrão de Error-Handling "Tunneling"**. Como o roteamento local do Windows + Docker + Celular é instável, a melhor prática de desenvolvimento é criar um túnel seguro temporário usando a ferramenta `localtunnel` (ou `ngrok`). Isso ignora completamente problemas de firewall e roteador.
-3. **Passo 3: Expor a URL**. Executarei o comando `npx localtunnel --port 3000`. Ele me devolverá um link público seguro (ex: `https://xxx.loca.lt`).
-4. **Passo 4: Teste final**. Você usará esse link no seu celular, e ele redirecionará magicamente para o seu Docker local.
+O serviço `web` deve publicar `0.0.0.0:3000->3000/tcp`. Se ele estiver reiniciando,
+corrija primeiro o erro mostrado nos logs.
+
+## 2. Testar no próprio computador
+
+```powershell
+Test-NetConnection localhost -Port 3000
+```
+
+Abra também `http://localhost:3000`. Se o teste local falhar, o problema está no
+Compose, no Nginx ou em um conflito de porta, não na rede Wi-Fi.
+
+Para identificar quem usa a porta:
+
+```powershell
+Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue |
+  Select-Object LocalAddress, LocalPort, State, OwningProcess
+```
+
+Não finalize o processo sem confirmar sua origem com `Get-Process -Id <PID>`.
+
+## 3. Descobrir o endereço da rede local
+
+```powershell
+ipconfig
+```
+
+Use o IPv4 do adaptador conectado à mesma rede do celular, por exemplo
+`http://192.168.1.20:3000`. Endereços de adaptadores WSL, Docker, VPN ou
+`169.254.x.x` normalmente não são o endereço correto para outro dispositivo.
+
+## 4. Verificar rede e firewall
+
+- Computador e celular devem estar na mesma rede e sem isolamento de clientes.
+- Desative temporariamente VPNs apenas para diagnóstico.
+- Autorize uma regra de entrada TCP para a porta 3000 em redes privadas.
+- Prefira criar uma regra específica a desativar todo o firewall.
+- Algumas redes de convidados bloqueiam comunicação entre dispositivos.
+
+Teste novamente pelo endereço IPv4. Se possível, use outro computador na mesma
+rede para separar um problema do celular de um problema do host.
+
+## 5. Acesso externo opcional
+
+O projeto já inclui Cloudflare Tunnel. Para usá-lo, grave um token válido somente
+no arquivo local `.env` e execute:
+
+```powershell
+docker compose up -d cloudflared
+docker compose logs --tail 100 cloudflared
+```
+
+`TUNNEL_TOKEN` é uma credencial: não o inclua em commits, mensagens de erro ou
+capturas de tela. Um túnel publica a aplicação na internet e não corrige problemas
+de autorização, sessão ou validação existentes. Não exponha o MVP com dados reais
+antes de concluir o hardening necessário.
+
+## Checklist rápido
+
+- [ ] `web` e `app` estão ativos.
+- [ ] `localhost:3000` responde no host.
+- [ ] A porta 3000 não está em conflito.
+- [ ] Foi usado o IPv4 correto do adaptador local.
+- [ ] Os dispositivos estão na mesma rede.
+- [ ] O firewall permite TCP 3000 apenas no perfil necessário.
+- [ ] Tokens permanecem somente no ambiente local.

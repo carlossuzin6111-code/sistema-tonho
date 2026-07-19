@@ -1,4 +1,5 @@
 const db = require('../database');
+const { AUDIT_ACTIONS, recordAudit } = require('../services/auditService');
 
 // Create a new workout with optional exercises (Personal Trainer only)
 async function createWorkout(req, res) {
@@ -65,7 +66,16 @@ async function deleteWorkout(req, res) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    await db('workouts').where('id', workoutId).del();
+    await db.transaction(async trx => {
+      await trx('workouts').where('id', workoutId).del();
+      await recordAudit(trx, {
+        actorUserId: personalId,
+        action: AUDIT_ACTIONS.WORKOUT_DELETED,
+        targetType: 'workout',
+        targetId: workoutId,
+        metadata: { studentId: workout.student_id }
+      });
+    });
 
     res.status(200).json({ message: 'Workout deleted successfully' });
   } catch (err) {
@@ -135,7 +145,16 @@ async function deleteExercise(req, res) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    await db('workout_exercises').where('id', exerciseId).del();
+    await db.transaction(async trx => {
+      await trx('workout_exercises').where('id', exerciseId).del();
+      await recordAudit(trx, {
+        actorUserId: personalId,
+        action: AUDIT_ACTIONS.WORKOUT_EXERCISE_DELETED,
+        targetType: 'workout_exercise',
+        targetId: exerciseId,
+        metadata: { workoutId: exercise.workout_id }
+      });
+    });
 
     res.status(200).json({ message: 'Exercise deleted successfully' });
   } catch (err) {

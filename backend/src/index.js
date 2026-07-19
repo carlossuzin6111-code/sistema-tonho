@@ -1,7 +1,22 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { authenticateToken, requireRole } = require('./middleware/auth');
+const {
+  DEFAULT_BODY_LIMIT,
+  createAuthRateLimiter,
+  createCorsOptions,
+  createHelmetMiddleware,
+  jsonErrorHandler,
+  permissionsPolicy,
+  preventResponseCaching
+} = require('./middleware/httpSecurity');
+const { validateBody, validateIdParam } = require('./middleware/validateRequest');
+const {
+  authenticateToken,
+  csrfProtection,
+  optionalAuthentication,
+  requireRole
+} = require('./middleware/auth');
 const setupSwagger = require('./swagger');
 
 // Import controllers
@@ -10,19 +25,57 @@ const studentController = require('./controllers/studentController');
 const workoutController = require('./controllers/workoutController');
 const chatController = require('./controllers/chatController');
 const exerciseController = require('./controllers/exerciseController');
+const auditController = require('./controllers/auditController');
+const profileController = require('./controllers/profileController');
 
 // Initialize database
-require('./database');
+const db = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const registrationRateLimiter = createAuthRateLimiter({ identifier: 'registration' });
+const loginRateLimiter = createAuthRateLimiter({ identifier: 'login' });
+const passwordChangeRateLimiter = createAuthRateLimiter({ identifier: 'profile-password' });
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+// The app is private on the Compose network and receives requests from exactly
+// one trusted proxy: Nginx. Nginx replaces the forwarding chain with one
+// authoritative client address before proxying the request.
+app.set('trust proxy', 1);
+app.disable('x-powered-by');
+app.disable('etag');
+app.use(createHelmetMiddleware());
+app.use(permissionsPolicy);
+app.use(preventResponseCaching);
+app.use(cors(createCorsOptions()));
+app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || DEFAULT_BODY_LIMIT }));
+app.use(optionalAuthentication);
+app.use(csrfProtection);
 
 // Setup Swagger UI API documentation
-setupSwagger(app);
+setupSwagger(app, {
+  environment: process.env.NODE_ENV,
+  enabled: process.env.API_DOCS_ENABLED
+});
+
+// Readiness endpoint used by Compose. It verifies both the HTTP process and the
+// database connection without exposing schema or environment details.
+app.get('/api/health', async (req, res) => {
+  try {
+    await db.ready;
+    await db.raw('SELECT 1');
+    res.json({ status: 'ok' });
+  } catch (error) {
+    console.error('Health check failed:', error.message);
+    res.status(503).json({ status: 'unavailable' });
+  }
+});
+
+app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
+app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
+app.put('/api/profile/avatar', authenticateToken, validateBody('profileAvatar'), profileController.updateAvatar);
+app.delete('/api/profile/avatar', authenticateToken, profileController.deleteAvatar);
+app.get('/api/profile/avatar/:userId', authenticateToken, validateIdParam('userId'), profileController.getAvatar);
 
 
 // --- API ROUTES ---
@@ -34,7 +87,7 @@ setupSwagger(app);
  * /auth/register:
  *   post:
  *     summary: Registra um novo Personal Trainer
- *     description: Cria uma nova conta de Personal Trainer. Requer uma chave de acesso válida contida no arquivo keys_aut.json do servidor.
+ *     description: Cria uma nova conta de Personal Trainer. Requer uma chave de acesso válida, não utilizada e armazenada com hash no banco.
  *     tags:
  *       - Autenticação
  *     requestBody:
@@ -58,7 +111,9 @@ setupSwagger(app);
  *                 example: personal@fitlife.com
  *               password:
  *                 type: string
- *                 example: senha123
+ *                 minLength: 10
+ *                 maxLength: 128
+ *                 example: SenhaSegura123
  *               accessKey:
  *                 type: string
  *                 example: key2
@@ -72,14 +127,14 @@ setupSwagger(app);
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/auth/register', authController.registerPersonal);
+app.post('/api/auth/register', registrationRateLimiter, validateBody('register'), authController.registerPersonal);
 
 /**
  * @openapi
  * /auth/login:
  *   post:
  *     summary: Realiza o login de um usuário (Personal ou Aluno)
- *     description: Autentica o usuário pelo e-mail e senha, retornando o token JWT correspondente.
+ *     description: Autentica o usuário e cria uma sessão em cookie HttpOnly acompanhada de proteção CSRF.
  *     tags:
  *       - Autenticação
  *     requestBody:
@@ -107,14 +162,32 @@ app.post('/api/auth/register', authController.registerPersonal);
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/auth/login', authController.login);
+app.post('/api/auth/login', loginRateLimiter, validateBody('login'), authController.login);
+
+app.post('/api/auth/logout', authenticateToken, authController.logout);
+
+/**
+ * @openapi
+ * /audit-logs:
+ *   get:
+ *     summary: Lista as ações de auditoria do usuário autenticado
+ *     tags: [Auditoria]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Até 100 registros mais recentes, sem valores sensíveis.
+ *       401:
+ *         description: Sessão obrigatória.
+ */
+app.get('/api/audit-logs', authenticateToken, auditController.getOwnAuditLogs);
 
 /**
  * @openapi
  * /auth/me:
  *   get:
  *     summary: Obtém os dados do usuário autenticado atual
- *     description: Retorna as informações do usuário associadas ao token JWT fornecido no cabeçalho Authorization.
+ *     description: Retorna as informações do usuário associado à sessão por cookie ou a um token Bearer de cliente não-browser.
  *     tags:
  *       - Autenticação
  *     security:
@@ -164,7 +237,9 @@ app.get('/api/auth/me', authenticateToken, authController.getMe);
  *                 example: maria@aluna.com
  *               password:
  *                 type: string
- *                 example: aluno123
+ *                 minLength: 10
+ *                 maxLength: 128
+ *                 example: SenhaAluno123
  *               height:
  *                 type: number
  *                 format: float
@@ -187,7 +262,7 @@ app.get('/api/auth/me', authenticateToken, authController.getMe);
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/personal/students', authenticateToken, requireRole('personal'), studentController.createStudent);
+app.post('/api/personal/students', authenticateToken, requireRole('personal'), validateBody('student'), studentController.createStudent);
 
 /**
  * @openapi
@@ -264,19 +339,20 @@ app.get('/api/personal/students/:id', authenticateToken, studentController.getSt
  *             properties:
  *               newPassword:
  *                 type: string
- *                 minLength: 6
+ *                 minLength: 10
+ *                 maxLength: 128
  *                 example: novasenhasegura123
  *     responses:
  *       200:
  *         description: Senha redefinida com sucesso.
  *       400:
- *         description: Senha ausente ou com menos de 6 caracteres.
+ *         description: Senha ausente ou com menos de 10 caracteres.
  *       403:
  *         description: Acesso negado.
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/personal/students/:id/reset-password', authenticateToken, requireRole('personal'), studentController.resetPassword);
+app.post('/api/personal/students/:id/reset-password', authenticateToken, requireRole('personal'), validateIdParam(), validateBody('passwordReset'), studentController.resetPassword);
 
 
 // Medidas (Aluno/Personal)
@@ -347,7 +423,7 @@ app.post('/api/personal/students/:id/reset-password', authenticateToken, require
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/student/measurements', authenticateToken, studentController.addMeasurement);
+app.post('/api/student/measurements', authenticateToken, validateBody('measurement'), studentController.addMeasurement);
 
 /**
  * @openapi
@@ -415,7 +491,7 @@ app.get('/api/student/measurements', authenticateToken, studentController.getMea
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/workouts', authenticateToken, requireRole('personal'), workoutController.createWorkout);
+app.post('/api/workouts', authenticateToken, requireRole('personal'), validateBody('workout'), workoutController.createWorkout);
 
 /**
  * @openapi
@@ -442,7 +518,7 @@ app.post('/api/workouts', authenticateToken, requireRole('personal'), workoutCon
  *       500:
  *         description: Erro interno do servidor.
  */
-app.delete('/api/workouts/:id', authenticateToken, requireRole('personal'), workoutController.deleteWorkout);
+app.delete('/api/workouts/:id', authenticateToken, requireRole('personal'), validateIdParam(), workoutController.deleteWorkout);
 
 /**
  * @openapi
@@ -495,7 +571,7 @@ app.delete('/api/workouts/:id', authenticateToken, requireRole('personal'), work
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/workouts/:id/exercises', authenticateToken, requireRole('personal'), workoutController.addExercise);
+app.post('/api/workouts/:id/exercises', authenticateToken, requireRole('personal'), validateIdParam(), validateBody('workoutExercise'), workoutController.addExercise);
 
 /**
  * @openapi
@@ -522,7 +598,7 @@ app.post('/api/workouts/:id/exercises', authenticateToken, requireRole('personal
  *       500:
  *         description: Erro interno do servidor.
  */
-app.delete('/api/exercises/:id', authenticateToken, requireRole('personal'), workoutController.deleteExercise);
+app.delete('/api/exercises/:id', authenticateToken, requireRole('personal'), validateIdParam(), workoutController.deleteExercise);
 
 /**
  * @openapi
@@ -587,6 +663,7 @@ app.get('/api/catalog/exercises', authenticateToken, exerciseController.getExerc
  *                 example: Supino Reto com Barra
  *               gifUrl:
  *                 type: string
+ *                 description: URL HTTPS (até 2048 caracteres) ou data URL Base64 de GIF, PNG, JPEG ou WebP (até 525000 caracteres).
  *                 example: https://exemplo.com/supino.gif
  *               description:
  *                 type: string
@@ -601,7 +678,7 @@ app.get('/api/catalog/exercises', authenticateToken, exerciseController.getExerc
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/catalog/exercises', authenticateToken, requireRole('personal'), exerciseController.createExercise);
+app.post('/api/catalog/exercises', authenticateToken, requireRole('personal'), validateBody('catalogExercise'), exerciseController.createExercise);
 
 /**
  * @openapi
@@ -628,8 +705,8 @@ app.post('/api/catalog/exercises', authenticateToken, requireRole('personal'), e
  *       500:
  *         description: Erro interno do servidor.
  */
-app.delete('/api/catalog/exercises/:id', authenticateToken, requireRole('personal'), exerciseController.deleteExercise);
-app.patch('/api/catalog/exercises/:id/favorite', authenticateToken, requireRole('personal'), exerciseController.toggleFavorite);
+app.delete('/api/catalog/exercises/:id', authenticateToken, requireRole('personal'), validateIdParam(), exerciseController.deleteExercise);
+app.patch('/api/catalog/exercises/:id/favorite', authenticateToken, requireRole('personal'), validateIdParam(), exerciseController.toggleFavorite);
 app.put('/api/catalog/exercises/reorder', authenticateToken, requireRole('personal'), exerciseController.reorderExercises);
 
 
@@ -652,6 +729,7 @@ app.put('/api/catalog/exercises/reorder', authenticateToken, requireRole('person
  *         description: Erro interno do servidor.
  */
 app.get('/api/chat/stream', authenticateToken, chatController.handleChatStream);
+app.get('/api/chat/partner', authenticateToken, chatController.getChatPartner);
 
 /**
  * @openapi
@@ -673,6 +751,8 @@ app.get('/api/chat/stream', authenticateToken, chatController.handleChatStream);
  *     responses:
  *       200:
  *         description: Histórico ou lista de conversas.
+ *       403:
+ *         description: Usuário sem permissão para acessar esta conversa.
  *       500:
  *         description: Erro interno do servidor.
  */
@@ -709,22 +789,33 @@ app.get('/api/chat/:userId?', authenticateToken, chatController.getMessages);
  *         description: Mensagem enviada com sucesso.
  *       400:
  *         description: Destinatário ou mensagem ausentes.
+ *       403:
+ *         description: Usuário sem permissão para enviar mensagem ao destinatário.
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/chat', authenticateToken, chatController.sendMessage);
+app.post('/api/chat', authenticateToken, validateBody('chatMessage'), chatController.sendMessage);
+
+// Normalize parser failures without exposing Express internals.
+app.use(jsonErrorHandler);
 
 // Removed fallback to SPA index.html, handled by Nginx now
 
 // Start Server
 if (require.main === module) {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`=========================================`);
-    console.log(`  FITLIFE SYNC SERVER RUNNING`);
-    console.log(`  Local:   http://localhost:${PORT}`);
-    console.log(`  Environment: ${process.env.NODE_ENV || 'production'}`);
-    console.log(`=========================================`);
-  });
+  db.ready
+    .then(() => {
+      app.listen(PORT, '0.0.0.0', () => {
+        console.log(`=========================================`);
+        console.log(`  FITLIFE SYNC SERVER RUNNING`);
+        console.log(`  Local:   http://localhost:${PORT}`);
+        console.log(`  Environment: ${process.env.NODE_ENV || 'production'}`);
+        console.log(`=========================================`);
+      });
+    })
+    .catch(() => {
+      process.exitCode = 1;
+    });
 }
 
 module.exports = app;

@@ -1,0 +1,1601 @@
+
+  ## Prioridade imediata
+
+  ### 1. Corrigir o layout mobile
+
+  Na captura em celular, o cartão de login ultrapassa a largura da tela e fica cortado à direita.
+
+  A causa provável está em frontend/css/mobile.css:7:
+
+  - Uso de width: 100vw junto com padding.
+  - overflow: hidden no html e body.
+  - Alturas fixas em 100vh.
+  - Isso também pode quebrar quando o teclado virtual aparece.
+
+  Recomendação:
+
+  - Trocar 100vw por width: 100%.
+  - Usar min-height: 100dvh.
+  - Aplicar box-sizing: border-box.
+  - Não bloquear o scroll na tela de autenticação.
+  - Considerar env(safe-area-inset-*).
+  - Testar nas larguras 320, 360 e 390 pixels.
+
+  ### 2. Publicação está usando ambiente de desenvolvimento
+
+  O Compose define NODE_ENV=development como padrão em docker-compose.yml:33.
+
+  Porém, o cookie só recebe o atributo Secure quando o ambiente é production, em backend/src/services/
+  sessionService.js:35.
+
+  Como a aplicação está pública via HTTPS, isso deve ser corrigido mesmo sendo uma base de testes. Sugestão:
+
+  - Ambiente público: NODE_ENV=production.
+  - Ambiente local: arquivo Compose separado ou override para desenvolvimento.
+  - Alternativamente, criar uma configuração explícita como COOKIE_SECURE=true.
+
+  ### 3. Site público ainda está numa versão anterior
+
+  A versão acessível publicamente não contém todas as correções já integradas na branch main. Portanto, alguns
+  resultados visuais e de segurança observados no endereço público não representam completamente o código atual.
+
+  Antes de validar definitivamente, será necessário reconstruir e republicar os containers.
+
+  ## Melhorias visuais e interativas
+
+  ### Login
+
+  A identidade visual está limpa e coerente, mas no desktop há muito espaço vazio e pouca informação para orientar o
+  usuário.
+
+  Eu adicionaria:
+
+  - Mostrar/ocultar senha.
+  - Recuperação de senha.
+  - Indicação visível de que o ambiente é de testes.
+  - Pequena apresentação dos recursos no lado esquerdo em desktop.
+  - Identificação mais clara: “Entrar” e “Criar conta de personal”.
+  - Erros junto ao campo correspondente, em vez de depender apenas de mensagens flutuantes.
+  - Estado de carregamento no botão e prevenção de cliques duplicados.
+
+  ### Dashboard
+
+  Para tornar a aplicação mais útil no uso diário:
+
+  - Mostrar último peso, evolução, treinos ativos e mensagens não lidas.
+  - Busca, filtros e ordenação de alunos e exercícios.
+  - Skeletons durante carregamentos.
+  - Telas vazias com uma ação direta, por exemplo “Cadastrar primeiro aluno”.
+  - Botões de ação fixos no celular.
+  - Gráficos com resumo textual e unidades bem visíveis.
+  - Manter a aba atual no histórico/URL para o botão Voltar funcionar corretamente.
+
+  ### Chat e atualizações em tempo real
+
+  O SSE já melhorou a atualização em tempo real. A interface poderia informar melhor o estado:
+
+  - “Conectado”, “Reconectando” ou “Sem conexão”.
+  - Mensagem com estado “enviando”, “enviada” ou “falhou”.
+  - Botão de tentar novamente.
+  - Notificação discreta de novas mensagens.
+  - Preservar mensagens digitadas em caso de falha.
+
+  ### Exclusões e ações sensíveis
+
+  Adicionar:
+
+  - Confirmação clara antes de excluir aluno, treino ou exercício.
+  - Possibilidade de desfazer quando tecnicamente possível.
+  - Diferenciar visualmente ações destrutivas.
+  - Evitar fechar formulários quando a requisição falhar.
+
+  ## Acessibilidade
+
+  Existem lacunas relevantes:
+
+  - As páginas bloqueiam zoom com user-scalable=0 em frontend/mobile.html:5 e frontend/desktop.html:5. Isso deve ser
+    removido.
+
+  - Muitos botões apenas com ícones não têm aria-label.
+  - Modais não possuem role="dialog", aria-modal, controle de foco ou fechamento com Escape.
+  - O gerenciamento atual apenas mostra ou esconde o modal em frontend/js/app.js:47.
+  - Toasts não usam aria-live, então leitores de tela podem não anunciar erros.
+  - Falta suporte a prefers-reduced-motion.
+  - As abas deveriam expor role="tab", aria-selected e relacionamento com seus painéis.
+  - Campos de login deveriam usar autocomplete="email" e autocomplete="current-password".
+
+  ## Segurança
+
+  ### Pontos positivos
+
+  A base atual já possui:
+
+  - JWT obrigatório com segredo mínimo de 32 bytes.
+  - Cookie de sessão HttpOnly.
+  - SameSite=Strict.
+  - Proteção CSRF.
+  - Limites separados para login e cadastro.
+  - Validação de papéis e vínculos entre personal e aluno.
+  - CORS restritivo.
+  - Cabeçalhos CSP, anti-iframe, MIME sniffing e política de referência.
+  - Auditoria de dependências com resultado atual de zero vulnerabilidades conhecidas.
+
+  ### Melhorias prioritárias
+
+  1. Rotacionar os segredos antes de dados reais
+
+     Como combinado, pode permanecer assim durante os testes. Antes de transformar em ambiente real, troque JWT, token
+     do túnel e quaisquer credenciais utilizadas.
+
+  2. Invalidar sessões após troca de senha
+
+     A sessão JWT dura sete dias em backend/src/services/sessionService.js:15. Atualmente, trocar a senha não aparenta
+     invalidar tokens emitidos anteriormente.
+
+     O ideal é implementar token_version ou uma tabela de sessões revogáveis.
+
+  3. Aumentar o mínimo de senha
+
+     O mínimo atual é seis caracteres em backend/src/middleware/validateRequest.js:52. Recomendo pelo menos 10–12
+     caracteres, aceitando senhas longas e frases-senha.
+
+  4. Fluxo de redefinição de senha
+
+     O personal pode definir diretamente uma nova senha do aluno. Mais seguro seria:
+      - Gerar convite ou token temporário.
+      - Obrigar troca no primeiro acesso.
+      - Registrar quem iniciou a redefinição.
+      - Invalidar sessões anteriores.
+
+  5. Remover dependência externa flutuante
+
+     Os ícones são carregados de unpkg.com/lucide@latest em frontend/mobile.html:12. Isso traz risco de cadeia de
+     fornecimento.
+
+     Melhor instalar e servir uma versão fixa dentro do próprio projeto.
+
+  6. Fortalecer a CSP
+
+     A CSP ainda aceita estilos inline e imagens de qualquer origem HTTPS em nginx.conf:33.
+
+     Os 38 estilos inline encontrados na versão mobile deveriam virar classes CSS. Depois disso, seria possível remover
+     'unsafe-inline' e restringir img-src.
+
+  7. Adicionar HSTS
+
+     O endereço público usa HTTPS, mas não retornou Strict-Transport-Security. Deve ser configurado depois de confirmar
+     que todo acesso será exclusivamente HTTPS.
+
+  8. Imagens e GIFs externos
+
+     O campo de GIF aceita texto muito grande e não valida adequadamente protocolo ou domínio. Recomendo:
+      - Aceitar apenas URLs https:.
+      - Impor tamanho menor.
+      - Opcionalmente usar uma lista de domínios permitidos.
+      - Futuramente armazenar uploads de forma controlada.
+
+  9. Normalizar e-mails
+
+     Converter e-mail para minúsculas e remover espaços antes de cadastrar ou autenticar. Isso evita contas duplicadas
+     por diferenças de capitalização.
+
+  10. Registro de auditoria
+
+  Registrar ações como:
+
+  - Redefinição de senha.
+  - Exclusão de alunos e treinos.
+  - Alteração de medidas.
+  - Mudanças de vínculo.
+  - Tentativas administrativas relevantes.
+
+  ### Infraestrutura
+
+  As imagens nginx:alpine, node:20-slim e cloudflared:latest não estão totalmente fixadas. Recomendo versões ou digests
+  específicos.
+
+  O container Node também deveria:
+
+  - Executar com usuário não-root.
+  - Usar build em múltiplos estágios.
+  - Não manter compiladores no container final.
+  - Ter backup automatizado e testado do SQLite.
+
+  ## Ordem sugerida para continuar
+
+  1. Corrigir o estouro e teclado no mobile.
+  2. Publicar com NODE_ENV=production.
+  3. Melhorar acessibilidade de modais, botões, zoom e mensagens.
+  4. Adicionar feedback de carregamento, erro e reconexão.
+  5. Hospedar Lucide localmente e remover estilos inline.
+  6. Implementar revogação de sessões e novo fluxo de senha.
+  7. Adicionar HSTS, auditoria e rotina de backup.
+  8. Reconstruir os containers e repetir os testes desktop/mobile.
+
+## Progresso de implementação
+
+### 2026-07-16 — Bloco 1 concluído
+
+- [x] Corrigir largura, rolagem e altura dinâmica da tela de login mobile.
+- [x] Permitir zoom e adicionar metadados básicos de acessibilidade aos formulários.
+- [x] Adicionar anúncio acessível aos toasts e preferência por movimento reduzido.
+- [x] Executar os testes automatizados e registrar o resultado.
+
+Observação: o documento já continha alterações locais antes deste bloco; elas foram preservadas.
+
+Validação:
+
+- Frontend e infraestrutura: 13 de 13 testes aprovados.
+- Backend: 68 de 68 testes aprovados em 9 suítes.
+- `git diff --check`: nenhuma inconsistência de espaços em branco.
+- Permanecem dois usos de `100vw` no drawer mobile, fora da tela de login; serão tratados em bloco visual posterior.
+
+### 2026-07-16 — Bloco 2 concluído
+
+- [x] Tornar `production` o ambiente padrão da pilha pública.
+- [x] Preservar uma forma explícita de executar localmente em desenvolvimento.
+- [x] Confirmar por teste que cookies de produção continuam recebendo `Secure`.
+
+Validação:
+
+- O Compose reconheceu os quatro serviços sem expor a configuração completa no terminal.
+- Frontend e infraestrutura: 14 de 14 testes aprovados, incluindo o novo teste do ambiente padrão.
+- Cookies de sessão: 2 de 2 testes específicos aprovados, incluindo `Secure` em produção.
+- O `.env` local foi ajustado para `production`; para desenvolvimento local, `NODE_ENV=development` deve ser definido explicitamente.
+
+### 2026-07-16 — Bloco 3 concluído
+
+- [x] Aplicar semântica de diálogo a todos os modais ao abri-los.
+- [x] Direcionar e prender o foco dentro do modal ativo.
+- [x] Fechar com `Escape` e devolver o foco ao elemento acionador.
+- [x] Adicionar cobertura automatizada do comportamento.
+
+Validação:
+
+- Frontend e infraestrutura: 15 de 15 testes aprovados.
+- Backend completo após as alterações: 68 de 68 testes aprovados em 9 suítes.
+- Captura local com viewport CSS equivalente a 360 px confirmou o cartão de login inteiro, com margens laterais e sem corte de campos ou botões.
+- A primeira captura feita diretamente em 360 px foi descartada como referência porque o Chrome headless no Windows impõe uma largura interna mínima e recorta a imagem; a validação correta usou 720 px com escala de dispositivo 2.
+
+### Estado ao encerrar este ciclo
+
+- Três blocos concluídos: layout/acessibilidade básica, ambiente público seguro e modais acessíveis.
+- Naquele ponto, os containers ainda precisavam ser reconstruídos para adotar `NODE_ENV=production`; a publicação foi concluída e validada na etapa seguinte.
+- Próximo bloco sugerido: estados de carregamento e erros junto aos campos de login/cadastro, seguido de botões de mostrar/ocultar senha.
+
+### 2026-07-16 — Publicação e validação concluídas
+
+- [x] Reconstruir e recriar a pilha da base pública de testes.
+- [x] Aguardar todos os healthchecks ficarem saudáveis.
+- [x] Validar API, cabeçalhos, cookies e interface pública.
+- [x] Repetir testes automatizados após a publicação.
+- [x] Criar commit, enviar a branch e abrir pull request.
+
+Branch de trabalho: `fix/mobile-accessibility-production`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/30
+
+Resultados da publicação:
+
+- API e Nginx permaneceram saudáveis após mais de três minutos de observação.
+- Worker de tradução iniciou normalmente e não apresentou exceções nos logs recentes.
+- API local e pública responderam `200` em `/api/health`.
+- Backend confirmou execução efetiva com `NODE_ENV=production`.
+- Teste isolado confirmou cookie de sessão com `Secure`, `HttpOnly` e CSRF também com `Secure`.
+- Requisição pública sem sessão recebeu `401 Unauthorized`, conforme esperado.
+- Requisição de login inválida recebeu `400 Bad Request` e cabeçalhos de rate limit.
+- HTML público contém o cartão mobile corrigido, toast acessível e não bloqueia zoom.
+- Capturas públicas desktop e mobile foram inspecionadas sem corte ou regressão visual aparente.
+- Frontend e infraestrutura: 15 de 15 testes aprovados.
+- Backend: 68 de 68 testes aprovados em 9 suítes.
+- Auditoria npm das dependências de produção: zero vulnerabilidades.
+- HSTS foi observado na resposta externa entregue pela Cloudflare.
+- GitHub Actions do PR #30: checks `Backend` e `Frontend and infrastructure` concluídos com sucesso.
+
+### 2026-07-16 — Bloco 4 concluído
+
+- [x] Exibir estado de carregamento e impedir envio duplicado no login e cadastro.
+- [x] Mostrar erros de autenticação junto ao formulário, mantendo o toast como aviso global.
+- [x] Adicionar controle acessível para mostrar ou ocultar senhas.
+- [x] Validar em desktop e mobile e adicionar cobertura automatizada.
+
+Branch de trabalho: `feat/auth-form-feedback`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/31
+
+Resultados:
+
+- Botões de envio passam a indicar `Entrando...` ou `Criando conta...`, recebem `aria-busy` e ficam desabilitados durante a requisição.
+- Um segundo envio durante a mesma requisição é ignorado.
+- Erros são apresentados dentro do formulário com anúncio acessível e continuam aparecendo no toast global.
+- Login e cadastro agora possuem controle de mostrar/ocultar senha com `aria-label` e `aria-pressed` atualizados.
+- Foi detectada mistura de HTML novo com CSS/JS antigos no cache público; todos os assets locais receberam uma versão de release comum para evitar carregamentos incompatíveis.
+- Frontend e infraestrutura: 18 de 18 testes aprovados, incluindo envio duplicado, recuperação após erro, visibilidade de senha e versionamento de assets.
+- Backend: 68 de 68 testes aprovados em 9 suítes.
+- Captura pública mobile após o versionamento confirmou o ícone alinhado dentro do campo e ausência de corte no formulário.
+
+### 2026-07-16 — Bloco 5 concluído
+
+- [x] Normalizar e-mails de cadastro, criação de aluno e login.
+- [x] Impedir duplicidade de e-mail sem diferenciar maiúsculas e minúsculas.
+- [x] Elevar para 10 caracteres o mínimo de novas senhas e redefinições, sem bloquear o login de contas existentes.
+- [x] Atualizar documentação da API, frontend e testes automatizados.
+
+Branch de trabalho: `fix/auth-input-hardening`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/32
+
+Pré-validação do banco público: zero colisões de e-mail quando comparados com `LOWER(TRIM(email))`; nenhum endereço individual foi exibido.
+
+Resultados:
+
+- Backup consistente criado em `/app/data/database.pre-email-normalization-20260716.sqlite` antes da migration.
+- A base pública de testes continha zero usuários antes e depois da migration.
+- Migration `202607160001_normalize_user_emails.js` aplicada com sucesso.
+- Índice `users_email_normalized_unique` confirmado no banco público.
+- Novos e-mails são armazenados com espaços removidos e letras minúsculas; login também normaliza a entrada.
+- A migration recusa execução quando encontra colisões case-insensitive, evitando mesclar contas silenciosamente.
+- Senhas existentes continuam válidas no login; o mínimo de 10 caracteres vale somente para novos cadastros, novos alunos e redefinições.
+- Frontend e infraestrutura: 18 de 18 testes aprovados.
+- Backend: 72 de 72 testes aprovados em 9 suítes.
+- API pública respondeu `200` no healthcheck e `400` ao smoke test de senha curta, sem criar conta.
+- Containers permaneceram saudáveis e os logs pós-migration não apresentaram exceções.
+
+### 2026-07-16 — Bloco 6 concluído e publicado
+
+- [x] Adicionar versão revogável às sessões de usuário.
+- [x] Invalidar sessões existentes quando a senha do aluno for redefinida.
+- [x] Preservar temporariamente tokens legados enquanto a versão da sessão permanecer zero.
+- [x] Confirmar por integração que o token antigo falha e um novo login funciona.
+
+Branch de trabalho: `fix/session-revocation`, rebaseada sobre a `main` após o merge do PR #32.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/33
+
+Resultados locais:
+
+- Migration adiciona `session_version` com valor inicial zero.
+- JWT passa a carregar a versão da sessão e cada requisição autenticada compara o token com o usuário atual.
+- Redefinir a senha incrementa a versão, revogando cookies e Bearer tokens emitidos anteriormente.
+- O teste de integração confirma `403` para o token antigo e sucesso após autenticar com a nova senha.
+- O acesso ao banco no middleware é lazy, evitando inicialização assíncrona durante testes isolados de configuração.
+- Frontend e infraestrutura: 18 de 18 testes aprovados.
+- Backend: 72 de 72 testes aprovados em 9 suítes, sem handles ou erros após o encerramento.
+- Migration `202607160002_add_session_version.js` aplicada e coluna `session_version` confirmada na base pública.
+- API e containers permaneceram saudáveis após a publicação; healthcheck público respondeu `200`.
+
+### 2026-07-17 — Bloco 7 concluído e publicado
+
+- [x] Validar no backend as mídias associadas aos exercícios do catálogo.
+- [x] Aceitar somente URLs HTTPS ou imagens raster em Base64 com tipos e tamanho controlados.
+- [x] Antecipar no frontend erros de arquivo incompatível ou grande demais.
+- [x] Atualizar documentação, testes automatizados e versão dos assets.
+- [x] Publicar na base de testes e validar os serviços.
+- [x] Abrir pull request.
+
+Branch de trabalho: `fix/exercise-media-validation`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/34
+
+Resultados locais:
+
+- URLs externas agora precisam usar HTTPS e ter no máximo 2048 caracteres.
+- Imagens incorporadas ficam limitadas a GIF, PNG, JPEG ou WebP Base64, até 525000 caracteres; o conteúdo binário precisa corresponder ao formato declarado.
+- Arquivos acima de 380 KB ou com tipo incompatível são recusados no navegador antes da conversão.
+- O limite JSON permanece controlado em 600 KB para comportar a imagem permitida sem aceitar cargas arbitrariamente grandes.
+- A renderização deixou de carregar imagens externas por HTTP.
+- Frontend e infraestrutura: 18 de 18 testes aprovados.
+- Backend: 81 de 81 testes aprovados em 9 suítes.
+- Imagem da aplicação reconstruída e executada com `NODE_ENV=production`.
+- API e Nginx permaneceram saudáveis após mais de dois minutos; worker de tradução permaneceu ativo sem erros recentes.
+- Healthcheck público respondeu `200` e o HTML externo confirmou a versão de assets `20260717.1`.
+- GitHub Actions do PR #34: checks `Backend` e `Frontend and infrastructure` concluídos com sucesso; branch marcada como limpa para merge.
+
+### 2026-07-17 — Bloco 8 concluído e publicado
+
+- [x] Substituir `lucide@latest` externo por uma versão fixa servida localmente.
+- [x] Remover `unpkg.com` da política de scripts da CSP.
+- [x] Corrigir o limite do Nginx para aceitar exatamente as imagens permitidas pelo backend.
+- [x] Atualizar testes e versão dos assets.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `fix/local-icons-request-limit`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/35
+
+Resultados locais:
+
+- Lucide `1.25.0` fixado no lockfile e distribuído em `frontend/vendor/lucide`, com a licença ISC preservada.
+- Desktop e mobile deixaram de executar JavaScript carregado por `unpkg.com`.
+- `script-src` da CSP agora permite apenas a própria origem.
+- Nginx aceita até `600k`, coerente com o limite JSON do backend e com a imagem Base64 de até 525000 caracteres.
+- Versão comum dos assets atualizada para `20260717.2`.
+- Frontend e infraestrutura: 19 de 19 testes aprovados.
+- Backend: 81 de 81 testes aprovados em 9 suítes.
+- Auditoria npm completa e de produção: zero vulnerabilidades.
+- Configuração Nginx validada com sucesso por `nginx -t`.
+- Nginx público recriado e permaneceu saudável; API pública respondeu `200` no healthcheck.
+- Bundle local do Lucide respondeu `200` com 411938 bytes.
+- CSP pública confirmou `script-src 'self'`, sem `unpkg.com`.
+- Smoke test público confirmou que uma requisição com 550000 caracteres atravessa o proxy e chega à autenticação (`401` sem sessão), enquanto uma carga acima de 600k é recusada pelo Nginx (`413`).
+- GitHub Actions do PR #35: checks `Backend` e `Frontend and infrastructure` concluídos com sucesso.
+
+### 2026-07-17 — Bloco 9 concluído e publicado
+
+- [x] Exibir o estado real da conexão do chat em desktop e mobile.
+- [x] Remover a reconexão manual concorrente com a reconexão nativa do `EventSource`.
+- [x] Informar envio, sucesso e falha de mensagens sem perder o texto digitado.
+- [x] Adicionar cobertura automatizada e atualizar a versão dos assets.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/chat-connection-feedback`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/36
+
+Resultados locais:
+
+- Cabeçalhos do chat mostram `Conectando`, `Conectado`, `Reconectando`, `Sem conexão` ou `Desconectado`, com cor e anúncio acessível.
+- Eventos `open`, `error`, `online` e `offline` atualizam o estado sem criar um segundo ciclo de reconexão.
+- A reconexão passa a ser responsabilidade exclusiva do `EventSource`, evitando streams e mensagens duplicadas após instabilidade.
+- Envio desabilita temporariamente o botão e informa `Enviando`, `Mensagem enviada` ou `Falha no envio`.
+- O campo só é limpo após resposta bem-sucedida; em falha, o texto permanece disponível para nova tentativa.
+- Botões de envio por ícone receberam nome acessível.
+- Versão comum dos assets atualizada para `20260717.3`.
+- Frontend e infraestrutura: 20 de 20 testes aprovados.
+- Backend: 81 de 81 testes aprovados em 9 suítes.
+- API e Nginx permaneceram saudáveis; healthcheck público respondeu `200`.
+- HTML público confirmou os quatro indicadores acessíveis e a versão `20260717.3`.
+- JavaScript público confirmou o mapeamento de reconexão e o controle de estado do envio.
+- GitHub Actions do PR #36: checks `Backend` e `Frontend and infrastructure` concluídos com sucesso.
+
+### 2026-07-17 — Bloco 10 concluído e publicado
+
+- [x] Separar compilação de dependências e imagem final do backend.
+- [x] Remover compiladores e ferramentas de build do runtime.
+- [x] Executar API e worker como usuário sem privilégios.
+- [x] Fazer backup e ajustar a propriedade do volume público existente antes da publicação.
+- [x] Validar imagem e container temporário.
+- [x] Publicar e validar a pilha pública.
+- [x] Abrir pull request.
+
+Branch de trabalho: `fix/nonroot-runtime-image`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/37
+
+Resultados locais:
+
+- Dockerfile separado em estágios `dependencies` e `runtime`.
+- Python, `make` e `g++` permanecem apenas na compilação e foram confirmados como ausentes da imagem final.
+- Arquivos e dependências são copiados com propriedade de `node:node`; runtime declara `USER node`.
+- Inspeção confirmou UID/GID `1000` e usuário configurado `node`.
+- Container temporário criou o banco, aplicou todas as migrations e respondeu `200` no healthcheck sem privilégios.
+- Imagem final medida em 91482030 bytes.
+- Frontend e infraestrutura: 21 de 21 testes aprovados.
+- Backend: 82 de 82 testes aprovados em 10 suítes.
+- Rotina `npm run db:backup -- <destino>` adicionada e coberta por teste de snapshot, integridade e preservação de dados.
+- Backup público criado em `/app/data/database.pre-nonroot-20260717.sqlite`: 102400 bytes, 11 tabelas e integridade `ok`.
+- Propriedade do volume migrada para UID/GID 1000; banco atual e backups confirmados como `node:node`.
+- API e worker publicados como `uid=1000(node)`; escrita e remoção de arquivo temporário no volume foram bem-sucedidas.
+- API, Nginx e worker permaneceram saudáveis e sem exceções nos logs; healthcheck público respondeu `200`.
+
+### 2026-07-17 — Bloco 11 concluído e publicado
+
+- [x] Criar armazenamento persistente e indexado para auditoria.
+- [x] Registrar redefinições de senha, medidas e exclusões na mesma transação da ação.
+- [x] Não registrar senhas nem valores corporais sensíveis nos metadados.
+- [x] Disponibilizar consulta autenticada e limitada às ações do próprio usuário.
+- [x] Testar e migrar a base pública.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/security-audit-log`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/38
+
+Resultados locais:
+
+- Migration cria `audit_logs` com índices por ator/data e ação/data.
+- Redefinição de senha, inclusão de medida e exclusão de treino, exercício do treino ou exercício do catálogo gravam auditoria na mesma transação.
+- Logs armazenam ação, tipo e identificador do alvo e somente identificadores relacionais necessários; não armazenam senha ou valores de medidas.
+- `GET /api/audit-logs` exige autenticação, retorna no máximo 100 ações do próprio usuário e converte metadados para JSON.
+- Integração confirma isolamento entre personal e aluno e recusa acesso sem sessão.
+- Frontend e infraestrutura: 21 de 21 testes aprovados.
+- Backend: 84 de 84 testes aprovados em 10 suítes.
+
+### 2026-07-17 — Bloco 15 concluído e publicado
+
+- [x] Executar backup SQLite validado automaticamente em intervalo configurável.
+- [x] Manter retenção limitada e remover somente snapshots automáticos reconhecidos.
+- [x] Executar o worker como usuário `node` no mesmo volume persistente.
+- [x] Adicionar testes.
+- [x] Publicar e confirmar a criação do primeiro snapshot.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/automated-database-backups`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/42
+
+Resultados locais:
+
+- Novo `backup-worker` aguarda a API saudável, compartilha somente o volume do banco e executa como usuário `node` da imagem endurecida.
+- Primeiro ciclo ocorre na inicialização; intervalo padrão é 24 horas e pode ser configurado por `BACKUP_INTERVAL_MS`.
+- Retenção padrão mantém sete snapshots e pode ser configurada por `BACKUP_RETENTION`.
+- Arquivos automáticos usam nome UTC ordenável; limpeza ignora backups manuais e qualquer arquivo fora do padrão estrito.
+- Cada ciclo reutiliza a rotina que verifica tamanho, tabelas e `PRAGMA integrity_check` antes de aplicar retenção.
+- Encerramento aguarda o ciclo ativo para não interromper um snapshot em andamento.
+- Compose validado com sucesso.
+- Frontend e infraestrutura: 25 de 25 testes aprovados.
+- Backend: 87 de 87 testes aprovados em 11 suítes.
+- Worker publicado como `uid=1000(node)` e iniciado após o healthcheck da API.
+- Primeiro snapshot automático criado em `/app/data/backups/database-20260717T181443994Z.sqlite`.
+- Snapshot público possui 114688 bytes, integridade `ok`, UID/GID 1000 e foi contabilizado na retenção.
+- Worker confirmou intervalo de 86400000 ms e permaneceu ativo aguardando o próximo ciclo.
+- API, Nginx, worker de tradução, worker de backup e tunnel permaneceram ativos; healthcheck público respondeu `200`.
+- Backup pré-migration criado em `/app/data/database.pre-audit-20260717.sqlite`: 102400 bytes, 11 tabelas e integridade `ok`.
+- Migration `202607170001_create_audit_logs.js` aplicada na base pública.
+- Tabela e índices `audit_logs_actor_created_idx` e `audit_logs_action_created_idx` confirmados; tabela iniciou vazia como esperado.
+- API e Nginx permaneceram saudáveis, worker iniciou sem exceções e healthcheck público respondeu `200`.
+- Consulta pública de auditoria sem sessão respondeu `401`, conforme esperado.
+
+### 2026-07-17 — Bloco 12 concluído e publicado
+
+- [x] Adicionar busca instantânea de alunos por nome ou e-mail.
+- [x] Adicionar busca instantânea de exercícios por nome ou descrição.
+- [x] Exibir contagem e estado vazio acessíveis sem repetir chamadas à API.
+- [x] Garantir funcionamento equivalente em desktop e mobile.
+- [x] Testar e atualizar a versão dos assets.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/catalog-list-search`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/39
+
+Resultados locais:
+
+- Busca de alunos considera nome e e-mail; busca de exercícios considera nome e descrição.
+- Normalização remove diferenças de maiúsculas, espaços e acentos, permitindo encontrar `Elevação` ao digitar `elevacao`.
+- Filtro opera sobre cards já carregados e não dispara novas chamadas à API.
+- Contadores anunciam `visíveis de total` e estados vazios específicos aparecem somente quando a consulta não encontra resultados.
+- Campos usam `type=search`, nome acessível, foco visível e funcionamento equivalente nas duas interfaces.
+- Versão comum dos assets atualizada para `20260717.4`.
+- Frontend e infraestrutura: 22 de 22 testes aprovados.
+- Backend: 84 de 84 testes aprovados em 10 suítes.
+- API e Nginx permaneceram saudáveis e o healthcheck público respondeu `200`.
+- HTML público desktop e mobile confirmou os quatro campos/estados acessíveis e assets `20260717.4`.
+- JavaScript público confirmou normalização e filtros locais para alunos e exercícios.
+
+### 2026-07-17 — Bloco 13 concluído e publicado
+
+- [x] Representar a aba ativa na URL para personal e aluno.
+- [x] Restaurar a aba correta após recarregar a página.
+- [x] Fazer os botões Voltar/Avançar navegarem entre abas sem recarregar a interface.
+- [x] Preservar a rota ao selecionar automaticamente desktop ou mobile.
+- [x] Testar e atualizar a versão dos assets.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/dashboard-tab-history`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/40
+
+Resultados locais:
+
+- Rotas seguem `#/personal/{aba}` ou `#/student/{aba}` e aceitam somente abas conhecidas do papel autenticado.
+- Cliques usam `history.pushState`; inicialização usa `replaceState`; Voltar/Avançar restaura via `popstate` sem recarregar a página.
+- Recarregar uma rota válida abre diretamente a aba correspondente após validar a sessão.
+- Rotas incompatíveis com o papel são ignoradas e substituídas pela aba inicial segura.
+- O seletor de interface mantém o hash ao redirecionar para `desktop.html` ou `mobile.html`.
+- Versão comum dos assets atualizada para `20260717.5`.
+- Frontend e infraestrutura: 23 de 23 testes aprovados.
+- Backend: 84 de 84 testes aprovados em 10 suítes.
+- API, Nginx e worker permaneceram saudáveis; healthcheck público respondeu `200`.
+- Página pública confirmou `router.js` `20260717.5` e preservação de `window.location.hash`.
+- `app.js` público confirmou `pushState`, `replaceState`, restauração por papel e listener de `popstate`.
+
+### 2026-07-17 — Bloco 14 concluído e publicado
+
+- [x] Fixar por digest as imagens Node usadas na compilação e no runtime.
+- [x] Fixar por digest as imagens Nginx e Cloudflare Tunnel.
+- [x] Adicionar teste que impeça novas imagens externas flutuantes.
+- [x] Reconstruir, publicar e validar.
+- [x] Abrir pull request.
+
+Branch de trabalho: `fix/pin-container-images`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/41
+
+Resultados:
+
+- Node `20.20.2` fixado em `sha256:2cf067cfed83d5ea958367df9f966191a942351a2df77d6f0193e162b5febfc0` nos dois estágios.
+- Nginx `1.31.2` fixado em `sha256:54f2a904c251d5a34adf545a72d32515a15e08418dae0266e23be2e18c66fefa`.
+- cloudflared `2026.7.2` fixado em `sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d`.
+- Teste automatizado inspeciona todas as instruções `FROM` e todas as imagens do Compose e exige digest SHA-256.
+- Compose validado, imagens reconstruídas e todos os containers recriados com sucesso.
+- Inspeção dos containers confirmou que Nginx e tunnel executam exatamente os IDs configurados.
+- Cloudflare registrou quatro conexões e concluiu os testes de DNS, UDP, TCP e API com ambiente saudável.
+- API, Nginx, worker e tunnel permaneceram ativos; healthcheck público respondeu `200`.
+- Frontend e infraestrutura: 24 de 24 testes aprovados.
+- Backend: 84 de 84 testes aprovados em 10 suítes.
+
+### 2026-07-17 — Bloco 16 concluído e publicado
+
+- [x] Substituir o `prompt()` de redefinição de senha por modal acessível.
+- [x] Exigir confirmação da nova senha e apresentar erros junto ao formulário.
+- [x] Adicionar controles de visibilidade e estado de envio sem perder os campos em falhas da API.
+- [x] Garantir comportamento equivalente em desktop e mobile.
+- [x] Testar localmente e atualizar a versão dos assets.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/password-reset-modal`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/43
+
+Resultados locais:
+
+- Modal acessível incluído nas interfaces desktop e mobile, com retorno aos detalhes do aluno ao cancelar ou concluir.
+- Nova senha e confirmação exigem entre 10 e 128 caracteres e possuem controles independentes de visibilidade.
+- Divergências e falhas da API são anunciadas junto ao formulário; falhas remotas preservam os campos para correção ou nova tentativa.
+- Envios duplicados são bloqueados e o botão informa visualmente o andamento.
+- O fluxo não utiliza mais `prompt()`.
+- Versão comum dos assets atualizada para `20260717.6`.
+- Frontend e infraestrutura: 26 de 26 testes aprovados.
+- Backend: 87 de 87 testes aprovados em 11 suítes.
+- API, Nginx, workers e tunnel permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
+- HTML público confirmou o modal acessível e os assets `20260717.6`; JavaScript público confirmou o novo manipulador de envio e a ausência do fluxo antigo.
+- CI do pull request aprovado nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-17 — Bloco 21 concluído e publicado
+
+- [x] Aplicar semântica de abas aos dashboards e ao modal de aluno.
+- [x] Sincronizar `aria-selected`, foco e visibilidade dos painéis.
+- [x] Permitir navegação por setas, Home e End.
+- [x] Testar, publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `accessibility/semantic-tabs`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/48
+
+Resultados:
+
+- Autenticação, áreas do personal, áreas do aluno e detalhes do aluno possuem grupos `tablist` identificados.
+- Cada aba recebe `role=tab`, `aria-controls`, `aria-selected` e ordem de foco coerentes; cada conteúdo recebe `role=tabpanel`, `aria-labelledby` e visibilidade sincronizada.
+- Setas horizontais e verticais circulam entre abas; Home e End selecionam os extremos.
+- A ativação por teclado reutiliza o fluxo existente, incluindo carregamento dos dados e atualização da rota.
+- Versão comum dos assets atualizada para `20260717.11`.
+- Frontend e infraestrutura: 29 de 29 testes aprovados.
+- Backend: 87 de 87 testes aprovados em 11 suítes.
+- Healthcheck público respondeu `200`; HTML e JavaScript públicos confirmaram grupos, sincronização e navegação por teclado.
+
+### 2026-07-17 — Bloco 22 concluído e publicado
+
+- [x] Associar programaticamente todos os controles visíveis aos seus rótulos.
+- [x] Cobrir chats desktop/mobile e formulários dos modais mobile.
+- [x] Adicionar teste preventivo para controles sem nome acessível.
+- [x] Testar, publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `accessibility/form-control-labels`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/49
+
+Resultados:
+
+- A auditoria encontrou e corrigiu 19 controles sem associação programática: quatro chats e quinze campos de modais mobile.
+- Chats receberam nomes contextuais para aluno e personal; os demais controles usam `label[for]` ligado ao `id`.
+- Teste automatizado percorre todos os `input`, `select` e `textarea` visíveis de desktop e mobile e exige `id` e nome acessível.
+- Frontend e infraestrutura: 30 de 30 testes aprovados.
+- Backend: 87 de 87 testes aprovados em 11 suítes.
+- Healthcheck público respondeu `200`; HTML público confirmou as associações nos chats e formulários mobile.
+
+### 2026-07-17 — Bloco 23 concluído e publicado
+
+- [x] Restringir imagens remotas ao host oficial do dataset.
+- [x] Aplicar a mesma allowlist na API, renderização e CSP.
+- [x] Preservar uploads raster embutidos e imagens locais.
+- [x] Testar, publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `security/exercise-image-allowlist`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/50
+
+Resultados:
+
+- API rejeita URLs remotas fora de `raw.githubusercontent.com` e orienta usar upload.
+- Renderização aceita somente mesma origem, imagens raster embutidas e o host oficial do dataset.
+- CSP pública substituiu `img-src ... https:` por `img-src 'self' data: https://raw.githubusercontent.com`.
+- Links aprovados continuam disponíveis; uploads GIF, PNG, JPEG e WebP permanecem suportados.
+- Assets atualizados para `20260717.13`.
+- Frontend e infraestrutura: 30 de 30 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- API reconstruída e saudável; Nginx recriado e resposta pública `200` confirmou a allowlist nas três camadas.
+
+### 2026-07-17 — Bloco 24 concluído e publicado
+
+- [x] Adicionar ordenação local de alunos por nome e mensagens não lidas.
+- [x] Adicionar ordenação local de exercícios por nome.
+- [x] Combinar ordenação e busca sem novas chamadas à API.
+- [x] Garantir controles acessíveis em desktop e mobile.
+- [x] Testar, publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/catalog-list-sorting`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/51
+
+Resultados:
+
+- Alunos podem ser ordenados por nome A–Z, Z–A ou quantidade de mensagens não lidas.
+- Exercícios podem ser ordenados por nome A–Z ou Z–A.
+- Ordenação reorganiza os cards já renderizados, preserva a busca atual e não chama a API novamente.
+- Comparação usa normalização sem acentos e `localeCompare` em português.
+- Controles possuem nome acessível e a barra passa a quebrar linha em telas estreitas.
+- Assets atualizados para `20260717.14`.
+- Frontend e infraestrutura: 31 de 31 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- Healthcheck público respondeu `200`; HTML e JavaScript públicos confirmaram controles e ordenação local.
+
+### 2026-07-17 — Bloco 25 concluído e publicado
+
+- [x] Criar skeletons reutilizáveis e acessíveis para carregamentos em cards.
+- [x] Aplicar em alunos, catálogo e treinos desktop/mobile.
+- [x] Respeitar `prefers-reduced-motion`.
+- [x] Testar, publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/accessible-loading-skeletons`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/52
+
+Resultados:
+
+- Helper reutilizável cria skeletons com quantidade, variante e mensagem contextual configuráveis.
+- Estados usam `role=status`, `aria-label` e `aria-busy`; elementos puramente visuais ficam ocultos de leitores de tela.
+- Aplicado em lista de alunos, catálogo, treinos do aluno e treinos dentro do modal de acompanhamento.
+- Erros e conclusões removem o estado de carregamento corretamente.
+- Shimmer responsivo é desativado com `prefers-reduced-motion: reduce`.
+- Assets atualizados para `20260717.15`.
+- Frontend e infraestrutura: 32 de 32 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- Healthcheck público respondeu `200`; JavaScript e CSS públicos confirmaram skeletons, estados ARIA e movimento reduzido.
+
+### 2026-07-17 — Bloco 26 concluído e publicado
+
+- [x] Transformar estados vazios em ações diretas e contextuais.
+- [x] Cobrir alunos, catálogo e treinos do personal/aluno.
+- [x] Reutilizar fluxos existentes sem handlers inline.
+- [x] Testar, publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/actionable-empty-states`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/53
+
+Resultados:
+
+- Lista vazia de alunos oferece `Cadastrar primeiro aluno` e abre a aba correta.
+- Catálogo vazio oferece `Criar primeiro exercício` e abre o formulário existente.
+- Modal sem treinos oferece `Criar primeira ficha`; aluno sem ficha pode abrir diretamente o chat com o personal.
+- Helper reutilizável cria botões via `SafeDOM`, sem HTML ou handlers inline.
+- Assets atualizados para `20260717.16`.
+- Frontend e infraestrutura: 33 de 33 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- Healthcheck público respondeu `200`; JavaScript público confirmou as quatro ações contextuais.
+
+### 2026-07-17 — Bloco 27 concluído e publicado
+
+- [x] Exibir total de alunos e mensagens não lidas no dashboard.
+- [x] Garantir apresentação equivalente em desktop e mobile.
+- [x] Atualizar indicadores sem chamadas adicionais à API.
+- [x] Testar, publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/dashboard-student-summary`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/54
+
+Resultados:
+
+- Desktop exibe cartões de total de alunos e mensagens não lidas no cabeçalho.
+- Mobile ganhou resumo compacto equivalente acima da busca.
+- Valores usam `aria-live=polite` e são derivados do retorno já carregado de alunos.
+- Contagem de não lidas é calculada antes do estado vazio e permanece coerente com o badge de navegação.
+- Assets atualizados para `20260717.17`.
+- Frontend e infraestrutura: 34 de 34 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- Healthcheck público respondeu `200`; HTML e JavaScript públicos confirmaram os indicadores nas duas interfaces.
+
+### 2026-07-17 — Bloco 28 concluído e publicado
+
+- [x] Bloquear envios duplicados nos formulários internos de aluno, treino, exercício, medição e catálogo.
+- [x] Exibir estado de processamento no botão de cada formulário em desktop e mobile.
+- [x] Anunciar falhas junto ao formulário e limpar o erro quando o usuário voltar a editar.
+- [x] Limpar o formulário do catálogo após uma criação concluída.
+- [x] Adicionar teste preventivo para os cinco fluxos.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+- [x] Aguardar a CI.
+
+Branch de trabalho: `feat/internal-form-feedback`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/55
+
+Resultados locais:
+
+- Os cinco formulários ignoram novas submissões enquanto a primeira requisição está em andamento.
+- Botões ficam desabilitados, recebem `aria-busy` no formulário e apresentam texto específico de carregamento.
+- Erros de validação e da API são expostos em regiões `role=alert`, sem remover o aviso global já existente.
+- Assets atualizados para `20260717.18`.
+- Frontend e infraestrutura: 35 de 35 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- HTML e JavaScript públicos confirmaram os assets `20260717.18`, regiões de erro e bloqueio de submissões duplicadas.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-17 — Bloco 29 concluído e publicado
+
+- [x] Manter acessível a ação de criar exercício durante a rolagem do catálogo mobile.
+- [x] Fixar as ações de novo treino e novas medidas dentro do conteúdo rolável do aluno.
+- [x] Evitar largura baseada em `100vw` nos modais mobile.
+- [x] Adaptar a altura dos modais às barras dinâmicas do navegador e ao teclado virtual com `100dvh`.
+- [x] Adicionar cobertura automatizada das regras visuais.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+- [x] Aguardar a CI.
+
+Branch de trabalho: `feat/mobile-sticky-actions`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/56
+
+Resultados locais:
+
+- Ações primárias usam posicionamento aderente somente dentro de suas respectivas áreas roláveis.
+- O conteúdo continua reservando espaço normal para os botões, sem ficar oculto atrás deles.
+- Modais usam `width: 100%`, `height: 100dvh` e `box-sizing: border-box` no celular.
+- Assets atualizados para `20260717.19`.
+- Frontend e infraestrutura: 36 de 36 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- HTML e CSS públicos confirmaram os assets `20260717.19`, ações aderentes e dimensões dinâmicas dos modais.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-17 — Bloco 30 concluído e publicado
+
+- [x] Acrescentar resumo textual ao gráfico de evolução de peso.
+- [x] Informar quantidade de registros, período, pesos inicial e final e variação em quilogramas.
+- [x] Expor descrição equivalente como nome acessível do SVG.
+- [x] Ajustar os cartões para que o resumo não seja cortado em desktop ou mobile.
+- [x] Adicionar cobertura automatizada da descrição e da semântica do gráfico.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+- [x] Aguardar a CI.
+
+Branch de trabalho: `feat/accessible-weight-trends`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/57
+
+Resultados locais:
+
+- Gráficos com dados exibem um resumo em português, com unidade explícita e variação assinada.
+- O SVG recebe `role=img` e `aria-label` com a mesma informação essencial apresentada visualmente.
+- Um único registro é descrito sem sugerir tendência inexistente; ausência de registros mantém o estado vazio anterior.
+- O SVG preserva sua área de desenho e o cartão cresce para acomodar o resumo, inclusive no modal mobile.
+- Assets atualizados para `20260717.20`.
+- Frontend e infraestrutura: 37 de 37 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- HTML, CSS e JavaScript públicos versionados confirmaram os assets `20260717.20` e o resumo acessível do gráfico.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-18 — Bloco 31 concluído e publicado
+
+- [x] Corrigir o `<tbody>` de medições que estava fora de uma tabela no modal mobile.
+- [x] Adicionar cabeçalhos com escopo às duas tabelas de histórico mobile.
+- [x] Identificar os históricos com legendas acessíveis em desktop e mobile.
+- [x] Preservar a leitura das sete colunas com rolagem horizontal controlada no celular.
+- [x] Adicionar cobertura automatizada da estrutura HTML e das regras responsivas.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+- [x] Aguardar a CI.
+
+Branch de trabalho: `fix/measurement-table-semantics`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/58
+
+Resultados locais:
+
+- O navegador não precisa mais reparar implicitamente o histórico de medições do modal mobile.
+- Os dois históricos mobile possuem tabela completa, legenda, cabeçalho e células de coluna com `scope=col`.
+- Desktop recebeu legendas equivalentes, mantendo os cabeçalhos existentes.
+- A largura mínima de 720 px é aplicada somente aos históricos mobile dentro do contêiner que já oferece rolagem horizontal.
+- Assets atualizados para `20260718.1`.
+- Frontend e infraestrutura: 38 de 38 testes aprovados.
+- Backend: 88 de 88 testes aprovados em 11 suítes.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- HTML e CSS públicos confirmaram os assets `20260718.1`, as duas tabelas completas e a largura mínima responsiva.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-18 — Bloco 32 concluído e publicado
+
+- [x] Impedir armazenamento de respostas da API em caches de navegador e intermediários.
+- [x] Remover ETag das respostas potencialmente autenticadas.
+- [x] Preservar a política `no-cache` específica do stream SSE do chat.
+- [x] Adicionar testes automatizados para respostas comuns e para o stream.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Reconstruir o backend e validar os cabeçalhos na base pública de testes.
+- [x] Abrir pull request.
+- [x] Aguardar a CI.
+
+Branch de trabalho: `security/no-store-api-responses`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/59
+
+Resultados locais:
+
+- Respostas comuns recebem `Cache-Control: no-store` e `Pragma: no-cache` antes da autenticação e das rotas.
+- O Express deixa de gerar ETag, evitando validadores reutilizáveis para respostas com dados privados.
+- O controlador SSE continua sobrescrevendo a política com `Cache-Control: no-cache`, sem quebrar reconexões do EventSource.
+- Frontend e infraestrutura: 38 de 38 testes aprovados.
+- Backend: 89 de 89 testes aprovados em 11 suítes.
+- Backend reconstruído e recriado sem substituir o volume persistente do banco.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200` com `Cache-Control: no-store` e `Pragma: no-cache`, sem ETag.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-18 — Bloco 33 concluído e publicado
+
+- [x] Identificar cabeçalhos defensivos duplicados entre backend e Nginx.
+- [x] Manter as proteções do backend para acesso direto na rede interna.
+- [x] Fazer o Nginx ocultar somente as cópias sobrepostas do upstream.
+- [x] Garantir uma política pública única para os cinco cabeçalhos afetados.
+- [x] Adicionar cobertura automatizada e validar a sintaxe do Nginx.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Recriar o Nginx e validar os cabeçalhos na base pública de testes.
+- [x] Abrir pull request.
+- [x] Aguardar a CI.
+
+Branch de trabalho: `security/deduplicate-proxy-headers`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/60
+
+Resultados locais:
+
+- O Nginx oculta do upstream apenas `Cross-Origin-Opener-Policy`, `Permissions-Policy`, `Referrer-Policy`, `X-Content-Type-Options` e `X-Frame-Options`.
+- Cada política continua sendo adicionada uma vez pelo Nginx para respostas estáticas e da API.
+- Cabeçalhos exclusivos do Helmet, HSTS, CORS e a política de cache continuam preservados.
+- Configuração do Nginx validada com sucesso.
+- Frontend e infraestrutura: 39 de 39 testes aprovados.
+- Backend: 89 de 89 testes aprovados em 11 suítes.
+- Somente o serviço web foi recriado; API, banco, workers e tunnel permaneceram ativos.
+- API e Nginx ficaram saudáveis; o healthcheck público respondeu `200` com uma ocorrência de cada política afetada e manteve `Cache-Control: no-store`.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-18 — Bloco 34 concluído e publicado
+
+- [x] Reforçar o logout com limpeza explícita de cache e cookies da origem.
+- [x] Preservar preferências e progresso local que não representam credenciais.
+- [x] Remover a rota privada do histórico antes de voltar à tela de login.
+- [x] Atualizar os assets de desktop e mobile.
+- [x] Adicionar cobertura automatizada para backend e frontend.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Reconstruir o backend e validar a publicação na base pública de testes.
+- [x] Abrir pull request.
+- [x] Aguardar a CI.
+
+Branch de trabalho: `security/harden-logout-cleanup`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/61
+
+Resultados locais:
+
+- O endpoint de logout apaga os cookies de sessão e responde `Clear-Site-Data: "cache", "cookies"`.
+- A diretiva não inclui `storage`, preservando tema e marcações locais de treino.
+- O frontend substitui a entrada atual do histórico pela URL sem rota privada antes de exibir o login.
+- Assets atualizados para `20260718.2`.
+- Frontend e infraestrutura: 40 de 40 testes aprovados.
+- Backend: 89 de 89 testes aprovados em 11 suítes.
+- Backend reconstruído e recriado sem substituir o volume persistente do banco.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- HTML e JavaScript públicos confirmaram os assets `20260718.2` e a remoção da rota privada no logout.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-18 — Bloco 35 concluído e publicado
+
+- [x] Adicionar expiração às chaves de cadastro de personal.
+- [x] Definir validade de 7 dias para novas chaves.
+- [x] Conceder 30 dias às chaves antigas ainda não utilizadas.
+- [x] Revalidar a expiração dentro da transação que consome a chave.
+- [x] Informar a validade no comando de geração e atualizar o README.
+- [x] Adicionar testes de serviço, API e migração.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Criar backup, aplicar a migração e validar a base pública de testes.
+- [x] Abrir pull request.
+- [x] Aguardar a CI.
+
+Branch de trabalho: `security/expire-registration-keys`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/62
+
+Resultados locais:
+
+- Novas chaves recebem `expires_at` sete dias após a emissão e continuam armazenadas apenas como hash.
+- Busca e consumo transacional exigem chave não utilizada e com validade futura.
+- A migração atribui 30 dias de transição somente às chaves antigas ainda disponíveis; chaves usadas permanecem inalteradas.
+- O comando de geração informa que a nova chave expira em 7 dias.
+- Frontend e infraestrutura: 40 de 40 testes aprovados.
+- Backend: 91 de 91 testes aprovados em 11 suítes.
+- Backup consistente criado em `/app/data/database.sqlite.backup`, com integridade `ok`, antes da migração.
+- Backend reconstruído; as sete migrações ficaram concluídas e sem pendências.
+- Das quatro chaves geradas anteriormente, uma já havia sido utilizada e as três restantes receberam validade até `2026-08-17`, sem expor valores ou hashes durante a verificação.
+- A verificação pelo módulo normal do banco completou 32 exercícios padrão ausentes do personal ID 4, conforme a rotina de inicialização existente.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-18 — Bloco 36 concluído e publicado
+
+- [x] Auditar dependências de produção e desenvolvimento.
+- [x] Desabilitar Swagger e o JSON OpenAPI por padrão em produção.
+- [x] Preservar a documentação por padrão em desenvolvimento.
+- [x] Permitir ativação explícita por `API_DOCS_ENABLED=true`.
+- [x] Atualizar Compose, `.env.example` e README.
+- [x] Adicionar testes automatizados da política de exposição.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Reconstruir o backend e validar as rotas na base pública de testes.
+- [x] Abrir pull request.
+- [x] Aguardar a CI.
+
+Branch de trabalho: `security/disable-production-api-docs`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/63
+
+Resultados locais:
+
+- Auditorias npm retornaram zero vulnerabilidades nas dependências de produção e também incluindo desenvolvimento.
+- Em `production`, `/api/api-docs` e `/api/swagger.json` não são registrados sem ativação explícita.
+- Em `development`, Swagger continua disponível quando a variável não é definida.
+- A configuração do Compose permaneceu válida com os cinco serviços.
+- Frontend e infraestrutura: 40 de 40 testes aprovados.
+- Backend: 94 de 94 testes aprovados em 12 suítes.
+- Backend reconstruído e recriado sem substituir o volume persistente do banco.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- `/api/api-docs/` e `/api/swagger.json` passaram a responder `404` publicamente.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-18 — Bloco 37 concluído e publicado
+
+- [x] Identificar claramente a base pública como ambiente de testes.
+- [x] Orientar usuários a não inserir dados pessoais reais.
+- [x] Apresentar o aviso antes dos campos de autenticação em desktop e mobile.
+- [x] Garantir semântica acessível e contraste nos temas claro e escuro.
+- [x] Atualizar a versão comum dos assets.
+- [x] Adicionar cobertura automatizada do aviso.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+- [x] Aguardar a CI.
+
+Branch de trabalho: `feat/test-environment-notice`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/64
+
+Resultados locais:
+
+- Desktop e mobile exibem `Ambiente público de testes` antes das abas de login e cadastro.
+- O texto orienta explicitamente a não usar dados pessoais reais.
+- O aviso usa `role=note`, nome acessível e estilos específicos para os dois temas.
+- Assets atualizados para `20260718.3`.
+- Frontend e infraestrutura: 41 de 41 testes aprovados.
+- Backend: 94 de 94 testes aprovados em 12 suítes.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- HTML e CSS públicos confirmaram o aviso nas duas interfaces e os assets `20260718.3`.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-18 — Bloco 38 concluído e publicado
+
+- [x] Corrigir margens e espaçamentos do acompanhamento de aluno no mobile.
+- [x] Impedir sobreposição entre fechamento, perfil, abas e conteúdo rolável.
+- [x] Impedir compressão e esticamento do avatar em nomes ou e-mails longos.
+- [x] Melhorar quebra de texto, metadados e localização da ação de senha.
+- [x] Garantir alvos de toque adequados nas abas internas.
+- [x] Corrigir o fundo do gráfico no tema escuro.
+- [x] Preparar o recorte visual do avatar para uma futura imagem real.
+- [x] Adicionar cobertura automatizada da geometria e separação do modal.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+- [x] Aguardar a CI.
+
+Branch de trabalho: `fix/mobile-student-detail-layout`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/65
+
+Resultados locais:
+
+- O avatar mobile usa caixa fixa de 64 × 64 px, `aspect-ratio: 1` e `flex: 0 0 64px`, sem deformação por pressão do layout.
+- Nome e e-mail podem quebrar linha sem ampliar a largura do modal nem deslocar os demais objetos.
+- Cabeçalho, perfil, abas e corpo possuem áreas independentes; somente o conteúdo principal rola e o modal corta sobreposições externas.
+- Abas ocupam larguras equivalentes e possuem altura mínima de 44 px.
+- Espaçamentos laterais e inferiores respeitam as áreas seguras do dispositivo.
+- Uma futura `<img>` dentro do avatar já terá recorte central com `object-fit: cover`, mas nenhum upload ou dado de foto foi implementado neste bloco.
+- Assets atualizados para `20260718.4`.
+- Frontend e infraestrutura: 42 de 42 testes aprovados.
+- Backend: 94 de 94 testes aprovados em 12 suítes.
+- API e Nginx permaneceram saudáveis; o healthcheck público respondeu `200`.
+- HTML e CSS públicos confirmaram os assets `20260718.4`, a estrutura separada do modal, o avatar fixo e o recorte futuro com `object-fit: cover`.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
+#### Catálogo futuro — foto de perfil do aluno (não implementado)
+
+- [ ] Definir armazenamento privado ou controlado na mesma origem, sem aceitar URL arbitrária externa.
+- [ ] Criar coluna e migração para a referência da foto, preservando as iniciais como fallback.
+- [ ] Aceitar somente PNG, JPEG ou WebP com assinatura validada, limite de tamanho e rejeição de SVG.
+- [ ] Oferecer corte quadrado, pré-visualização, substituição e remoção da foto.
+- [ ] Aplicar autorização para que somente o aluno ou seu personal vinculado possam alterar a imagem, conforme regra de produto a decidir.
+- [ ] Remover arquivos órfãos e registrar alterações relevantes na auditoria.
+- [ ] Cobrir upload, autorização, fallback, privacidade e renderização desktop/mobile com testes.
+
+### 2026-07-18 — Bloco 39 concluído e publicado
+
+- [x] Reorganizar os cartões de treino para impedir compressão e sobreposição no acompanhamento mobile.
+- [x] Distribuir as ações do treino e as estatísticas dos exercícios em grades responsivas.
+- [x] Permitir quebra segura de nomes, descrições, observações e valores longos.
+- [x] Corrigir as classes estruturais do gráfico e do resumo de medidas no mobile.
+- [x] Limitar a tabela de medidas à largura do corpo rolável do modal.
+- [x] Adicionar cobertura automatizada contra regressão de sobreposição.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Validar os assets na base pública de testes.
+- [x] Abrir pull request e aguardar a CI.
+
+Branch de trabalho: `fix/mobile-student-detail-content`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/66
+
+Resultados locais:
+
+- Cabeçalhos de treino passam a empilhar conteúdo e ações dentro da largura disponível.
+- Botões de ação e estatísticas usam duas colunas com `minmax(0, 1fr)`, evitando que o conteúdo force a largura do modal.
+- Linhas de exercício reservam 40 px para a ação por ícone e permitem que o restante do conteúdo encolha e quebre linha.
+- Gráfico, resumo de medidas e tabela reutilizam suas estruturas visuais corretas com limites específicos para o mobile.
+- Assets atualizados para `20260718.5`.
+- Frontend e infraestrutura: 43 de 43 testes aprovados.
+- Backend: 94 de 94 testes aprovados em 12 suítes.
+- Os cinco serviços permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
+- HTML e CSS públicos confirmaram os assets `20260718.5`, as classes estruturais do gráfico e das medidas e as grades responsivas do conteúdo.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-18 — Bloco 40 concluído e publicado
+
+- [x] Remover as alturas rígidas de 300 px e 400 px dos chats mobile.
+- [x] Fazer as abas de chat ocuparem a altura útil entre o cabeçalho e a navegação inferior.
+- [x] Manter mensagens roláveis e o campo de envio dentro da área segura do dispositivo.
+- [x] Alternar corretamente entre a lista de conversas e a janela ativa no chat do personal.
+- [x] Adicionar cobertura automatizada para o layout e a navegação mobile.
+- [x] Executar testes locais de frontend, infraestrutura e backend.
+- [x] Validar os assets na base pública de testes.
+- [x] Abrir pull request e aguardar a CI.
+
+Branch de trabalho: `fix/mobile-chat-layout`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/67
+
+Resultados locais:
+
+- As abas de chat usam layout flexível e aproveitam a altura disponível sem valores fixos por dispositivo.
+- A lista de conversas e a janela ativa do personal deixam de disputar espaço: apenas o contexto atual permanece visível.
+- A área de mensagens pode encolher e rolar internamente sem empurrar o formulário para fora da tela.
+- O campo de envio respeita `safe-area-inset-bottom`, inclusive em dispositivos com indicador de início.
+- Assets atualizados para `20260718.6`.
+- Frontend e infraestrutura: 44 de 44 testes aprovados.
+- Backend: 94 de 94 testes aprovados em 12 suítes.
+- Os cinco serviços permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
+- HTML e CSS públicos confirmaram os assets `20260718.6`, as abas flexíveis, a alternância de conversa e a área segura do formulário.
+- CI do pull request aprovada nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-18 — Bloco 41 em implementação — perfil do próprio usuário
+
+Objetivo: permitir que aluno e personal abram o próprio perfil clicando no avatar do cabeçalho e alterem nome, senha e foto com a mesma experiência em desktop e mobile.
+
+Branch de planejamento: `docs/profile-implementation-plan`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/68
+
+#### Decisões de produto e segurança
+
+- O perfil editará somente a conta autenticada; o reset de senha de aluno feito pelo personal continuará separado.
+- O e-mail e o papel da conta serão apenas informativos nesta primeira versão, reduzindo risco de tomada de conta e conflitos de identidade.
+- Troca de senha exigirá senha atual, nova senha e confirmação; a nova senha manterá o limite de 10 a 128 caracteres.
+- Uma troca de senha incrementará `session_version`, invalidará outras sessões e emitirá novos cookies para preservar somente a sessão atual.
+- Fotos aceitarão somente JPEG, PNG ou WebP; SVG, GIF animado, URL externa e conteúdo cuja assinatura não corresponda ao MIME serão rejeitados.
+- O servidor voltará a decodificar e normalizar a imagem, limitando dimensão de entrada, tamanho decodificado e saída quadrada WebP de até 512 × 512 px.
+- Arquivos ficarão no volume privado `/app/data`, nunca na pasta pública do frontend; nomes serão gerados pelo servidor e não derivados do upload.
+- A foto continuará opcional; remoção ou falha de carregamento restaurará as iniciais sem quebrar o layout.
+- Nome, senha e foto serão atualizados por operações independentes para evitar perda parcial e facilitar mensagens de erro claras.
+
+#### Fase 1 — banco, armazenamento e contrato da API
+
+- [x] Criar migração aditiva em `users` com referência/versionamento da foto e data de atualização, sem armazenar caminho fornecido pelo cliente.
+- [x] Criar serviço de avatar com diretório controlado, escrita atômica, substituição e remoção segura de arquivo órfão.
+- [x] Adicionar processamento server-side da imagem e limites compatíveis com o `client_max_body_size` atual.
+- [x] Ampliar `GET /api/auth/me` para retornar metadados do avatar, nunca caminho interno.
+- [x] Criar `PATCH /api/profile` para alterar o nome do próprio usuário, com normalização, limite e rejeição de campos extras.
+- [x] Criar `PUT /api/profile/password` exigindo senha atual e aplicando hash bcrypt, rota autenticada, CSRF e limite de tentativas.
+- [x] Criar `PUT /api/profile/avatar` e `DELETE /api/profile/avatar` para substituir e remover a própria foto.
+- [x] Criar `GET /api/profile/avatar/:userId` sem cache compartilhado e com autorização para o próprio usuário ou para o par aluno/personal realmente vinculado.
+- [x] Retornar `404` genérico para foto ausente ou não autorizada, sem revelar relacionamentos entre contas.
+
+#### Fase 2 — auditoria e proteções
+
+- [x] Registrar eventos `profile.name_updated`, `profile.password_changed`, `profile.avatar_updated` e `profile.avatar_removed`, sem nome anterior, senha, arquivo ou imagem nos metadados.
+- [x] Impedir enumeração de usuários e travessia de diretórios; usar apenas ID validado e nome interno gerado.
+- [x] Remover metadados EXIF e reprocessar pixels antes de persistir a imagem.
+- [x] Garantir que respostas da foto usem MIME fixado pelo servidor, `X-Content-Type-Options: nosniff` e política `no-store` que não exponha conteúdo privado.
+- [ ] Incluir as fotos na estratégia de backup do volume e documentar restauração consistente entre banco e arquivos.
+- [x] Definir limpeza transacional compensatória: falha no banco remove arquivo novo; sucesso remove arquivo anterior somente após persistência.
+
+#### Fase 3 — tela de perfil desktop e mobile
+
+- [x] Transformar o avatar do cabeçalho desktop em botão acessível com o nome `Abrir meu perfil`.
+- [x] Exibir um avatar real clicável no cabeçalho mobile, anteriormente oculto, preservando tema, logout e área de toque.
+- [x] Criar uma tela/modal único de perfil: modal médio no desktop e painel de tela inteira no mobile, com gerenciamento de foco, Escape e retorno ao avatar.
+- [x] Separar a interface em `Dados pessoais`, `Foto` e `Segurança`, sem esconder erros nem misturar submissões.
+- [x] Em `Dados pessoais`, permitir nome e mostrar e-mail/papel como somente leitura.
+- [x] Em `Foto`, oferecer selecionar, pré-visualizar, recortar quadrado, ampliar/reposicionar, salvar, substituir e remover.
+- [x] Em `Segurança`, oferecer senha atual, nova senha e confirmação, controles mostrar/ocultar e aviso de encerramento das outras sessões.
+- [x] Bloquear duplo envio, anunciar carregamento/sucesso/erro e manter o formulário aberto quando a API falhar.
+
+#### Fase 4 — propagação visual
+
+- [ ] Criar componente/helper comum que renderize `<img>` segura quando houver avatar e iniciais quando não houver.
+- [x] Atualizar imediatamente cache local, nome e avatar do cabeçalho depois de salvar, sem recarregar a página.
+- [ ] Propagar fotos para cartões/lista de alunos, detalhes do aluno e cabeçalhos de chat respeitando a autorização do endpoint.
+- [x] Usar URL versionada pelo `avatar_updated_at` para invalidar somente a foto alterada, sem desabilitar cache global.
+- [ ] Fixar `aspect-ratio: 1`, `object-fit: cover`, recorte central e dimensões estáveis em todos os avatares para impedir esticamento e deslocamento de layout.
+- [x] Tratar erro de imagem removendo o `<img>` e restaurando as iniciais de forma segura.
+
+#### Fase 5 — testes, publicação e aceite
+
+- [x] Testar migração em banco vazio e legado, incluindo rollback sem apagar contas.
+- [x] Testar autorização de foto: próprio usuário, par vinculado, usuário sem vínculo, ID inválido e sessão ausente.
+- [ ] Testar arquivos válidos e ataques: SVG, MIME falso, assinatura divergente, imagem enorme, payload truncado, EXIF e nome malicioso.
+- [x] Testar senha atual incorreta, senha fraca, revogação das outras sessões e continuidade da sessão atual; confirmação divergente permanecerá no teste da interface.
+- [x] Testar edição de nome, validação e auditoria; atualização imediata permanecerá no teste da interface.
+- [ ] Testar teclado, leitor de tela, foco, estados de erro, toque e layouts de 320 px a desktop.
+- [x] Executar frontend/infraestrutura, backend, `npm audit`, build e recriação do container da API.
+- [x] Fazer backup antes da migração, validar healthchecks, rotas, cabeçalhos e persistência após recriar os containers.
+- [ ] Validar publicamente sem alterar contas reais: usar conta controlada da base de testes e remover a foto de ensaio ao final.
+- [ ] Abrir PR em blocos revisáveis, aguardar a CI e registrar resultados neste documento.
+
+#### Critérios de aceite
+
+- Aluno e personal conseguem abrir o próprio perfil pelo avatar em desktop e mobile.
+- Nome atualizado aparece imediatamente no cabeçalho e nos contextos autorizados.
+- Senha só muda com a senha atual correta; outras sessões deixam de funcionar e a atual permanece ativa.
+- Foto válida pode ser recortada, substituída e removida; imagens inválidas nunca são persistidas ou servidas.
+- Nenhuma foto fica acessível como arquivo público ou para usuário sem vínculo.
+- Todos os avatares mantêm proporção quadrada sem esticar, com iniciais como fallback.
+- O recurso permanece funcional depois de rebuild/recreate e está incluído no backup.
+
+#### Execução da fase 1 — API e armazenamento
+
+Branch de trabalho: `feat/profile-api`.
+Pull request da fase 1: https://github.com/carlossuzin6111-code/sistema-tonho/pull/69
+
+- Migração `202607180002_add_user_avatars.js` aplicada em banco vazio, legado e na base pública de testes.
+- `sharp` normaliza a entrada para WebP 512 × 512, remove metadados e limita arquivo a 400 KB e dimensões a 4096 × 4096.
+- MIME declarado e assinatura real precisam coincidir; SVG, GIF, animação e URL externa não são aceitos.
+- Arquivos recebem UUID, escrita atômica e ficam em `/app/data/avatars`, fora do Nginx público.
+- Nome, senha, inclusão, leitura e remoção de avatar possuem rotas autenticadas, CSRF para cookies e validação estrita.
+- Respostas do usuário expõem somente `hasAvatar` e `avatarUpdatedAt`, nunca o nome ou caminho interno do arquivo.
+- Troca de senha exige a senha atual, incrementa `session_version`, revoga as outras sessões e renova a atual.
+- Snapshot pré-migração verificado com `integrity: ok`; integração dos arquivos de avatar ao backup automático permanece pendente.
+- Frontend e infraestrutura: 44 de 44 testes aprovados.
+- Backend: 99 de 99 testes aprovados em 12 suítes.
+- Auditorias npm de produção e desenvolvimento: zero vulnerabilidades.
+- Imagem de produção construída; API recriada e saudável; colunas `avatar_filename` e `avatar_updated_at` confirmadas.
+- Healthcheck público da API respondeu `200`; nenhuma conta ou foto foi alterada durante a validação pública.
+- CI da fase 1 aprovada nas verificações de frontend/infraestrutura e backend.
+
+#### Execução da fase 2 — tela de perfil próprio
+
+Branch de trabalho: `feat/profile-edit-ui`.
+Pull request da fase visual: https://github.com/carlossuzin6111-code/sistema-tonho/pull/70
+
+- Avatar do cabeçalho abre o perfil tanto para aluno quanto para personal em desktop e mobile.
+- E-mail e tipo de conta aparecem como somente leitura; nome usa submissão independente com retorno local.
+- Senha atual, nova senha e confirmação possuem visibilidade controlada, validação e aviso de revogação das demais sessões.
+- JPEG, PNG e WebP podem ser pré-visualizados e recortados em 512 × 512 com zoom e posicionamento horizontal/vertical.
+- O navegador gera WebP de até 400 KB e o backend permanece responsável pela revalidação e normalização final.
+- Renderização da foto usa DOM seguro, sem `innerHTML`, atributo de evento inline ou URL externa.
+- Falha de carregamento e remoção restauram imediatamente a inicial do nome; ausência de foto desabilita a remoção.
+- Assets preparados na versão `20260718.7`.
+- Frontend e infraestrutura: 45 de 45 testes aprovados.
+- Backend: 99 de 99 testes aprovados em 12 suítes.
+- Os cinco serviços permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
+- HTML, CSS e JavaScript públicos confirmaram o modal desktop/mobile, avatar clicável, recorte, limite de 400 KB, DOM seguro e assets `20260718.7`.
+- A validação pública foi estrutural e não alterou nome, senha ou foto de nenhuma conta.
+- CI da fase visual aprovada nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-18 — Programa planejado — reestruturação das telas do aluno
+
+Objetivo: revisar e reestruturar, em partes independentes, `Meus exercícios`, `Minhas medidas` e `Chat com personal`, corrigindo proporção, sobreposição, rolagem, estados de erro e consistência entre desktop e mobile sem regredir o que já funciona.
+
+Branch de planejamento: `docs/student-screen-restructure-plan`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/71
+
+#### Diagnóstico inicial confirmado
+
+- `Meus exercícios` reutiliza uma tabela de sete colunas no mobile; o invólucro permite rolagem horizontal, mas não oferece uma leitura realmente adaptada a 320–390 px.
+- O estado concluído de um exercício usa `localStorage` apenas pelo ID do exercício e pode ser reaproveitado indevidamente quando outra conta usa o mesmo navegador.
+- `Minhas medidas` fixa a tabela mobile em no mínimo 720 px, obrigando deslocamento horizontal e escondendo a relação entre rótulo e valor.
+- O estado vazio de medidas orienta clicar em `Adicionar Medidas`, mas essa ação não está visível na tela principal do aluno.
+- O tratamento de erro de `loadStudentMeasurements()` referencia `container`, variável inexistente nesse escopo, podendo esconder a falha original com um segundo erro JavaScript.
+- `Chat com personal` já recebeu altura flexível, mas ainda precisa ser validado com teclado virtual, viewport baixo, nome longo, mensagem/URL longa, estados de conexão e falha de envio.
+- As renderizações do aluno ainda misturam DOM seguro com trechos estáticos em `innerHTML`; a reestruturação deve convergir para componentes seguros e testáveis.
+- O perfil recém-publicado ainda possui duas pendências prioritárias: backup automático das fotos e propagação autorizada dos avatares.
+
+#### Ordem obrigatória dos blocos
+
+1. Bloco 42: confiabilidade compartilhada e conclusão do perfil.
+2. Bloco 43: reestruturação de `Meus exercícios`.
+3. Bloco 44: reestruturação de `Minhas medidas`.
+4. Bloco 45: reestruturação de `Chat com personal`.
+5. Bloco 46: auditoria visual e funcional cruzada da área do aluno.
+
+Cada bloco usará branch e pull request próprios. Um bloco só começa após o merge e a sincronização da `main` do bloco anterior.
+
+### Bloco 42 planejado — confiabilidade antes da reestruturação visual
+
+Prioridade: alta, porque protege dados e remove erros de base que afetariam as três telas.
+
+Branch de execução: `fix/shared-student-reliability`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/72
+
+Progresso em 2026-07-18:
+
+- Backup automático convertido em conjunto atômico com SQLite, avatares privados, manifesto e SHA-256; a retenção agora remove o conjunto completo.
+- Restauração adicionada por `npm run db:restore -- <backup> <destino>`; banco e avatares são validados antes da cópia e promovidos ao destino somente após a preparação completa.
+- Lista/detalhes de alunos e o novo `GET /api/chat/partner` propagam apenas `hasAvatar` e `avatarUpdatedAt`, sem caminho ou nome interno.
+- Um helper compartilhado renderiza foto autorizada com URL versionada e fallback por iniciais nos cards, detalhes e chats.
+- Fluxos do aluno foram migrados para DOM seguro; o erro secundário de medidas foi eliminado, valores zero foram preservados e marcações de exercício passaram a ser isoladas pelo ID do usuário.
+- Validação local concluída: backend `106/106`, frontend `46/46`, verificações sintáticas/diff sem erro e auditorias de dependência de produção sem vulnerabilidades.
+- Build de `app` e `backup-worker` concluído; snapshot pré-publicação `database-block42-prepublish-20260718.sqlite` validado com `integrity: ok` e 5.566.464 bytes.
+- Serviços recriados saudáveis. O primeiro conjunto automático `backup-20260718T140726005Z` preservou banco e 2 avatares com checksums; a restauração real em diretório temporário recuperou os 2 arquivos e foi removida após a validação.
+- Ambiente público respondeu `200` no healthcheck e no asset `student.js?v=20260718.8`; rotas privadas `auth/me` e `chat/partner` responderam `401` sem sessão, como esperado.
+- CI do PR #72 aprovado nos jobs `Backend` e `Frontend and infrastructure`.
+
+- [x] Incluir o diretório privado de avatares no backup automático com manifesto, restauração consistente e retenção conjunta com o SQLite.
+- [x] Testar backup sem avatares, com avatares, arquivo ausente, falha parcial e restauração em diretório limpo.
+- [x] Propagar metadados autorizados de avatar para lista/detalhes de alunos e para o par vinculado no chat, sem expor caminhos internos.
+- [x] Criar helper único de avatar com dimensão fixa, `aspect-ratio: 1`, `object-fit: cover`, URL versionada e iniciais como fallback.
+- [x] Corrigir o erro de escopo no tratamento de falha de medidas antes de alterar o layout.
+- [x] Remover `innerHTML` remanescente dos fluxos do aluno e construir estados vazios, cabeçalhos e spinners com DOM seguro.
+- [x] Separar por usuário as preferências locais permitidas; nenhum estado de uma conta pode aparecer para outra conta no mesmo navegador.
+- [x] Adicionar testes preventivos para os itens anteriores.
+- [x] Executar testes, audit, build, backup controlado, publicação, validação pública e CI.
+
+Critérios de aceite do bloco 42:
+
+- Recriar containers não remove fotos e uma restauração recupera banco e avatares correspondentes.
+- Nenhum caminho de erro do aluno gera exceção secundária.
+- Trocar de conta no mesmo navegador não reaproveita marcações privadas da conta anterior.
+- Avatares autorizados não deformam nem ampliam cards, cabeçalhos ou chat.
+
+### Bloco 43 planejado — `Meus exercícios`
+
+Estratégia: preservar a tabela pedagógica no desktop e oferecer leitura em cartões/linhas empilhadas no mobile, sem rolagem horizontal obrigatória.
+
+Branch de execução: `feat/student-workouts-responsive`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/73
+
+Progresso em 2026-07-18:
+
+- Cabeçalho unificado como `Meus exercícios`, com orientação curta e resumo calculado localmente de treinos, exercícios e concluídos.
+- A tabela semântica e seus cabeçalhos foram preservados no desktop; no mobile, cada `tr` passa a ser apresentado como cartão de duas colunas, com `data-label` explícito para cada valor e sem duplicar os dados no DOM.
+- Nome, descrição, observações, repetições e carga agora podem quebrar linha sem ampliar o card; wrappers usam `min-width: 0` e não dependem de `100vw` ou largura fixa.
+- Checkbox e ação de execução receberam alvo mínimo de 44 px, foco visível e organização sem sobreposição; marcar/desmarcar atualiza imediatamente o resumo e continua isolado por usuário.
+- Estado de erro passou a limpar o resumo e oferecer `Tentar novamente`; vazio mantém ação contextual para o chat.
+- Modal de execução ganhou texto alternativo contextual, contenção de imagem horizontal/vertical, quebra de instruções longas e rolagem vertical no mobile.
+- Validação local concluída: backend `106/106`, frontend `47/47`, sintaxe JavaScript e `git diff --check` sem erros; auditorias de dependências sem vulnerabilidades.
+- Snapshot pré-publicação `database-block43-prepublish-20260718.sqlite` criado com 6.631.424 bytes, 12 tabelas e `integrity: ok`; todos os containers permaneceram saudáveis.
+- Como o frontend é montado em modo somente leitura no Nginx, não há imagem específica para reconstruir. Publicação `20260718.9` confirmada com HTTP `200` em home, healthcheck, mobile e `student.js`; HTML público confirmou o novo cabeçalho, resumo e todos os assets versionados.
+- CI do PR #73 aprovado nos jobs `Backend` e `Frontend and infrastructure`.
+
+- [x] Criar cabeçalho consistente com título, orientação curta e resumo de treinos/exercícios/concluídos.
+- [x] Garantir uma coluna principal flexível com `min-width: 0` e quebra segura de nome, descrição, observações, repetições e carga.
+- [x] No mobile, apresentar cada exercício com status, nome, séries, repetições, carga, descanso e execução em hierarquia vertical legível.
+- [x] Manter checkbox e botão de execução com alvo de toque mínimo de 44 px e sem sobreposição.
+- [x] Fazer o card inteiro caber entre as margens em 320, 360 e 390 px, sem `100vw`, largura fixa ou scroll horizontal da página.
+- [x] Preservar tabela semântica e cabeçalhos no desktop; adicionar `scope` e nomes acessíveis onde faltarem.
+- [x] Corrigir vazio, carregamento e erro com espaço estável e ação contextual para o chat.
+- [x] Validar modal de execução em imagem horizontal, vertical, ausente e texto longo.
+- [x] Testar tema claro/escuro, movimento reduzido, teclado e toque.
+- [x] Executar procedimento completo e abrir PR exclusivo da tela.
+
+Critérios de aceite do bloco 43:
+
+- Nenhum exercício exige rolagem horizontal no mobile.
+- Todos os valores permanecem associados ao rótulo correto e textos longos não deslocam ações.
+- Marcar concluído afeta somente o usuário atual e sobrevive ao recarregamento conforme a regra local definida.
+
+### Bloco 44 planejado — `Minhas medidas`
+
+Estratégia: manter gráfico e tabela completos no desktop; no mobile, priorizar resumo, evolução e histórico em cartões responsivos.
+
+Branch de execução: `feat/student-measurements-responsive`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/74
+
+Progresso em 2026-07-18:
+
+- Ação `Adicionar medidas` adicionada ao cabeçalho do aluno em desktop e mobile, reutilizando o modal e o fluxo autenticado existentes.
+- Corrigido defeito funcional do modal mobile: os campos de bíceps e coxa acessados pelo JavaScript não existiam na página e agora os oito campos são equivalentes aos do desktop.
+- Resumo sem nova requisição apresenta último peso, variação para o registro anterior, data da avaliação e quantidade de registros; ausente e zero são tratados separadamente.
+- Gráfico e métricas foram organizados em uma coluna principal no mobile, com largura flexível, altura estável e métricas em duas colunas.
+- Tabela completa, `caption` e `scope` permanecem no desktop; no mobile cada linha é apresentada como cartão rotulado, sem a antiga largura mínima de 720 px na tela do aluno.
+- Modal de inclusão ganhou rolagem vertical, áreas seguras e reorganização para uma coluna em telas estreitas/teclado aberto.
+- Falha da API limpa o resumo, mantém erro local e oferece `Tentar novamente`; sucesso continua recarregando a aba atual.
+- Validação local concluída: backend `106/106`, frontend `48/48`, sintaxe JavaScript e `git diff --check` sem erros; auditorias de dependências sem vulnerabilidades.
+- Snapshot pré-publicação `database-block44-prepublish-20260718.sqlite` criado com 6.676.480 bytes, 12 tabelas e `integrity: ok`; todos os containers permaneceram saudáveis.
+- Publicação `20260718.10` confirmada com HTTP `200` em home, healthcheck, mobile e `student.js`; HTML público confirmou cabeçalho, resumo, campo mobile antes ausente e todos os assets versionados.
+- CI do PR #74 aprovado nos jobs `Backend` e `Frontend and infrastructure`.
+
+- [x] Adicionar ação visível `Adicionar medidas` para o aluno em desktop e mobile, reutilizando o modal e as validações existentes.
+- [x] Criar cabeçalho/resumo com último peso, variação, data da avaliação e quantidade de registros sem nova requisição.
+- [x] Fazer gráfico respeitar largura, altura mínima e rótulos em 320–390 px sem cortar pontos, datas ou resumo textual.
+- [x] Organizar métricas em duas colunas flexíveis e uma coluna quando o conteúdo ampliado exigir.
+- [x] Substituir no mobile a tabela de 720 px por histórico em cartões ou linhas responsivas com data e rótulos explícitos.
+- [x] Preservar tabela completa, `caption`, `scope` e leitura por teclado/leitor de tela no desktop.
+- [x] Tratar zero como valor válido quando aplicável e distinguir ausente de zero.
+- [x] Corrigir estados de carregamento, vazio, sucesso de inclusão e erro sem mudar altura abruptamente ou perder a aba atual.
+- [x] Garantir rolagem vertical da tela e do modal em viewport baixo/teclado aberto, sem rolagem horizontal da página.
+- [x] Executar procedimento completo e abrir PR exclusivo da tela.
+
+Critérios de aceite do bloco 44:
+
+- O aluno encontra e usa `Adicionar medidas` sem depender de outra tela.
+- Histórico mobile pode ser lido sem deslocamento lateral.
+- Falha da API apresenta erro local recuperável e não gera exceção JavaScript secundária.
+
+### Bloco 45 planejado — `Chat com personal`
+
+Estratégia: manter o chat como uma coluna flexível que ocupa somente a altura disponível e preserva o campo de envio acima do teclado/navegação.
+
+Branch de execução: `feat/student-chat-resilience`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/75
+
+Progresso em 2026-07-18:
+
+- Aba mobile passou a ocupar exatamente a altura disponível com `height: 100%`, `min-height: 0` e container interno flexível; cabeçalho e formulário são fixos no fluxo e somente a lista de mensagens possui rolagem.
+- Formulário foi reorganizado em grid com campo flexível, botão de 44 px e feedback em linha própria; fonte mobile de 16 px evita zoom automático e áreas seguras preservam o envio acima da navegação/teclado.
+- Nome do personal, feedback, mensagens, URLs e sequências longas usam quebra segura sem ampliar a viewport; bolhas usam até 88% no mobile e largura limitada no desktop.
+- Região de mensagens agora é um `role="log"` anunciado de forma incremental; avatar autorizado mantém geometria quadrada fixa e fallback compartilhado.
+- Texto digitado permanece em falha, submit duplicado é bloqueado também por estado do formulário, botão anuncia `Tentar enviar mensagem novamente` e novo input limpa feedback antigo sem timer adicional.
+- Falha ao carregar o histórico oferece tentativa local; fluxo SSE continua único, com estados conectado/reconectando/offline, leitura ao entrar na aba e badge fora dela.
+- Mensagens passaram a ser aparadas e limitadas a 2.000 caracteres no frontend, validação central e defesa do controller, impedindo armazenamento ilimitado.
+- Validação local concluída: backend `107/107`, frontend `49/49`, sintaxe JavaScript e `git diff --check` sem erros; auditorias de dependências sem vulnerabilidades.
+- Imagem da API reconstruída; snapshot pré-publicação `database-block45-prepublish-20260718.sqlite` criado com 6.676.480 bytes, 12 tabelas e `integrity: ok`; API recriada saudável e demais containers permaneceram ativos.
+- Logs públicos confirmaram sessões desktop/mobile, SSE `200` e avatar autorizado após a troca da API. Publicação `20260718.11` respondeu HTTP `200` em home, healthcheck, mobile e `student.js`; HTML confirmou região `log`, limite de 2.000 caracteres, parceiro flexível e assets versionados.
+- CI do PR #75 aprovado nos jobs `Backend` e `Frontend and infrastructure`.
+
+- [x] Validar e ajustar altura com `dvh`, `min-height: 0`, áreas seguras e rolagem apenas na lista de mensagens.
+- [x] Impedir sobreposição entre cabeçalho, mensagens, estado de conexão, feedback de envio, formulário e navegação inferior.
+- [x] Fazer nome do personal, mensagens, URLs e sequências longas quebrarem linha sem ampliar a tela.
+- [x] Ajustar bolhas para proporção legível em 320–390 px e desktop, mantendo remetente visualmente distinguível.
+- [x] Manter o campo com `min-width: 0`, botão de 44 px e feedback de envio em linha/linha separada conforme espaço.
+- [x] Preservar texto digitado em falha, bloquear envio duplicado e oferecer nova tentativa clara sem criar timers paralelos.
+- [x] Validar reconexão SSE, badge, chegada de mensagem dentro/fora da aba e retorno ao chat.
+- [x] Incluir avatar autorizado do personal com fallback e geometria fixa.
+- [x] Testar teclado virtual, rota restaurada, viewport baixo, muitas mensagens, chat vazio, offline e movimento reduzido.
+- [x] Executar procedimento completo e abrir PR exclusivo da tela.
+
+Critérios de aceite do bloco 45:
+
+- Campo de envio permanece alcançável com teclado aberto e navegação inferior visível.
+- Somente mensagens rolam; cabeçalho e formulário não se sobrepõem.
+- Mensagem com texto/URL longa não cria scroll horizontal.
+
+### Bloco 46 planejado — auditoria final da área do aluno
+
+- [ ] Revisar login, cabeçalho/perfil, exercícios, medidas, chat, modais e navegação como um fluxo único.
+- [ ] Validar 320, 360, 390, 768, 1024 e desktop amplo em tema claro e escuro.
+- [ ] Validar zoom de texto/navegador, teclado, foco, Escape, leitor de tela, toque e `prefers-reduced-motion`.
+- [ ] Procurar overflow horizontal, corte vertical, sobreposição, elemento sem scroll, alvo menor que 44 px e imagem deformada.
+- [ ] Confirmar rotas restauráveis, estados vazios, carregamento, erro e recuperação em cada tela.
+- [ ] Executar frontend/infraestrutura, backend, audit, build e healthchecks.
+- [ ] Fazer validação pública controlada e registrar evidências por tela no documento.
+- [ ] Abrir PR final somente para correções cruzadas encontradas na auditoria.
+
+#### Procedimento obrigatório para cada bloco
+
+1. Confirmar merge anterior, sincronizar `main` e exigir worktree limpo.
+2. Registrar no documento o diagnóstico e a branch antes de marcar implementação concluída.
+3. Alterar somente a tela/bloco em escopo; mudança transversal precisa ser explicitamente justificada.
+4. Revisar o diff completo procurando seletor amplo, ID duplicado, evento fora da allowlist, `innerHTML`, estado global e largura/altura fixa.
+5. Adicionar teste de regressão que falhe sem a correção.
+6. Executar frontend/infraestrutura e backend; quando houver dependência ou backend, executar `npm audit` e Docker build.
+7. Publicar com versão única de assets e validar health `200`, HTML, CSS e JavaScript diretamente no domínio.
+8. Não criar ou alterar dados públicos sem conta controlada e plano de limpeza.
+9. Rodar `git diff --check`, documentar resultados, criar commit, push e PR.
+10. Aguardar CI do commit final; somente então marcar o bloco concluído.
+
+#### Regra de parada
+
+Se um teste falhar, o healthcheck não ficar saudável, a publicação não corresponder ao diff ou surgir alteração fora do escopo, o bloco não será marcado como concluído nem seguirá para o próximo. A causa será corrigida ou documentada como bloqueio real.
+
+### 2026-07-17 — Bloco 20 concluído e publicado
+
+- [x] Dar nome acessível explícito a todos os botões compostos apenas por ícone.
+- [x] Cobrir cabeçalhos, chat, catálogo, drawer e fechamentos de modal.
+- [x] Corrigir componentes de botão criados dinamicamente.
+- [x] Adicionar teste preventivo para desktop, mobile e JavaScript.
+- [x] Testar localmente e atualizar a versão dos assets.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `accessibility/icon-button-labels`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/47
+
+Resultados locais:
+
+- Menu, tema, logout, retorno do chat, criação de exercício e fechamento do drawer receberam nomes explícitos no mobile.
+- Tema, logout, retorno do chat e todos os fechamentos de modal receberam nomes explícitos no desktop.
+- Fechamentos de modal possuem descrições contextuais em vez do nome genérico aplicado após a inicialização do JavaScript.
+- Botões dinâmicos de remover exercício, visualizar execução e excluir do catálogo incluem o nome do exercício no `aria-label`.
+- O teste novo encontrou e impediu a permanência de um botão de logout desktop que dependia apenas de `title`.
+- Versão comum dos assets atualizada para `20260717.10`.
+- Frontend e infraestrutura: 28 de 28 testes aprovados.
+- Backend: 87 de 87 testes aprovados em 11 suítes.
+- API, Nginx, workers e tunnel permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
+- HTML público desktop e mobile confirmou os nomes acessíveis e assets `20260717.10`; JavaScript público confirmou os três rótulos dinâmicos contextuais.
+- CI do pull request aprovado nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-17 — Bloco 17 concluído e publicado
+
+- [x] Substituir confirmações nativas de exclusão por modal acessível e contextual.
+- [x] Manter o modal aberto e exibir erro quando a exclusão falhar.
+- [x] Bloquear envios duplicados e informar o estado de processamento.
+- [x] Garantir retorno correto ao contexto de aluno ou catálogo em desktop e mobile.
+- [x] Testar localmente e atualizar a versão dos assets.
+- [x] Publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `feat/accessible-delete-confirmation`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/44
+
+Resultados locais:
+
+- Exclusões de treino, exercício da ficha e exercício do catálogo usam um diálogo comum com título, descrição e botão específicos.
+- Conteúdo dinâmico é inserido com `textContent`, sem interpolação de HTML.
+- O diálogo permanece aberto em falhas da API, anuncia o erro e permite nova tentativa.
+- Envios duplicados são bloqueados e o botão apresenta estado `Excluindo...`.
+- Cancelamento, tecla Escape e conclusão restauram o contexto correto; a atualização da tela ocorre após fechar o diálogo.
+- O frontend não utiliza mais `confirm()` nativo.
+- Versão comum dos assets atualizada para `20260717.7`.
+- Frontend e infraestrutura: 27 de 27 testes aprovados.
+- Backend: 87 de 87 testes aprovados em 11 suítes.
+- API, Nginx, workers e tunnel permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
+- HTML público desktop e mobile confirmou o diálogo e os assets `20260717.7`; JavaScript público confirmou as três ações contextuais e a ausência de `confirm()`.
+- CI do pull request aprovado nas verificações de frontend/infraestrutura e backend.
+
+### 2026-07-17 — Bloco 18 concluído e publicado
+
+- [x] Remover estilos inline estáticos das interfaces desktop e mobile.
+- [x] Substituir estilos criados por JavaScript por classes CSS.
+- [x] Impedir que o helper de DOM volte a criar atributos `style`.
+- [x] Remover `'unsafe-inline'` de `style-src` na CSP.
+- [x] Testar, reconstruir e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `fix/remove-inline-styles`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/45
+
+Resultados:
+
+- Todos os atributos `style` foram removidos dos HTMLs desktop e mobile e substituídos por classes reutilizáveis.
+- Renderizações dinâmicas de alunos, treinos, medidas, chat, catálogo e mídia deixaram de criar estilos inline.
+- O helper `SafeDOM.el` não aceita mais a opção `style`, prevenindo reintrodução acidental.
+- A CSP publicada removeu `'unsafe-inline'` de `style-src`, mantendo somente CSS local e Google Fonts explicitamente autorizado.
+- Teste automatizado falha se HTML ou JavaScript voltar a criar estilos inline ou se a CSP voltar a permitir `'unsafe-inline'`.
+- Versão comum dos assets atualizada para `20260717.8`.
+- Frontend e infraestrutura: 27 de 27 testes aprovados.
+- Backend: 87 de 87 testes aprovados em 11 suítes.
+- Configuração do Nginx validada com sucesso antes da recriação do container.
+- API, Nginx, workers e tunnel permaneceram ativos; API e Nginx estavam saudáveis e o healthcheck público respondeu `200`.
+- Cabeçalho público confirmou a CSP sem estilos inline e HTML público confirmou assets `20260717.8` sem atributos `style`.
+- Captura pública mobile em escala equivalente a 390 px confirmou o formulário completo, alinhado e sem regressão visual.
+
+### 2026-07-17 — Bloco 19 concluído e publicado
+
+- [x] Remover conexões não utilizadas com Google Fonts.
+- [x] Mover o último bloco de CSS inline do roteador para a folha local.
+- [x] Restringir `style-src` e `font-src` da CSP somente à própria origem.
+- [x] Ampliar o teste preventivo para todas as páginas HTML.
+- [x] Testar, publicar e validar na base pública de testes.
+- [x] Abrir pull request.
+
+Branch de trabalho: `security/self-hosted-styles-only`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/46
+
+Resultados:
+
+- As interfaces já utilizavam a pilha de fontes do sistema; três conexões remotas sem efeito visual foram removidas de cada dashboard.
+- `index.html` passou a carregar a folha versionada e usa a classe local `router-loading-page`, eliminando o último bloco `<style>`.
+- CSP pública restringe `style-src 'self'` e `font-src 'self'`, sem autorizações a Google Fonts.
+- Teste automatizado cobre index, desktop e mobile contra blocos, atributos de estilo e hosts remotos de fontes.
+- Versão comum dos assets atualizada para `20260717.9`.
+- Frontend e infraestrutura: 27 de 27 testes aprovados.
+- Backend: 87 de 87 testes aprovados em 11 suítes.
+- Configuração do Nginx validada antes da publicação; API, workers e tunnel permaneceram ativos durante a recriação do frontend.
+- Resposta pública confirmou healthcheck `200`, assets `20260717.9` e a CSP restrita à própria origem.
+- CI do pull request aprovado nas verificações de frontend/infraestrutura e backend.

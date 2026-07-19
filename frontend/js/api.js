@@ -1,22 +1,19 @@
 // FitLife Sync API client
 
 const API_BASE_URL = '/api';
+const CSRF_COOKIE = 'fitlife_csrf';
+
+// Remove credentials left by versions prior to HttpOnly cookie sessions.
+localStorage.removeItem('fitlife_token');
 
 const API = {
-  // Get token from localStorage
-  getToken() {
-    return localStorage.getItem('fitlife_token');
-  },
-
-  // Save token & user details
-  saveSession(token, user) {
-    localStorage.setItem('fitlife_token', token);
+  // Cache only non-sensitive user details. The session credential is an HttpOnly cookie.
+  saveSession(user) {
     localStorage.setItem('fitlife_user', JSON.stringify(user));
   },
 
   // Clear session on logout
   clearSession() {
-    localStorage.removeItem('fitlife_token');
     localStorage.removeItem('fitlife_user');
   },
 
@@ -26,12 +23,19 @@ const API = {
     return userStr ? JSON.parse(userStr) : null;
   },
 
-  // Set up authentication headers
-  getHeaders() {
-    const token = this.getToken();
+  getCsrfToken() {
+    const cookie = document.cookie
+      .split('; ')
+      .find(item => item.startsWith(`${CSRF_COOKIE}=`));
+    return cookie ? decodeURIComponent(cookie.slice(CSRF_COOKIE.length + 1)) : null;
+  },
+
+  // Set up JSON and CSRF headers. Browsers attach the HttpOnly session cookie.
+  getHeaders({ mutating = false } = {}) {
+    const csrfToken = mutating ? this.getCsrfToken() : null;
     return {
       'Content-Type': 'application/json',
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {})
     };
   },
 
@@ -50,7 +54,8 @@ const API = {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'GET',
-        headers: this.getHeaders()
+        headers: this.getHeaders(),
+        credentials: 'same-origin'
       });
       return await this.handleResponse(response);
     } catch (err) {
@@ -64,7 +69,8 @@ const API = {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
-        headers: this.getHeaders(),
+        headers: this.getHeaders({ mutating: true }),
+        credentials: 'same-origin',
         body: JSON.stringify(data)
       });
       return await this.handleResponse(response);
@@ -74,12 +80,29 @@ const API = {
     }
   },
 
+  async patch(endpoint, data) {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PATCH', headers: this.getHeaders({ mutating: true }),
+      credentials: 'same-origin', body: JSON.stringify(data)
+    });
+    return this.handleResponse(response);
+  },
+
+  async put(endpoint, data) {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PUT', headers: this.getHeaders({ mutating: true }),
+      credentials: 'same-origin', body: JSON.stringify(data)
+    });
+    return this.handleResponse(response);
+  },
+
   // HTTP DELETE request
   async delete(endpoint) {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'DELETE',
-        headers: this.getHeaders()
+        headers: this.getHeaders({ mutating: true }),
+        credentials: 'same-origin'
       });
       return await this.handleResponse(response);
     } catch (err) {
@@ -121,16 +144,16 @@ const API = {
   // Real-Time Chat Server-Sent Events subscription
   chatStream: null,
   
-  connectChatStream(onMessageReceived, onError) {
-    const token = this.getToken();
-    if (!token) return null;
-
+  connectChatStream(onMessageReceived, { onOpen, onError } = {}) {
     // If there is an active stream, close it
     this.disconnectChatStream();
 
-    // Create an EventSource subscribing to the stream, passing the token via query params
-    const sseUrl = `${API_BASE_URL}/chat/stream?token=${encodeURIComponent(token)}`;
-    this.chatStream = new EventSource(sseUrl);
+    // EventSource authenticates with the same-origin HttpOnly session cookie.
+    this.chatStream = new EventSource(`${API_BASE_URL}/chat/stream`, { withCredentials: true });
+
+    this.chatStream.onopen = () => {
+      if (onOpen) onOpen();
+    };
 
     this.chatStream.onmessage = (event) => {
       try {
@@ -143,7 +166,7 @@ const API = {
 
     this.chatStream.onerror = (err) => {
       console.error('SSE Chat Stream encountered an error:', err);
-      if (onError) onError(err);
+      if (onError) onError(err, this.chatStream?.readyState);
     };
 
     return this.chatStream;

@@ -6,40 +6,97 @@ let activeWorkoutId = null;
 let activeChatStudentId = null;
 let exerciseCatalogList = [];
 
+function normalizeListSearch(value) {
+  return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+function filterRenderedList({ containerId, cardSelector, emptyId, countId, query }) {
+  const normalizedQuery = normalizeListSearch(query);
+  const cards = Array.from(document.getElementById(containerId).querySelectorAll(cardSelector));
+  let visible = 0;
+  cards.forEach(card => {
+    const matches = !normalizedQuery || card.dataset.search.includes(normalizedQuery);
+    card.classList.toggle('hidden', !matches);
+    if (matches) visible += 1;
+  });
+  document.getElementById(countId).textContent = `${visible} de ${cards.length}`;
+  document.getElementById(emptyId).classList.toggle('hidden', !normalizedQuery || visible > 0);
+}
+
+function filterPersonalStudents(query) {
+  filterRenderedList({ containerId: 'students-grid', cardSelector: '.student-card', emptyId: 'students-search-empty', countId: 'students-search-count', query });
+}
+
+function filterPersonalExercises(query) {
+  const prioritySection = document.getElementById('exercises-priority-section');
+  if (prioritySection) {
+    if (query && query.trim() !== '') {
+      prioritySection.classList.add('hidden');
+    } else {
+      const prioritized = exerciseCatalogList.filter(ex => ex.is_favorite || ex.is_custom);
+      if (prioritized.length > 0) {
+        prioritySection.classList.remove('hidden');
+      }
+    }
+  }
+  filterRenderedList({ containerId: 'exercises-catalog-list', cardSelector: '.exercise-db-card', emptyId: 'exercises-search-empty', countId: 'exercises-search-count', query });
+}
+
+function sortRenderedList(containerId, cardSelector, compare) {
+  const container = document.getElementById(containerId);
+  Array.from(container.querySelectorAll(cardSelector)).sort(compare).forEach(card => container.appendChild(card));
+}
+
+function sortPersonalStudents(value) {
+  sortRenderedList('students-grid', '.student-card', (a, b) => {
+    if (value === 'unread') return Number(b.dataset.unread) - Number(a.dataset.unread) || a.dataset.sortName.localeCompare(b.dataset.sortName, 'pt-BR');
+    const direction = value === 'name-desc' ? -1 : 1;
+    return direction * a.dataset.sortName.localeCompare(b.dataset.sortName, 'pt-BR');
+  });
+  filterPersonalStudents(document.getElementById('students-search').value);
+}
+
+function sortPersonalExercises(value) {
+  sortRenderedList('exercises-catalog-list', '.exercise-db-card', (a, b) => {
+    const direction = value === 'name-desc' ? -1 : 1;
+    return direction * a.dataset.sortName.localeCompare(b.dataset.sortName, 'pt-BR');
+  });
+  filterPersonalExercises(document.getElementById('exercises-search').value);
+}
+
 // Renders the list of students in the Personal Dashboard
 async function loadPersonalStudents() {
   const grid = document.getElementById('students-grid');
-  grid.innerHTML = `
-    <div class="loading-placeholder">
-      <div class="spinner"></div>
-      <span>Carregando sua lista de alunos...</span>
-    </div>
-  `;
+  renderLoadingSkeletons(grid, { count: 3, variant: 'student', label: 'Carregando lista de alunos' });
 
   try {
     personalStudents = await API.get('/personal/students');
+    finishLoadingState(grid);
     document.getElementById('stat-total-students').textContent = personalStudents.length;
+    const globalUnread = personalStudents.reduce((total, student) => total + (student.unread_messages || 0), 0);
+    document.getElementById('stat-unread-messages').textContent = globalUnread;
 
     if (personalStudents.length === 0) {
       grid.innerHTML = `
-        <div class="chat-empty-state glass" style="grid-column: 1 / -1; padding: 50px;">
-          <i data-lucide="users" class="chat-empty-icon text-gradient" style="width: 50px; height: 50px;"></i>
+        <div class="chat-empty-state glass grid-span-full empty-state-large">
+          <i data-lucide="users" class="chat-empty-icon text-gradient icon-50"></i>
           <h3>Nenhum aluno cadastrado</h3>
           <p>Crie o primeiro acesso para seus alunos usando a aba "Cadastrar Aluno" na barra lateral.</p>
         </div>
       `;
+      appendEmptyStateAction(grid, { label: 'Cadastrar primeiro aluno', icon: 'user-plus', onClick: () => switchPersonalTab('create') });
       lucide.createIcons();
+      filterPersonalStudents(document.getElementById('students-search').value);
       return;
     }
 
     grid.innerHTML = '';
-    let globalUnread = 0;
-
     personalStudents.forEach(student => {
-      globalUnread += student.unread_messages || 0;
-      
       const card = document.createElement('div');
       card.className = 'student-card glass';
+      card.dataset.search = normalizeListSearch(`${student.name} ${student.email}`);
+      card.dataset.sortName = normalizeListSearch(student.name);
+      card.dataset.unread = String(student.unread_messages || 0);
       
       // Calculate age if birth_date exists
       let ageText = 'N/A';
@@ -53,42 +110,36 @@ async function loadPersonalStudents() {
       const weightVal = student.latest_weight ? `${student.latest_weight} kg` : 'N/A';
       const heightVal = student.height ? `${student.height} m` : 'N/A';
 
-      // Unread message badge
-      const unreadBadge = student.unread_messages > 0 
-        ? `<div class="badge-unread-chat">${student.unread_messages}</div>` 
-        : '';
+      if (student.unread_messages > 0) {
+        card.appendChild(SafeDOM.el('div', { className: 'badge-unread-chat', text: student.unread_messages }));
+      }
 
-      card.innerHTML = `
-        ${unreadBadge}
-        <div class="student-card-header">
-          <div class="avatar">${student.name.charAt(0).toUpperCase()}</div>
-          <div>
-            <h3>${student.name}</h3>
-            <p>${student.email}</p>
-          </div>
-        </div>
+      const studentName = String(student.name ?? '');
+      const studentAvatar = SafeDOM.el('div', { className: 'avatar' });
+      renderUserAvatar(studentAvatar, student);
+      card.appendChild(SafeDOM.el('div', { className: 'student-card-header' }, [
+        studentAvatar,
+        SafeDOM.el('div', {}, [
+          SafeDOM.el('h3', { text: studentName }),
+          SafeDOM.el('p', { text: student.email })
+        ])
+      ]));
 
-        <div class="student-stats-row">
-          <div class="student-stat">
-            <span class="student-stat-title">Peso Atual</span>
-            <span class="student-stat-value">${weightVal}</span>
-          </div>
-          <div class="student-stat">
-            <span class="student-stat-title">Altura</span>
-            <span class="student-stat-value">${heightVal}</span>
-          </div>
-          <div class="student-stat">
-            <span class="student-stat-title">Idade</span>
-            <span class="student-stat-value">${ageText}</span>
-          </div>
-        </div>
+      const stat = (label, value) => SafeDOM.el('div', { className: 'student-stat' }, [
+        SafeDOM.el('span', { className: 'student-stat-title', text: label }),
+        SafeDOM.el('span', { className: 'student-stat-value', text: value })
+      ]);
+      card.appendChild(SafeDOM.el('div', { className: 'student-stats-row' }, [
+        stat('Peso Atual', weightVal),
+        stat('Altura', heightVal),
+        stat('Idade', ageText)
+      ]));
 
-        <div class="student-card-actions">
-          <button class="btn btn-primary btn-full btn-sm" onclick="openStudentDetails(${student.id})">
-            <i data-lucide="eye"></i> Acompanhar Aluno
-          </button>
-        </div>
-      `;
+      const detailsButton = SafeDOM.el('button', {
+        className: 'btn btn-primary btn-full btn-sm',
+        on: { click: () => openStudentDetails(student.id) }
+      }, [SafeDOM.icon('eye'), ' Acompanhar Aluno']);
+      card.appendChild(SafeDOM.el('div', { className: 'student-card-actions' }, [detailsButton]));
 
       grid.appendChild(card);
     });
@@ -103,13 +154,12 @@ async function loadPersonalStudents() {
     }
 
     lucide.createIcons();
+    sortPersonalStudents(document.getElementById('students-sort').value);
+    filterPersonalStudents(document.getElementById('students-search').value);
   } catch (err) {
-    grid.innerHTML = `
-      <div class="info-alert" style="grid-column: 1 / -1; border-color: var(--danger); background: rgba(239, 68, 68, 0.05); color: var(--danger);">
-        <i data-lucide="alert-circle"></i>
-        <span>Erro ao carregar lista de alunos: ${err.message}</span>
-      </div>
-    `;
+    finishLoadingState(grid);
+    SafeDOM.clear(grid);
+    grid.appendChild(SafeDOM.errorAlert('Erro ao carregar lista de alunos: ', err.message, 'grid-span-full'));
     lucide.createIcons();
   }
 }
@@ -117,6 +167,11 @@ async function loadPersonalStudents() {
 // Handle Student Creation
 async function handleCreateStudent(event) {
   event.preventDefault();
+  const form = event.target;
+  if (form.dataset.sendState === 'sending') return;
+  if (form.dataset.submitting === 'true') return;
+  clearFormError(form.id);
+  setFormSubmitting(form, true);
   
   const name = document.getElementById('new-student-name').value;
   const email = document.getElementById('new-student-email').value;
@@ -137,7 +192,10 @@ async function handleCreateStudent(event) {
     document.getElementById('create-student-form').reset();
     switchPersonalTab('students');
   } catch (err) {
+    setFormError(form.id, err.message);
     showToast(err.message, 'error');
+  } finally {
+    setFormSubmitting(form, false);
   }
 }
 
@@ -153,7 +211,7 @@ async function openStudentDetails(studentId) {
   document.getElementById('modal-sd-age').textContent = '-';
   document.getElementById('modal-sd-avatar').textContent = '';
   
-  document.getElementById('modal-workouts-list').innerHTML = '<div class="spinner"></div>';
+  renderLoadingSkeletons(document.getElementById('modal-workouts-list'), { count: 2, variant: 'workout', label: 'Carregando treinos do aluno' });
   document.getElementById('modal-measurements-table-body').innerHTML = '';
   
   openModal('modal-student-detail');
@@ -166,7 +224,7 @@ async function openStudentDetails(studentId) {
     // Fill profile info
     document.getElementById('modal-sd-name').textContent = student.name;
     document.getElementById('modal-sd-email').textContent = student.email;
-    document.getElementById('modal-sd-avatar').textContent = student.name.charAt(0).toUpperCase();
+    renderUserAvatar(document.getElementById('modal-sd-avatar'), student);
     document.getElementById('modal-sd-height').textContent = student.height ? `${student.height} m` : '-';
     document.getElementById('modal-sd-target').textContent = student.target_weight ? `${student.target_weight} kg` : '-';
     
@@ -212,6 +270,11 @@ function switchModalSubtab(subtab) {
     tabMetrics.classList.add('active');
     paneMetrics.classList.add('active');
   }
+  syncTabGroup(
+    ['modal-tab-workouts', 'modal-tab-metrics'],
+    ['modal-subpane-workouts', 'modal-subpane-metrics'],
+    subtab === 'workouts' ? 'modal-tab-workouts' : 'modal-tab-metrics'
+  );
 }
 
 // Render student workouts list in the details modal
@@ -219,12 +282,13 @@ function renderPersonalStudentWorkouts(workouts) {
   const listContainer = document.getElementById('modal-workouts-list');
   if (workouts.length === 0) {
     listContainer.innerHTML = `
-      <div class="chat-empty-state" style="padding: 20px;">
-        <i data-lucide="dumbbell" class="chat-empty-icon text-gradient" style="width: 40px; height: 40px;"></i>
+      <div class="chat-empty-state empty-state-medium">
+        <i data-lucide="dumbbell" class="chat-empty-icon text-gradient icon-40"></i>
         <h4>Nenhum treino prescrito ainda</h4>
         <p>Use o botão "Criar Ficha de Treino" para adicionar a primeira ficha para o aluno.</p>
       </div>
     `;
+    appendEmptyStateAction(listContainer, { label: 'Criar primeira ficha', icon: 'plus-circle', onClick: () => openCreateWorkoutModal() });
     lucide.createIcons();
     return;
   }
@@ -234,76 +298,67 @@ function renderPersonalStudentWorkouts(workouts) {
     const card = document.createElement('div');
     card.className = 'workout-card glass';
 
-    let exercisesRows = '';
-    if (workout.exercises.length === 0) {
-      exercisesRows = `
-        <div class="no-data-msg" style="padding: 10px;">
-          Nenhum exercício cadastrado nesta ficha.
-        </div>
-      `;
-    } else {
-      workout.exercises.forEach(ex => {
-        const weightText = ex.weight ? ex.weight : 'N/A';
-        const restText = ex.rest_time ? ex.rest_time : 'N/A';
-        const noteText = ex.notes ? `<div class="exercise-notes">${ex.notes}</div>` : '';
-        
-        const executionBtn = ex.gif_url 
-          ? `<button class="btn-pill-action" onclick="openExerciseExecutionModal('${ex.name.replace(/'/g, "\\'")}', '${ex.gif_url}', '${(ex.exercise_description || '').replace(/'/g, "\\'")}')" style="margin-left: 8px;"><i data-lucide="play-circle"></i> Execução</button>` 
-          : '';
-
-        exercisesRows += `
-          <div class="exercise-row">
-            <div class="exercise-row-info">
-              <div>
-                <span class="exercise-name">${ex.name}</span>${executionBtn}
-                ${noteText}
-              </div>
-              <div class="exercise-stats">
-                <div class="exercise-stat-box">
-                  <span class="exercise-stat-label">Séries</span>
-                  <span class="exercise-stat-value">${ex.sets}</span>
-                </div>
-                <div class="exercise-stat-box">
-                  <span class="exercise-stat-label">Reps</span>
-                  <span class="exercise-stat-value">${ex.reps}</span>
-                </div>
-                <div class="exercise-stat-box">
-                  <span class="exercise-stat-label">Carga</span>
-                  <span class="exercise-stat-value">${weightText}</span>
-                </div>
-                <div class="exercise-stat-box">
-                  <span class="exercise-stat-label">Pausa</span>
-                  <span class="exercise-stat-value">${restText}</span>
-                </div>
-              </div>
-            </div>
-            <button class="btn-icon text-danger" onclick="deletePersonalExercise(${ex.id})" title="Remover Exercício">
-              <i data-lucide="trash-2"></i>
-            </button>
-          </div>
-        `;
-      });
+    const titleBlock = SafeDOM.el('div', {}, [
+      SafeDOM.el('span', { className: 'workout-title', text: workout.name })
+    ]);
+    if (workout.description) {
+      titleBlock.appendChild(SafeDOM.el('p', { className: 'workout-desc', text: workout.description }));
     }
 
-    card.innerHTML = `
-      <div class="workout-header">
-        <div>
-          <span class="workout-title">${workout.name}</span>
-          ${workout.description ? `<p class="workout-desc">${workout.description}</p>` : ''}
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <button class="btn btn-accent btn-sm" onclick="openAddExercise(${workout.id})">
-            <i data-lucide="plus"></i> Exercício
-          </button>
-          <button class="btn btn-danger btn-sm" onclick="deletePersonalWorkout(${workout.id})">
-            <i data-lucide="trash-2"></i> Excluir Treino
-          </button>
-        </div>
-      </div>
-      <div class="exercises-list">
-        ${exercisesRows}
-      </div>
-    `;
+    const addButton = SafeDOM.el('button', {
+      className: 'btn btn-accent btn-sm',
+      on: { click: () => openAddExercise(workout.id) }
+    }, [SafeDOM.icon('plus'), ' Exercício']);
+    const deleteButton = SafeDOM.el('button', {
+      className: 'btn btn-danger btn-sm',
+      on: { click: () => deletePersonalWorkout(workout.id, workout.name) }
+    }, [SafeDOM.icon('trash-2'), ' Excluir Treino']);
+    card.appendChild(SafeDOM.el('div', { className: 'workout-header' }, [
+      titleBlock,
+      SafeDOM.el('div', { className: 'inline-actions' }, [addButton, deleteButton])
+    ]));
+
+    const exercisesList = SafeDOM.el('div', { className: 'exercises-list' });
+    if (workout.exercises.length === 0) {
+      exercisesList.appendChild(SafeDOM.el('div', {
+        className: 'no-data-msg compact-empty-state',
+        text: 'Nenhum exercício cadastrado nesta ficha.'
+      }));
+    } else {
+      workout.exercises.forEach(ex => {
+        const nameBlock = SafeDOM.el('div', {}, [
+          SafeDOM.el('span', { className: 'exercise-name', text: ex.name })
+        ]);
+        if (ex.gif_url) {
+          nameBlock.appendChild(SafeDOM.el('button', {
+            className: 'btn-pill-action execution-inline-action',
+            on: { click: () => openExerciseExecutionModal(ex.name, ex.gif_url, ex.exercise_description || '') }
+          }, [SafeDOM.icon('play-circle'), ' Execução']));
+        }
+        if (ex.notes) nameBlock.appendChild(SafeDOM.el('div', { className: 'exercise-notes', text: ex.notes }));
+
+        const stat = (label, value) => SafeDOM.el('div', { className: 'exercise-stat-box' }, [
+          SafeDOM.el('span', { className: 'exercise-stat-label', text: label }),
+          SafeDOM.el('span', { className: 'exercise-stat-value', text: value })
+        ]);
+        const info = SafeDOM.el('div', { className: 'exercise-row-info' }, [
+          nameBlock,
+          SafeDOM.el('div', { className: 'exercise-stats' }, [
+            stat('Séries', ex.sets),
+            stat('Reps', ex.reps),
+            stat('Carga', ex.weight || 'N/A'),
+            stat('Pausa', ex.rest_time || 'N/A')
+          ])
+        ]);
+        const removeButton = SafeDOM.el('button', {
+          className: 'btn-icon text-danger',
+          attrs: { title: 'Remover Exercício', 'aria-label': `Remover ${ex.name} do treino` },
+          on: { click: () => deletePersonalExercise(ex.id, ex.name) }
+        }, [SafeDOM.icon('trash-2')]);
+        exercisesList.appendChild(SafeDOM.el('div', { className: 'exercise-row' }, [info, removeButton]));
+      });
+    }
+    card.appendChild(exercisesList);
 
     listContainer.appendChild(card);
   });
@@ -320,7 +375,7 @@ function renderPersonalStudentMeasurements(measurements) {
   if (measurements.length === 0) {
     tbody.innerHTML = '<tr><td colspan="7" class="no-data-msg">Nenhuma medição realizada pelo aluno.</td></tr>';
     metricsGrid.innerHTML = `
-      <div class="no-data-msg" style="grid-column: 1/-1;">
+      <div class="no-data-msg grid-span-full">
         Nenhum dado de avaliação física.
       </div>
     `;
@@ -332,39 +387,27 @@ function renderPersonalStudentMeasurements(measurements) {
   measurements.forEach(m => {
     const row = document.createElement('tr');
     const dateFormatted = new Date(m.recorded_at).toLocaleDateString('pt-BR');
-    
-    row.innerHTML = `
-      <td>${dateFormatted}</td>
-      <td style="font-weight:600; color:var(--accent-secondary);">${m.weight} kg</td>
-      <td>${m.chest ? `${m.chest} cm` : '-'}</td>
-      <td>${m.waist ? `${m.waist} cm` : '-'}</td>
-      <td>${m.hips ? `${m.hips} cm` : '-'}</td>
-      <td>${m.biceps_l || '-'} / ${m.biceps_r || '-'}</td>
-      <td>${m.thigh_l || '-'} / ${m.thigh_r || '-'}</td>
-    `;
+    SafeDOM.appendChildren(row, [
+      SafeDOM.el('td', { text: dateFormatted }),
+      SafeDOM.el('td', { text: `${m.weight} kg`, className: 'metric-weight-value' }),
+      SafeDOM.el('td', { text: m.chest ? `${m.chest} cm` : '-' }),
+      SafeDOM.el('td', { text: m.waist ? `${m.waist} cm` : '-' }),
+      SafeDOM.el('td', { text: m.hips ? `${m.hips} cm` : '-' }),
+      SafeDOM.el('td', { text: `${m.biceps_l || '-'} / ${m.biceps_r || '-'}` }),
+      SafeDOM.el('td', { text: `${m.thigh_l || '-'} / ${m.thigh_r || '-'}` })
+    ]);
     tbody.appendChild(row);
   });
 
   // Load latest metrics preview
   const latest = measurements[0];
-  metricsGrid.innerHTML = `
-    <div class="metric-item">
-      <span class="metric-label">Peso</span>
-      <span class="metric-value">${latest.weight} kg</span>
-    </div>
-    <div class="metric-item">
-      <span class="metric-label">Cintura</span>
-      <span class="metric-value">${latest.waist ? `${latest.waist} cm` : '-'}</span>
-    </div>
-    <div class="metric-item">
-      <span class="metric-label">Tórax</span>
-      <span class="metric-value">${latest.chest ? `${latest.chest} cm` : '-'}</span>
-    </div>
-    <div class="metric-item">
-      <span class="metric-label">Quadril</span>
-      <span class="metric-value">${latest.hips ? `${latest.hips} cm` : '-'}</span>
-    </div>
-  `;
+  SafeDOM.clear(metricsGrid);
+  SafeDOM.appendChildren(metricsGrid, [
+    SafeDOM.metricItem('Peso', `${latest.weight} kg`),
+    SafeDOM.metricItem('Cintura', latest.waist ? `${latest.waist} cm` : '-'),
+    SafeDOM.metricItem('Tórax', latest.chest ? `${latest.chest} cm` : '-'),
+    SafeDOM.metricItem('Quadril', latest.hips ? `${latest.hips} cm` : '-')
+  ]);
 
   // Plot chart data
   // Reverse measurements to get chronological order for plotting
@@ -376,15 +419,41 @@ function renderPersonalStudentMeasurements(measurements) {
   plotSvgChart('modal-weight-chart-container', chartData);
 }
 
+function describeWeightTrend(dataPoints) {
+  if (dataPoints.length === 0) return '';
+
+  const first = dataPoints[0];
+  const latest = dataPoints[dataPoints.length - 1];
+  const formatWeight = value => Number(value).toLocaleString('pt-BR', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1
+  });
+
+  if (dataPoints.length === 1) {
+    return `1 registro em ${latest.label}: ${formatWeight(latest.value)} kg.`;
+  }
+
+  const difference = latest.value - first.value;
+  const signedDifference = `${difference > 0 ? '+' : ''}${formatWeight(difference)}`;
+  return `${dataPoints.length} registros, de ${first.label} a ${latest.label}. Peso de ${formatWeight(first.value)} kg para ${formatWeight(latest.value)} kg. Variação de ${signedDifference} kg.`;
+}
+
 // Custom Premium SVG Line Chart Plotter
 function plotSvgChart(containerId, dataPoints) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  if (dataPoints.length === 0) {
-    container.innerHTML = `<p class="no-data-msg">Nenhum dado disponível para plotagem.</p>`;
+  const normalizedPoints = dataPoints
+    .map(point => ({ label: String(point.label ?? ''), value: Number(point.value) }))
+    .filter(point => Number.isFinite(point.value));
+
+  if (normalizedPoints.length === 0) {
+    SafeDOM.clear(container);
+    container.appendChild(SafeDOM.el('p', { className: 'no-data-msg', text: 'Nenhum dado disponível para plotagem.' }));
     return;
   }
+
+  const trendSummary = describeWeightTrend(normalizedPoints);
 
   // Basic SVG parameters
   const padding = 35;
@@ -394,7 +463,7 @@ function plotSvgChart(containerId, dataPoints) {
   const chartHeight = height - padding * 2;
 
   // Extract min and max values to scale chart
-  const weights = dataPoints.map(d => d.value);
+  const weights = normalizedPoints.map(d => d.value);
   let maxVal = Math.max(...weights);
   let minVal = Math.min(...weights);
   
@@ -404,8 +473,8 @@ function plotSvgChart(containerId, dataPoints) {
   const valRange = maxVal - minVal;
 
   // Calculate coordinates
-  const coords = dataPoints.map((d, index) => {
-    const x = padding + (index / Math.max(1, dataPoints.length - 1)) * chartWidth;
+  const coords = normalizedPoints.map((d, index) => {
+    const x = padding + (index / Math.max(1, normalizedPoints.length - 1)) * chartWidth;
     const y = padding + chartHeight - ((d.value - minVal) / (valRange || 1)) * chartHeight;
     return { x, y, label: d.label, val: d.value };
   });
@@ -419,66 +488,58 @@ function plotSvgChart(containerId, dataPoints) {
   // Build area under the line path
   const areaD = `${pathD} L ${coords[coords.length - 1].x} ${padding + chartHeight} L ${coords[0].x} ${padding + chartHeight} Z`;
 
+  const svg = SafeDOM.svgEl('svg', {
+    class: 'chart-svg',
+    viewBox: `0 0 ${width} ${height}`,
+    width: '100%',
+    height: '100%',
+    role: 'img',
+    'aria-label': trendSummary
+  });
+
   // Draw grid lines
-  let gridLines = '';
   const gridSteps = 3;
   for (let i = 0; i <= gridSteps; i++) {
     const y = padding + (i / gridSteps) * chartHeight;
     const val = maxVal - (i / gridSteps) * valRange;
-    gridLines += `
-      <line class="chart-grid-line" x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}" />
-      <text class="chart-axis-text" x="${padding - 5}" y="${y + 3}" text-anchor="end">${val.toFixed(1)}</text>
-    `;
+    svg.appendChild(SafeDOM.svgEl('line', {
+      class: 'chart-grid-line', x1: padding, y1: y, x2: width - padding, y2: y
+    }));
+    svg.appendChild(SafeDOM.svgEl('text', {
+      class: 'chart-axis-text', x: padding - 5, y: y + 3, 'text-anchor': 'end'
+    }, val.toFixed(1)));
   }
 
+  svg.appendChild(SafeDOM.svgEl('path', { class: 'chart-area', d: areaD }));
+  svg.appendChild(SafeDOM.svgEl('path', { class: 'chart-line', d: pathD }));
+
+  // Interactive dots
+  coords.forEach(coord => {
+    const circle = SafeDOM.svgEl('circle', {
+      class: 'chart-dot', cx: coord.x, cy: coord.y, r: 4, 'data-val': coord.val
+    });
+    circle.appendChild(SafeDOM.svgEl('title', {}, `${coord.label}: ${coord.val} kg`));
+    svg.appendChild(circle);
+  });
+
   // Draw x-axis labels
-  let labels = '';
   // Avoid rendering too many labels if array is huge
-  const labelInterval = Math.max(1, Math.ceil(dataPoints.length / 5));
+  const labelInterval = Math.max(1, Math.ceil(normalizedPoints.length / 5));
   coords.forEach((coord, i) => {
     if (i % labelInterval === 0 || i === coords.length - 1) {
-      labels += `
-        <text class="chart-axis-text" x="${coord.x}" y="${height - 10}" text-anchor="middle">${coord.label}</text>
-      `;
+      svg.appendChild(SafeDOM.svgEl('text', {
+        class: 'chart-axis-text', x: coord.x, y: height - 10, 'text-anchor': 'middle'
+      }, coord.label));
     }
   });
 
-  // Interactive dots
-  let dots = '';
-  coords.forEach(coord => {
-    dots += `
-      <circle class="chart-dot" cx="${coord.cx || coord.x}" cy="${coord.cy || coord.y}" r="4" data-val="${coord.val}" title="${coord.val} kg">
-        <title>${coord.label}: ${coord.val} kg</title>
-      </circle>
-    `;
-  });
-
-  // Construct final SVG
-  container.innerHTML = `
-    <svg class="chart-svg" viewBox="0 0 ${width} ${height}" width="100%" height="100%">
-      <defs>
-        <linearGradient id="chart-gradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="var(--accent-primary)" stop-opacity="0.3"/>
-          <stop offset="100%" stop-color="var(--accent-primary)" stop-opacity="0"/>
-        </linearGradient>
-      </defs>
-      
-      <!-- Grid -->
-      ${gridLines}
-      
-      <!-- Area Under Chart -->
-      <path class="chart-area" d="${areaD}" />
-      
-      <!-- Line Path -->
-      <path class="chart-line" d="${pathD}" />
-      
-      <!-- Dots -->
-      ${dots}
-      
-      <!-- Labels -->
-      ${labels}
-    </svg>
-  `;
+  SafeDOM.clear(container);
+  container.appendChild(svg);
+  container.appendChild(SafeDOM.el('p', {
+    className: 'chart-trend-summary',
+    text: trendSummary,
+    attrs: { 'aria-live': 'polite' }
+  }));
 }
 
 // Workout & Exercises API Triggers
@@ -489,6 +550,10 @@ function openCreateWorkoutModal() {
 
 async function handleCreateWorkoutSubmit(event) {
   event.preventDefault();
+  const form = event.target;
+  if (form.dataset.submitting === 'true') return;
+  clearFormError(form.id);
+  setFormSubmitting(form, true);
   const name = document.getElementById('workout-name').value;
   const description = document.getElementById('workout-description').value;
 
@@ -506,20 +571,25 @@ async function handleCreateWorkoutSubmit(event) {
     // Refresh student details in modal
     openStudentDetails(selectedStudentId);
   } catch (err) {
+    setFormError(form.id, err.message);
     showToast(err.message, 'error');
+  } finally {
+    setFormSubmitting(form, false);
   }
 }
 
-async function deletePersonalWorkout(workoutId) {
-  if (!confirm('Deseja realmente remover esta ficha de treino inteira? Todos os exercícios vinculados serão excluídos.')) return;
-
-  try {
-    await API.delete(`/workouts/${workoutId}`);
-    showToast('Treino excluído com sucesso!', 'success');
-    openStudentDetails(selectedStudentId);
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
+function deletePersonalWorkout(workoutId, workoutName) {
+  openDestructiveConfirmation({
+    title: 'Excluir ficha de treino?',
+    message: `A ficha “${workoutName}” e todos os exercícios vinculados serão excluídos permanentemente.`,
+    confirmLabel: 'Excluir treino',
+    returnModalId: 'modal-student-detail',
+    action: async () => {
+      await API.delete(`/workouts/${workoutId}`);
+      showToast('Treino excluído com sucesso!', 'success');
+      return () => openStudentDetails(selectedStudentId);
+    }
+  });
 }
 
 async function openAddExercise(workoutId) {
@@ -623,6 +693,9 @@ function handleExerciseSelectChange(select) {
 
 async function handleAddExerciseSubmit(event) {
   event.preventDefault();
+  const form = event.target;
+  if (form.dataset.submitting === 'true') return;
+  clearFormError(form.id);
   
   const select = document.getElementById('ex-select');
   const sets = document.getElementById('ex-sets').value;
@@ -641,15 +714,20 @@ async function handleAddExerciseSubmit(event) {
     name = selectedOption.getAttribute('data-name');
     exerciseId = parseInt(select.value);
   } else {
-    showToast('Por favor, selecione um exercício da biblioteca.', 'error');
+    const message = 'Por favor, selecione um exercício da biblioteca.';
+    setFormError(form.id, message);
+    showToast(message, 'error');
     return;
   }
 
   if (!name) {
-    showToast('Nome do exercício é obrigatório.', 'error');
+    const message = 'Nome do exercício é obrigatório.';
+    setFormError(form.id, message);
+    showToast(message, 'error');
     return;
   }
 
+  setFormSubmitting(form, true);
   try {
     await API.post(`/workouts/${activeWorkoutId}/exercises`, {
       name, 
@@ -666,20 +744,25 @@ async function handleAddExerciseSubmit(event) {
     document.getElementById('add-exercise-form').reset();
     openStudentDetails(selectedStudentId);
   } catch (err) {
+    setFormError(form.id, err.message);
     showToast(err.message, 'error');
+  } finally {
+    setFormSubmitting(form, false);
   }
 }
 
-async function deletePersonalExercise(exerciseId) {
-  if (!confirm('Excluir este exercício?')) return;
-
-  try {
-    await API.delete(`/exercises/${exerciseId}`);
-    showToast('Exercício removido!', 'success');
-    openStudentDetails(selectedStudentId);
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
+function deletePersonalExercise(exerciseId, exerciseName) {
+  openDestructiveConfirmation({
+    title: 'Remover exercício do treino?',
+    message: `O exercício “${exerciseName}” será removido desta ficha de treino.`,
+    confirmLabel: 'Remover exercício',
+    returnModalId: 'modal-student-detail',
+    action: async () => {
+      await API.delete(`/exercises/${exerciseId}`);
+      showToast('Exercício removido!', 'success');
+      return () => openStudentDetails(selectedStudentId);
+    }
+  });
 }
 
 // Chat Central (Personal Trainer Dashboard)
@@ -694,7 +777,7 @@ async function loadPersonalChatThreads() {
     list.innerHTML = '';
     
     if (personalStudents.length === 0) {
-      list.innerHTML = '<p class="no-data-msg" style="padding:10px;">Sem alunos para conversar.</p>';
+      list.innerHTML = '<p class="no-data-msg compact-empty-state">Sem alunos para conversar.</p>';
       return;
     }
 
@@ -702,24 +785,31 @@ async function loadPersonalChatThreads() {
       const thread = document.createElement('div');
       thread.className = `chat-thread-item ${activeChatStudentId === student.id ? 'active' : ''}`;
       thread.onclick = () => openPersonalChatThread(student.id, student.name);
-
-      const unreadBadge = student.unread_messages > 0 
-        ? `<span class="badge-count" style="margin-left: 10px;">${student.unread_messages}</span>` 
-        : '';
-
-      thread.innerHTML = `
-        <div class="avatar">${student.name.charAt(0).toUpperCase()}</div>
-        <div class="thread-details">
-          <div class="thread-name">${student.name}</div>
-          <div class="thread-preview">Ver histórico de conversa...</div>
-        </div>
-        ${unreadBadge}
-      `;
+      const studentName = String(student.name ?? '');
+      const threadAvatar = SafeDOM.el('div', { className: 'avatar' });
+      renderUserAvatar(threadAvatar, student);
+      SafeDOM.appendChildren(thread, [
+        threadAvatar,
+        SafeDOM.el('div', { className: 'thread-details' }, [
+          SafeDOM.el('div', { className: 'thread-name', text: studentName }),
+          SafeDOM.el('div', { className: 'thread-preview', text: 'Ver histórico de conversa...' })
+        ])
+      ]);
+      if (student.unread_messages > 0) {
+        thread.appendChild(SafeDOM.el('span', {
+          className: 'badge-count thread-unread-badge',
+          text: student.unread_messages
+        }));
+      }
       list.appendChild(thread);
     });
 
   } catch (err) {
-    list.innerHTML = `<p class="no-data-msg" style="color:var(--danger);">${err.message}</p>`;
+    SafeDOM.clear(list);
+    list.appendChild(SafeDOM.el('p', {
+      className: 'no-data-msg text-danger',
+      text: err.message
+    }));
   }
 }
 
@@ -741,7 +831,8 @@ async function openPersonalChatThread(studentId, studentName) {
   document.getElementById('personal-chat-active').classList.remove('hidden');
 
   document.getElementById('chat-active-name').textContent = studentName;
-  document.getElementById('chat-active-avatar').textContent = studentName.charAt(0).toUpperCase();
+  const activeStudent = personalStudents.find(student => String(student.id) === String(studentId));
+  renderUserAvatar(document.getElementById('chat-active-avatar'), activeStudent || { id: studentId, name: studentName });
 
   const chatMessagesBox = document.getElementById('personal-chat-messages');
   chatMessagesBox.innerHTML = '<div class="spinner"></div>';
@@ -752,18 +843,15 @@ async function openPersonalChatThread(studentId, studentName) {
 
     if (messages.length === 0) {
       chatMessagesBox.innerHTML = `
-        <div class="no-data-msg" style="padding: 20px; align-self: center;">
+        <div class="no-data-msg chat-empty-message">
           Inicie a conversa! Envie uma instrução ou mensagem de incentivo abaixo.
         </div>
       `;
     } else {
       messages.forEach(msg => {
-        const bubble = document.createElement('div');
         const isMe = msg.sender_id.toString() !== studentId.toString();
-        bubble.className = `chat-bubble ${isMe ? 'sent' : 'received'}`;
-        
         const time = new Date(msg.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        bubble.innerHTML = `${msg.message} <span class="chat-time">${time}</span>`;
+        const bubble = SafeDOM.chatBubble(msg.message, time, isMe ? 'sent' : 'received');
         chatMessagesBox.appendChild(bubble);
       });
     }
@@ -781,20 +869,22 @@ async function openPersonalChatThread(studentId, studentName) {
 // Submit messages to student
 async function sendPersonalChatMessage(event) {
   event.preventDefault();
+  const form = event.target;
   const input = document.getElementById('personal-chat-input');
   const message = input.value.trim();
 
   if (message === '' || !activeChatStudentId) return;
 
+  setChatSendState(form, 'sending', 'Enviando...');
   try {
     await API.post('/chat', {
       receiverId: activeChatStudentId,
       message
     });
     input.value = '';
-    // EventSource (SSE) will trigger addition, but we fetch to sync instantly if desired.
-    // However, to keep it slick, we empty the input and let SSE handle the rendering or just append instantly.
+    setChatSendState(form, 'sent', 'Mensagem enviada.');
   } catch (err) {
+    setChatSendState(form, 'failed', 'Falha no envio. Tente novamente.');
     showToast(err.message, 'error');
   }
 }
@@ -812,12 +902,9 @@ function appendPersonalLiveMessage(message) {
     const emptyMsg = chatMessagesBox.querySelector('.no-data-msg');
     if (emptyMsg) emptyMsg.remove();
 
-    const bubble = document.createElement('div');
     const isMe = message.sender_id.toString() !== activeChatStudentId.toString();
-    bubble.className = `chat-bubble ${isMe ? 'sent' : 'received'}`;
-    
     const time = new Date(message.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    bubble.innerHTML = `${message.message} <span class="chat-time">${time}</span>`;
+    const bubble = SafeDOM.chatBubble(message.message, time, isMe ? 'sent' : 'received');
     chatMessagesBox.appendChild(bubble);
     chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
 
@@ -851,20 +938,52 @@ function closeChatThreadMobile() {
 }
 
 // Reset Student Password
-async function promptResetPassword() {
-  const newPassword = prompt('Digite a nova senha para o aluno (mínimo 6 caracteres):');
-  if (!newPassword) return; 
+function openResetPasswordModal() {
+  if (!selectedStudentId) return;
 
-  if (newPassword.length < 6) {
-    showToast('A senha precisa ter pelo menos 6 caracteres', 'error');
+  const form = document.getElementById('reset-password-form');
+  form?.reset();
+  clearFormError('reset-password-form');
+  closeModal('modal-student-detail');
+  openModal('modal-reset-password');
+}
+
+function closeResetPasswordModal() {
+  closeModal('modal-reset-password');
+}
+
+async function handleResetPasswordSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  if (form.dataset.submitting === 'true' || !selectedStudentId) return;
+
+  const passwordInput = document.getElementById('reset-student-password');
+  const confirmationInput = document.getElementById('reset-student-password-confirm');
+  const newPassword = passwordInput.value;
+  const confirmation = confirmationInput.value;
+  clearFormError(form.id);
+
+  if (newPassword.length < 10) {
+    setFormError(form.id, 'A senha precisa ter pelo menos 10 caracteres.');
+    passwordInput.focus();
+    return;
+  }
+  if (newPassword !== confirmation) {
+    setFormError(form.id, 'As senhas informadas não coincidem.');
+    confirmationInput.focus();
     return;
   }
 
+  setFormSubmitting(form, true);
   try {
     await API.post(`/personal/students/${selectedStudentId}/reset-password`, { newPassword });
+    closeResetPasswordModal();
     showToast('Senha redefinida com sucesso!', 'success');
   } catch (err) {
-    showToast(err.message, 'error');
+    setFormError(form.id, err.message);
+    showToast('Não foi possível redefinir a senha.', 'error');
+  } finally {
+    setFormSubmitting(form, false);
   }
 }
 
@@ -874,31 +993,28 @@ async function promptResetPassword() {
 
 async function loadPersonalExercises() {
   const container = document.getElementById('exercises-catalog-list');
-  container.innerHTML = `
-    <div class="loading-placeholder" style="grid-column: 1 / -1;">
-      <div class="spinner"></div>
-      <span>Carregando biblioteca de exercícios...</span>
-    </div>
-  `;
+  renderLoadingSkeletons(container, { count: 4, variant: 'exercise', label: 'Carregando biblioteca de exercícios' });
 
   try {
     const list = await API.get('/catalog/exercises');
     exerciseCatalogList = list;
-
+    finishLoadingState(container);
+    
     // Reset search query input on load
-    const searchInput = document.getElementById('exercise-search-input');
+    const searchInput = document.getElementById('exercises-search');
     if (searchInput) {
       searchInput.value = '';
     }
 
     renderPersonalExercises();
+    
+    // Trigger initial sort and filter to keep UI consistent
+    sortPersonalExercises(document.getElementById('exercises-sort').value);
+    filterPersonalExercises(document.getElementById('exercises-search').value);
   } catch (err) {
-    container.innerHTML = `
-      <div class="info-alert" style="grid-column: 1 / -1; border-color: var(--danger); background: rgba(239, 68, 68, 0.05); color: var(--danger);">
-        <i data-lucide="alert-circle"></i>
-        <span>Erro ao carregar catálogo: ${err.message}</span>
-      </div>
-    `;
+    finishLoadingState(container);
+    SafeDOM.clear(container);
+    container.appendChild(SafeDOM.errorAlert('Erro ao carregar catálogo: ', err.message, 'grid-span-full'));
     lucide.createIcons();
   }
 }
@@ -987,67 +1103,80 @@ function renderPriorityExercises() {
 
 function renderCatalogExercisesGrid() {
   const container = document.getElementById('exercises-catalog-list');
-  const searchInput = document.getElementById('exercise-search-input');
-  const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-  
-  let filtered = exerciseCatalogList;
-  if (query) {
-    filtered = exerciseCatalogList.filter(ex => ex.name.toLowerCase().includes(query));
-  }
-  
   container.innerHTML = '';
   
-  if (filtered.length === 0) {
+  if (exerciseCatalogList.length === 0) {
     container.innerHTML = `
-      <div class="chat-empty-state glass" style="grid-column: 1 / -1; padding: 40px;">
-        <i data-lucide="dumbbell" class="chat-empty-icon" style="width: 40px; height: 40px;"></i>
-        <h3>Nenhum exercício encontrado</h3>
-        <p>Tente buscar por outro nome ou termo.</p>
+      <div class="chat-empty-state glass grid-span-full empty-state-catalog">
+        <i data-lucide="dumbbell" class="chat-empty-icon icon-40"></i>
+        <h3>Sua biblioteca está vazia</h3>
+        <p>Cadastre seu primeiro exercício personalizado clicando no botão "Novo Exercício".</p>
       </div>
     `;
+    appendEmptyStateAction(container, { label: 'Criar primeiro exercício', icon: 'plus-circle', onClick: () => openCreateCatalogExerciseModal() });
     lucide.createIcons();
     return;
   }
   
-  // Sort normal grid list alphabetically
-  filtered.sort((a, b) => a.name.localeCompare(b.name));
-  
-  filtered.forEach(ex => {
+  exerciseCatalogList.forEach(ex => {
     const card = document.createElement('div');
     card.className = 'exercise-db-card glass';
-    
-    const thumb = ex.gif_url 
-      ? `<img src="${ex.gif_url}" class="exercise-thumb" alt="Exercício" />`
-      : `<div class="exercise-thumb" style="display:flex; align-items:center; justify-content:center;"><i data-lucide="dumbbell" style="width:18px; color:var(--text-muted);"></i></div>`;
-      
     const descText = ex.description ? ex.description : 'Sem orientações técnicas cadastradas.';
     
-    card.innerHTML = `
-      <div class="exercise-db-info">
-        ${thumb}
-        <div class="exercise-db-details">
-          <h4>${ex.name}</h4>
-          <p>${descText}</p>
-        </div>
-      </div>
-      <button class="btn-favorite" onclick="toggleExerciseFavorite(${ex.id}, event)" title="${ex.is_favorite ? 'Remover dos Favoritos' : 'Adicionar aos Favoritos'}">
-        <i data-lucide="star" class="star-icon ${ex.is_favorite ? 'filled' : ''}"></i>
-      </button>
-      <div style="display:flex; gap:6px;">
-        ${ex.gif_url ? `<button class="btn btn-tertiary btn-sm" onclick="openExerciseExecutionModal('${ex.name.replace(/'/g, "\\'")}', '${ex.gif_url}', '${descText.replace(/'/g, "\\'")}')" title="Testar Popup"><i data-lucide="eye"></i></button>` : ''}
-        <button class="btn btn-danger btn-sm" onclick="deleteCatalogExercise(${ex.id})" title="Excluir da Biblioteca">
-          <i data-lucide="trash-2"></i>
-        </button>
-      </div>
-    `;
+    card.dataset.search = normalizeListSearch(`${ex.name} ${descText}`);
+    card.dataset.sortName = normalizeListSearch(ex.name);
+    
+    const image = SafeDOM.el('img', {
+      className: 'exercise-thumb',
+      attrs: { alt: 'Exercício' }
+    });
+    const hasSafeImage = SafeDOM.setSafeImageSource(image, ex.gif_url);
+    const thumb = hasSafeImage
+      ? image
+      : SafeDOM.el('div', {
+          className: 'exercise-thumb exercise-thumb-placeholder'
+        }, [SafeDOM.icon('dumbbell')]);
+
+    const info = SafeDOM.el('div', { className: 'exercise-db-info' }, [
+      thumb,
+      SafeDOM.el('div', { className: 'exercise-db-details' }, [
+        SafeDOM.el('h4', { text: ex.name }),
+        SafeDOM.el('p', { text: descText })
+      ])
+    ]);
+
+    const btnFavorite = SafeDOM.el('button', {
+      className: 'btn-favorite',
+      attrs: { title: ex.is_favorite ? 'Remover dos Favoritos' : 'Adicionar aos Favoritos' },
+      on: {
+        click: (e) => {
+          e.stopPropagation();
+          toggleExerciseFavorite(ex.id, e);
+        }
+      }
+    }, [
+      SafeDOM.icon('star', { className: `star-icon ${ex.is_favorite ? 'filled' : ''}` })
+    ]);
+
+    const actions = SafeDOM.el('div', { className: 'catalog-actions' });
+    if (hasSafeImage) {
+      actions.appendChild(SafeDOM.el('button', {
+        className: 'btn btn-tertiary btn-sm',
+        attrs: { title: 'Visualizar execução', 'aria-label': `Visualizar execução de ${ex.name}` },
+        on: { click: () => openExerciseExecutionModal(ex.name, ex.gif_url, descText) }
+      }, [SafeDOM.icon('eye')]));
+    }
+    actions.appendChild(SafeDOM.el('button', {
+      className: 'btn btn-danger btn-sm',
+      attrs: { title: 'Excluir da biblioteca', 'aria-label': `Excluir ${ex.name} da biblioteca` },
+      on: { click: () => deleteCatalogExercise(ex.id, ex.name) }
+    }, [SafeDOM.icon('trash-2')]));
+    
+    SafeDOM.appendChildren(card, [info, btnFavorite, actions]);
     container.appendChild(card);
   });
   
   lucide.createIcons();
-}
-
-function handleExerciseSearch() {
-  renderCatalogExercisesGrid();
 }
 
 async function toggleExerciseFavorite(id, event) {
@@ -1146,10 +1275,27 @@ function openCreateCatalogExerciseModal() {
   openModal('modal-create-catalog-exercise');
 }
 
-// Convert uploaded file to Base64 data URL
+const CATALOG_IMAGE_TYPES = new Set(['image/gif', 'image/png', 'image/jpeg', 'image/webp']);
+const CATALOG_IMAGE_MAX_FILE_SIZE = 380 * 1024;
+
+// Convert an allowed, bounded raster image to a Base64 data URL.
 function handleCatalogGifFileSelect(input) {
   const file = input.files[0];
   if (!file) return;
+
+  if (!CATALOG_IMAGE_TYPES.has(file.type)) {
+    input.value = '';
+    document.getElementById('cat-ex-base64').value = '';
+    showToast('Use uma imagem GIF, PNG, JPEG ou WebP.', 'error');
+    return;
+  }
+
+  if (file.size > CATALOG_IMAGE_MAX_FILE_SIZE) {
+    input.value = '';
+    document.getElementById('cat-ex-base64').value = '';
+    showToast('A imagem deve ter no máximo 380 KB.', 'error');
+    return;
+  }
 
   // Clear text input to prevent confusion
   document.getElementById('cat-ex-gif-url').value = '';
@@ -1157,6 +1303,11 @@ function handleCatalogGifFileSelect(input) {
   const reader = new FileReader();
   reader.onload = function(e) {
     document.getElementById('cat-ex-base64').value = e.target.result;
+  };
+  reader.onerror = function() {
+    input.value = '';
+    document.getElementById('cat-ex-base64').value = '';
+    showToast('Não foi possível ler a imagem selecionada.', 'error');
   };
   reader.readAsDataURL(file);
 }
@@ -1169,6 +1320,9 @@ function handleCatalogGifUrlInput() {
 
 async function handleCreateCatalogExerciseSubmit(event) {
   event.preventDefault();
+  const form = event.target;
+  if (form.dataset.submitting === 'true') return;
+  clearFormError(form.id);
 
   const name = document.getElementById('cat-ex-name').value.trim();
   const description = document.getElementById('cat-ex-description').value.trim();
@@ -1178,10 +1332,13 @@ async function handleCreateCatalogExerciseSubmit(event) {
   const gifUrl = base64Val || urlVal || null;
 
   if (!name) {
-    showToast('O nome do exercício é obrigatório.', 'error');
+    const message = 'O nome do exercício é obrigatório.';
+    setFormError(form.id, message);
+    showToast(message, 'error');
     return;
   }
 
+  setFormSubmitting(form, true);
   try {
     await API.post('/catalog/exercises', {
       name,
@@ -1191,20 +1348,25 @@ async function handleCreateCatalogExerciseSubmit(event) {
 
     showToast('Exercício criado com sucesso!', 'success');
     closeModal('modal-create-catalog-exercise');
+    form.reset();
     loadPersonalExercises();
   } catch (err) {
+    setFormError(form.id, err.message);
     showToast(err.message, 'error');
+  } finally {
+    setFormSubmitting(form, false);
   }
 }
 
-async function deleteCatalogExercise(id) {
-  if (!confirm('Deseja realmente excluir este exercício do seu catálogo? Isso não apagará históricos de treinos passados, mas removerá o vínculo ao GIF de execução.')) return;
-
-  try {
-    await API.delete(`/catalog/exercises/${id}`);
-    showToast('Exercício removido da biblioteca!', 'success');
-    loadPersonalExercises();
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
+function deleteCatalogExercise(id, exerciseName) {
+  openDestructiveConfirmation({
+    title: 'Excluir exercício do catálogo?',
+    message: `“${exerciseName}” será removido do catálogo e perderá o vínculo com a mídia de execução. Os históricos de treinos serão preservados.`,
+    confirmLabel: 'Excluir do catálogo',
+    action: async () => {
+      await API.delete(`/catalog/exercises/${id}`);
+      showToast('Exercício removido da biblioteca!', 'success');
+      return () => loadPersonalExercises();
+    }
+  });
 }

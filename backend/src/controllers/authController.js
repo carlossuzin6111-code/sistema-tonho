@@ -1,10 +1,15 @@
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const db = require('../database');
-const { JWT_SECRET } = require('../middleware/auth');
+const { findUnusedAccessKeyId } = require('../services/accessKeyService');
+const { clearSessionCookies, setSessionCookies } = require('../services/sessionService');
+const { isEmailUniqueConstraint, normalizeEmail } = require('../services/userIdentityService');
 
-const fs = require('fs');
-const path = require('path');
+class RegistrationError extends Error {
+  constructor(code) {
+    super(code);
+    this.code = code;
+  }
+}
 
 async function registerPersonal(req, res) {
   const { name, email, password, accessKey } = req.body;
@@ -13,38 +18,44 @@ async function registerPersonal(req, res) {
     return res.status(400).json({ error: 'Name, email, password, and accessKey are required' });
   }
 
-  // Validate Access Key
-  const keysPath = path.join(__dirname, '../../keys_aut.json');
   try {
-    const keysData = JSON.parse(fs.readFileSync(keysPath, 'utf8'));
-    if (!keysData.valid_keys.includes(accessKey)) {
+    const normalizedEmail = normalizeEmail(email);
+    const accessKeyId = await findUnusedAccessKeyId(db, accessKey);
+    if (!accessKeyId) {
       return res.status(403).json({ error: 'Access Key Inválida' });
     }
-    // Consume the key
-    keysData.valid_keys = keysData.valid_keys.filter(k => k !== accessKey);
-    fs.writeFileSync(keysPath, JSON.stringify(keysData, null, 2));
-  } catch (err) {
-    console.error('Error reading/writing keys:', err.message);
-    return res.status(500).json({ error: 'Erro ao verificar chaves de acesso' });
-  }
 
-  try {
-    // Check if email already exists
-    const existingUser = await db('users').select('id').where('email', email).first();
-    if (existingUser) {
-      return res.status(400).json({ error: 'Email already registered' });
-    }
-
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    // Insert user
-    const [insertedId] = await db('users').insert({
-      name,
-      email,
-      password_hash: passwordHash,
-      role: 'personal'
+    const insertedId = await db.transaction(async trx => {
+      const existingUser = await trx('users').select('id').where('email', normalizedEmail).first();
+      if (existingUser) {
+        throw new RegistrationError('EMAIL_ALREADY_REGISTERED');
+      }
+
+      const claimedKeys = await trx('registration_keys')
+        .where({ id: accessKeyId })
+        .whereNull('used_at')
+        .where('expires_at', '>', trx.fn.now())
+        .update({ used_at: trx.fn.now() });
+
+      if (claimedKeys !== 1) {
+        throw new RegistrationError('ACCESS_KEY_ALREADY_USED');
+      }
+
+      const [userId] = await trx('users').insert({
+        name,
+        email: normalizedEmail,
+        password_hash: passwordHash,
+        role: 'personal'
+      });
+
+      await trx('registration_keys')
+        .where({ id: accessKeyId })
+        .update({ used_by: userId });
+
+      return userId;
     });
 
     // Seed default exercises for the new personal trainer
@@ -52,21 +63,22 @@ async function registerPersonal(req, res) {
       await db.seedDefaultExercisesForPersonal(db, insertedId);
     }
 
-    // Generate token
-    const token = jwt.sign(
-      { id: insertedId, name, email, role: 'personal' },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const user = { id: insertedId, name, email: normalizedEmail, role: 'personal' };
+    setSessionCookies(res, user);
 
     res.status(201).json({
       message: 'Personal Trainer registered successfully',
-      token,
-      user: { id: insertedId, name, email, role: 'personal' }
+      user
     });
   } catch (err) {
+    if (err.code === 'EMAIL_ALREADY_REGISTERED' || isEmailUniqueConstraint(err)) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
+    if (err.code === 'ACCESS_KEY_ALREADY_USED') {
+      return res.status(403).json({ error: 'Access Key Inválida' });
+    }
     console.error('Registration error:', err.message);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -78,8 +90,9 @@ async function login(req, res) {
   }
 
   try {
+    const normalizedEmail = normalizeEmail(email);
     // Find user
-    const user = await db('users').where('email', email).first();
+    const user = await db('users').where('email', normalizedEmail).first();
     if (!user) {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
@@ -90,16 +103,10 @@ async function login(req, res) {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
 
-    // Generate token
-    const token = jwt.sign(
-      { id: user.id, name: user.name, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    setSessionCookies(res, user);
 
     res.status(200).json({
       message: 'Login successful',
-      token,
       user: { id: user.id, name: user.name, email: user.email, role: user.role }
     });
   } catch (err) {
@@ -108,16 +115,30 @@ async function login(req, res) {
   }
 }
 
+function logout(req, res) {
+  clearSessionCookies(res);
+  res.setHeader('Clear-Site-Data', '"cache", "cookies"');
+  return res.status(200).json({ message: 'Logout successful' });
+}
+
 async function getMe(req, res) {
   try {
     const user = await db('users')
-      .select('id', 'name', 'email', 'role', 'created_at')
+      .select('id', 'name', 'email', 'role', 'created_at', 'avatar_filename', 'avatar_updated_at')
       .where('id', req.user.id)
       .first();
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.status(200).json(user);
+    res.status(200).json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      created_at: user.created_at,
+      hasAvatar: Boolean(user.avatar_filename),
+      avatarUpdatedAt: user.avatar_updated_at || null
+    });
   } catch (err) {
     console.error('getMe error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
@@ -127,5 +148,6 @@ async function getMe(req, res) {
 module.exports = {
   registerPersonal,
   login,
+  logout,
   getMe
 };

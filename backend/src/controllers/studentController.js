@@ -1,5 +1,12 @@
 const bcrypt = require('bcryptjs');
 const db = require('../database');
+const { isEmailUniqueConstraint, normalizeEmail } = require('../services/userIdentityService');
+const { AUDIT_ACTIONS, recordAudit } = require('../services/auditService');
+
+function withAvatarMetadata(user) {
+  const { avatar_filename, avatar_updated_at, ...publicFields } = user;
+  return { ...publicFields, hasAvatar: Boolean(avatar_filename), avatarUpdatedAt: avatar_updated_at || null };
+}
 
 // Create a new student (Personal Trainer only)
 async function createStudent(req, res) {
@@ -11,8 +18,9 @@ async function createStudent(req, res) {
   }
 
   try {
+    const normalizedEmail = normalizeEmail(email);
     // Check if email exists
-    const existingUser = await db('users').select('id').where('email', email).first();
+    const existingUser = await db('users').select('id').where('email', normalizedEmail).first();
     if (existingUser) {
       return res.status(400).json({ error: 'Email already registered' });
     }
@@ -24,7 +32,7 @@ async function createStudent(req, res) {
     // Insert student user
     const [studentId] = await db('users').insert({
       name,
-      email,
+      email: normalizedEmail,
       password_hash: passwordHash,
       role: 'student'
     });
@@ -43,13 +51,16 @@ async function createStudent(req, res) {
       student: {
         id: studentId,
         name,
-        email,
+        email: normalizedEmail,
         role: 'student'
       }
     });
   } catch (err) {
+    if (isEmailUniqueConstraint(err)) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
     console.error('Create student error:', err.message);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -60,14 +71,14 @@ async function getStudents(req, res) {
   try {
     const students = await db('users as u')
       .join('student_profiles as sp', 'u.id', 'sp.student_id')
-      .select('u.id', 'u.name', 'u.email', 'sp.height', 'sp.target_weight', 'sp.birth_date')
+      .select('u.id', 'u.name', 'u.email', 'u.avatar_filename', 'u.avatar_updated_at', 'sp.height', 'sp.target_weight', 'sp.birth_date')
       .select(db.raw('(SELECT weight FROM measurements WHERE student_id = u.id ORDER BY recorded_at DESC LIMIT 1) as latest_weight'))
       .select(db.raw('(SELECT recorded_at FROM measurements WHERE student_id = u.id ORDER BY recorded_at DESC LIMIT 1) as latest_weight_date'))
       .select(db.raw('(SELECT COUNT(*) FROM chat_messages WHERE sender_id = u.id AND receiver_id = ? AND read_status = 0) as unread_messages', [personalId]))
       .where('sp.personal_id', personalId)
       .orderBy('u.name', 'asc');
 
-    res.status(200).json(students);
+    res.status(200).json(students.map(withAvatarMetadata));
   } catch (err) {
     console.error('Get students error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
@@ -94,7 +105,7 @@ async function getStudentDetails(req, res) {
 
     const student = await db('users as u')
       .join('student_profiles as sp', 'u.id', 'sp.student_id')
-      .select('u.id', 'u.name', 'u.email', 'sp.height', 'sp.target_weight', 'sp.birth_date', 'sp.personal_id')
+      .select('u.id', 'u.name', 'u.email', 'u.avatar_filename', 'u.avatar_updated_at', 'sp.height', 'sp.target_weight', 'sp.birth_date', 'sp.personal_id')
       .where('u.id', studentId)
       .first();
 
@@ -115,7 +126,7 @@ async function getStudentDetails(req, res) {
     }
 
     res.status(200).json({
-      student,
+      student: withAvatarMetadata(student),
       measurements,
       workouts
     });
@@ -149,16 +160,26 @@ async function addMeasurement(req, res) {
       }
     }
 
-    const [measurementId] = await db('measurements').insert({
-      student_id: targetStudentId,
-      weight,
-      chest: chest || null,
-      waist: waist || null,
-      hips: hips || null,
-      biceps_l: bicepsL || null,
-      biceps_r: bicepsR || null,
-      thigh_l: thighL || null,
-      thigh_r: thighR || null
+    const measurementId = await db.transaction(async trx => {
+      const [insertedId] = await trx('measurements').insert({
+        student_id: targetStudentId,
+        weight,
+        chest: chest || null,
+        waist: waist || null,
+        hips: hips || null,
+        biceps_l: bicepsL || null,
+        biceps_r: bicepsR || null,
+        thigh_l: thighL || null,
+        thigh_r: thighR || null
+      });
+      await recordAudit(trx, {
+        actorUserId: userId,
+        action: AUDIT_ACTIONS.MEASUREMENT_CREATED,
+        targetType: 'measurement',
+        targetId: insertedId,
+        metadata: { studentId: Number(targetStudentId) }
+      });
+      return insertedId;
     });
 
     res.status(201).json({
@@ -222,7 +243,18 @@ async function resetPassword(req, res) {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(newPassword, salt);
 
-    await db('users').where('id', studentId).update({password_hash: passwordHash});
+    await db.transaction(async trx => {
+      await trx('users').where('id', studentId).update({
+        password_hash: passwordHash,
+        session_version: trx.raw('session_version + 1')
+      });
+      await recordAudit(trx, {
+        actorUserId: personalId,
+        action: AUDIT_ACTIONS.PASSWORD_RESET,
+        targetType: 'student',
+        targetId: studentId
+      });
+    });
 
     res.status(200).json({ message: 'Senha redefinida com sucesso' });
   } catch (err) {
