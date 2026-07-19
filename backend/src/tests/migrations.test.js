@@ -21,7 +21,8 @@ const migrations = [
   '202607160002_add_session_version.js',
   '202607170001_create_audit_logs.js',
   '202607180001_add_registration_key_expiry.js',
-  '202607180002_add_user_avatars.js'
+  '202607180002_add_user_avatars.js',
+  '202607190001_add_exercise_favorites_and_custom.js'
 ];
 
 function createDatabase() {
