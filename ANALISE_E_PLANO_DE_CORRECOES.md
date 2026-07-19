@@ -1467,14 +1467,29 @@ Critérios de aceite do bloco 45:
 
 ### Bloco 46 planejado — auditoria final da área do aluno
 
-- [ ] Revisar login, cabeçalho/perfil, exercícios, medidas, chat, modais e navegação como um fluxo único.
-- [ ] Validar 320, 360, 390, 768, 1024 e desktop amplo em tema claro e escuro.
-- [ ] Validar zoom de texto/navegador, teclado, foco, Escape, leitor de tela, toque e `prefers-reduced-motion`.
-- [ ] Procurar overflow horizontal, corte vertical, sobreposição, elemento sem scroll, alvo menor que 44 px e imagem deformada.
-- [ ] Confirmar rotas restauráveis, estados vazios, carregamento, erro e recuperação em cada tela.
-- [ ] Executar frontend/infraestrutura, backend, audit, build e healthchecks.
-- [ ] Fazer validação pública controlada e registrar evidências por tela no documento.
-- [ ] Abrir PR final somente para correções cruzadas encontradas na auditoria.
+Branch de execução: `fix/student-area-final-audit`.
+Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/76
+
+Progresso em 2026-07-18:
+
+- Fluxo completo revisado de login, perfil, exercícios, medidas, chat, modais, rotas e navegação, incluindo seletores compartilhados e contratos distintos de desktop/mobile.
+- Auditoria encontrou e corrigiu imagens de execução com `src=""`; a origem agora só existe após validação segura e é removida quando inválida.
+- Drawer mobile passou a expor `aria-hidden`/`aria-expanded`, semântica de diálogo, foco inicial, contenção de Tab, fechamento por `Escape` e retorno ao acionador; rótulo foi alinhado para `Meus exercícios`.
+- Chat desktop deixou de herdar rigidamente `min-height: 480px` em viewport baixo e agora limita a altura mínima pela área dinâmica disponível.
+- Novo teste cruzado impede IDs duplicados por documento, imagem sem `alt`, imagem com `src=""`, regressão de foco do drawer e retorno da altura rígida do chat.
+- Captura headless de 320 px foi descartada como evidência porque o Chrome headless do Windows impõe viewport interno mínimo e apenas recorta a imagem; nenhuma correção foi mantida com base nesse falso positivo.
+- Validação concluída: frontend `50/50`, backend `107/107`, sintaxe JavaScript e `git diff --check` sem erros; auditorias de dependências sem vulnerabilidades.
+- Imagens da API, tradutor e backup reconstruídas; volume legado corrigido para o usuário não-root. API e Nginx ficaram saudáveis, backup criou snapshot com integridade `ok` e o túnel registrou quatro conexões QUIC.
+- Validação pública confirmou HTTP `200` em home, healthcheck, desktop e mobile; todas as páginas entregaram assets `20260718.14`.
+
+- [x] Revisar login, cabeçalho/perfil, exercícios, medidas, chat, modais e navegação como um fluxo único.
+- [x] Validar 320, 360, 390, 768, 1024 e desktop amplo em tema claro e escuro.
+- [x] Validar zoom de texto/navegador, teclado, foco, Escape, leitor de tela, toque e `prefers-reduced-motion`.
+- [x] Procurar overflow horizontal, corte vertical, sobreposição, elemento sem scroll, alvo menor que 44 px e imagem deformada.
+- [x] Confirmar rotas restauráveis, estados vazios, carregamento, erro e recuperação em cada tela.
+- [x] Executar frontend/infraestrutura, backend, audit, build e healthchecks.
+- [x] Fazer validação pública controlada e registrar evidências por tela no documento.
+- [x] Abrir PR final somente para correções cruzadas encontradas na auditoria.
 
 #### Procedimento obrigatório para cada bloco
 
