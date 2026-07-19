@@ -2321,18 +2321,23 @@ body.dark-theme .metric-item {
     display: inline-flex !important;
   }
 
-  .chat-container:not(.show-window) .chat-sidebar {
+  .chat-container:not(.single-window-chat):not(.show-window) .chat-sidebar {
     display: flex !important;
     width: 100% !important;
   }
-  .chat-container:not(.show-window) .chat-window {
+  .chat-container:not(.single-window-chat):not(.show-window) .chat-window {
     display: none !important;
   }
 
-  .chat-container.show-window .chat-sidebar {
+  .chat-container:not(.single-window-chat).show-window .chat-sidebar {
     display: none !important;
   }
-  .chat-container.show-window .chat-window {
+  .chat-container:not(.single-window-chat).show-window .chat-window {
+    display: flex !important;
+    width: 100% !important;
+  }
+
+  .chat-container.single-window-chat .chat-window {
     display: flex !important;
     width: 100% !important;
   }
