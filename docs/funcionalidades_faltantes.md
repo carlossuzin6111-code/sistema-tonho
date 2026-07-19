@@ -1,0 +1,245 @@
+# Inventário Técnico Detalhado e Especificações de Lacunas (FitLife Sync)
+
+Este documento atua como o inventário de engenharia contendo especificações de banco de dados, rotas de API, regras lógicas e de segurança para todas as lacunas identificadas e novos itens obrigatórios.
+
+**Convenção:** o estado de execução pertence ao dashboard `checklist_prioridades.md`; este arquivo descreve o estado-alvo. Quando já existe implementação parcial, a especificação abaixo representa somente o delta necessário para concluir o requisito.
+
+---
+
+## 1. Segurança e Controle de Acesso (Grupo SEC)
+
+### [SEC-01] Proteção contra IDOR (Verificação de Vínculo de Aluno)
+*   **Especificação**: Middleware `validateStudentOwnership` no Express. Para rotas parametrizadas por `:studentId`, consulta a tabela `student_profiles` cruzando o `student_id` com o `personal_id` extraído do payload JWT decodificado.
+*   **Endpoint**: Aplicado como interceptor em `/api/workouts/*`, `/api/measurements/*`, e `/api/chat/*`.
+*   **Regra**: Bloquear com `403 Forbidden` se não houver relacionamento ativo de treinamento ou se o status do vínculo for `blocked`.
+
+### [SEC-02] Onboarding Compulsório (`must_change_password`)
+*   **Especificação**: Coluna `must_change_password` (BOOLEAN, default TRUE) na tabela `users`.
+*   **Regra**: No login, se o payload do JWT retornado indicar `must_change_password: true`, o frontend intercepta e bloqueia a navegação principal, forçando o envio de `POST /api/auth/reset-password` para cadastrar uma nova senha (mínimo 10 caracteres).
+
+### [SEC-03] Sistema de Convites de Aluno com Expiração
+*   **Especificação**: Tabela `student_invitations`:
+    ```text
+    - id (INTEGER, PK)
+    - email (VARCHAR, UNIQUE)
+    - personal_id (INTEGER, FK -> users)
+    - onboarding_token (VARCHAR, UNIQUE)
+    - expires_at (TIMESTAMP)
+    - claimed_at (TIMESTAMP, NULLABLE)
+    ```
+*   **Endpoint**: `POST /api/personal/students/invite` gerando UUID e enviando convite via Resend/Nodemailer.
+
+### [SEC-04] Reset de Senha Autônomo para Personais
+*   **Especificação**: Tabela `password_reset_tokens`:
+    ```text
+    - id (INTEGER, PK)
+    - user_id (INTEGER, FK -> users)
+    - token_hash (VARCHAR, UNIQUE)
+    - expires_at (TIMESTAMP)
+    ```
+*   **Endpoint**: `POST /api/auth/forgot-password` (envia e-mail com link) e `POST /api/auth/reset-password` (valida o hash e atualiza `users.password`).
+
+### [SEC-05] Verificação de E-mail
+*   **Especificação**: Coluna `email_verified_at` (TIMESTAMP, NULLABLE) na tabela `users`.
+*   **Regra**: Contas novas recebem e-mail de ativação. Bloquear redefinição de senha e onboarding para contas cujo e-mail não esteja verificado.
+
+### [SEC-06] Proteção contra CSRF Segregada
+*   **Especificação**:
+    *   **Web**: Cookies `HttpOnly` com `SameSite=Strict` mais cabeçalho `Origin` / `Referer`.
+    *   **API/Mobile**: Uso de tokens CSRF baseados em *Double Submit Cookie* para requisições que não utilizem cabeçalhos de autorização nativos (Bearer).
+*   **Estado atual relevante**: o fluxo web por cookie já usa double-submit (`X-CSRF-Token` + cookie + claim da sessão). O delta é definir/testar autenticação Bearer e refresh token rotacionado para o aplicativo híbrido.
+
+### [SEC-07] Rate Limit Combinado (IP + Conta)
+*   **Especificação**: Middleware Express Rate Limit com armazenamento Redis/memory associando o IP da requisição com o e-mail submetido no payload para evitar brute force distribuído.
+*   **Estado atual relevante**: existe rate limit por IP e tipo de operação, com tentativas bem-sucedidas ignoradas; não foi encontrada chave combinada por conta/e-mail. Em múltiplas réplicas, o armazenamento deve ser compartilhado.
+
+### [SEC-08] PAR-Q e Assinatura Eletrônica de Termos (Waivers)
+*   **Especificação**: Tabela `signed_waivers`:
+    ```text
+    - id (INTEGER, PK)
+    - user_id (INTEGER, FK -> users)
+    - terms_version (VARCHAR)
+    - parq_answers (JSON)
+    - ip_address (VARCHAR)
+    - signed_at (TIMESTAMP)
+    ```
+*   **Regra**: Bloquear acessos do aluno no app caso não possua registro de aceite ativo para a versão vigente de termos.
+
+### [SEC-09] Validação e Rotação de Segredos na CI
+*   **Especificação**: Bloquear carregamento da API Express se chaves criptográficas (`JWT_SECRET`, etc.) usarem valores padrões ou inseguros. Scanner de segredos (ex: Gitleaks) ativado na esteira do GitHub Actions.
+
+---
+
+## 2. Infraestrutura, Banco de Dados e Persistência (Grupo DB)
+
+### [DB-01] Persistência Física (Docker Named Volumes)
+*   **Especificação**: Manter o volume nomeado já existente para SQLite (`db-data:/app/data`) e garantir que `AVATAR_DIR`/demais uploads apontem para armazenamento persistente, com backup, quota e permissões documentadas. Não criar dois mounts divergentes para o mesmo diretório lógico.
+
+### [DB-02] Contenção de Escrita SQLite (WAL e Timeout)
+*   **Especificação**: Inicialização do Knex em `backend/knexfile.js` executando pragmas de concorrência (`WAL`, `busy_timeout = 5000`).
+
+### [DB-03] Ativação e Testes de Foreign Keys
+*   **Especificação**: Garantir execução de `PRAGMA foreign_keys = ON;` no pool SQLite e cobertura de testes garantindo rejeição de deleções físicas que rompam chaves estrangeiras sem cascade explícito.
+
+### [DB-04] Backup Seguro (VACUUM INTO)
+*   **Especificação**: Manter o script existente com `VACUUM INTO`, `PRAGMA integrity_check`, retenção e worker; complementar com restore automatizado periódico e envio off-site em **DB-05**.
+
+### [DB-05] Backup Off-Site com RPO/RTO
+*   **Especificação**: Integração com Cloudflare R2 ou Amazon S3 para upload seguro do arquivo de backup encriptado, com retenção programada (7 diários, 4 semanais, 1 mensal) e runbook documentado de restore.
+
+### [DB-06] Governança de Migrations e Deploy Expand/Contract
+*   **Especificação**: Scripts de migrations devem ser transacionais e retrocompatíveis. O deployment de novos esquemas deve ser feito em duas fases (Phase 1: Add new table/column nullable; Phase 2: Deploy code using it and drop old fields in future release).
+
+### [DB-07] Constraints de Domínio e Índices Relacionais
+*   **Especificação**: Migrations criando índices de cobertura em `chat_messages(sender_id, receiver_id)`, `workouts(student_id)` e constraints `UNIQUE` de tabelas pivô de exercícios.
+
+### [DB-08] Atomicidade de Escrita em Cadastros Compostos
+*   **Especificação**: No controller de criação de fichas (`createWorkout`), envolver a inserção da ficha (`workouts`) e exercícios vinculados (`workout_exercises`) dentro de uma transação Knex (`knex.transaction`), garantindo rollback total sob falha parcial.
+
+### [DB-09] Restrições de Domínio de Unidades (Evitar Floats)
+*   **Especificação**: Armazenar pesos e medidas em inteiros (ex: gramas para pesos, milímetros para perímetros biológicos) ou decimal de precisão fixa, prevenindo inconsistências de ponto flutuante em comparadores matemáticos.
+
+---
+
+## 3. Desempenho, UX e UI (Grupo UX)
+
+### [UX-01] Paginação de Chat Baseada em Cursor
+*   **Especificação**: Endpoint `/api/chat/:userId?before=<msgId>&limit=50` evitando a sobrecarga de memória do banco ao recuperar logs extensos.
+
+### [UX-02] Virtual Scrolling no Catálogo
+*   **Especificação**: Lógica no frontend para carregar no DOM apenas os cartões de exercícios atualmente visíveis no contêiner com buffer de segurança (aprox. 15 itens renderizados por vez).
+
+### [UX-03] Conversão e Tratamento de Timezones
+*   **Especificação**: Todas as colunas `TIMESTAMP` do SQLite são gravadas em UTC ISO 8601. Conversão regional realizada estritamente no frontend com a API `Intl.DateTimeFormat` do navegador.
+
+### [UX-04] Bloqueio de Base64 e Remoção de Mídias Órfãs
+*   **Especificação**: O avatar já é validado, convertido para WebP, escrito por arquivo temporário/rename e removido via serviço. Completar persistência do diretório, quota, reconciliação de órfãos e tratamento compensatório quando banco e filesystem divergirem. Para novos uploads, preferir binário/multipart a Base64.
+
+### [UX-05] Controle de Cache no Nginx e Cache-Busting
+*   **Especificação**: Substituir o versionamento manual por query string hoje presente por hashing de conteúdo automatizado no build; servir assets imutáveis com cache longo e HTML/roteador com revalidação (`no-cache`). Adicionar teste que impeça HTML antigo de apontar para assets removidos.
+
+### [UX-06] Controle de Concorrência (Optimistic Locking)
+*   **Especificação**: Coluna `version` (INTEGER) nos registros editáveis. O frontend envia a versão no cabeçalho `If-Match`. Caso o backend verifique divergência, aborta a escrita com `409 Conflict`.
+
+### [UX-07] Acessibilidade WCAG 2.2 AA
+*   **Especificação**: Modais com Focus Trap, suporte nativo para `prefers-reduced-motion` no CSS, anúncios acessíveis (`aria-live`) em toasts e tags ARIA consistentes nos grupos de abas.
+
+### [UX-08] Hardening de Uploads e Cotas de Mídia
+*   **Especificação**: Validação de assinaturas/MIME mágicos de arquivos em uploads, renomeação aleatória contra injeções de diretório, e limite estrito no Nginx de `client_max_body_size 600K` coerente com a cota JSON do backend.
+
+---
+
+## 4. Lógica de Negócio e Operações (Grupo BUS)
+
+### [BUS-01] Execução Real de Treino (Histórico de Sessões)
+*   **Especificação**: Persistência do treino realizado pelo aluno.
+*   **Tabelas**:
+    *   `workout_sessions` (IDs de vínculos, data de início, término, status `started` / `completed` / `abandoned`).
+    *   `exercise_logs` (séries concluídas, repetições reais, carga levantada, RPE percebido de 1 a 10).
+
+### [BUS-02] Estados de Publicação da Ficha de Treino
+*   **Especificação**: Fichas com campo `status` (`'draft'`, `'published'`, `'archived'`).
+*   **Regra**: O aluno só visualiza treinos marcados como `'published'`. Ao publicar um novo treino, o sistema altera automaticamente os treinos antigos do aluno para `'archived'`.
+
+### [BUS-03] Ciclo de Vida do Aluno e do Vínculo
+*   **Especificação**:
+    *   **Status da Conta**: `active`, `suspended`, `archived` (soft-deleted).
+    *   **Status do Vínculo**: `invited`, `active`, `paused`, `blocked`.
+    *   **Regra**: Alunos pausados retêm acesso read-only ao histórico, mas perdem chat e execução de treinos ativos.
+
+### [BUS-04] Anamnese Clínica (Assessments)
+*   **Especificação**: Tabela `student_assessments` registrando nível de experiência, limitações anatômicas, lesões clínicas, e dividida em campos privados (`personal_notes`) e compartilhados (`student_notes`).
+
+### [BUS-05] Aderência Semanal e Ordenação no Dashboard
+*   **Especificação**: Cálculo matemático: `aderência = treinos concluídos / treinos previstos`. Ordenações no painel do Personal por alunos com menor frequência ou maior tempo sem treinar.
+
+### [BUS-06] Progressão de Carga e Recordes Pessoais
+*   **Especificação**: Monitoramento do volume acumulado (`séries × repetições × carga`). Frontend exibe a última carga e reps executados em cada exercício como sugestão para a sessão atual.
+
+### [BUS-07] Temporizador de Descanso e Sessão Ativa
+*   **Especificação**: Temporizadores visuais no frontend com gravação de status no backend em `last_activity_at` para recuperar a sessão em andamento caso o navegador seja fechado acidentalmente.
+
+### [BUS-08] Fila Local (IndexedDB) e Chave de Idempotência
+*   **Especificação**:
+    *   Fila local no cliente (`IndexedDB`) guardando logs quando desconectado.
+    *   Envio das rotas com o cabeçalho `Idempotency-Key: <UUID>` para prevenir que reenvios causados por oscilações gerem duplicidade de treinos/pesos.
+
+### [BUS-09] Chaves de Cadastro de Personais via CLI
+*   **Especificação**: Script administrativo CLI no node para emitir, auditar vigência e invalidar as chaves de acesso exigidas no cadastro de novos instrutores.
+
+### [BUS-10] Edição e Exclusão de Mensagens no Chat
+*   **Especificação**: Endpoints `PUT /api/chat/:messageId` e `DELETE /api/chat/:messageId` atualizando as streams SSE ativas dos envolvidos.
+
+### [BUS-11] Indicador de "Digitando..." via SSE
+*   **Especificação**: Evento leve `event: typing` enviado pelo Express a partir de chamadas rápidas `POST /api/chat/typing` com de-bounce.
+
+### [BUS-12] Inativação e Abas de Filtragem de Alunos
+*   **Especificação**: Possibilidade de inativar alunos antigos sem deletar seu prontuário físico e separação por abas "Ativos" / "Inativos" na listagem.
+
+### [BUS-13] Periodização Biomecânica Ondulatória
+*   **Especificação**: Suporte a templates e variações de carga/volume estruturadas em microciclos na ficha do aluno, fugindo de fichas estáticas lineares de musculação.
+
+### [BUS-14] Governança do Catálogo de Exercícios
+*   **Especificação**: Deduplicação do catálogo e separação em exercícios base globais compartilhados vs customizados criados pelos treinadores.
+
+---
+
+## 5. Observabilidade, Governança e Negócio (Grupo OPS)
+
+### [OPS-01] Isolamento de Tenant (Subscriptions)
+*   **Especificação**: Tabela `subscriptions` vinculada à conta do Personal. Middleware bloqueia acessos retornando `402 Payment Required` em caso de mensalidade da licença expirada.
+
+### [OPS-02] Gestão de Equipe (Head/Junior) e Split de Receitas
+*   **Especificação**: Papéis corporativos com coordenação de equipes de personais juniores associados, bibliotecas compartilhadas e migrações em lote sob desligamento de instrutores.
+
+### [OPS-03] Acesso Multiprofissional (Parceiros Clínicos)
+*   **Especificação**: Contas do tipo parceiro read-only (Nutricionistas, Fisioterapeutas). Mediante consentimento explícito do aluno, eles acessam logs de treino e realizam upload de exames.
+
+### [OPS-04] Integração com Wearables
+*   **Especificação**: Conectores e adaptadores assíncronos para Apple HealthKit, Google Fit/Health Connect e Garmin. Ingestão passiva de sono e HRV para sugerir autorregulação.
+
+### [OPS-05] Alertas CRM de Churn e NPS
+*   **Especificação**: Tarefas diárias no node-cron alertando personais sobre alunos inativos há mais de 5 dias consecutivos e envio automatizado de pesquisas NPS.
+
+### [OPS-06] Check-ins por Geofencing e Agendamentos
+*   **Especificação**: Validação de presença presencial baseada em coordenadas GPS de geocercas ou conexão Wi-Fi da academia. Sincronização ICS.
+
+### [OPS-07] Check-in de Prontidão Física Diária (Readiness)
+*   **Especificação**: Escalas de 1 a 5 para DOMS, sono, fadiga e humor respondidos pelo aluno antes de abrir a ficha de treino do dia.
+
+### [OPS-08] Centro de Preferências de Notificações
+*   **Especificação**: Mapeamento de canais de recebimento (WhatsApp, E-mail, Push) para cada tipo de evento nas configurações de conta do usuário.
+
+### [OPS-09] Exportação e Anonimização de Dados (LGPD)
+*   **Especificação**: Endpoints `/api/compliance/export` e `/api/compliance/delete` (anonimizando informações identificáveis na exclusão permanente).
+
+### [OPS-10] Health Checks Liveness/Readiness
+*   **Especificação**: Endpoint `/health/live` (status do runtime) e `/health/ready` (valida conexão com SQLite e se há migrations pendentes no Knex).
+
+### [OPS-11] Sessões por Dispositivo (`user_sessions`)
+*   **Especificação**: Tabela `user_sessions` para listar e revogar tokens de dispositivos individuais sem invalidar a chave JWT global da conta.
+
+### [OPS-12] Backoffice de Suporte com Impersonation Seguro
+*   **Especificação**: Função de impersonação de conta pelo administrador com geração de log de auditoria associado a tickets e justificativa.
+
+### [OPS-13] Logs Estruturados, Métricas e Alertas
+*   **Especificação**: Logs em formato JSON na API, redação automática de CPFs/Senhas nos payloads, métricas RED de latência e alertas sob erros `SQLITE_BUSY`.
+
+### [OPS-14] CI/CD Obrigatória
+*   **Especificação**: Pipelines no GitHub Actions exigindo testes unitários/integrados, auditoria npm, scanner de segredos e checagem de migrations antes de aprovar pull requests.
+
+---
+
+## 6. Empacotamento Híbrido Mobile APK (Grupo MOB)
+
+### [MOB-01] Wrapper Híbrido com Capacitor
+*   **Especificação**: Configuração de Capacitor CLI apontando para a pasta frontend estática (`--web-dir=frontend`) e compilação do APK Android.
+
+### [MOB-02] Resolução Dinâmica de Base URL da API
+*   **Especificação**: Código frontend JavaScript detectando a existência de `window.Capacitor` para injetar a URL base de produção nos requests à API de forma condicional.
+
+### [MOB-03] CORS para WebViews Locais
+*   **Especificação**: Whitelist do backend Express aceitando requisições oriundas de `http://localhost` (WebView Android) e `capacitor://localhost` (WebView iOS).
+
+### [MOB-04] Armazenamento Seguro de Chaves (Secure Storage)
+*   **Especificação**: Em ambiente híbrido móvel, armazenar JWT localmente via plugin `@capacitor-community/secure-storage` integrado ao Keystore/Keychain nativo do celular.
