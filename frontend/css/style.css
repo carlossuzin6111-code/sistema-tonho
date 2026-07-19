@@ -2593,3 +2593,114 @@ body.dark-theme .drag-over {
   background: rgba(234,179,8,0.08) !important;
 }
 
+/* Responsive Pedagogical Table formatting for clean mobile display */
+@media (max-width: 768px) {
+  .pedagogical-table-wrapper {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    margin-top: 10px;
+  }
+
+  .pedagogical-table,
+  .pedagogical-table tbody,
+  .pedagogical-table tbody tr {
+    display: block;
+    width: 100%;
+  }
+
+  .pedagogical-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .pedagogical-table tbody tr {
+    margin-bottom: 16px;
+    border: 1.5px solid var(--border-passive);
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .pedagogical-table tbody tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .pedagogical-table td {
+    display: flex;
+    min-width: 0;
+    min-height: 48px;
+    padding: 10px 14px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-passive);
+    box-sizing: border-box;
+    font-size: 0.9rem;
+  }
+
+  .pedagogical-table td::before {
+    content: attr(data-label);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .pedagogical-table .workout-exercise-main {
+    flex-direction: column;
+    align-items: flex-start;
+    background: rgba(28, 28, 28, 0.02);
+    padding: 14px;
+    gap: 4px;
+  }
+  body.dark-theme .pedagogical-table .workout-exercise-main {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .pedagogical-table .workout-exercise-main::before {
+    display: none;
+  }
+
+  .pedagogical-table .exercise-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .pedagogical-table .workout-check-cell {
+    flex-direction: row-reverse;
+    background: rgba(28, 28, 28, 0.04);
+    padding: 8px 14px;
+  }
+  body.dark-theme .pedagogical-table .workout-check-cell {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .pedagogical-table .workout-execution-cell {
+    border-bottom: 0;
+    padding: 12px 14px;
+  }
+
+  .pedagogical-table .workout-execution-cell::before {
+    display: none;
+  }
+
+  .pedagogical-table .btn-pill-action {
+    width: 100%;
+    min-height: 40px;
+    justify-content: center;
+    white-space: normal;
+    margin: 0;
+  }
+}
+
