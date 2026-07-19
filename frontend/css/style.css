@@ -2120,7 +2120,7 @@ body.dark-theme .metric-item {
   }
 
   .dashboard-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 16px;
     padding: 16px;
     padding-bottom: 80px; /* Space for bottom nav */
@@ -2180,7 +2180,38 @@ body.dark-theme .metric-item {
   }
   
   .grid-2, .grid-3 {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .section-header .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .measurement-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px;
+  }
+
+  .measurement-overview .stat-mini {
+    padding: 10px 8px;
+  }
+
+  .stats-mini-grid {
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .stats-mini-grid .stat-mini {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 100px;
   }
   
   .hide-mobile {
