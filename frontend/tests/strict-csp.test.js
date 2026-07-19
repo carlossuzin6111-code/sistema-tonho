@@ -647,7 +647,7 @@ test('own profile UI is shared, accessible and prepares a bounded cropped avatar
     assert.match(html, /id="profile-avatar-zoom"[^>]*max="3"/);
     assert.match(html, /id="profile-email-readonly"[^>]*readonly/);
     assert.match(html, /id="profile-role-readonly"[^>]*readonly/);
-    assert.match(html, /src="js\/profile\.js\?v=20260718\.11"/);
+    assert.match(html, /src="js\/profile\.js\?v=20260718\.14"/);
   }
 
   const profile = read(path.join('js', 'profile.js'));
@@ -753,6 +753,30 @@ test('student chat keeps only messages scrollable and offers bounded resilient s
   assert.match(controller, /message\.length > 2000/);
 });
 
+test('final student-area audit prevents duplicate ids, empty image requests and inaccessible mobile navigation', () => {
+  for (const page of ['desktop.html', 'mobile.html']) {
+    const html = read(page);
+    const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
+    const duplicates = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
+    assert.deepEqual(duplicates, [], `${page} contains duplicate ids`);
+    assert.doesNotMatch(html, /<img[^>]*\ssrc=""/i);
+    for (const image of html.matchAll(/<img\b[^>]*>/gi)) assert.match(image[0], /\salt="[^"]*"/i);
+  }
+  const mobileHtml = read('mobile.html');
+  const events = read(path.join('js', 'events.js'));
+  const app = read(path.join('js', 'app.js'));
+  const style = read(path.join('css', 'style.css'));
+  assert.match(mobileHtml, /class="btn-icon mobile-menu-button"[^>]*aria-controls="mobile-drawer"[^>]*aria-expanded="false"/);
+  assert.match(mobileHtml, /id="mobile-drawer"[^>]*aria-hidden="true"/);
+  assert.match(mobileHtml, /class="mobile-drawer-panel"[^>]*role="dialog"[^>]*aria-modal="true"/);
+  assert.match(events, /drawer\.setAttribute\('aria-hidden', 'false'\)/);
+  assert.match(events, /setAttribute\('aria-expanded', 'true'\)/);
+  assert.match(events, /event\.key === 'Escape'/);
+  assert.match(events, /event\.key !== 'Tab'/);
+  assert.match(events, /mobileDrawerTrigger\?\.focus\(\)/);
+  assert.match(app, /gifImg\.removeAttribute\('src'\)/);
+  assert.match(style, /\.single-window-chat[^}]*min-height: min\(480px, calc\(100dvh - 190px\)\)/s);
+});
 test('event delegation invokes only the allowlisted action and form handlers', () => {
   const listeners = {};
   const calls = [];

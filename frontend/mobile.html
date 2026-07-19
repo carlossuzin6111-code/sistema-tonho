@@ -8,9 +8,9 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Base Styles (Components, Colors, Lovable) -->
-  <link rel="stylesheet" href="css/style.css?v=20260718.11">
+  <link rel="stylesheet" href="css/style.css?v=20260718.14">
   <!-- Mobile Architecture Overrides (PWA Lock) -->
-  <link rel="stylesheet" href="css/mobile.css?v=20260718.11">
+  <link rel="stylesheet" href="css/mobile.css?v=20260718.14">
 </head>
 <body>
 
@@ -91,7 +91,7 @@
     <!-- HEADER MOBILE -->
     <header class="mobile-header">
       <div class="logo-container mobile-header-brand">
-        <button class="btn-icon mobile-menu-button" data-action="toggle-drawer" aria-label="Abrir menu"><i data-lucide="menu"></i></button>
+        <button class="btn-icon mobile-menu-button" data-action="toggle-drawer" aria-label="Abrir menu" aria-controls="mobile-drawer" aria-expanded="false"><i data-lucide="menu"></i></button>
         <div class="mobile-brand-name">
           <i data-lucide="dumbbell" class="logo-icon text-gradient mobile-brand-icon"></i>
           <span class="logo-text text-gradient mobile-brand-text">FitLife</span>
@@ -491,7 +491,7 @@
       <div class="mobile-modal-inner">
         <h2 class="modal-title" id="execution-modal-title">Execução</h2>
         <div class="execution-gif-container mt-16">
-          <img src="" id="execution-modal-gif" class="execution-gif" />
+          <img id="execution-modal-gif" alt="Demonstração do exercício" class="execution-gif" />
         </div>
         <div class="execution-instructions" id="execution-modal-instructions"></div>
       </div>
@@ -568,8 +568,8 @@
   </div>
 
   <!-- DRAWER LATERAL -->
-  <div id="mobile-drawer" class="mobile-drawer-overlay" data-action="close-drawer">
-    <aside class="mobile-drawer-panel" data-action="stop-propagation">
+  <div id="mobile-drawer" class="mobile-drawer-overlay" data-action="close-drawer" aria-hidden="true">
+    <aside class="mobile-drawer-panel" data-action="stop-propagation" role="dialog" aria-modal="true" aria-label="Menu de navegação">
       <div class="drawer-header">
         <h2 class="logo-text text-gradient drawer-title">Menu</h2>
         <button class="btn-icon" data-action="toggle-drawer" aria-label="Fechar menu"><i data-lucide="x"></i></button>
@@ -585,7 +585,7 @@
 
       <!-- Navegação Aluno -->
       <div class="drawer-nav hidden" id="drawer-nav-student">
-        <button class="drawer-nav-btn" data-action="drawer-student-tab" data-tab="workouts"><i data-lucide="dumbbell"></i> Meus Treinos</button>
+        <button class="drawer-nav-btn" data-action="drawer-student-tab" data-tab="workouts"><i data-lucide="dumbbell"></i> Meus exercícios</button>
         <button class="drawer-nav-btn" data-action="drawer-student-tab" data-tab="measurements"><i data-lucide="ruler"></i> Minhas Medidas</button>
         <button class="drawer-nav-btn" data-action="drawer-student-tab" data-tab="chat"><i data-lucide="message-square"></i> Chat do Personal</button>
       </div>
@@ -593,12 +593,12 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260718.11"></script>
-  <script src="js/safe-dom.js?v=20260718.11"></script>
-  <script src="js/app.js?v=20260718.11"></script>
-  <script src="js/personal.js?v=20260718.11"></script>
-  <script src="js/student.js?v=20260718.11"></script>
-  <script src="js/profile.js?v=20260718.11"></script>
-  <script src="js/events.js?v=20260718.11"></script>
+  <script src="js/api.js?v=20260718.14"></script>
+  <script src="js/safe-dom.js?v=20260718.14"></script>
+  <script src="js/app.js?v=20260718.14"></script>
+  <script src="js/personal.js?v=20260718.14"></script>
+  <script src="js/student.js?v=20260718.14"></script>
+  <script src="js/profile.js?v=20260718.14"></script>
+  <script src="js/events.js?v=20260718.14"></script>
 </body>
 </html>
