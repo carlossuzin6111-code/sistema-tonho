@@ -1069,31 +1069,73 @@ function renderPriorityExercises() {
     card.setAttribute('draggable', 'true');
     card.setAttribute('data-id', ex.id);
     
-    const thumb = ex.gif_url 
-      ? `<img src="${ex.gif_url}" class="exercise-thumb" alt="Exercício" />`
-      : `<div class="exercise-thumb" style="display:flex; align-items:center; justify-content:center;"><i data-lucide="dumbbell" style="width:18px; color:var(--text-muted);"></i></div>`;
-      
     const descText = ex.description ? ex.description : 'Sem orientações técnicas cadastradas.';
     
-    card.innerHTML = `
-      <div class="exercise-db-info">
-        <i data-lucide="grip-vertical" class="drag-handle" title="Arraste para ordenar" style="margin-right: 8px;"></i>
-        ${thumb}
-        <div class="exercise-db-details">
-          <h4>${ex.name}</h4>
-          <p>${descText}</p>
-        </div>
-      </div>
-      <button class="btn-favorite" onclick="toggleExerciseFavorite(${ex.id}, event)" title="Desfavoritar">
-        <i data-lucide="star" class="star-icon ${ex.is_favorite ? 'filled' : ''}"></i>
-      </button>
-      <div style="display:flex; gap:6px;">
-        ${ex.gif_url ? `<button class="btn btn-tertiary btn-sm" onclick="openExerciseExecutionModal('${ex.name.replace(/'/g, "\\'")}', '${ex.gif_url}', '${descText.replace(/'/g, "\\'")}')" title="Testar Popup"><i data-lucide="eye"></i></button>` : ''}
-        <button class="btn btn-danger btn-sm" onclick="deleteCatalogExercise(${ex.id})" title="Excluir da Biblioteca">
-          <i data-lucide="trash-2"></i>
-        </button>
-      </div>
-    `;
+    const image = SafeDOM.el('img', {
+      className: 'exercise-thumb',
+      attrs: { alt: 'Exercício' }
+    });
+    const hasSafeImage = SafeDOM.setSafeImageSource(image, ex.gif_url);
+    const thumb = hasSafeImage
+      ? image
+      : SafeDOM.el('div', {
+          className: 'exercise-thumb exercise-thumb-placeholder'
+        }, [SafeDOM.icon('dumbbell')]);
+        
+    const gripIcon = SafeDOM.icon('grip-vertical', {
+      className: 'drag-handle',
+      attrs: { title: 'Arraste para ordenar' }
+    });
+    
+    const details = SafeDOM.el('div', { className: 'exercise-db-details' }, [
+      SafeDOM.el('h4', { text: ex.name }),
+      SafeDOM.el('p', { text: descText })
+    ]);
+    
+    const info = SafeDOM.el('div', { className: 'exercise-db-info' }, [
+      gripIcon,
+      thumb,
+      details
+    ]);
+    
+    const btnFavorite = SafeDOM.el('button', {
+      className: 'btn-favorite',
+      attrs: { title: 'Desfavoritar' },
+      on: {
+        click: (e) => {
+          e.stopPropagation();
+          toggleExerciseFavorite(ex.id, e);
+        }
+      }
+    }, [
+      SafeDOM.icon('star', { className: `star-icon ${ex.is_favorite ? 'filled' : ''}` })
+    ]);
+    
+    const actions = SafeDOM.el('div', { className: 'catalog-actions' });
+    if (hasSafeImage) {
+      actions.appendChild(SafeDOM.el('button', {
+        className: 'btn btn-tertiary btn-sm',
+        attrs: { title: 'Visualizar execução', 'aria-label': `Visualizar execução de ${ex.name}` },
+        on: {
+          click: (e) => {
+            e.stopPropagation();
+            openExerciseExecutionModal(ex.name, ex.gif_url, descText);
+          }
+        }
+      }, [SafeDOM.icon('eye')]));
+    }
+    actions.appendChild(SafeDOM.el('button', {
+      className: 'btn btn-danger btn-sm',
+      attrs: { title: 'Excluir da biblioteca', 'aria-label': `Excluir ${ex.name} da biblioteca` },
+      on: {
+        click: (e) => {
+          e.stopPropagation();
+          deleteCatalogExercise(ex.id, ex.name);
+        }
+      }
+    }, [SafeDOM.icon('trash-2')]));
+    
+    SafeDOM.appendChildren(card, [info, btnFavorite, actions]);
     priorityList.appendChild(card);
   });
   

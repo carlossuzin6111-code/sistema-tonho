@@ -656,3 +656,18 @@ body.dark-theme .mobile-bottom-nav {
   white-space: normal !important;
 }
 
+/* Pedagogical table rules matching test expectations */
+#tab-s-workouts .pedagogical-table tbody tr {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+#tab-s-workouts .pedagogical-table td::before {
+  content: attr(data-label);
+}
+#tab-s-workouts .workout-checkbox {
+  width: 44px;
+  height: 44px;
+}
+#tab-s-workouts .btn-pill-action {
+  min-height: 44px;
+}
