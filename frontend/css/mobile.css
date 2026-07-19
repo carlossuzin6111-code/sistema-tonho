@@ -696,3 +696,9 @@ body.dark-theme .mobile-bottom-nav {
 .sidebar, .dashboard-layout {
   display: block;
 }
+
+#exercises-catalog-list,
+#exercises-priority-list {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
