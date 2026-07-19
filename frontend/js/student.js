@@ -36,6 +36,7 @@ async function loadStudentWorkouts() {
     studentWorkouts = await API.get('/student/workouts');
     finishLoadingState(container);
     updateStudentWorkoutSummary();
+    SafeDOM.clear(container);
     if (!studentWorkouts.length) {
       container.appendChild(SafeDOM.el('div', { className: 'chat-empty-state glass empty-state-large' }, [
         SafeDOM.icon('dumbbell', 'chat-empty-icon icon-50 text-muted'),
