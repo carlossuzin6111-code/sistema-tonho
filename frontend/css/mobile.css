@@ -702,3 +702,25 @@ body.dark-theme .mobile-bottom-nav {
   grid-template-columns: minmax(0, 1fr) !important;
 }
 
+.exercise-db-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.exercise-db-info {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.exercise-db-details {
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+
+.exercise-db-details p {
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  white-space: normal !important;
+}
+

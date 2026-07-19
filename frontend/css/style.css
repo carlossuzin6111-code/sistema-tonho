@@ -1854,6 +1854,8 @@ body.dark-theme .priority-section {
 .modal-body-scroll {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
+  max-width: 100%;
   padding-right: 5px;
 }
 

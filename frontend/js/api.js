@@ -111,35 +111,6 @@ const API = {
     }
   },
 
-  // HTTP PATCH request
-  async patch(endpoint, data) {
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'PATCH',
-        headers: this.getHeaders(),
-        body: JSON.stringify(data || {})
-      });
-      return await this.handleResponse(response);
-    } catch (err) {
-      console.error(`API PATCH ${endpoint} failed:`, err.message);
-      throw err;
-    }
-  },
-
-  // HTTP PUT request
-  async put(endpoint, data) {
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'PUT',
-        headers: this.getHeaders(),
-        body: JSON.stringify(data || {})
-      });
-      return await this.handleResponse(response);
-    } catch (err) {
-      console.error(`API PUT ${endpoint} failed:`, err.message);
-      throw err;
-    }
-  },
 
   // Real-Time Chat Server-Sent Events subscription
   chatStream: null,
