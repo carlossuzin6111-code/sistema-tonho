@@ -2678,6 +2678,7 @@ body.dark-theme .drag-over {
   }
 
   .pedagogical-table .workout-check-cell {
+    width: 100% !important;
     flex-direction: row-reverse;
     background: rgba(28, 28, 28, 0.04);
     padding: 8px 14px;
