@@ -257,9 +257,9 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
 ## DB-01 / DB-05 — Persistência de Banco, Avatares e Procedimento de Restore
 
-- Estado: em andamento
+- Estado: concluído; aguardando merge
 - Branch: `db/db-01-db-05-persistence-restore`
-- Pull request: pendente
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/84
 - Início: 20/07/2026
 - Prioridade: 5/10
 
@@ -278,8 +278,8 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Criar suíte de testes de integração `backend/src/tests/persistenceRestore.test.js` cobrindo co-localização de dados, simulação de perda de dados e recuperação atômica completa.
 - [x] Validar que a restauração recria tabelas SQLite, registros de usuários/alunos e imagens de avatares mantendo integridade e somas SHA256.
 - [x] Executar suítes de testes do backend, frontend e auditorias de segurança.
-- [ ] Abrir PR e registrar link no arquivo de controle.
-- [ ] Acompanhar CI.
+- [x] Abrir PR e registrar link no arquivo de controle.
+- [x] Acompanhar CI.
 
 ### Critérios de aceite
 
@@ -297,6 +297,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Backend: 146/146 testes aprovados em 17 suítes.
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+- CI do PR #84: Backend Tests, Frontend & Infrastructure e Secret Scan totalmente aprovados.
 
 
 
