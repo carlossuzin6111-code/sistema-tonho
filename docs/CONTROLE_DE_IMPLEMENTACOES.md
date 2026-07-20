@@ -326,7 +326,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Adicionar teste unitário no frontend (`strict-csp.test.js`) validando a presença e obrigatoriedade destas etapas de segurança no arquivo de workflow.
 - [x] Executar suítes de testes do backend, frontend e auditorias locais.
 - [x] Abrir PR e registrar link no arquivo de controle.
-- [ ] Acompanhar CI.
+- [x] Acompanhar CI.
 
 ### Critérios de aceite
 
@@ -345,3 +345,4 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Backend: 146/146 testes aprovados em 17 suítes.
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+- CI do PR #85: Backend Tests (com migrações, audit e 17 suítes), Frontend & Infrastructure (com audit e 5 suítes) e Secret Scan totalmente aprovados.
