@@ -170,9 +170,9 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## DB-08 — Transações em Cadastros Compostos
 
-- Estado: em andamento
+- Estado: concluído; aguardando merge
 - Branch: `db/db-08-composite-transactions`
-- Pull request: pendente
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/82
 - Início: 20/07/2026
 - Prioridade: 7/10
 
@@ -191,8 +191,8 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Refatorar `createWorkout` em `backend/src/controllers/workoutController.js` para usar `db.transaction`.
 - [x] Criar suíte de testes em `backend/src/tests/transactions.test.js` cobrindo sucesso e rollback automático em falhas simuladas de cadastros compostos.
 - [x] Executar suítes de testes do backend, frontend e auditoria de segurança.
-- [ ] Abrir PR e registrar link no arquivo de controle.
-- [ ] Acompanhar CI.
+- [x] Abrir PR e registrar link no arquivo de controle.
+- [x] Acompanhar CI.
 
 ### Critérios de aceite
 
@@ -210,5 +210,6 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Backend: 122/122 testes aprovados em 15 suítes.
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+- CI do PR #82: Backend Tests, Frontend & Infrastructure e Secret Scan totalmente aprovados.
 
 
