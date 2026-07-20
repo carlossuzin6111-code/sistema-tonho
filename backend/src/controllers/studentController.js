@@ -19,31 +19,37 @@ async function createStudent(req, res) {
 
   try {
     const normalizedEmail = normalizeEmail(email);
-    // Check if email exists
-    const existingUser = await db('users').select('id').where('email', normalizedEmail).first();
-    if (existingUser) {
-      return res.status(400).json({ error: 'Email already registered' });
-    }
-
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    // Insert student user
-    const [studentId] = await db('users').insert({
-      name,
-      email: normalizedEmail,
-      password_hash: passwordHash,
-      role: 'student'
-    });
+    const studentId = await db.transaction(async trx => {
+      // Check if email exists inside transaction
+      const existingUser = await trx('users').select('id').where('email', normalizedEmail).first();
+      if (existingUser) {
+        const err = new Error('Email already registered');
+        err.code = 'EMAIL_ALREADY_REGISTERED';
+        throw err;
+      }
 
-    // Create student profile
-    await db('student_profiles').insert({
-      student_id: studentId,
-      personal_id: personalId,
-      height: height || null,
-      target_weight: targetWeight || null,
-      birth_date: birthDate || null
+      // Insert student user
+      const [newStudentId] = await trx('users').insert({
+        name,
+        email: normalizedEmail,
+        password_hash: passwordHash,
+        role: 'student'
+      });
+
+      // Create student profile
+      await trx('student_profiles').insert({
+        student_id: newStudentId,
+        personal_id: personalId,
+        height: height || null,
+        target_weight: targetWeight || null,
+        birth_date: birthDate || null
+      });
+
+      return newStudentId;
     });
 
     res.status(201).json({
@@ -56,7 +62,7 @@ async function createStudent(req, res) {
       }
     });
   } catch (err) {
-    if (isEmailUniqueConstraint(err)) {
+    if (err.code === 'EMAIL_ALREADY_REGISTERED' || isEmailUniqueConstraint(err)) {
       return res.status(400).json({ error: 'Email already registered' });
     }
     console.error('Create student error:', err.message);

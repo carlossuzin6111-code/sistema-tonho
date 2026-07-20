@@ -17,29 +17,33 @@ async function createWorkout(req, res) {
       return res.status(403).json({ error: 'Access denied: student not linked to this personal' });
     }
 
-    const [workoutId] = await db('workouts').insert({
-      student_id: studentId,
-      personal_id: personalId,
-      name,
-      description: description || null
-    });
+    const workoutId = await db.transaction(async trx => {
+      const [newWorkoutId] = await trx('workouts').insert({
+        student_id: studentId,
+        personal_id: personalId,
+        name,
+        description: description || null
+      });
 
-    if (exercises && Array.isArray(exercises)) {
-      for (const ex of exercises) {
-        if (ex.name && ex.sets) {
-          await db('workout_exercises').insert({
-            workout_id: workoutId,
-            name: ex.name,
-            sets: ex.sets,
-            reps: ex.reps || '10',
-            weight: ex.weight || '',
-            rest_time: ex.restTime || '',
-            notes: ex.notes || '',
-            exercise_id: ex.exerciseId || null
-          });
+      if (exercises && Array.isArray(exercises)) {
+        for (const ex of exercises) {
+          if (ex.name && ex.sets) {
+            await trx('workout_exercises').insert({
+              workout_id: newWorkoutId,
+              name: ex.name,
+              sets: ex.sets,
+              reps: ex.reps || '10',
+              weight: ex.weight || '',
+              rest_time: ex.restTime || '',
+              notes: ex.notes || '',
+              exercise_id: ex.exerciseId || null
+            });
+          }
         }
       }
-    }
+
+      return newWorkoutId;
+    });
 
     res.status(201).json({
       message: 'Workout created successfully',
