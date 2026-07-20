@@ -14,8 +14,9 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## SEC-09 — Proteção e rotação de segredos
 
-- Estado: implementado; entrega em andamento
+- Estado: implementado; PR aberto e CI em validação
 - Branch: `security/sec-09-secret-hardening`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/79
 - Início: 20/07/2026
 - Prioridade: 10/10
 
@@ -36,7 +37,8 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Adicionar Gitleaks à CI para examinar o conteúdo atual do repositório.
 - [x] Adicionar ou atualizar testes automatizados.
 - [x] Executar testes e auditorias locais.
-- [ ] Abrir PR e acompanhar a CI.
+- [x] Abrir PR.
+- [ ] Acompanhar e registrar o resultado final da CI.
 
 ### Critérios de aceite
 
