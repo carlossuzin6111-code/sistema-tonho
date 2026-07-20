@@ -10,6 +10,13 @@ if (!JWT_SECRET) {
 if (Buffer.byteLength(JWT_SECRET, 'utf8') < 32) {
   throw new Error('JWT_SECRET must contain at least 32 bytes');
 }
+
+const looksLikePlaceholder = /^(?:change|replace|example|default|development|test|ci|your)[-_ ]/i.test(JWT_SECRET);
+const distinctCharacters = new Set(JWT_SECRET).size;
+
+if (process.env.NODE_ENV === 'production' && (looksLikePlaceholder || distinctCharacters < 8)) {
+  throw new Error('JWT_SECRET must be random and cannot use a placeholder in production');
+}
 const SESSION_COOKIE = 'fitlife_session';
 const CSRF_COOKIE = 'fitlife_csrf';
 const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
