@@ -170,7 +170,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## DB-08 — Transações em Cadastros Compostos
 
-- Estado: concluído; aguardando merge
+- Estado: concluído e mergeado
 - Branch: `db/db-08-composite-transactions`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/82
 - Início: 20/07/2026
@@ -211,5 +211,50 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
 - CI do PR #82: Backend Tests, Frontend & Infrastructure e Secret Scan totalmente aprovados.
+
+## SEC-01 — Matriz de Testes contra IDOR (Insecure Direct Object Reference)
+
+- Estado: em andamento
+- Branch: `security/sec-01-idor-test-matrix`
+- Pull request: pendente
+- Início: 20/07/2026
+- Prioridade: 6/10
+
+### Diagnóstico
+
+- O sistema gerencia recursos sensíveis de múltiplos locatários (Personal Trainers e Alunos vinculados).
+- Tentativas de acesso direto a IDs de recursos (perfis de alunos, treinos, exercícios de treino, medições, histórico de chat, avatares e exercícios do catálogo) pertencentes a outro Personal Trainer ou Aluno devem ser negadas de forma consistente com HTTP 403 ou 404.
+- É necessário construir uma matriz completa de testes automatizados de controle de acesso cruzado (cross-tenant IDOR matrix) envolvendo 4 identidades distintas: Personal Trainer A, Aluno A1 (vinculado a A), Personal Trainer B e Aluno B1 (vinculado a B).
+
+### Plano aprovado
+
+- [x] Confirmar o merge do DB-08 e sincronizar a `main`.
+- [x] Criar a branch exclusiva `security/sec-01-idor-test-matrix`.
+- [x] Registrar o plano e diagnóstico em `docs/CONTROLE_DE_IMPLEMENTACOES.md`.
+- [x] Criar suíte de testes dedicada `backend/src/tests/idorMatrix.test.js` cobrindo a matriz completa de 4 usuários e todos os recursos expostos pela API.
+- [x] Testar tentativa de acesso de Personal A a dados de Aluno B1 (detalhes, treinos, medições, redefinição de senha, chat, avatar).
+- [x] Testar tentativa de acesso de Aluno A1 a dados de Aluno B1 (detalhes, medições, treinos, chat, avatar).
+- [x] Testar tentativa de manipulação cruzada de treinos/exercícios por Personal B em recursos pertencentes a Personal A.
+- [x] Executar suítes de testes do backend, frontend e auditorias de segurança.
+- [ ] Abrir PR e registrar link no arquivo de controle.
+- [ ] Acompanhar CI.
+
+### Critérios de aceite
+
+- A suíte de testes cobre acessos legítimos e não autorizados para todos os endpoints com ID de recurso.
+- Qualquer tentativa de IDOR resulta em HTTP 403 Forbidden ou 404 Not Found conforme a especificação do endpoint.
+- Nenhuma vazamento de dados de outros tenants é permitido sob nenhuma combinação de papéis.
+- Todos os testes existentes do sistema permanecem aprovados.
+
+### Evidências
+
+- Teste específico `idorMatrix.test.js`: 20/20 aprovados.
+- Matriz de testes de controle de acesso cruzado (4 identidades: Personal A, Aluno A1, Personal B, Aluno B1) comprovando bloqueio rígido a acessos diretos não autorizados (IDOR).
+- Bloqueio de acesso cruzado verificado nos endpoints de perfil de aluno, redefinição de senha, histórico de medições, criação/deleção/alteração de treinos e exercícios, chat em tempo real e visualização de avatares.
+- Frontend: 50/50 testes aprovados em 5 suítes.
+- Backend: 142/142 testes aprovados em 16 suítes.
+- `npm audit` na raiz: 0 vulnerabilidades.
+- `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+
 
 
