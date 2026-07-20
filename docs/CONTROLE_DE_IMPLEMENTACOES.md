@@ -66,7 +66,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## DB-02 — Concorrência SQLite com WAL e busy timeout
 
-- Estado: concluído; aguardando merge
+- Estado: concluído e mergeado
 - Branch: `db/db-02-sqlite-wal-timeout`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/80
 - Início: 20/07/2026
@@ -112,10 +112,59 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
 - Sintaxe dos arquivos JavaScript, integridade do diff e estrutura do Compose aprovadas.
-- Gitleaks local pendente: o Docker Desktop permaneceu desligado após queda de energia; a verificação será executada pelo job obrigatório do PR.
 - CI do PR #80: backend, frontend/infraestrutura e secret scan aprovados.
 
 ### Fora do escopo
 
 - `PRAGMA foreign_keys = ON`, tratado separadamente no DB-03.
 - Migração para PostgreSQL ou múltiplas réplicas da aplicação.
+
+## DB-03 — Habilitação de Foreign Keys por conexão e testes de integridade
+
+- Estado: concluído; aguardando merge
+- Branch: `db/db-03-sqlite-foreign-keys`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/81
+- Início: 20/07/2026
+- Prioridade: 8/10
+
+### Diagnóstico
+
+- O SQLite exige `PRAGMA foreign_keys = ON` individualmente por cada conexão estabelecida.
+- O hook de pool em `backend/knexfile.js` executa WAL e busy_timeout, mas não habilita `foreign_keys`.
+- Sem este pragma habilitado por conexão, constraints de chave estrangeira (`ON DELETE CASCADE`, `ON DELETE SET NULL`, bloqueio de FK órfã) declaradas nas migrations Knex não são validadas pelo SQLite em runtime.
+
+### Plano aprovado
+
+- [x] Confirmar o merge do DB-02 e sincronizar a `main`.
+- [x] Criar a branch exclusiva `db/db-03-sqlite-foreign-keys`.
+- [x] Registrar o plano e diagnóstico em `docs/CONTROLE_DE_IMPLEMENTACOES.md`.
+- [x] Atualizar `sqlitePool.afterCreate` em `backend/knexfile.js` para incluir `PRAGMA foreign_keys = ON;`.
+- [x] Criar suíte de testes automatizados `backend/src/tests/sqliteForeignKeys.test.js`.
+- [x] Validar bloqueio de inserção de registros órfãos (ex: treino sem usuário, exercício de treino sem treino).
+- [x] Validar comportamento de deleção em cascata (`ON DELETE CASCADE`) ao excluir pai.
+- [x] Validar comportamento `ON DELETE SET NULL` (ex: exclusão de exercício definindo `exercise_id` nulo).
+- [x] Executar suíte completa backend, frontend e auditorias de segurança.
+- [x] Abrir PR e registrar link no arquivo de controle.
+- [x] Acompanhar CI.
+
+### Critérios de aceite
+
+- `PRAGMA foreign_keys` retorna `1` em toda conexão criada pelo Knex.
+- Tentativa de inserir registro com FK inexistente lança exceção de violação de FK.
+- Exclusão de usuário remove registros associados (`student_profiles`, `workouts`, `workout_exercises`, `measurements`, `chat_messages`) por cascata.
+- Exclusão de exercício ajusta `exercise_id` em `workout_exercises` para `NULL`.
+- Todos os 113+ testes existentes continuam passando sem regressão.
+
+### Evidências
+
+- Teste específico `sqliteForeignKeys.test.js`: 5/5 aprovado.
+- `PRAGMA foreign_keys` verificado como `1` em conexões ativas da aplicação.
+- Rejeição de registros órfãos comprovada em `workouts`, `student_profiles` e `workout_exercises`.
+- Cascata `ON DELETE CASCADE` validada ao excluir usuário (removeu profile, treinos, exercícios do treino, medições e chat).
+- `ON DELETE SET NULL` validado ao excluir exercício customizado (preservou o item de treino definindo `exercise_id` nulo).
+- Frontend: 50/50 testes aprovados em 5 suítes.
+- Backend: 118/118 testes aprovados em 14 suítes.
+- `npm audit` na raiz: 0 vulnerabilidades.
+- `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+- CI do PR #81: Backend Tests, Frontend & Infrastructure e Secret Scan totalmente aprovados.
+
