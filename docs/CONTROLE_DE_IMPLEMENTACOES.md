@@ -255,7 +255,49 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Backend: 144/144 testes aprovados em 16 suítes.
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
-- CI do PR #83: Backend Tests, Frontend & Infrastructure e Secret Scan totalmente aprovados.
+## DB-01 / DB-05 — Persistência de Banco, Avatares e Procedimento de Restore
+
+- Estado: em andamento
+- Branch: `db/db-01-db-05-persistence-restore`
+- Pull request: pendente
+- Início: 20/07/2026
+- Prioridade: 5/10
+
+### Diagnóstico
+
+- O Compose monta o volume persistente nomeado `db-data:/app/data` para os serviços `app`, `translation-worker` e `backup-worker`.
+- O banco SQLite (`/app/data/database.sqlite`), o diretório de avatares privados (`/app/data/avatars/`) e o diretório de backups automáticos (`/app/data/backups/`) residem no mesmo volume montado em `/app/data`.
+- O `backup-worker` gera snapshots não-bloqueantes (`VACUUM INTO`), cria o manifesto `manifest.json` com hashes SHA256 do banco e dos avatares, e mantém retenção rotativa de 7 dias.
+- O script `restoreBackup.js` valida o manifesto, soma de verificação SHA256 do banco e avatares, integridade do SQLite e restaura os dados atomicamente em diretório destino limpo.
+
+### Plano aprovado
+
+- [x] Confirmar o merge do SEC-01 e sincronizar a `main`.
+- [x] Criar a branch exclusiva `db/db-01-db-05-persistence-restore`.
+- [x] Registrar o plano e diagnóstico em `docs/CONTROLE_DE_IMPLEMENTACOES.md`.
+- [x] Criar suíte de testes de integração `backend/src/tests/persistenceRestore.test.js` cobrindo co-localização de dados, simulação de perda de dados e recuperação atômica completa.
+- [x] Validar que a restauração recria tabelas SQLite, registros de usuários/alunos e imagens de avatares mantendo integridade e somas SHA256.
+- [x] Executar suítes de testes do backend, frontend e auditorias de segurança.
+- [ ] Abrir PR e registrar link no arquivo de controle.
+- [ ] Acompanhar CI.
+
+### Critérios de aceite
+
+- Banco de dados, avatares e backups estão co-localizados no volume montado em `/app/data`.
+- O teste de restore reconstrói com sucesso o banco e avatares em caso de desastre sem perda de integridade.
+- Restauração recusa pacotes com checksums inconsistentes ou avatares alterados/ausentes.
+- Suítes de testes automatizados do sistema permanecem 100% aprovadas.
+
+### Evidências
+
+- Teste específico `persistenceRestore.test.js`: 2/2 aprovados.
+- Co-localização sob volume persistente `/app/data` confirmada (`database.sqlite`, `avatars/`, `backups/`).
+- Simulação de disaster recovery validada: limpeza total de banco e avatares seguida de restore automatizado via `restoreBackup.js`, recompondo estado completo e integridade de registros e arquivos WebP.
+- Frontend: 50/50 testes aprovados em 5 suítes.
+- Backend: 146/146 testes aprovados em 17 suítes.
+- `npm audit` na raiz: 0 vulnerabilidades.
+- `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+
 
 
 
