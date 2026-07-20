@@ -214,7 +214,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## SEC-01 — Matriz de Testes contra IDOR (Insecure Direct Object Reference)
 
-- Estado: concluído; aguardando merge
+- Estado: concluído e mergeado
 - Branch: `security/sec-01-idor-test-matrix`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/83
 - Início: 20/07/2026
@@ -255,9 +255,11 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Backend: 144/144 testes aprovados em 16 suítes.
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+- CI do PR #83: Backend Tests, Frontend & Infrastructure e Secret Scan totalmente aprovados.
+
 ## DB-01 / DB-05 — Persistência de Banco, Avatares e Procedimento de Restore
 
-- Estado: concluído; aguardando merge
+- Estado: concluído e mergeado
 - Branch: `db/db-01-db-05-persistence-restore`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/84
 - Início: 20/07/2026
@@ -299,6 +301,48 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
 - CI do PR #84: Backend Tests, Frontend & Infrastructure e Secret Scan totalmente aprovados.
 
+## OPS-14 — Ampliação e Obrigatoriedade da Integração Contínua (CI/CD)
 
+- Estado: concluído; aguardando merge
+- Branch: `ops/ops-14-ci-cd-hardening`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/85
+- Início: 20/07/2026
+- Prioridade: 4/10
 
+### Diagnóstico
 
+- O workflow do GitHub Actions (`.github/workflows/backend-tests.yml`) já executa a suíte backend, frontend/infraestrutura e o scanner de segredos Gitleaks.
+- Faltava incluir auditorias automatizadas de segurança de dependências (`npm audit` na raiz e `npm audit --omit=dev` no backend) e validação da integridade de migrations (`npm run migrate:status`).
+- A restrição de caminhos (`paths`) no gatilho de `pull_request` permitia que PRs focados apenas em certas pastas ignorassem as checagens obrigatórias; o gatilho de PR deve disparar para qualquer modificação.
+
+### Plano aprovado
+
+- [x] Confirmar o merge de DB-01 / DB-05 e sincronizar a `main`.
+- [x] Criar a branch exclusiva `ops/ops-14-ci-cd-hardening`.
+- [x] Registrar o plano e diagnóstico em `docs/CONTROLE_DE_IMPLEMENTACOES.md`.
+- [x] Remover filtros restritivos de `paths` no evento `pull_request` do workflow do GitHub Actions.
+- [x] Adicionar a etapa de validação de status de migrations (`npm run migrate:status`) no job do backend.
+- [x] Adicionar etapas de auditoria de dependências (`npm audit --omit=dev` no backend e `npm audit` no frontend/infra).
+- [x] Adicionar teste unitário no frontend (`strict-csp.test.js`) validando a presença e obrigatoriedade destas etapas de segurança no arquivo de workflow.
+- [x] Executar suítes de testes do backend, frontend e auditorias locais.
+- [x] Abrir PR e registrar link no arquivo de controle.
+- [x] Acompanhar CI.
+
+### Critérios de aceite
+
+- O workflow dispara obrigatoriamente para qualquer Pull Request sem ignorar alterações.
+- O job do backend executa validação de migrations e auditoria de dependências antes dos testes de unidade.
+- O job de frontend/infra executa auditoria de dependências do projeto raiz antes dos testes de integração.
+- A suíte de testes automatizada do sistema valida a presença das regras no workflow.
+
+### Evidências
+
+- Teste de integridade de workflow em `strict-csp.test.js` aprovado.
+- Gatilho `pull_request` no `.github/workflows/backend-tests.yml` configurado sem filtros de caminhos para execuções obrigatórias de CI.
+- Etapas `npm run migrate:status` e `npm audit --omit=dev` inseridas no job do backend.
+- Etapa `npm audit` inserida no job de frontend/infraestrutura.
+- Frontend: 51/51 testes aprovados em 5 suítes.
+- Backend: 146/146 testes aprovados em 17 suítes.
+- `npm audit` na raiz: 0 vulnerabilidades.
+- `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+- CI do PR #85: Backend Tests (com migrações, audit e 17 suítes), Frontend & Infrastructure (com audit e 5 suítes) e Secret Scan totalmente aprovados.

@@ -228,6 +228,16 @@ test('all external container images are pinned to immutable digests', () => {
   for (const image of images) assert.match(image, /@sha256:[a-f0-9]{64}$/);
 });
 
+test('CI workflow enforces mandatory PR execution, migration status validation, and dependency security audits', () => {
+  const workflow = fs.readFileSync(path.join(repositoryRoot, '.github', 'workflows', 'backend-tests.yml'), 'utf8');
+
+  assert.match(workflow, /on:\s*[\r\n]+\s*pull_request:/);
+  assert.match(workflow, /npm run migrate:status/);
+  assert.match(workflow, /npm audit --omit=dev/);
+  assert.match(workflow, /npm audit/);
+  assert.match(workflow, /gitleaks\/gitleaks:v8\.30\.1/);
+});
+
 test('modal controller provides dialog semantics and keyboard focus management', () => {
   const app = fs.readFileSync(path.join(frontendRoot, 'js', 'app.js'), 'utf8');
 
