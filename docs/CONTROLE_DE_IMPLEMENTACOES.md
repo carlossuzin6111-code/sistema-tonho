@@ -121,7 +121,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## DB-03 — Habilitação de Foreign Keys por conexão e testes de integridade
 
-- Estado: concluído; aguardando merge
+- Estado: concluído e mergeado
 - Branch: `db/db-03-sqlite-foreign-keys`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/81
 - Início: 20/07/2026
@@ -167,4 +167,48 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
 - CI do PR #81: Backend Tests, Frontend & Infrastructure e Secret Scan totalmente aprovados.
+
+## DB-08 — Transações em Cadastros Compostos
+
+- Estado: em andamento
+- Branch: `db/db-08-composite-transactions`
+- Pull request: pendente
+- Início: 20/07/2026
+- Prioridade: 7/10
+
+### Diagnóstico
+
+- `createStudent` em `backend/src/controllers/studentController.js` insere primeiro um `user` (função 'student') e em seguida insere em `student_profiles`. Sem transação, se a inserção do perfil falhar, um usuário sem vínculo com personal trainer permanece cadastrado (registro órfão).
+- `createWorkout` em `backend/src/controllers/workoutController.js` insere uma ficha em `workouts` e logo após insere os exercícios em `workout_exercises` via loop. Se a gravação de qualquer exercício falhar, o treino fica incompleto no banco.
+- Ambos os fluxos compostos devem utilizar `db.transaction(async trx => ...)` para garantir a atomicidade total e rollback automático em caso de erro intermediário.
+
+### Plano aprovado
+
+- [x] Confirmar o merge do DB-03 e sincronizar a `main`.
+- [x] Criar a branch exclusiva `db/db-08-composite-transactions`.
+- [x] Registrar o plano e diagnóstico em `docs/CONTROLE_DE_IMPLEMENTACOES.md`.
+- [x] Refatorar `createStudent` em `backend/src/controllers/studentController.js` para usar `db.transaction`.
+- [x] Refatorar `createWorkout` em `backend/src/controllers/workoutController.js` para usar `db.transaction`.
+- [x] Criar suíte de testes em `backend/src/tests/transactions.test.js` cobrindo sucesso e rollback automático em falhas simuladas de cadastros compostos.
+- [x] Executar suítes de testes do backend, frontend e auditoria de segurança.
+- [ ] Abrir PR e registrar link no arquivo de controle.
+- [ ] Acompanhar CI.
+
+### Critérios de aceite
+
+- Criação de aluno e perfil roda em transação única. Falha no perfil desfaz a criação do usuário.
+- Criação de treino e lista de exercícios roda em transação única. Falha em qualquer exercício desfaz a criação do treino.
+- Suítes de testes automatizados comprovam o comportamento transacional e ausência de resíduos no banco.
+- Nenhuma regressão nos testes existentes de estudantes, treinos e autenticação.
+
+### Evidências
+
+- Teste específico `transactions.test.js`: 4/4 aprovados.
+- Criação atômica de usuário e perfil de estudante validada; falha no perfil comprovadamente reverte a criação do usuário sem deixar registro órfão.
+- Criação atômica de ficha e exercícios de treino validada; falha em exercício individual reverte a criação do treino e de todos os exercícios da lista.
+- Frontend: 50/50 testes aprovados em 5 suítes.
+- Backend: 122/122 testes aprovados em 15 suítes.
+- `npm audit` na raiz: 0 vulnerabilidades.
+- `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+
 
