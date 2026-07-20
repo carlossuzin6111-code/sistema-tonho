@@ -20,7 +20,7 @@ Este documento atua como o painel executivo para controle de progresso e roadmap
 | **SEC-06** | CSRF Segregado | 9/10 | **Parcial** | 6h | Médio | Backend |
 | **SEC-07** | Rate Limit IP + Conta | 8/10 | **Parcial** | 4h | Médio | Backend |
 | **SEC-08** | PAR-Q e Assinatura Eletrônica | 8/10 | **Não Iniciado** | 16h | Médio | Fullstack |
-| **SEC-09** | Validação/Rotação de Segredos na CI | 10/10 | **Não Iniciado** | 8h | Alto | DevOps |
+| **SEC-09** | Validação/Rotação de Segredos na CI | 10/10 | **Parcial** | 8h | Alto | DevOps |
 | **DB-01** | Persistência (Docker Volumes) | 10/10 | **Parcial** | 4h | Alto | DevOps |
 | **DB-02** | Concorrência SQLite (WAL) | 9/10 | **Implementado** | 4h | Médio | Backend |
 | **DB-03** | Foreign Keys sqlite (`foreign_keys=ON`) | 10/10 | **Parcial** | 4h | Alto | Backend |
