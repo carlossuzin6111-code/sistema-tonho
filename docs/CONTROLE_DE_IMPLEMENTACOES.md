@@ -303,7 +303,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## OPS-14 — Ampliação e Obrigatoriedade da Integração Contínua (CI/CD)
 
-- Estado: concluído; aguardando merge
+- Estado: concluído e mergeado
 - Branch: `ops/ops-14-ci-cd-hardening`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/85
 - Início: 20/07/2026
@@ -346,3 +346,49 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
 - CI do PR #85: Backend Tests (com migrações, audit e 17 suítes), Frontend & Infrastructure (com audit e 5 suítes) e Secret Scan totalmente aprovados.
+
+## BUS-01 — Sessões Reais de Treino
+
+- Estado: em andamento
+- Branch: `feat/bus-01-workout-sessions`
+- Pull request: pendente
+- Início: 20/07/2026
+- Prioridade: 3/10
+
+### Diagnóstico
+
+- O sistema gerenciava fichas de treino (`workouts`) e exercícios (`workout_exercises`), mas não possuía rastreamento transacional de execuções reais de treinos efetuadas pelos alunos.
+- É necessário permitir que alunos iniciem sessões reais de treino (`start`), acompanhem e registrem séries concluídas e cargas por exercício (`update exercise progress`), concluam a sessão com cálculo automatizado de tempo de execução (`complete`) ou cancelem a sessão (`cancel`), mantendo histórico acessível ao Personal Trainer e ao Aluno.
+
+### Plano aprovado
+
+- [x] Confirmar o merge do OPS-14 e sincronizar a `main`.
+- [x] Criar a branch exclusiva `feat/bus-01-workout-sessions`.
+- [x] Registrar o plano e diagnóstico em `docs/CONTROLE_DE_IMPLEMENTACOES.md`.
+- [x] Criar migration Knex `202607200001_create_workout_sessions.js` criando as tabelas `workout_sessions` e `workout_session_exercises` com chaves estrangeiras e índices.
+- [x] Implementar o controller `backend/src/controllers/workoutSessionController.js` para início, atualização progressiva, conclusão, cancelamento e consulta de histórico com controle de acesso IDOR.
+- [x] Adicionar schemas de validação no `backend/src/middleware/validateRequest.js`.
+- [x] Registrar rotas `/api/workout-sessions` e documentação OpenAPI/Swagger no `backend/src/index.js`.
+- [x] Criar suíte de testes de integração `backend/src/tests/workoutSessions.test.js` cobrindo o fluxo completo e isolamento entre locatários.
+- [x] Executar suítes de testes do backend, frontend e auditorias de segurança.
+- [ ] Abrir PR e registrar link no arquivo de controle.
+- [ ] Acompanhar CI.
+
+### Critérios de aceite
+
+- Aluno consegue iniciar uma sessão real de treino para sua ficha ativa.
+- Tentativa de iniciar sessão com treino alheio ou com outra sessão ativa retorna erro apropriado (403/409).
+- Atualização de progresso por exercício salva séries concluídas, peso utilizado, marcação de concluído e notas.
+- Conclusão da sessão calcula tempo total em segundos e grava log de auditoria.
+- Suítes de testes automatizados do backend e frontend permanecem 100% aprovadas.
+
+### Evidências
+
+- Migration `202607200001_create_workout_sessions.js` criada e aplicada.
+- Controller `workoutSessionController.js` e rotas `/api/workout-sessions` com OpenAPI/Swagger implementados.
+- Teste específico `workoutSessions.test.js`: 8/8 aprovados.
+- Frontend: 51/51 testes aprovados em 5 suítes.
+- Backend: 154/154 testes aprovados em 18 suítes.
+- `npm audit` na raiz: 0 vulnerabilidades.
+- `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+
