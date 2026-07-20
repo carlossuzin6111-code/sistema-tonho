@@ -214,9 +214,9 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## SEC-01 — Matriz de Testes contra IDOR (Insecure Direct Object Reference)
 
-- Estado: em andamento
+- Estado: concluído; aguardando merge
 - Branch: `security/sec-01-idor-test-matrix`
-- Pull request: pendente
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/83
 - Início: 20/07/2026
 - Prioridade: 6/10
 
@@ -236,8 +236,8 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Testar tentativa de acesso de Aluno A1 a dados de Aluno B1 (detalhes, medições, treinos, chat, avatar).
 - [x] Testar tentativa de manipulação cruzada de treinos/exercícios por Personal B em recursos pertencentes a Personal A.
 - [x] Executar suítes de testes do backend, frontend e auditorias de segurança.
-- [ ] Abrir PR e registrar link no arquivo de controle.
-- [ ] Acompanhar CI.
+- [x] Abrir PR e registrar link no arquivo de controle.
+- [x] Acompanhar CI.
 
 ### Critérios de aceite
 
@@ -255,6 +255,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Backend: 144/144 testes aprovados em 16 suítes.
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+- CI do PR #83: Backend Tests, Frontend & Infrastructure e Secret Scan totalmente aprovados.
 
 
 
