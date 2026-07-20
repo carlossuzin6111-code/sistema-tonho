@@ -252,7 +252,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Matriz de testes de controle de acesso cruzado (4 identidades: Personal A, Aluno A1, Personal B, Aluno B1) comprovando bloqueio rígido a acessos diretos não autorizados (IDOR).
 - Bloqueio de acesso cruzado verificado nos endpoints de perfil de aluno, redefinição de senha, histórico de medições, criação/deleção/alteração de treinos e exercícios, chat em tempo real e visualização de avatares.
 - Frontend: 50/50 testes aprovados em 5 suítes.
-- Backend: 142/142 testes aprovados em 16 suítes.
+- Backend: 144/144 testes aprovados em 16 suítes.
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
 

@@ -32,10 +32,8 @@ describe('IDOR & Cross-Tenant Access Matrix (SEC-01)', () => {
   let studentB1, tokenStudentB1;
 
   beforeAll(async () => {
-    // Dynamically require app after setting test env if needed
-    delete require.cache[require.resolve('../index')];
     app = require('../index');
-    await db.migrate.latest();
+    await db.ready;
   });
 
   afterAll(async () => {
