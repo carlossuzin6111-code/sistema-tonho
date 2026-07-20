@@ -66,7 +66,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## DB-02 — Concorrência SQLite com WAL e busy timeout
 
-- Estado: implementado; PR aberto e CI em validação
+- Estado: concluído; aguardando merge
 - Branch: `db/db-02-sqlite-wal-timeout`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/80
 - Início: 20/07/2026
@@ -91,7 +91,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Testar contenção entre duas conexões, garantindo espera em vez de falha imediata com `SQLITE_BUSY`.
 - [x] Executar testes e auditorias locais.
 - [x] Abrir PR.
-- [ ] Acompanhar e registrar o resultado final da CI.
+- [x] Acompanhar e registrar o resultado final da CI.
 
 ### Critérios de aceite
 
@@ -113,6 +113,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
 - Sintaxe dos arquivos JavaScript, integridade do diff e estrutura do Compose aprovadas.
 - Gitleaks local pendente: o Docker Desktop permaneceu desligado após queda de energia; a verificação será executada pelo job obrigatório do PR.
+- CI do PR #80: backend, frontend/infraestrutura e secret scan aprovados.
 
 ### Fora do escopo
 
