@@ -1,8 +1,10 @@
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const db = require('../database');
 const { findUnusedAccessKeyId } = require('../services/accessKeyService');
 const { clearSessionCookies, setSessionCookies } = require('../services/sessionService');
 const { isEmailUniqueConstraint, normalizeEmail } = require('../services/userIdentityService');
+const { recordAudit, AUDIT_ACTIONS } = require('../services/auditService');
 
 class RegistrationError extends Error {
   constructor(code) {
@@ -145,9 +147,108 @@ async function getMe(req, res) {
   }
 }
 
+async function forgotPassword(req, res) {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  try {
+    const normalizedEmail = normalizeEmail(email);
+    const user = await db('users').where('email', normalizedEmail).first();
+
+    const genericMessage = 'Se o e-mail estiver cadastrado, as instruções para redefinição de senha foram geradas.';
+
+    if (!user) {
+      return res.status(200).json({ message: genericMessage });
+    }
+
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await db('password_reset_tokens').insert({
+      user_id: user.id,
+      token_hash: tokenHash,
+      expires_at: expiresAt
+    });
+
+    await recordAudit(db, {
+      actorUserId: user.id,
+      action: AUDIT_ACTIONS.FORGOT_PASSWORD_REQUESTED,
+      targetType: 'user',
+      targetId: user.id
+    });
+
+    const isTestOrDev = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development';
+    return res.status(200).json({
+      message: genericMessage,
+      ...(isTestOrDev ? { resetToken: rawToken } : {})
+    });
+  } catch (err) {
+    console.error('forgotPassword error:', err.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function resetPasswordWithToken(req, res) {
+  const { token, newPassword } = req.body;
+  if (!token || !newPassword) {
+    return res.status(400).json({ error: 'Token and newPassword are required' });
+  }
+
+  if (newPassword.length < 10) {
+    return res.status(400).json({ error: 'Password must be at least 10 characters long' });
+  }
+
+  try {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    const resetRecord = await db('password_reset_tokens')
+      .where({ token_hash: tokenHash })
+      .whereNull('used_at')
+      .where('expires_at', '>', db.fn.now())
+      .first();
+
+    if (!resetRecord) {
+      return res.status(400).json({ error: 'Token de redefinição de senha inválido ou expirado' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+
+    await db.transaction(async trx => {
+      await trx('users')
+        .where({ id: resetRecord.user_id })
+        .update({
+          password_hash: passwordHash,
+          session_version: trx.raw('session_version + 1')
+        });
+
+      await trx('password_reset_tokens')
+        .where({ id: resetRecord.id })
+        .update({ used_at: trx.fn.now() });
+
+      await recordAudit(trx, {
+        actorUserId: resetRecord.user_id,
+        action: AUDIT_ACTIONS.PASSWORD_RESET_COMPLETED,
+        targetType: 'user',
+        targetId: resetRecord.user_id
+      });
+    });
+
+    return res.status(200).json({ message: 'Senha redefinida com sucesso. Faça login com a nova senha.' });
+  } catch (err) {
+    console.error('resetPasswordWithToken error:', err.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 module.exports = {
   registerPersonal,
   login,
   logout,
-  getMe
+  getMe,
+  forgotPassword,
+  resetPasswordWithToken
 };

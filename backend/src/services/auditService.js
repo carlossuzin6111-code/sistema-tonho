@@ -7,7 +7,9 @@ const AUDIT_ACTIONS = Object.freeze({
   PROFILE_NAME_UPDATED: 'profile.name_updated',
   PROFILE_PASSWORD_CHANGED: 'profile.password_changed',
   PROFILE_AVATAR_UPDATED: 'profile.avatar_updated',
-  PROFILE_AVATAR_REMOVED: 'profile.avatar_removed'
+  PROFILE_AVATAR_REMOVED: 'profile.avatar_removed',
+  FORGOT_PASSWORD_REQUESTED: 'auth.forgot_password_requested',
+  PASSWORD_RESET_COMPLETED: 'auth.password_reset_completed'
 });
 
 async function recordAudit(database, { actorUserId, action, targetType, targetId, metadata = null }) {

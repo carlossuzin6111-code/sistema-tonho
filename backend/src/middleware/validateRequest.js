@@ -178,6 +178,13 @@ const bodySchemas = {
   },
   completeWorkoutSession: {
     notes: text('notes', 2000)
+  },
+  forgotPassword: {
+    email
+  },
+  resetPasswordToken: {
+    token: text('token', 256, 32),
+    newPassword: optionalString({ label: 'newPassword', min: 10, max: 128 })
   }
 };
 

@@ -37,6 +37,8 @@ const PORT = process.env.PORT || 3000;
 const registrationRateLimiter = createAuthRateLimiter({ identifier: 'registration' });
 const loginRateLimiter = createAuthRateLimiter({ identifier: 'login' });
 const passwordChangeRateLimiter = createAuthRateLimiter({ identifier: 'profile-password' });
+const forgotPasswordRateLimiter = createAuthRateLimiter({ identifier: 'forgot-password' });
+const resetPasswordRateLimiter = createAuthRateLimiter({ identifier: 'reset-password' });
 
 // Middleware
 // The app is private on the Compose network and receives requests from exactly
@@ -166,6 +168,77 @@ app.post('/api/auth/register', registrationRateLimiter, validateBody('register')
 app.post('/api/auth/login', loginRateLimiter, validateBody('login'), authController.login);
 
 app.post('/api/auth/logout', authenticateToken, authController.logout);
+
+/**
+ * @openapi
+ * /auth/forgot-password:
+ *   post:
+ *     summary: Solicita instruções para redefinição de senha
+ *     description: Gera um token seguro de redefinição de senha com expiração. Retorna resposta genérica para evitar enumeração de contas.
+ *     tags:
+ *       - Autenticação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: personal@fitlife.com
+ *     responses:
+ *       200:
+ *         description: Instruções geradas com sucesso (ou e-mail não encontrado de forma genérica).
+ *       400:
+ *         description: Formato de e-mail inválido.
+ *       429:
+ *         description: Limite de solicitações excedido.
+ *       500:
+ *         description: Erro interno do servidor.
+ */
+app.post('/api/auth/forgot-password', forgotPasswordRateLimiter, validateBody('forgotPassword'), authController.forgotPassword);
+
+/**
+ * @openapi
+ * /auth/reset-password:
+ *   post:
+ *     summary: Redefine a senha utilizando um token de redefinição
+ *     description: Valida o token de redefinição, atualiza a senha da conta, incrementa a versão de sessão e invalida o token usado.
+ *     tags:
+ *       - Autenticação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - newPassword
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 example: a1b2c3d4e5f6...
+ *               newPassword:
+ *                 type: string
+ *                 minLength: 10
+ *                 maxLength: 128
+ *                 example: NovaSenhaSegura123
+ *     responses:
+ *       200:
+ *         description: Senha redefinida com sucesso.
+ *       400:
+ *         description: Token inválido, expirado ou nova senha fora do padrão.
+ *       429:
+ *         description: Limite de solicitações excedido.
+ *       500:
+ *         description: Erro interno do servidor.
+ */
+app.post('/api/auth/reset-password', resetPasswordRateLimiter, validateBody('resetPasswordToken'), authController.resetPasswordWithToken);
 
 /**
  * @openapi
