@@ -303,9 +303,9 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## OPS-14 — Ampliação e Obrigatoriedade da Integração Contínua (CI/CD)
 
-- Estado: em andamento
+- Estado: concluído; aguardando merge
 - Branch: `ops/ops-14-ci-cd-hardening`
-- Pull request: pendente
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/85
 - Início: 20/07/2026
 - Prioridade: 4/10
 
@@ -325,7 +325,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Adicionar etapas de auditoria de dependências (`npm audit --omit=dev` no backend e `npm audit` no frontend/infra).
 - [x] Adicionar teste unitário no frontend (`strict-csp.test.js`) validando a presença e obrigatoriedade destas etapas de segurança no arquivo de workflow.
 - [x] Executar suítes de testes do backend, frontend e auditorias locais.
-- [ ] Abrir PR e registrar link no arquivo de controle.
+- [x] Abrir PR e registrar link no arquivo de controle.
 - [ ] Acompanhar CI.
 
 ### Critérios de aceite
