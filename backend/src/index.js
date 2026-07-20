@@ -27,6 +27,7 @@ const chatController = require('./controllers/chatController');
 const exerciseController = require('./controllers/exerciseController');
 const auditController = require('./controllers/auditController');
 const profileController = require('./controllers/profileController');
+const workoutSessionController = require('./controllers/workoutSessionController');
 
 // Initialize database
 const db = require('./database');
@@ -617,6 +618,136 @@ app.delete('/api/exercises/:id', authenticateToken, requireRole('personal'), val
  *         description: Erro interno do servidor.
  */
 app.get('/api/student/workouts', authenticateToken, workoutController.getStudentWorkouts);
+
+// Sessões Reais de Treino (BUS-01)
+
+/**
+ * @openapi
+ * /workout-sessions/start:
+ *   post:
+ *     summary: Inicia uma sessão de treino real para uma ficha (Aluno/Personal)
+ *     tags: [Sessões de Treino]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [workoutId]
+ *             properties:
+ *               workoutId:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Sessão de treino iniciada com sucesso.
+ *       409:
+ *         description: Já existe uma sessão em andamento.
+ */
+app.post('/api/workout-sessions/start', authenticateToken, validateBody('startWorkoutSession'), workoutSessionController.startSession);
+
+/**
+ * @openapi
+ * /workout-sessions/{id}/exercises/{exerciseId}:
+ *   patch:
+ *     summary: Atualiza o progresso de execução de um exercício em uma sessão ativa
+ *     tags: [Sessões de Treino]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *       - in: path
+ *         name: exerciseId
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Progresso do exercício atualizado.
+ */
+app.patch('/api/workout-sessions/:id/exercises/:exerciseId', authenticateToken, validateIdParam('id'), validateIdParam('exerciseId'), validateBody('updateWorkoutSessionExercise'), workoutSessionController.updateExerciseProgress);
+
+/**
+ * @openapi
+ * /workout-sessions/{id}/complete:
+ *   post:
+ *     summary: Finaliza uma sessão de treino ativa
+ *     tags: [Sessões de Treino]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Sessão de treino concluída.
+ */
+app.post('/api/workout-sessions/:id/complete', authenticateToken, validateIdParam('id'), validateBody('completeWorkoutSession'), workoutSessionController.completeSession);
+
+/**
+ * @openapi
+ * /workout-sessions/{id}/cancel:
+ *   post:
+ *     summary: Cancela uma sessão de treino em andamento
+ *     tags: [Sessões de Treino]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Sessão cancelada.
+ */
+app.post('/api/workout-sessions/:id/cancel', authenticateToken, validateIdParam('id'), workoutSessionController.cancelSession);
+
+/**
+ * @openapi
+ * /workout-sessions:
+ *   get:
+ *     summary: Lista o histórico de sessões de treino
+ *     tags: [Sessões de Treino]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: studentId
+ *         schema: { type: integer }
+ *       - in: query
+ *         name: status
+ *         schema: { type: string, enum: [in_progress, completed, cancelled] }
+ *     responses:
+ *       200:
+ *         description: Lista de sessões de treino retornada com sucesso.
+ */
+app.get('/api/workout-sessions', authenticateToken, workoutSessionController.getSessions);
+
+/**
+ * @openapi
+ * /workout-sessions/{id}:
+ *   get:
+ *     summary: Obtém os detalhes completos de uma sessão de treino
+ *     tags: [Sessões de Treino]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Detalhes da sessão de treino retornados.
+ */
+app.get('/api/workout-sessions/:id', authenticateToken, validateIdParam('id'), workoutSessionController.getSessionDetails);
+
 
 
 // Catálogo de Exercícios (Personal/Aluno)

@@ -166,6 +166,18 @@ const bodySchemas = {
   },
   profileAvatar: {
     imageDataUrl: text('imageDataUrl', 540000, 1)
+  },
+  startWorkoutSession: {
+    workoutId: optionalPositiveInteger('workoutId')
+  },
+  updateWorkoutSessionExercise: {
+    setsCompleted: optionalNumber({ label: 'setsCompleted', min: 0, max: 100 }),
+    weightUsed: text('weightUsed', 50),
+    completed: value => (value === undefined || value === null || typeof value === 'boolean') ? null : 'completed must be a boolean',
+    notes: text('notes', 2000)
+  },
+  completeWorkoutSession: {
+    notes: text('notes', 2000)
   }
 };
 
