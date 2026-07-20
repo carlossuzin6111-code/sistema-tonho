@@ -349,9 +349,9 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## BUS-01 — Sessões Reais de Treino
 
-- Estado: em andamento
+- Estado: concluído e mergeado
 - Branch: `feat/bus-01-workout-sessions`
-- Pull request: pendente
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/86
 - Início: 20/07/2026
 - Prioridade: 3/10
 
@@ -368,11 +368,12 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Criar migration Knex `202607200001_create_workout_sessions.js` criando as tabelas `workout_sessions` e `workout_session_exercises` com chaves estrangeiras e índices.
 - [x] Implementar o controller `backend/src/controllers/workoutSessionController.js` para início, atualização progressiva, conclusão, cancelamento e consulta de histórico com controle de acesso IDOR.
 - [x] Adicionar schemas de validação no `backend/src/middleware/validateRequest.js`.
+- [x] Adicionar script `backend/src/scripts/validateMigrations.js` garantindo destruição limpa do pool de conexões ao verificar migrations.
 - [x] Registrar rotas `/api/workout-sessions` e documentação OpenAPI/Swagger no `backend/src/index.js`.
 - [x] Criar suíte de testes de integração `backend/src/tests/workoutSessions.test.js` cobrindo o fluxo completo e isolamento entre locatários.
 - [x] Executar suítes de testes do backend, frontend e auditorias de segurança.
-- [ ] Abrir PR e registrar link no arquivo de controle.
-- [ ] Acompanhar CI.
+- [x] Abrir PR e registrar link no arquivo de controle.
+- [x] Acompanhar CI.
 
 ### Critérios de aceite
 
@@ -389,6 +390,54 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Teste específico `workoutSessions.test.js`: 8/8 aprovados.
 - Frontend: 51/51 testes aprovados em 5 suítes.
 - Backend: 154/154 testes aprovados em 18 suítes.
+- `npm audit` na raiz: 0 vulnerabilidades.
+- `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+- CI do PR #86: Backend Tests (com 18 suítes), Frontend & Infrastructure (5 suítes) e Secret Scan totalmente aprovados.
+
+## SEC-04 — Reset de Senha Autônomo para Personais
+
+- Estado: em andamento
+- Branch: `security/sec-04-password-reset`
+- Pull request: pendente
+- Início: 20/07/2026
+- Prioridade: 8/10
+
+### Diagnóstico
+
+- O sistema permitia redefinição de senha apenas de alunos por personal ou por troca autenticada de senha pelo perfil.
+- É necessário um mecanismo autônomo de recuperação e redefinição de senha para Personais Trainers via token temporário e seguro (`password_reset_tokens`), protegido por limitação estrita de taxa contra força bruta e resposta genérica que impeça a enumeração de contas.
+
+### Plano aprovado
+
+- [x] Confirmar o merge do BUS-01 e sincronizar a `main`.
+- [x] Criar a branch exclusiva `security/sec-04-password-reset`.
+- [x] Registrar o plano e diagnóstico em `docs/CONTROLE_DE_IMPLEMENTACOES.md`.
+- [x] Criar migration Knex `202607200002_create_password_reset_tokens.js` criando a tabela `password_reset_tokens` com chaves estrangeiras e índices.
+- [x] Implementar as funções `forgotPassword` e `resetPasswordWithToken` no controller `backend/src/controllers/authController.js` com suporte a hashes de token SHA-256 e revogação de sessão via `session_version`.
+- [x] Adicionar schemas de validação no `backend/src/middleware/validateRequest.js`.
+- [x] Adicionar rate limiters dedicados e registrar rotas `/api/auth/forgot-password` e `/api/auth/reset-password` com documentação OpenAPI/Swagger no `backend/src/index.js`.
+- [x] Criar suíte de testes de integração `backend/src/tests/passwordReset.test.js` (7/7 testes aprovados).
+- [x] Executar suítes de testes do backend, frontend e auditorias de segurança.
+- [ ] Abrir PR e registrar link no arquivo de controle.
+- [ ] Acompanhar CI.
+
+### Critérios de aceite
+
+- Solicitação de redefinição para e-mail inexistente retorna resposta genérica (200 OK) sem vazar a existência da conta.
+- Solicitação para e-mail cadastrado gera token criptográfico com hash no banco e expiração em 1 hora.
+- Redefinição com token válido atualiza `password_hash`, invalida sessões ativas via incremento de `session_version` e marca o token como utilizado.
+- Reuso ou uso de token expirado/inválido é sumariamente rejeitado (400 Bad Request).
+- Endpoints estão protegidos por limitação de taxa (rate limiting).
+- Suítes de testes do backend e frontend permanecem 100% aprovadas.
+
+### Evidências
+
+- Migration `202607200002_create_password_reset_tokens.js` criada e aplicada.
+- Controller `authController.js` atualizado com `forgotPassword` e `resetPasswordWithToken`.
+- Rotas `/api/auth/forgot-password` e `/api/auth/reset-password` ativas com Swagger e rate limiter.
+- Teste específico `passwordReset.test.js`: 7/7 aprovados.
+- Frontend: 51/51 testes aprovados em 5 suítes.
+- Backend: 161/161 testes aprovados em 19 suítes.
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
 
