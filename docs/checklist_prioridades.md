@@ -12,23 +12,23 @@ Este documento atua como o painel executivo para controle de progresso e roadmap
 
 | ID | Requisito | Prioridade | Estado | Esforço (h) | Risco | Responsável |
 |---|---|---|---|---|---|---|
-| **SEC-01** | Proteção contra IDOR | 10/10 | **Parcial** | 8h | Alto | Backend |
+| **SEC-01** | Proteção contra IDOR | 10/10 | **Parcial** | 8h | Alto | Backend | #
 | **SEC-02** | Onboarding (`must_change_password`) | 9/10 | **Não Iniciado** | 12h | Médio | Fullstack |
 | **SEC-03** | Convites de Aluno com Expiração | 9/10 | **Não Iniciado** | 16h | Médio | Fullstack |
-| **SEC-04** | Reset de Senha do Personal | 8/10 | **Não Iniciado** | 12h | Médio | Backend |
+| **SEC-04** | Reset de Senha do Personal | 8/10 | **Não Iniciado** | 12h | Médio | Backend | #
 | **SEC-05** | Verificação de E-mail | 7/10 | **Não Iniciado** | 8h | Baixo | Backend |
 | **SEC-06** | CSRF Segregado | 9/10 | **Parcial** | 6h | Médio | Backend |
 | **SEC-07** | Rate Limit IP + Conta | 8/10 | **Parcial** | 4h | Médio | Backend |
 | **SEC-08** | PAR-Q e Assinatura Eletrônica | 8/10 | **Não Iniciado** | 16h | Médio | Fullstack |
-| **SEC-09** | Validação/Rotação de Segredos na CI | 10/10 | **Parcial** | 8h | Alto | DevOps |
-| **DB-01** | Persistência (Docker Volumes) | 10/10 | **Parcial** | 4h | Alto | DevOps |
-| **DB-02** | Concorrência SQLite (WAL) | 9/10 | **Implementado** | 4h | Médio | Backend |
-| **DB-03** | Foreign Keys sqlite (`foreign_keys=ON`) | 10/10 | **Parcial** | 4h | Alto | Backend |
+| **SEC-09** | Validação/Rotação de Segredos na CI | 10/10 | **Parcial** | 8h | Alto | DevOps | #
+| **DB-01** | Persistência (Docker Volumes) | 10/10 | **Parcial** | 4h | Alto | DevOps | #
+| **DB-02** | Concorrência SQLite (WAL) | 9/10 | **Implementado** | 4h | Médio | Backend | #
+| **DB-03** | Foreign Keys sqlite (`foreign_keys=ON`) | 10/10 | **Parcial** | 4h | Alto | Backend |#
 | **DB-04** | Backup Seguro (`VACUUM INTO`) | 9/10 | **Implementado** | 8h | Médio | Backend |
-| **DB-05** | Backup Off-Site e Restore | 10/10 | **Não Iniciado** | 16h | Alto | DevOps |
+| **DB-05** | Backup Off-Site e Restore | 10/10 | **Não Iniciado** | 16h | Alto | DevOps | #
 | **DB-06** | Deploy expand/contract | 10/10 | **Não Iniciado** | 12h | Alto | DevOps |
 | **DB-07** | Constraints e Índices | 9/10 | **Parcial** | 6h | Médio | Backend |
-| **DB-08** | transação em Cadastros Compostos | 10/10 | **Não Iniciado** | 8h | Alto | Backend |
+| **DB-08** | transação em Cadastros Compostos | 10/10 | **Não Iniciado** | 8h | Alto | Backend | #
 | **DB-09** | Precisão e Restrições de Domínio | 8/10 | **Não Iniciado** | 12h | Médio | Backend |
 | **UX-01** | Paginação por Cursor no Chat | 8/10 | **Não Iniciado** | 12h | Médio | Fullstack |
 | **UX-02** | Virtual Scrolling no Catálogo | 8/10 | **Não Iniciado** | 16h | Alto | Frontend |
@@ -38,7 +38,7 @@ Este documento atua como o painel executivo para controle de progresso e roadmap
 | **UX-06** | Concorrência (Optimistic Locking) | 7/10 | **Não Iniciado** | 12h | Médio | Backend |
 | **UX-07** | Acessibilidade WCAG 2.2 AA | 8/10 | **Parcial** | 20h | Médio | Frontend |
 | **UX-08** | Hardening de Uploads / Cotas | 8/10 | **Parcial** | 8h | Alto | Backend |
-| **BUS-01** | Execução Real de Treino (Sessions) | 10/10 | **Não Iniciado** | 24h | Alto | Fullstack |
+| **BUS-01** | Execução Real de Treino (Sessions) | 10/10 | **Não Iniciado** | 24h | Alto | Fullstack | #
 | **BUS-02** | Status da Ficha (Draft/Published) | 9/10 | **Não Iniciado** | 12h | Baixo | Fullstack |
 | **BUS-03** | Ciclo de Vida do Aluno/Vínculo | 9/10 | **Não Iniciado** | 16h | Médio | Fullstack |
 | **BUS-04** | Anamnese Clínica (`Assessments`) | 9/10 | **Não Iniciado** | 16h | Baixo | Fullstack |
@@ -65,7 +65,7 @@ Este documento atua como o painel executivo para controle de progresso e roadmap
 | **OPS-11** | Sessões por Dispositivo | 6/10 | **Não Iniciado** | 18h | Médio | Backend |
 | **OPS-12** | Impersonation Auditável | 6/10 | **Não Iniciado** | 14h | Alto | Backend |
 | **OPS-13** | Logs JSON, Redaction e Métricas | 8/10 | **Não Iniciado** | 16h | Médio | DevOps |
-| **OPS-14** | CI/CD Obrigatória | 9/10 | **Não Iniciado** | 24h | Alto | DevOps |
+| **OPS-14** | CI/CD Obrigatória | 9/10 | **Não Iniciado** | 24h | Alto | DevOps | #
 | **MOB-01** | Wrapper Híbrido (Capacitor) | 7/10 | **Não Iniciado** | 20h | Alto | Mobile |
 | **MOB-02** | Resolução Dinâmica Base URL | 8/10 | **Não Iniciado** | 6h | Baixo | Mobile |
 | **MOB-03** | CORS para WebViews | 8/10 | **Não Iniciado** | 6h | Baixo | Backend |
