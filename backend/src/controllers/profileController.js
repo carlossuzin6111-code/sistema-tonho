@@ -11,6 +11,7 @@ function publicUser(user) {
     name: user.name,
     email: user.email,
     role: user.role,
+    mustChangePassword: Boolean(user.must_change_password),
     hasAvatar: Boolean(user.avatar_filename),
     avatarUpdatedAt: user.avatar_updated_at || null
   };
@@ -50,6 +51,7 @@ async function updatePassword(req, res) {
       await trx('users').where({ id: req.user.id }).update({
         password_hash: passwordHash,
         session_version: user.session_version + 1,
+        must_change_password: false,
         updated_at: trx.fn.now()
       });
       await recordAudit(trx, { actorUserId: req.user.id, action: AUDIT_ACTIONS.PROFILE_PASSWORD_CHANGED, targetType: 'user', targetId: req.user.id });

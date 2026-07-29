@@ -10,7 +10,10 @@ const applicationTables = [
   'measurements',
   'chat_messages',
   'registration_keys',
-  'audit_logs'
+  'audit_logs',
+  'workout_sessions',
+  'workout_session_exercises',
+  'password_reset_tokens'
 ];
 
 const migrations = [
@@ -22,7 +25,10 @@ const migrations = [
   '202607170001_create_audit_logs.js',
   '202607180001_add_registration_key_expiry.js',
   '202607180002_add_user_avatars.js',
-  '202607190001_add_exercise_favorites_and_custom.js'
+  '202607190001_add_exercise_favorites_and_custom.js',
+  '202607200001_create_workout_sessions.js',
+  '202607200002_create_password_reset_tokens.js',
+  '202607290001_add_must_change_password.js'
 ];
 
 function createDatabase() {
@@ -54,6 +60,7 @@ describe('database migrations', () => {
     await expect(db.schema.hasColumn('users', 'session_version')).resolves.toBe(true);
     await expect(db.schema.hasColumn('users', 'avatar_filename')).resolves.toBe(true);
     await expect(db.schema.hasColumn('users', 'avatar_updated_at')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('users', 'must_change_password')).resolves.toBe(true);
     await expect(db.schema.hasColumn('registration_keys', 'expires_at')).resolves.toBe(true);
     const emailIndex = await db('sqlite_master')
       .select('name')

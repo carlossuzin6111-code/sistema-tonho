@@ -14,8 +14,11 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Regra**: Bloquear com `403 Forbidden` se não houver relacionamento ativo de treinamento ou se o status do vínculo for `blocked`.
 
 ### [SEC-02] Onboarding Compulsório (`must_change_password`)
-*   **Especificação**: Coluna `must_change_password` (BOOLEAN, default TRUE) na tabela `users`.
-*   **Regra**: No login, se o payload do JWT retornado indicar `must_change_password: true`, o frontend intercepta e bloqueia a navegação principal, forçando o envio de `POST /api/auth/reset-password` para cadastrar uma nova senha (mínimo 10 caracteres).
+*   **Implementação atual**: A migration `202607290001_add_must_change_password.js` adiciona `users.must_change_password` (BOOLEAN, `NOT NULL`, default `FALSE`). Contas pessoais nascem liberadas; contas de aluno criadas pelo Personal recebem `TRUE` porque começam com senha temporária.
+*   **Regra**: No login e em `GET /api/auth/me`, a API expõe `mustChangePassword`. Enquanto o sinal estiver ativo, o middleware responde `428 PASSWORD_CHANGE_REQUIRED` para rotas protegidas, mantendo apenas `GET /api/auth/me`, logout e `PUT /api/profile/password` acessíveis.
+*   **Conclusão do fluxo**: O frontend abre o modal de troca obrigatória, esconde o fechamento e as abas de edição, e só libera a aplicação após senha válida (mínimo de 10 caracteres). A alteração incrementa a versão de sessão, revoga tokens anteriores e limpa o sinal.
+*   **Reset administrativo**: Quando o Personal redefine a senha de um aluno, o sinal volta para `TRUE`, obrigando nova troca no próximo acesso. O reset autônomo por e-mail também limpa o sinal ao concluir.
+*   **Evidência**: `backend/src/tests/onboarding.test.js`, `api.test.js`, `passwordReset.test.js` e `migrations.test.js` cobrem migration, bloqueio, troca, revogação e desbloqueio.
 
 ### [SEC-03] Sistema de Convites de Aluno com Expiração
 *   **Especificação**: Tabela `student_invitations`:

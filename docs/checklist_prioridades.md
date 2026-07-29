@@ -2,7 +2,7 @@
 
 Este documento atua como o painel executivo para controle de progresso e roadmap de desenvolvimento, organizando todas as lacunas identificadas por identificadores estáveis e dependências lógicas.
 
-**Data-base da validação:** 19/07/2026. Os estados refletem inspeção do `HEAD` do repositório e devem ser revistos quando código ou infraestrutura mudarem.
+**Data-base da validação:** 29/07/2026. Os estados refletem inspeção do `HEAD` do repositório e devem ser revistos quando código ou infraestrutura mudarem.
 
 **Legenda de estado:** **Implementado** = código e evidência automatizada compatíveis com o escopo atual; **Parcial** = existe implementação útil, mas falta parte do requisito ou cobertura; **Não Iniciado** = não foi encontrada implementação verificável. As horas são estimativas iniciais, não compromissos, e devem ser recalibradas após refinamento técnico.
 
@@ -13,7 +13,7 @@ Este documento atua como o painel executivo para controle de progresso e roadmap
 | ID | Requisito | Prioridade | Estado | Esforço (h) | Risco | Responsável |
 |---|---|---|---|---|---|---|
 | **SEC-01** | Proteção contra IDOR | 10/10 | **Parcial** | 8h | Alto | Backend | #
-| **SEC-02** | Onboarding (`must_change_password`) | 9/10 | **Não Iniciado** | 12h | Médio | Fullstack |
+| **SEC-02** | Onboarding (`must_change_password`) | 9/10 | **Implementado** | 12h | Médio | Fullstack |
 | **SEC-03** | Convites de Aluno com Expiração | 9/10 | **Não Iniciado** | 16h | Médio | Fullstack |
 | **SEC-04** | Reset de Senha do Personal | 8/10 | **Não Iniciado** | 12h | Médio | Backend | #
 | **SEC-05** | Verificação de E-mail | 7/10 | **Não Iniciado** | 8h | Baixo | Backend |
@@ -101,6 +101,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | ID | Arquivo Atual | Teste Atual | Teste Faltante |
 |---|---|---|---|
 | **SEC-01** | `../backend/src/controllers/studentController.js`, `workoutController.js`, `chatController.js` | `../backend/src/tests/api.test.js`, `chatController.test.js` | `Matriz IDOR negativa cobrindo toda rota com recurso de aluno` |
+| **SEC-02** | `../backend/src/db/migrations/202607290001_add_must_change_password.js`, `authController.js`, `studentController.js`, `profileController.js`, `middleware/auth.js`, `frontend/js/app.js`, `profile.js` | `../backend/src/tests/onboarding.test.js`, `api.test.js`, `passwordReset.test.js` | `Teste E2E de navegador para impedir fechamento do modal obrigatório` |
 | **SEC-06** | `../backend/src/middleware/auth.js`, `httpSecurity.js` | `../backend/src/tests/httpSecurity.test.js`, `api.test.js` | `Fluxo mobile/Bearer e teste E2E em origem pública` |
 | **SEC-07** | `../backend/src/middleware/httpSecurity.js` | `../backend/src/tests/httpSecurity.test.js` | `Chave combinada por IP + e-mail, inclusive múltiplos IPs` |
 | **DB-01** | `../docker-compose.yml` | - | `Checagem física de persistência pós container restart` |
