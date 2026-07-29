@@ -458,6 +458,16 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body[0]).not.toHaveProperty('avatar_filename');
     });
 
+    test('Should return weekly adherence ordered by lowest percentage first', async () => {
+      const res = await request(app)
+        .get('/api/personal/students/adherence')
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveProperty('students');
+      expect(Array.isArray(res.body.students)).toBe(true);
+      expect(res.body.students[0]).toEqual(expect.objectContaining({ studentId: expect.any(Number), adherence: expect.any(Number) }));
+    });
+
     test('Should update the linked student lifecycle statuses', async () => {
       const paused = await request(app)
         .patch(`/api/personal/students/${studentId}/status`)
