@@ -88,6 +88,20 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body).toEqual({ status: 'ok' });
     });
 
+    test('Should expose a database-independent liveness probe', async () => {
+      const res = await request(app).get('/health/live');
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({ status: 'ok' });
+    });
+
+    test('Should expose readiness through the deployment health path', async () => {
+      const res = await request(app).get('/health/ready');
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({ status: 'ok' });
+    });
+
     test('Should apply headers and omit CORS for an untrusted origin', async () => {
       const res = await request(app)
         .get('/api/auth/me')
@@ -460,6 +474,16 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body[0]).not.toHaveProperty('avatar_filename');
     });
 
+    test('Should return weekly adherence ordered by lowest percentage first', async () => {
+      const res = await request(app)
+        .get('/api/personal/students/adherence')
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveProperty('students');
+      expect(Array.isArray(res.body.students)).toBe(true);
+      expect(res.body.students[0]).toEqual(expect.objectContaining({ studentId: expect.any(Number), adherence: expect.any(Number) }));
+    });
+
     test('Should update the linked student lifecycle statuses', async () => {
       const paused = await request(app)
         .patch(`/api/personal/students/${studentId}/status`)
@@ -716,6 +740,17 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body).toHaveProperty('message', 'Workout created successfully');
       expect(res.body).toHaveProperty('workoutId');
       workoutId = res.body.workoutId;
+    });
+
+    test('Should rollback workout when a linked exercise violates database constraints', async () => {
+      const before = await db('workouts').where({ student_id: studentId }).count('* as total').first();
+      const res = await request(app)
+        .post('/api/workouts')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ studentId, name: 'Treino que deve falhar', exercises: [{ name: 'Carga inválida', sets: -1 }] });
+      expect(res.statusCode).toBe(500);
+      const after = await db('workouts').where({ student_id: studentId }).count('* as total').first();
+      expect(Number(after.total)).toBe(Number(before.total));
     });
 
     test('Should hide draft workouts from students and publish them explicitly', async () => {
