@@ -72,6 +72,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [SEC-08] PAR-Q e Assinatura Eletrônica de Termos (Waivers)
 *   **Entrega atual**: tabela `signed_waivers` com FK, versão dos termos, JSON do PAR-Q, IP, data e unicidade por usuário/versão; `POST /api/profile/waivers` registra a assinatura e retorna o registro existente em reenvio idempotente.
+*   **Progresso em 29/07/2026**: `waivers.test.js` cobre criação e repetição sem duplicidade, mantendo os metadados necessários para auditoria.
+*   **Pendente**: construir a tela PAR-Q acessível, exigir a versão vigente nos fluxos necessários e criar consulta/revisão clínica com auditoria de alterações.
 *   **Especificação**: Tabela `signed_waivers`:
     ```text
     - id (INTEGER, PK)
