@@ -30,7 +30,9 @@ const applicationTables = [
   'nps_surveys',
   'gym_geofences',
   'student_checkins',
-  'readiness_checkins'
+  'readiness_checkins',
+  'notification_preferences',
+  'notifications'
 ];
 
 const migrations = [
@@ -66,7 +68,8 @@ const migrations = [
   '202607290018_create_wearable_integrations.js',
   '202607290019_create_crm_alerts_and_nps.js',
   '202607290020_create_geofence_checkins.js',
-  '202607290021_create_readiness_checkins.js'
+  '202607290021_create_readiness_checkins.js',
+  '202607290022_create_notification_center.js'
 ];
 
 function createDatabase() {

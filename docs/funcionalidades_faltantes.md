@@ -275,6 +275,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-08] Centro de Preferências de Notificações
 *   **Especificação**: Mapeamento de canais de recebimento (WhatsApp, E-mail, Push) para cada tipo de evento nas configurações de conta do usuário.
+*   **Progresso em 29/07/2026**: migration `202607290022_create_notification_center.js` e endpoints autenticados persistem preferências por evento/canal, criam notificações internas idempotentes, exibem contador de não lidas e permitem marcar como lida somente ao proprietário.
+*   **Pendente**: integrar provedores externos, templates/localização, retry/outbox transacional, consentimento/opt-out por canal e telemetria de entrega.
 
 ### [OPS-09] Exportação e Anonimização de Dados (LGPD)
 *   **Especificação**: Endpoints `/api/compliance/export` e `/api/compliance/delete` (anonimizando informações identificáveis na exclusão permanente).
