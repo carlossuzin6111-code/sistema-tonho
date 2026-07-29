@@ -152,5 +152,6 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | 29/07/2026 | SEC-05 | Migration de verificação, token hash de uso único/24h, emissão no cadastro pessoal e endpoint de confirmação | PR em abertura `security/sec-05-email-verification`; testes focados 6/6 | Parcial: falta bloquear políticas por e-mail não verificado e tela frontend |
 | 29/07/2026 | SEC-05 | Sessão e `/api/auth/me` passam a expor `emailVerified` para a interface aplicar políticas de acesso | PR #92; commit em atualização | Parcial: bloqueios e tela ainda pendentes |
 | 29/07/2026 | SEC-05 | Reset autônomo deixa de gerar token para contas não verificadas; frontend informa a necessidade de confirmação | PR em abertura `security/sec-05-email-policy`; testes backend 13/13 e frontend 51/51 | Parcial: onboarding/login e tela dedicada ainda pendentes |
+| 29/07/2026 | SEC-05 | Frontend consome token de confirmação da URL, chama `/api/auth/verify-email` e anuncia sucesso/erro | PR #93; frontend 51/51 | Parcial: políticas de login/onboarding ainda pendentes |
 
 Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.

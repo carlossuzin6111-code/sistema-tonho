@@ -106,6 +106,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (icon) icon.setAttribute('data-lucide', 'moon');
   }
 
+  const verificationToken = new URLSearchParams(window.location.search).get('token');
+  if (verificationToken) {
+    API.post('/auth/verify-email', { token: verificationToken })
+      .then(() => showToast('E-mail confirmado com sucesso.', 'success'))
+      .catch(error => showToast(error.message || 'Não foi possível confirmar o e-mail.', 'error'));
+  }
+
   // Check if session exists
   checkAuthSession();
   

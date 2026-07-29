@@ -54,6 +54,7 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Regra**: Contas novas recebem e-mail de ativação. Bloquear redefinição de senha e onboarding para contas cujo e-mail não esteja verificado.
 *   **Pendências**: aplicar bloqueios de política no reset/onboarding e criar a tela frontend de confirmação.
 *   **Política adicionada**: `forgot-password` mantém resposta genérica e não cria token para contas sem `email_verified_at`; o frontend sinaliza a necessidade de confirmação. O bloqueio específico de onboarding/login e uma tela dedicada continuam como próximos passos.
+*   **Confirmação frontend**: URLs com `?token=...` são processadas no carregamento da aplicação, chamam o endpoint de confirmação e anunciam sucesso/erro por toast acessível.
 
 ### [SEC-06] Proteção contra CSRF Segregada
 *   **Especificação**:
