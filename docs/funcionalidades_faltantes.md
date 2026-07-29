@@ -66,6 +66,7 @@ Este documento atua como o inventário de engenharia contendo especificações d
 ### [SEC-07] Rate Limit Combinado (IP + Conta)
 *   **Especificação**: Middleware Express Rate Limit com armazenamento Redis/memory associando o IP da requisição com o e-mail submetido no payload para evitar brute force distribuído.
 *   **Estado atual relevante**: existe rate limit por IP e tipo de operação, com tentativas bem-sucedidas ignoradas; não foi encontrada chave combinada por conta/e-mail. Em múltiplas réplicas, o armazenamento deve ser compartilhado.
+*   **Entrega atual**: o rate limit agora usa chave composta por IP normalizado + e-mail, evitando que ataques contra uma única conta compartilhem apenas o orçamento global de IP. A memória local continua sendo a limitação para múltiplas réplicas; Redis permanece pendente.
 
 ### [SEC-08] PAR-Q e Assinatura Eletrônica de Termos (Waivers)
 *   **Especificação**: Tabela `signed_waivers`:
