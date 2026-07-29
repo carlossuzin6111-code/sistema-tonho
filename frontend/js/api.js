@@ -1,6 +1,26 @@
 // FitLife Sync API client
 
-const API_BASE_URL = '/api';
+const isNativeCapacitor = Boolean(globalThis.Capacitor?.isNativePlatform?.());
+
+function resolveApiBaseUrl() {
+  if (!isNativeCapacitor) return '/api';
+  const configured = globalThis.__FITLIFE_API_BASE_URL__;
+  if (typeof configured !== 'string' || !configured.trim()) {
+    throw new Error('Configure __FITLIFE_API_BASE_URL__ antes de executar o app Capacitor.');
+  }
+  let url;
+  try {
+    url = new URL(configured, globalThis.location?.origin || undefined);
+  } catch {
+    throw new Error('A URL da API móvel é inválida.');
+  }
+  if (url.protocol !== 'https:') throw new Error('A API móvel deve usar HTTPS.');
+  url.pathname = url.pathname.replace(/\/$/, '');
+  return url.toString().replace(/\/$/, '');
+}
+
+const API_BASE_URL = resolveApiBaseUrl();
+const API_CREDENTIALS = isNativeCapacitor ? 'include' : 'same-origin';
 const CSRF_COOKIE = 'fitlife_csrf';
 const OFFLINE_DB_NAME = 'fitlife-offline-queue';
 const OFFLINE_STORE = 'mutations';
@@ -100,7 +120,7 @@ API.flushOfflineQueue = () => API.offlineQueue.flush(async item => {
   const response = await fetch(`${API_BASE_URL}${item.endpoint}`, {
     method: item.method,
     headers: { ...API.getHeaders({ mutating: true }), 'Idempotency-Key': item.idempotencyKey },
-    credentials: 'same-origin',
+    credentials: API_CREDENTIALS,
     body: item.data === undefined ? undefined : JSON.stringify(item.data)
   });
   if (!response.ok) {
@@ -180,7 +200,7 @@ const API = {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'GET',
         headers: this.getHeaders(),
-        credentials: 'same-origin'
+        credentials: API_CREDENTIALS
       });
       return await this.handleResponse(response);
     } catch (err) {
@@ -200,7 +220,7 @@ const API = {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method,
         headers: { ...this.getHeaders({ mutating: true }), ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}) },
-        credentials: 'same-origin',
+        credentials: API_CREDENTIALS,
         body: data === undefined ? undefined : JSON.stringify(data)
       });
       if (!response.ok && (response.status >= 500 || response.status === 408 || response.status === 429)) {
@@ -231,7 +251,7 @@ const API = {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'DELETE',
         headers: this.getHeaders({ mutating: true }),
-        credentials: 'same-origin'
+        credentials: API_CREDENTIALS
       });
       return await this.handleResponse(response);
     } catch (err) {
@@ -244,7 +264,7 @@ const API = {
   // Real-Time Chat Server-Sent Events subscription
   chatStream: null,
   
-  connectChatStream(onMessageReceived, { onOpen, onError } = {}) {
+  connectChatStream(onMessageReceived, { onOpen, onError, onTyping } = {}) {
     // If there is an active stream, close it
     this.disconnectChatStream();
 
@@ -263,6 +283,10 @@ const API = {
         console.error('Error parsing SSE message:', err.message);
       }
     };
+
+    this.chatStream.addEventListener('typing', (event) => {
+      try { onTyping?.(JSON.parse(event.data)); } catch (error) { console.error('Error parsing typing event:', error.message); }
+    });
 
     this.chatStream.onerror = (err) => {
       console.error('SSE Chat Stream encountered an error:', err);

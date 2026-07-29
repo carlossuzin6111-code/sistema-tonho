@@ -13,7 +13,8 @@ function positiveInteger(value, fallback) {
 }
 
 function allowedOrigins(value = process.env.CORS_ORIGINS || '') {
-  return value
+  const configured = value || 'http://localhost,capacitor://localhost';
+  return configured
     .split(',')
     .map(origin => origin.trim())
     .filter(Boolean);
