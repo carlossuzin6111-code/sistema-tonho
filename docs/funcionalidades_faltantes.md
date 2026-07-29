@@ -255,6 +255,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-04] Integração com Wearables
 *   **Especificação**: Conectores e adaptadores assíncronos para Apple HealthKit, Google Fit/Health Connect e Garmin. Ingestão passiva de sono e HRV para sugerir autorregulação.
+*   **Progresso em 29/07/2026**: migration `202607290018_create_wearable_integrations.js` cria conexões por aluno e métricas normalizadas; endpoints validam provedores, mantêm tokens fora do banco, aceitam eventos idempotentes de sono/HRV, aplicam ownership e permitem revogação.
+*   **Pendente**: implementar adaptadores OAuth/SDK reais, armazenamento seguro de credenciais, worker de sincronização assíncrona, webhooks/retry e recomendação clínica de autorregulação com revisão profissional.
 
 ### [OPS-05] Alertas CRM de Churn e NPS
 *   **Especificação**: Tarefas diárias no node-cron alertando personais sobre alunos inativos há mais de 5 dias consecutivos e envio automatizado de pesquisas NPS.

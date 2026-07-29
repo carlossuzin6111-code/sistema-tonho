@@ -34,6 +34,7 @@ const assessmentController = require('./controllers/assessmentController');
 const subscriptionController = require('./controllers/subscriptionController');
 const teamController = require('./controllers/teamController');
 const partnerController = require('./controllers/partnerController');
+const wearableController = require('./controllers/wearableController');
 
 // Initialize database
 const db = require('./database');
@@ -87,6 +88,11 @@ app.patch('/api/team/members/:id/end', authenticateToken, requireRole('personal'
 app.post('/api/student/partner-consents', authenticateToken, partnerController.createConsent);
 app.delete('/api/student/partner-consents/:id', authenticateToken, validateIdParam('id'), partnerController.revokeConsent);
 app.get('/api/partner/students/:studentId/summary', authenticateToken, validateIdParam('studentId'), partnerController.getStudentSummary);
+app.post('/api/wearables/connections', authenticateToken, wearableController.createConnection);
+app.get('/api/wearables/connections', authenticateToken, wearableController.listConnections);
+app.delete('/api/wearables/connections/:id', authenticateToken, validateIdParam('id'), wearableController.revokeConnection);
+app.post('/api/wearables/connections/:id/metrics', authenticateToken, validateIdParam('id'), wearableController.ingestMetrics);
+app.get('/api/wearables/metrics', authenticateToken, wearableController.listMetrics);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
