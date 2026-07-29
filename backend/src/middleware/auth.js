@@ -35,12 +35,19 @@ async function applyAuthentication(req, authentication) {
     throw new Error('Session revoked');
   }
 
+  if (payload.sessionId) {
+    const activeSession = await db('user_sessions').where({ id: payload.sessionId, user_id: user.id, status: 'active' }).first();
+    if (!activeSession) throw new Error('Device session revoked');
+    await db('user_sessions').where({ id: payload.sessionId }).update({ last_seen_at: db.fn.now() });
+  }
+
   req.user = {
     ...payload,
     name: user.name,
     email: user.email,
     role: user.role,
-    mustChangePassword: Boolean(user.must_change_password)
+    mustChangePassword: Boolean(user.must_change_password),
+    sessionId: payload.sessionId || null
   };
   req.authSource = authentication.source;
 }
