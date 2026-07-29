@@ -67,6 +67,7 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Estado atual relevante**: existe rate limit por IP e tipo de operação, com tentativas bem-sucedidas ignoradas; não foi encontrada chave combinada por conta/e-mail. Em múltiplas réplicas, o armazenamento deve ser compartilhado.
 
 ### [SEC-08] PAR-Q e Assinatura Eletrônica de Termos (Waivers)
+*   **Entrega atual**: tabela `signed_waivers` com FK, versão dos termos, JSON do PAR-Q, IP, data e unicidade por usuário/versão; `POST /api/profile/waivers` registra a assinatura e retorna o registro existente em reenvio idempotente.
 *   **Especificação**: Tabela `signed_waivers`:
     ```text
     - id (INTEGER, PK)

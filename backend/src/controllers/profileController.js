@@ -85,6 +85,25 @@ async function updateAvatar(req, res) {
   }
 }
 
+async function signWaiver(req, res) {
+  const { termsVersion, parqAnswers } = req.body;
+  try {
+    const existing = await db('signed_waivers').where({ user_id: req.user.id, terms_version: termsVersion }).first();
+    if (existing) return res.status(200).json({ id: existing.id, termsVersion: existing.terms_version, signedAt: existing.signed_at });
+    await db('signed_waivers').insert({
+      user_id: req.user.id,
+      terms_version: termsVersion,
+      parq_answers: JSON.stringify(parqAnswers),
+      ip_address: String(req.ip || '').slice(0, 64)
+    }).onConflict(['user_id', 'terms_version']).ignore();
+    const waiver = await db('signed_waivers').where({ user_id: req.user.id, terms_version: termsVersion }).first();
+    return res.status(201).json({ id: waiver.id, termsVersion: waiver.terms_version, signedAt: waiver.signed_at });
+  } catch (error) {
+    console.error('Sign waiver error:', error.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 async function deleteAvatar(req, res) {
   try {
     const user = await db('users').where({ id: req.user.id }).first();
@@ -122,4 +141,4 @@ async function getAvatar(req, res) {
   }
 }
 
-module.exports = { deleteAvatar, getAvatar, updateAvatar, updateName, updatePassword };
+module.exports = { deleteAvatar, getAvatar, signWaiver, updateAvatar, updateName, updatePassword };
