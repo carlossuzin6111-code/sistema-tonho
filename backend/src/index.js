@@ -977,6 +977,8 @@ app.get('/api/chat/partner', authenticateToken, chatController.getChatPartner);
  *         description: Erro interno do servidor.
  */
 app.get('/api/chat/:userId?', authenticateToken, chatController.getMessages);
+app.put('/api/chat/:messageId', authenticateToken, validateIdParam('messageId'), chatController.updateMessage);
+app.delete('/api/chat/:messageId', authenticateToken, validateIdParam('messageId'), chatController.deleteMessage);
 
 /**
  * @openapi

@@ -43,9 +43,10 @@ const migrations = [
   '202607290007_add_workout_status.js',
   '202607290008_add_student_lifecycle_status.js',
   '202607290009_create_student_assessments.js',
-
   '202607290010_add_session_activity.js',
-  '202607290011_create_idempotency_keys.js'
+  '202607290011_create_idempotency_keys.js',
+  '202607290012_create_workout_microcycles.js',
+  '202607290013_add_chat_message_lifecycle.js'
 ];
 
 function createDatabase() {
@@ -86,6 +87,8 @@ describe('database migrations', () => {
     await expect(db.schema.hasColumn('student_profiles', 'relationship_status')).resolves.toBe(true);
     await expect(db.schema.hasTable('student_assessments')).resolves.toBe(true);
     await expect(db.schema.hasTable('idempotency_keys')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('chat_messages', 'edited_at')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('chat_messages', 'deleted_at')).resolves.toBe(true);
     await expect(db.schema.hasColumn('workout_exercises', 'version')).resolves.toBe(true);
     await expect(db.schema.hasColumn('registration_keys', 'expires_at')).resolves.toBe(true);
     const emailIndex = await db('sqlite_master')

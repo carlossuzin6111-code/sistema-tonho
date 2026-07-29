@@ -908,6 +908,32 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(await db('chat_messages').where({ message: oversizedMessage }).first()).toBeUndefined();
     });
 
+    test('Should allow the sender to edit and delete a chat message with SSE lifecycle events', async () => {
+      const created = await request(app)
+        .post('/api/chat')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ receiverId: studentId, message: 'Mensagem que será editada' });
+      expect(created.statusCode).toBe(201);
+      const edited = await request(app)
+        .put(`/api/chat/${created.body.id}`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ message: 'Mensagem editada' });
+      expect(edited.statusCode).toBe(200);
+      expect(edited.body).toMatchObject({ id: created.body.id, message: 'Mensagem editada' });
+      expect(edited.body.edited_at).toBeTruthy();
+      const deleted = await request(app)
+        .delete(`/api/chat/${created.body.id}`)
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(deleted.statusCode).toBe(200);
+      expect(deleted.body).toMatchObject({ id: created.body.id, message: 'Mensagem excluída' });
+      expect(deleted.body.deleted_at).toBeTruthy();
+      const forbidden = await request(app)
+        .put(`/api/chat/${created.body.id}`)
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ message: 'Alteração indevida' });
+      expect(forbidden.statusCode).toBe(403);
+    });
+
     test('Should retrieve chat history for target user (Personal Trainer)', async () => {
       const res = await request(app)
         .get(`/api/chat/${studentId}`)

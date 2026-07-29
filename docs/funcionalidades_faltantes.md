@@ -203,6 +203,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [BUS-10] Edição e Exclusão de Mensagens no Chat
 *   **Especificação**: Endpoints `PUT /api/chat/:messageId` e `DELETE /api/chat/:messageId` atualizando as streams SSE ativas dos envolvidos.
+*   **Progresso em 29/07/2026**: migration de ciclo de vida adiciona `edited_at`/`deleted_at`; somente o remetente pode editar ou excluir; exclusão preserva o registro com texto neutro e os eventos SSE `message.updated`/`message.deleted` sincronizam as abas.
+*   **Pendente**: adicionar controles acessíveis de edição/exclusão no frontend e registrar auditoria específica das alterações.
 
 ### [BUS-11] Indicador de "Digitando..." via SSE
 *   **Especificação**: Evento leve `event: typing` enviado pelo Express a partir de chamadas rápidas `POST /api/chat/typing` com de-bounce.
