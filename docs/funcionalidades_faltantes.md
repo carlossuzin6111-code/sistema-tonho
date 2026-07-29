@@ -226,6 +226,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [BUS-14] Governança do Catálogo de Exercícios
 *   **Especificação**: Deduplicação do catálogo e separação em exercícios base globais compartilhados vs customizados criados pelos treinadores.
+* **Progresso em 29/07/2026**: a governança registra escopo `global/custom`, nome canônico e arquivamento; o Personal pode consultar duplicatas e mesclar exercícios transacionalmente, atualizando referências das fichas e criando auditoria.
+* **Pendente**: uma única cópia global compartilhada entre Personals, moderação/aprovação e deduplicação automática em lote.
 *   **Progresso em 29/07/2026**: migration adiciona `catalog_scope`, `canonical_name` e `archived_at`; o catálogo filtra global/custom, expõe duplicatas para o Personal e permite mesclagem transacional com atualização das fichas e auditoria.
 *   **Pendente**: armazenamento de uma única cópia global compartilhada entre Personals, fluxo de moderação/aprovação e deduplicação automática em lote.
 
