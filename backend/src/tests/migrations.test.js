@@ -18,7 +18,8 @@ const applicationTables = [
   'email_verification_tokens',
   'signed_waivers',
   'student_assessments',
-  'idempotency_keys'
+  'idempotency_keys',
+  'workout_microcycles'
 ];
 
 const migrations = [

@@ -604,6 +604,8 @@ app.post('/api/workouts', authenticateToken, requireRole('personal'), validateBo
  */
 app.delete('/api/workouts/:id', authenticateToken, requireRole('personal'), validateIdParam('id'), workoutController.deleteWorkout);
 app.patch('/api/workouts/:id/status', authenticateToken, requireRole('personal'), validateIdParam('id'), validateBody('workoutStatus'), workoutController.updateWorkoutStatus);
+app.put('/api/workouts/:id/periodization', authenticateToken, requireRole('personal'), validateIdParam('id'), validateBody('periodization'), workoutController.replaceWorkoutPeriodization);
+app.get('/api/workouts/:id/periodization', authenticateToken, validateIdParam('id'), workoutController.getWorkoutPeriodization);
 
 /**
  * @openapi
