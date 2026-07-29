@@ -50,6 +50,7 @@ Este documento atua como o inventário de engenharia contendo especificações d
 ### [SEC-05] Verificação de E-mail
 *   **Implementação atual**: Migration `202607290003_add_email_verification.js` adiciona `users.email_verified_at` e tabela de tokens com hash, validade de 24 horas, uso único e FK para `users`. O cadastro pessoal emite token e usa o adaptador Resend quando configurado.
 *   **Endpoint**: `POST /api/auth/verify-email` confirma o token de forma transacional, marca o e-mail e rejeita replay/expiração.
+*   **Contrato de sessão**: login e `GET /api/auth/me` expõem `emailVerified` sem revelar tokens.
 *   **Regra**: Contas novas recebem e-mail de ativação. Bloquear redefinição de senha e onboarding para contas cujo e-mail não esteja verificado.
 *   **Pendências**: aplicar bloqueios de política no reset/onboarding e criar a tela frontend de confirmação.
 

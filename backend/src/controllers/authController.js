@@ -124,7 +124,8 @@ async function login(req, res) {
         name: user.name,
         email: user.email,
         role: user.role,
-        mustChangePassword: Boolean(user.must_change_password)
+        mustChangePassword: Boolean(user.must_change_password),
+        emailVerified: Boolean(user.email_verified_at)
       }
     });
   } catch (err) {
@@ -142,7 +143,7 @@ function logout(req, res) {
 async function getMe(req, res) {
   try {
     const user = await db('users')
-      .select('id', 'name', 'email', 'role', 'created_at', 'avatar_filename', 'avatar_updated_at', 'must_change_password')
+      .select('id', 'name', 'email', 'role', 'created_at', 'avatar_filename', 'avatar_updated_at', 'must_change_password', 'email_verified_at')
       .where('id', req.user.id)
       .first();
     if (!user) {
@@ -154,6 +155,7 @@ async function getMe(req, res) {
       email: user.email,
       role: user.role,
       mustChangePassword: Boolean(user.must_change_password),
+      emailVerified: Boolean(user.email_verified_at),
       created_at: user.created_at,
       hasAvatar: Boolean(user.avatar_filename),
       avatarUpdatedAt: user.avatar_updated_at || null
