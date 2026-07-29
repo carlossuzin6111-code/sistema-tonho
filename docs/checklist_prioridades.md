@@ -25,7 +25,7 @@ Este documento atua como o painel executivo para controle de progresso e roadmap
 | **DB-02** | Concorrência SQLite (WAL) | 9/10 | **Implementado** | 4h | Médio | Backend | #
 | **DB-03** | Foreign Keys sqlite (`foreign_keys=ON`) | 10/10 | **Parcial** | 4h | Alto | Backend |#
 | **DB-04** | Backup Seguro (`VACUUM INTO`) | 9/10 | **Implementado** | 8h | Médio | Backend |
-| **DB-05** | Backup Off-Site e Restore | 10/10 | **Não Iniciado** | 16h | Alto | DevOps | #
+| **DB-05** | Backup Off-Site e Restore | 10/10 | **Parcial** | 16h | Alto | DevOps |
 | **DB-06** | Deploy expand/contract | 10/10 | **Não Iniciado** | 12h | Alto | DevOps |
 | **DB-07** | Constraints e Índices | 9/10 | **Parcial** | 6h | Médio | Backend |
 | **DB-08** | transação em Cadastros Compostos | 10/10 | **Não Iniciado** | 8h | Alto | Backend | #
@@ -114,6 +114,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | **DB-02** | `../backend/knexfile.js` | `../backend/src/tests/auth-config.test.js` | `Teste de contenção com escritas paralelas` |
 | **DB-03** | `../backend/knexfile.js` | `../backend/src/tests/migrations.test.js` | `Confirmar pragma em cada conexão e rejeitar registro órfão` |
 | **DB-04** | `../backend/src/scripts/backupDatabase.js`, `workers/backupWorker.js` | `../backend/src/tests/backupDatabase.test.js`, `backupWorker.test.js` | `Restore periódico em ambiente isolado` |
+| **DB-05** | `../backend/src/services/offsiteBackupService.js`, `../backend/src/workers/runBackupWorker.js`, `../docker-compose.yml` | `../backend/src/tests/offsiteBackup.test.js`, `persistenceRestore.test.js` | `Credenciais no secret manager e restore periódico real em S3/R2 isolado` |
 | **DB-07** | `../backend/src/db/migrations/202607140002_add_query_indexes.js` | `../backend/src/tests/indexes.test.js` | `Constraints de domínio e planos das consultas futuras` |
 | **UX-07** | `../frontend/desktop.html`, `mobile.html`, `css/` | `../frontend/tests/strict-csp.test.js`, `safe-dom.test.js` | `Auditoria WCAG 2.2 AA automatizada e manual` |
 | **UX-08** | `../backend/src/services/avatarService.js`, `../nginx.conf` | `../backend/src/tests/api.test.js` | `Quota por usuário/tenant e persistência/reconciliação de arquivos` |
@@ -211,4 +212,5 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | 29/07/2026 | MOB-04 | Bridge `FitLifeSecureStorage` usa exclusivamente o plugin nativo `Capacitor.Plugins.SecureStorage`, sem fallback em Web Storage; indisponibilidade falha explicitamente e é coberta por teste | Branch `mob/mob-04-secure-storage`; frontend 58/58 | Parcial: plugin comunitário especificado não está publicado no npm; selecionar/instalar alternativa mantida e integrar tokens somente se o fluxo móvel abandonar cookies HttpOnly |
 | 29/07/2026 | SEC-04 | Fluxo autônomo já possui migration `password_reset_tokens`, hashes SHA-256 de uso único com expiração, respostas genéricas contra enumeração, limitação de tentativas, troca transacional de senha e revogação de sessões; `passwordReset.test.js` cobre emissão, expiração, replay e políticas | Branch `security/sec-04-password-reset-audit`; backend focado 10/10 e incluído na suíte completa | Parcial: configurar entrega real de e-mail/domínio, tela pública de redefinição e job de limpeza/auditoria de tokens expirados |
 | 29/07/2026 | SEC-08 | Migration `signed_waivers` e `POST /api/profile/waivers` autenticado registram versão, IP, user-agent e assinatura idempotente; replay não duplica o consentimento e `waivers.test.js` cobre o contrato | Branch `security/sec-08-waiver-status`; backend focado 6/6 e incluído na suíte completa | Parcial: tela PAR-Q, exigência por fluxo e revisão/auditoria de versões ainda pendentes |
+| 29/07/2026 | DB-05 | Worker envia bundles AES-256-GCM para S3/R2 em cópias daily/weekly/monthly, aplica retenção 7/4/1 e documenta configuração/RPO/RTO; teste usa cliente S3 injetado e não acessa a nuvem | Branch `db/db-05-offsite-backup`; off-site 3/3; backend 27 suítes/194 testes; audit runtime sem vulnerabilidades | Parcial: configurar secret manager/bucket real e executar restore periódico isolado |
 Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.

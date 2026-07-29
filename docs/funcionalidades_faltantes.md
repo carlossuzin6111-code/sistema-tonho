@@ -106,6 +106,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [DB-05] Backup Off-Site com RPO/RTO
 *   **Especificação**: Integração com Cloudflare R2 ou Amazon S3 para upload seguro do arquivo de backup encriptado, com retenção programada (7 diários, 4 semanais, 1 mensal) e runbook documentado de restore.
+*   **Progresso em 29/07/2026**: `offsiteBackupService.js` cifra o SQLite com AES-256-GCM, envia cópias S3-compatible para prefixes `daily`, `weekly` e `monthly`, aplica retenção remota 7/4/1 e integra o worker local sem ativar rede quando o bucket não está configurado. `docs/runbooks/db-05-offsite-restore.md` documenta chaves, RPO/RTO e restore; testes cobrem envelope criptográfico e uploads (3/3 focados).
+*   **Pendente operacional**: configurar bucket/secret manager reais, ativar versionamento/lifecycle e executar restore periódico isolado com medição de RTO.
 
 ### [DB-06] Governança de Migrations e Deploy Expand/Contract
 *   **Especificação**: Scripts de migrations devem ser transacionais e retrocompatíveis. O deployment de novos esquemas deve ser feito em duas fases (Phase 1: Add new table/column nullable; Phase 2: Deploy code using it and drop old fields in future release).
