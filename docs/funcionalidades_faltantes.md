@@ -119,6 +119,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [DB-08] Atomicidade de Escrita em Cadastros Compostos
 *   **Especificação**: No controller de criação de fichas (`createWorkout`), envolver a inserção da ficha (`workouts`) e exercícios vinculados (`workout_exercises`) dentro de uma transação Knex (`knex.transaction`), garantindo rollback total sob falha parcial.
+*   **Progresso em 29/07/2026**: o controller já grava ficha e exercícios dentro de `db.transaction`; o teste API negativo força `sets` inválido, espera erro e confirma que a ficha não permanece no banco após a falha.
+*   **Pendente**: ampliar cenários de falha para todos os campos pivot e registrar auditoria transacional sem expor dados sensíveis.
 
 ### [DB-09] Restrições de Domínio de Unidades (Evitar Floats)
 *   **Entrega atual**: migration `202607290005_add_domain_constraints.js` adiciona triggers de banco para peso positivo, medidas não negativas e séries positivas, protegendo gravações que contornem a API. Testes `domainConstraints.test.js` cobrem rejeição direta no SQLite.
