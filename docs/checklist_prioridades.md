@@ -118,6 +118,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | **UX-02** | `../frontend/js/personal.js`, `../frontend/css/style.css`, `mobile.css` | `../frontend/tests/strict-csp.test.js` | `Medição visual de altura por viewport e QA em catálogo muito grande` |
 | **UX-03** | `../frontend/js/datetime.js`, `personal.js`, `student.js`, páginas HTML | `../frontend/tests/strict-csp.test.js` | `Normalizar respostas legadas do backend e auditoria dos demais timestamps administrativos` |
 | **UX-04** | `../backend/src/services/avatarService.js`, `profileController.js` | `../backend/src/tests/avatarService.test.js`, `api.test.js` | `Quota operacional configurável, reconciliação periódica global e upload multipart` |
+| **UX-05** | `../nginx.conf`, `../frontend/index.html`, `desktop.html`, `mobile.html` | `../frontend/tests/strict-csp.test.js` | `Build automatizado que gera hashes de conteúdo e impede referências a assets removidos` |
 
 ---
 
@@ -166,4 +167,5 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | 29/07/2026 | UX-02 | Catálogo renderiza janela de até 15 cartões, usa spacers fixos sem estilos inline, mantém busca/ordenação/favoritos e layout móvel | Branch `ux/ux-02-catalog-virtual-scroll`; frontend 52/52; `git diff --check` aprovado | Parcial: validar visualmente com catálogo extenso e integrar ajustes de altura real |
 | 29/07/2026 | UX-03 | Utilitário `AppDateTime` interpreta timestamps SQLite sem fuso como UTC e formata datas/horas via `Intl.DateTimeFormat` no fuso local do navegador; cache-busting atualizado | Branch `ux/ux-03-local-timezone`; frontend 53/53; `git diff --check` aprovado | Parcial: normalizar timestamps legados no backend e cobrir telas administrativas |
 | 29/07/2026 | UX-04 | Upload normalizado mantém quota de 2 MiB por usuário, remove arquivos órfãos após troca/remoção e compensa arquivo novo quando a transação falha | Branch `ux/ux-04-upload-hardening`; backend focado 61/61 | Parcial: reconciliação global agendada e migração para multipart ainda pendentes |
+| 29/07/2026 | UX-05 | Nginx revalida HTML e aplica cache imutável de longo prazo a CSS/JS versionados; teste automatizado impede política ausente | Branch `ux/ux-05-cache-policy`; frontend 54/54; `git diff --check` aprovado | Parcial: hashing automatizado de conteúdo ainda pendente |
 Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.
