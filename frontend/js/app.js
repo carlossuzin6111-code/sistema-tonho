@@ -106,6 +106,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (icon) icon.setAttribute('data-lucide', 'moon');
   }
 
+  const verificationToken = new URLSearchParams(window.location.search).get('token');
+  if (verificationToken) {
+    API.post('/auth/verify-email', { token: verificationToken })
+      .then(() => showToast('E-mail confirmado com sucesso.', 'success'))
+      .catch(error => showToast(error.message || 'Não foi possível confirmar o e-mail.', 'error'));
+  }
+
   // Check if session exists
   checkAuthSession();
   
@@ -536,7 +543,9 @@ async function checkAuthSession() {
   try {
     const verifiedUser = await API.get('/auth/me');
     API.saveSession(verifiedUser);
-    if (!cachedUser || cachedUser.mustChangePassword !== verifiedUser.mustChangePassword) setupAppShell(verifiedUser);
+    if (!cachedUser
+      || cachedUser.mustChangePassword !== verifiedUser.mustChangePassword
+      || cachedUser.emailVerified !== verifiedUser.emailVerified) setupAppShell(verifiedUser);
   } catch (err) {
     console.warn('Session expired or invalid.', err.message);
     API.clearSession();
@@ -576,6 +585,9 @@ function setupAppShell(user) {
   connectRealTimeUpdates(user);
   if (user.mustChangePassword) {
     window.setTimeout(() => openRequiredPasswordChange(), 0);
+  }
+  if (user.emailVerified === false && typeof showToast === 'function') {
+    showToast('Confirme seu e-mail para habilitar a recuperação de senha.', 'warning');
   }
 }
 
