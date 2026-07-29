@@ -775,6 +775,20 @@ test('exercise catalog virtualizes large lists while keeping search and mobile l
   assert.match(mobile, /\.exercise-catalog-virtual-cards[^}]*grid-template-columns:\s*minmax\(0, 1fr\)/s);
 });
 
+test('timestamps are parsed as UTC and formatted with the browser local timezone', () => {
+  const datetime = read(path.join('js', 'datetime.js'));
+  const personal = read(path.join('js', 'personal.js'));
+  const student = read(path.join('js', 'student.js'));
+  assert.match(datetime, /replace\(' ', 'T'\).*\}Z/s);
+  assert.match(datetime, /new Intl\.DateTimeFormat\(undefined, options\)/);
+  assert.match(datetime, /global\.AppDateTime/);
+  assert.doesNotMatch(personal, /toLocaleDateString|toLocaleTimeString/);
+  assert.doesNotMatch(student, /toLocaleDateString|toLocaleTimeString/);
+  for (const page of ['desktop.html', 'mobile.html']) {
+    assert.match(read(page), /js\/datetime\.js\?v=20260729\.20/);
+  }
+});
+
 test('final student-area audit prevents duplicate ids, empty image requests and inaccessible mobile navigation', () => {
   for (const page of ['desktop.html', 'mobile.html']) {
     const html = read(page);

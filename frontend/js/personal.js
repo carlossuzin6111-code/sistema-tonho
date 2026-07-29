@@ -387,7 +387,7 @@ function renderPersonalStudentMeasurements(measurements) {
   // Draw table rows
   measurements.forEach(m => {
     const row = document.createElement('tr');
-    const dateFormatted = new Date(m.recorded_at).toLocaleDateString('pt-BR');
+    const dateFormatted = AppDateTime.date(m.recorded_at);
     SafeDOM.appendChildren(row, [
       SafeDOM.el('td', { text: dateFormatted }),
       SafeDOM.el('td', { text: `${m.weight} kg`, className: 'metric-weight-value' }),
@@ -413,7 +413,7 @@ function renderPersonalStudentMeasurements(measurements) {
   // Plot chart data
   // Reverse measurements to get chronological order for plotting
   const chartData = [...measurements].reverse().map(m => ({
-    label: new Date(m.recorded_at).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }),
+    label: AppDateTime.shortDate(m.recorded_at),
     value: m.weight
   }));
 
@@ -851,7 +851,7 @@ async function openPersonalChatThread(studentId, studentName) {
     } else {
       messages.forEach(msg => {
         const isMe = msg.sender_id.toString() !== studentId.toString();
-        const time = new Date(msg.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const time = AppDateTime.time(msg.created_at);
         const bubble = SafeDOM.chatBubble(msg.message, time, isMe ? 'sent' : 'received');
         chatMessagesBox.appendChild(bubble);
       });
@@ -904,7 +904,7 @@ function appendPersonalLiveMessage(message) {
     if (emptyMsg) emptyMsg.remove();
 
     const isMe = message.sender_id.toString() !== activeChatStudentId.toString();
-    const time = new Date(message.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const time = AppDateTime.time(message.created_at);
     const bubble = SafeDOM.chatBubble(message.message, time, isMe ? 'sent' : 'received');
     chatMessagesBox.appendChild(bubble);
     chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
