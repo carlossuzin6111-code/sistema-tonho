@@ -145,6 +145,16 @@ describe('BUS-01: Workout Execution Sessions API', () => {
     expect(res.body.error).toContain('already in progress');
   });
 
+  test('PATCH /api/workout-sessions/:id/activity refreshes the active session heartbeat', async () => {
+    const session = await db('workout_sessions').where({ student_id: studentUser.id, status: 'in_progress' }).first();
+    const res = await request(app)
+      .patch(`/api/workout-sessions/${session.id}/activity`)
+      .set('Authorization', `Bearer ${studentToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ sessionId: session.id, lastActivityAt: expect.any(String) });
+    expect(await db('workout_sessions').where({ id: session.id }).first('last_activity_at')).toHaveProperty('last_activity_at');
+  });
+
   test('POST /api/workout-sessions/start - IDOR protection blocks unauthorized student from starting session', async () => {
     const res = await request(app)
       .post('/api/workout-sessions/start')
