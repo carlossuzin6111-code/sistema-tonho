@@ -191,7 +191,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [BUS-07] Temporizador de Descanso e Sessão Ativa
 *   **Implementado parcialmente**: Sessões possuem `last_activity_at`, atualizado ao iniciar e registrar progresso; endpoint heartbeat autenticado mantém a sessão ativa e respeita ownership.
-*   **Pendente**: temporizador visual, polling/heartbeat automático e recuperação da sessão no frontend.
+* **Progresso em 29/07/2026**: O dashboard do aluno inicia, conclui ou cancela uma sessão; exibe duração, temporizador de descanso e sincroniza marcações de exercícios. O heartbeat é único, limpo ao trocar de sessão e executado a cada 30 segundos. O identificador da sessão fica em `sessionStorage` (sem credenciais) e é recuperado após recarregar a página.
+* **Pendente**: QA visual em dispositivos móveis, comportamento após expiração/offline e métricas de uso da sessão.
 
 ### [BUS-08] Fila Local (IndexedDB) e Chave de Idempotência
 *   **Especificação**:
