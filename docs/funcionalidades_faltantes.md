@@ -133,7 +133,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Pendente no backend**: normalizar serialização das colunas temporais legadas para ISO 8601 com `Z` e auditar endpoints administrativos restantes.
 
 ### [UX-04] Bloqueio de Base64 e Remoção de Mídias Órfãs
-*   **Especificação**: O avatar já é validado, convertido para WebP, escrito por arquivo temporário/rename e removido via serviço. Completar persistência do diretório, quota, reconciliação de órfãos e tratamento compensatório quando banco e filesystem divergirem. Para novos uploads, preferir binário/multipart a Base64.
+*   **Implementado**: O avatar é validado por assinatura e `sharp`, convertido para WebP via arquivo temporário/rename, limitado a 2 MiB por usuário e reconciliado após troca ou remoção. Falha de transação remove o novo arquivo para evitar órfãos; falha de limpeza posterior é registrada sem apagar o arquivo referenciado pelo banco.
+*   **Pendente**: tarefa periódica de reconciliação global, persistência explícita de quota por tenant e migração dos novos uploads para binário/multipart em vez de Base64.
 
 ### [UX-05] Controle de Cache no Nginx e Cache-Busting
 *   **Especificação**: Substituir o versionamento manual por query string hoje presente por hashing de conteúdo automatizado no build; servir assets imutáveis com cache longo e HTML/roteador com revalidação (`no-cache`). Adicionar teste que impeça HTML antigo de apontar para assets removidos.
