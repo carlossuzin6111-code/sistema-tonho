@@ -61,6 +61,7 @@ Este documento atua como o inventário de engenharia contendo especificações d
     *   **Web**: Cookies `HttpOnly` com `SameSite=Strict` mais cabeçalho `Origin` / `Referer`.
     *   **API/Mobile**: Uso de tokens CSRF baseados em *Double Submit Cookie* para requisições que não utilizem cabeçalhos de autorização nativos (Bearer).
 *   **Estado atual relevante**: o fluxo web por cookie já usa double-submit (`X-CSRF-Token` + cookie + claim da sessão). O delta é definir/testar autenticação Bearer e refresh token rotacionado para o aplicativo híbrido.
+*   **Entrega atual**: mutações via cookie agora validam `Origin`/`Referer` contra `APP_ORIGIN` (ou host da requisição) além do double-submit, com rejeição `403` para origem não confiável. Requisições Bearer não recebem CSRF de cookie. Falta implementar refresh token rotacionado.
 
 ### [SEC-07] Rate Limit Combinado (IP + Conta)
 *   **Especificação**: Middleware Express Rate Limit com armazenamento Redis/memory associando o IP da requisição com o e-mail submetido no payload para evitar brute force distribuído.
