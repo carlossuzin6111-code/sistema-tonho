@@ -20,4 +20,10 @@ describe('DB-09 domain constraints', () => {
     const [workoutId] = await db('workouts').insert({ student_id: studentId, personal_id: personalId, name: 'Constraint Workout' });
     await expect(db('workout_exercises').insert({ workout_id: workoutId, name: 'Exercise', sets: 0, reps: '10' })).rejects.toThrow(/sets must be positive/i);
   });
+
+  test('rejects empty chat messages and invalid session status', async () => {
+    const [userId] = await db('users').insert({ name: 'Status User', email: 'status@test.com', password_hash: 'hash', role: 'student' });
+    await expect(db('chat_messages').insert({ sender_id: userId, receiver_id: userId, message: '   ' })).rejects.toThrow(/message cannot be empty/i);
+    await expect(db('workout_sessions').insert({ workout_id: 1, student_id: userId, personal_id: userId, workout_name: 'x', status: 'unknown' })).rejects.toThrow(/invalid workout session status/i);
+  });
 });
