@@ -276,12 +276,18 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-05] Alertas CRM de Churn e NPS
 *   **Especificação**: Tarefas diárias no node-cron alertando personais sobre alunos inativos há mais de 5 dias consecutivos e envio automatizado de pesquisas NPS.
+*   **Progresso em 29/07/2026**: migration `202607290019_create_crm_alerts_and_nps.js`, serviço diário e endpoints protegidos detectam inatividade por sessão, deduplicam alertas por dia, geram pesquisas pendentes, registram resposta 0–10, resolução e auditoria.
+*   **Pendente**: executar o serviço em worker/node-cron com lock distribuído, integrar entrega de e-mail/push, criar templates/opt-out e medir conversão, churn e NPS por período.
 
 ### [OPS-06] Check-ins por Geofencing e Agendamentos
 *   **Especificação**: Validação de presença presencial baseada em coordenadas GPS de geocercas ou conexão Wi-Fi da academia. Sincronização ICS.
+*   **Progresso em 29/07/2026**: migration `202607290020_create_geofence_checkins.js` e endpoints protegidos permitem ao Personal criar geofences, ao aluno realizar check-in somente dentro do raio calculado por Haversine, repetir eventos com segurança e fazer checkout; a consulta respeita o vínculo Personal/aluno.
+*   **Pendente**: sincronização ICS e agenda, verificação Wi-Fi complementar, antifraude (mock GPS/replay avançado), privacidade/retensão de coordenadas e relatórios de presença.
 
 ### [OPS-07] Check-in de Prontidão Física Diária (Readiness)
 *   **Especificação**: Escalas de 1 a 5 para DOMS, sono, fadiga e humor respondidos pelo aluno antes de abrir a ficha de treino do dia.
+*   **Progresso em 29/07/2026**: migration `202607290021_create_readiness_checkins.js`, endpoint autenticado com upsert diário, triggers de domínio 1–5, score normalizado e recomendação explicável de volume; Personal só lê alunos vinculados.
+*   **Pendente**: exigir o check-in antes de abrir a ficha, enviar lembretes, integrar o score com periodização/treinos e validar a regra clínica com profissionais.
 
 ### [OPS-08] Centro de Preferências de Notificações
 *   **Especificação**: Mapeamento de canais de recebimento (WhatsApp, E-mail, Push) para cada tipo de evento nas configurações de conta do usuário.

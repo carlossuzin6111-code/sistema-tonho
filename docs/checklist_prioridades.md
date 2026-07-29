@@ -53,6 +53,15 @@ Este documento atua como o painel executivo para controle de progresso e roadmap
 | **BUS-10** | Edição/Exclusão/Leitura de Chat | 8/10 | **Parcial** | 12h | Médio | Fullstack |
 | **BUS-11** | Indicador "Digitando..." via SSE | 5/10 | **Parcial** | 8h | Baixo | Fullstack |
 | **BUS-12** | Inativação e Abas de Alunos | 8/10 | **Parcial** | 8h | Baixo | Fullstack |
+| **BUS-13** | Periodização Biomecânica | 6/10 | **Parcial** | 20h | Alto | Fullstack |
+| **BUS-14** | Governança do Catálogo | 7/10 | **Parcial** | 16h | Médio | Backend |
+| **OPS-01** | Subscriptions e Bloqueio 402 | 7/10 | **Parcial** | 16h | Alto | Backend |
+| **OPS-02** | Gestão de Equipe (Head/Junior) | 6/10 | **Parcial** | 30h | Alto | Backend |
+| **OPS-03** | Acesso Multiprofissional | 5/10 | **Parcial** | 24h | Médio | Fullstack |
+| **OPS-04** | Integração com Wearables | 4/10 | **Parcial** | 40h | Alto | Fullstack |
+| **OPS-05** | Alertas CRM de Churn e NPS | 5/10 | **Parcial** | 16h | Baixo | Backend |
+| **OPS-06** | Check-ins por Geofencing | 4/10 | **Parcial** | 30h | Alto | Fullstack |
+| **OPS-07** | Check-in de Prontidão (Readiness) | 5/10 | **Parcial** | 12h | Baixo | Fullstack |
 | **BUS-11** | Indicador "Digitando..." via SSE | 5/10 | **Parcial** | 8h | Baixo | Fullstack |
 | **BUS-12** | Inativação e Abas de Alunos | 8/10 | **Não Iniciado** | 8h | Baixo | Fullstack |
 | **BUS-13** | Periodização Biomecânica | 6/10 | **Não Iniciado** | 20h | Alto | Backend |

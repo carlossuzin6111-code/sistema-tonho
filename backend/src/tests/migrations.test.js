@@ -25,7 +25,12 @@ const applicationTables = [
   'professional_partners',
   'student_partner_consents',
   'wearable_connections',
-  'wearable_metrics'
+  'wearable_metrics',
+  'crm_alerts',
+  'nps_surveys',
+  'gym_geofences',
+  'student_checkins',
+  'readiness_checkins'
 ];
 
 const migrations = [
