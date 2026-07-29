@@ -74,6 +74,8 @@ describe('FitLife Sync API Integration Tests', () => {
   let otherPersonalId = null;
   let otherStudentToken = '';
   let otherStudentId = null;
+  let partnerToken = '';
+  let partnerProfileId = null;
   let workoutId = null;
   let exerciseId = null;
   let workoutExerciseId = null;
@@ -924,6 +926,35 @@ describe('FitLife Sync API Integration Tests', () => {
       otherStudentToken = refreshedSession
         ? decodeURIComponent(refreshedSession.split(';', 1)[0].slice(`${SESSION_COOKIE}=`.length))
         : '';
+
+      const [partnerUserId] = await db('users').insert({ name: 'Partner Clinico', email: 'partner@fitlife.com', password_hash: 'not-used', role: 'partner' });
+      [partnerProfileId] = await db('professional_partners').insert({ user_id: partnerUserId, specialty: 'Fisioterapia', organization: 'Clinica Fit' });
+      partnerToken = jwt.sign({ id: partnerUserId, role: 'partner', sessionVersion: 0, csrf: 'partner-csrf' }, JWT_SECRET, { expiresIn: '1h' });
+    });
+
+    test('Should enforce explicit partner consent for read-only student data', async () => {
+      const denied = await request(app)
+        .get(`/api/partner/students/${studentId}/summary`)
+        .set('Authorization', `Bearer ${partnerToken}`);
+      expect(denied.statusCode).toBe(403);
+
+      const consent = await request(app)
+        .post('/api/student/partner-consents')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ partnerId: partnerProfileId, scopes: ['measurements'] });
+      expect(consent.statusCode).toBe(201);
+
+      const allowed = await request(app)
+        .get(`/api/partner/students/${studentId}/summary`)
+        .set('Authorization', `Bearer ${partnerToken}`);
+      expect(allowed.statusCode).toBe(200);
+      expect(allowed.body.scopes).toEqual(['measurements']);
+      expect(Array.isArray(allowed.body.measurements)).toBe(true);
+
+      const revoked = await request(app)
+        .delete(`/api/student/partner-consents/${consent.body.consentId}`)
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(revoked.statusCode).toBe(200);
     });
 
     test('Should add, list and end a Head/Junior team membership', async () => {

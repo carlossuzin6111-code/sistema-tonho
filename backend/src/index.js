@@ -33,6 +33,7 @@ const progressionController = require('./controllers/progressionController');
 const assessmentController = require('./controllers/assessmentController');
 const subscriptionController = require('./controllers/subscriptionController');
 const teamController = require('./controllers/teamController');
+const partnerController = require('./controllers/partnerController');
 
 // Initialize database
 const db = require('./database');
@@ -83,6 +84,9 @@ app.get('/api/subscription', authenticateToken, subscriptionController.getSubscr
 app.get('/api/team/members', authenticateToken, requireRole('personal'), teamController.listTeam);
 app.post('/api/team/members', authenticateToken, requireRole('personal'), teamController.addTeamMember);
 app.patch('/api/team/members/:id/end', authenticateToken, requireRole('personal'), validateIdParam('id'), teamController.terminateTeamMember);
+app.post('/api/partner-consents', authenticateToken, partnerController.createConsent);
+app.patch('/api/partner-consents/:id/revoke', authenticateToken, validateIdParam('id'), partnerController.revokeConsent);
+app.get('/api/partner/students/:studentId/summary', authenticateToken, validateIdParam('studentId'), partnerController.getStudentSummary);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
