@@ -258,6 +258,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Especificação**: Tabela `user_sessions` para listar e revogar tokens de dispositivos individuais sem invalidar a chave JWT global da conta.
 
 ### [OPS-12] Backoffice de Suporte com Impersonation Seguro
+*   **Progresso em 29/07/2026**: migration `202607290024_create_impersonation_events.js` e endpoints protegidos permitem somente `support`/`admin` emitir token de 15 minutos com motivo obrigatório; cada emissão/revogação é auditada e o middleware rejeita tokens expirados ou revogados, marcando o contexto de impersonação.
+*   **Pendente**: backoffice visual, aprovação dupla para casos sensíveis, escopo read-only/allowlist por rota, alertas de uso anômalo e política de retenção dos eventos.
 *   **Especificação**: Função de impersonação de conta pelo administrador com geração de log de auditoria associado a tickets e justificativa.
 
 ### [OPS-13] Logs Estruturados, Métricas e Alertas

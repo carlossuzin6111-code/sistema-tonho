@@ -31,6 +31,7 @@ const profileController = require('./controllers/profileController');
 const workoutSessionController = require('./controllers/workoutSessionController');
 const progressionController = require('./controllers/progressionController');
 const assessmentController = require('./controllers/assessmentController');
+const impersonationController = require('./controllers/impersonationController');
 
 // Initialize database
 const db = require('./database');
@@ -76,6 +77,10 @@ app.get('/api/health', async (req, res) => {
     res.status(503).json({ status: 'unavailable' });
   }
 });
+
+app.post('/api/support/impersonations', authenticateToken, impersonationController.create);
+app.get('/api/support/impersonations', authenticateToken, impersonationController.list);
+app.post('/api/support/impersonations/:id/revoke', authenticateToken, impersonationController.revoke);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);

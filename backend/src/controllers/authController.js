@@ -156,6 +156,7 @@ async function getMe(req, res) {
       role: user.role,
       mustChangePassword: Boolean(user.must_change_password),
       emailVerified: Boolean(user.email_verified_at),
+      ...(req.user.isImpersonation ? { impersonation: { actorUserId: req.user.impersonatedBy, eventId: req.user.impersonationId } } : {}),
       created_at: user.created_at,
       hasAvatar: Boolean(user.avatar_filename),
       avatarUpdatedAt: user.avatar_updated_at || null
