@@ -656,7 +656,32 @@ function connectRealTimeUpdates(user) {
     }
   }, {
     onOpen: () => setChatConnectionStatus('connected'),
-    onError: () => setChatConnectionStatus(navigator.onLine ? 'reconnecting' : 'offline')
+    onError: () => setChatConnectionStatus(navigator.onLine ? 'reconnecting' : 'offline'),
+    onTyping: setChatTypingIndicator
+  });
+}
+
+function setChatTypingIndicator(payload) {
+  if (!payload || payload.userId === API.getCurrentUser()?.id) return;
+  const targets = document.querySelectorAll('[data-chat-typing-status]');
+  const activeTarget = typeof activeChatStudentId !== 'undefined' ? activeChatStudentId : personalTrainerId;
+  if (activeTarget && String(activeTarget) !== String(payload.userId)) return;
+  targets.forEach(target => { target.textContent = payload.isTyping ? 'Digitando...' : ''; });
+}
+
+function announceTyping(input) {
+  const currentUser = API.getCurrentUser();
+  if (!currentUser) return;
+  const receiverId = currentUser.role === 'personal'
+    ? (typeof activeChatStudentId !== 'undefined' ? activeChatStudentId : null)
+    : (typeof personalTrainerId !== 'undefined' ? personalTrainerId : null);
+  if (!receiverId) return;
+  API.post('/chat/typing', { receiverId, isTyping: true }).catch(() => {});
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('input', event => {
+    if (event.target?.id === 'personal-chat-input' || event.target?.id === 'student-chat-input') announceTyping(event.target);
   });
 }
 
