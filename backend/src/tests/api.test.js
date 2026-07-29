@@ -86,6 +86,20 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body).toEqual({ status: 'ok' });
     });
 
+    test('Should expose a database-independent liveness probe', async () => {
+      const res = await request(app).get('/health/live');
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({ status: 'ok' });
+    });
+
+    test('Should expose readiness through the deployment health path', async () => {
+      const res = await request(app).get('/health/ready');
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({ status: 'ok' });
+    });
+
     test('Should apply headers and omit CORS for an untrusted origin', async () => {
       const res = await request(app)
         .get('/api/auth/me')
@@ -438,6 +452,16 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body[0]).toHaveProperty('email', 'test_student@fitlife.com');
       expect(res.body[0]).toMatchObject({ hasAvatar: false, avatarUpdatedAt: null });
       expect(res.body[0]).not.toHaveProperty('avatar_filename');
+    });
+
+    test('Should return weekly adherence ordered by lowest percentage first', async () => {
+      const res = await request(app)
+        .get('/api/personal/students/adherence')
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveProperty('students');
+      expect(Array.isArray(res.body.students)).toBe(true);
+      expect(res.body.students[0]).toEqual(expect.objectContaining({ studentId: expect.any(Number), adherence: expect.any(Number) }));
     });
 
     test('Should update the linked student lifecycle statuses', async () => {
