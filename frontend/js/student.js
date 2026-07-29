@@ -120,7 +120,7 @@ function updateStudentMeasurementOverview() {
   const values = {
     'student-latest-weight': Number.isFinite(latestWeight) ? `${latestWeight.toLocaleString('pt-BR')} kg` : '-',
     'student-weight-change': change === null ? '-' : `${change > 0 ? '+' : ''}${change.toLocaleString('pt-BR')} kg`,
-    'student-latest-measurement-date': latest?.recorded_at ? new Date(latest.recorded_at).toLocaleDateString('pt-BR') : '-',
+    'student-latest-measurement-date': latest?.recorded_at ? AppDateTime.date(latest.recorded_at) : '-',
     'student-measurement-count': studentMeasurements.length
   };
   for (const [id, value] of Object.entries(values)) {
@@ -149,7 +149,7 @@ async function loadStudentMeasurements() {
       const row = SafeDOM.el('tr');
       const value = item => item === null || item === undefined ? '-' : `${item} cm`;
       SafeDOM.appendChildren(row, [
-        SafeDOM.el('td', { text: new Date(measurement.recorded_at).toLocaleDateString('pt-BR'), attrs: { 'data-label': 'Data' } }),
+        SafeDOM.el('td', { text: AppDateTime.date(measurement.recorded_at), attrs: { 'data-label': 'Data' } }),
         SafeDOM.el('td', { text: `${measurement.weight} kg`, className: 'metric-weight-value', attrs: { 'data-label': 'Peso' } }),
         SafeDOM.el('td', { text: value(measurement.chest), attrs: { 'data-label': 'Tórax' } }),
         SafeDOM.el('td', { text: value(measurement.waist), attrs: { 'data-label': 'Cintura' } }),
@@ -166,7 +166,7 @@ async function loadStudentMeasurements() {
       SafeDOM.metricItem('Tórax', latest.chest === null || latest.chest === undefined ? '-' : `${latest.chest} cm`),
       SafeDOM.metricItem('Quadril', latest.hips === null || latest.hips === undefined ? '-' : `${latest.hips} cm`)
     ]);
-    plotSvgChart('weight-chart-container', [...studentMeasurements].reverse().map(item => ({ label: new Date(item.recorded_at).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }), value: item.weight })));
+    plotSvgChart('weight-chart-container', [...studentMeasurements].reverse().map(item => ({ label: AppDateTime.shortDate(item.recorded_at), value: item.weight })));
   } catch (error) {
     studentMeasurements = [];
     updateStudentMeasurementOverview();
@@ -193,7 +193,7 @@ async function loadStudentChat() {
     else for (const message of messages) {
       const currentUser = API.getCurrentUser();
       const isMe = currentUser && String(message.sender_id) === String(currentUser.id);
-      box.appendChild(SafeDOM.chatBubble(message.message, new Date(message.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), isMe ? 'sent' : 'received'));
+      box.appendChild(SafeDOM.chatBubble(message.message, AppDateTime.time(message.created_at), isMe ? 'sent' : 'received'));
     }
     box.scrollTop = box.scrollHeight;
     document.getElementById('student-unread-badge').classList.add('hidden');
@@ -229,7 +229,7 @@ function appendStudentLiveMessage(message) {
   if (active) {
     const box = document.getElementById('student-chat-messages');
     box.querySelector('.no-data-msg')?.remove();
-    box.appendChild(SafeDOM.chatBubble(message.message, new Date(message.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), isMe ? 'sent' : 'received'));
+    box.appendChild(SafeDOM.chatBubble(message.message, AppDateTime.time(message.created_at), isMe ? 'sent' : 'received'));
     box.scrollTop = box.scrollHeight;
     if (!isMe) API.get('/chat').catch(() => {});
   } else if (!isMe) {

@@ -129,7 +129,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Pendente**: QA visual com milhares de exercícios para calibrar a altura média do cartão e confirmar a experiência em diferentes larguras.
 
 ### [UX-03] Conversão e Tratamento de Timezones
-*   **Especificação**: Todas as colunas `TIMESTAMP` do SQLite são gravadas em UTC ISO 8601. Conversão regional realizada estritamente no frontend com a API `Intl.DateTimeFormat` do navegador.
+*   **Implementado no frontend**: `AppDateTime` interpreta valores SQLite sem sufixo como UTC e usa exclusivamente `Intl.DateTimeFormat` para converter datas, horas e gráficos ao fuso local do navegador. As páginas carregam o utilitário com a mesma versão de cache-busting.
+*   **Pendente no backend**: normalizar serialização das colunas temporais legadas para ISO 8601 com `Z` e auditar endpoints administrativos restantes.
 
 ### [UX-04] Bloqueio de Base64 e Remoção de Mídias Órfãs
 *   **Especificação**: O avatar já é validado, convertido para WebP, escrito por arquivo temporário/rename e removido via serviço. Completar persistência do diretório, quota, reconciliação de órfãos e tratamento compensatório quando banco e filesystem divergirem. Para novos uploads, preferir binário/multipart a Base64.
