@@ -796,6 +796,13 @@ test('Nginx revalidates HTML and caches versioned CSS/JS immutably', () => {
   assert.match(nginx, /location ~\* \\.\(\?:css\|js\)\$[\s\S]*?try_files \$uri =404/);
 });
 
+test('all keyboard-focusable controls have a visible WCAG focus indicator', () => {
+  const style = read(path.join('css', 'style.css'));
+  assert.match(style, /:where\(button, a, input, select, textarea, \[tabindex\]\):focus-visible/);
+  assert.match(style, /:where\(button, a, input, select, textarea, \[tabindex\]\):focus-visible[^}]*outline:\s*3px solid var\(--focus-ring\)/s);
+  assert.match(style, /@media \(prefers-reduced-motion: reduce\)/);
+});
+
 test('final student-area audit prevents duplicate ids, empty image requests and inaccessible mobile navigation', () => {
   for (const page of ['desktop.html', 'mobile.html']) {
     const html = read(page);

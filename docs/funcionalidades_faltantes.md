@@ -145,7 +145,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Pendente**: aplicar o mesmo contrato a todas as mutações editáveis e fazer o frontend enviar/atualizar automaticamente o cabeçalho `If-Match`.
 
 ### [UX-07] Acessibilidade WCAG 2.2 AA
-*   **Especificação**: Modais com Focus Trap, suporte nativo para `prefers-reduced-motion` no CSS, anúncios acessíveis (`aria-live`) em toasts e tags ARIA consistentes nos grupos de abas.
+*   **Implementado parcialmente**: além do Focus Trap, `aria-live` e `prefers-reduced-motion` já existentes, a folha global garante indicador de foco de 3px para controles navegáveis, inclusive componentes sem regra específica.
+*   **Pendente**: auditoria manual com leitor de tela, medição formal de contraste e validação de todos os fluxos apenas por teclado.
 
 ### [UX-08] Hardening de Uploads e Cotas de Mídia
 *   **Especificação**: Validação de assinaturas/MIME mágicos de arquivos em uploads, renomeação aleatória contra injeções de diretório, e limite estrito no Nginx de `client_max_body_size 600K` coerente com a cota JSON do backend.

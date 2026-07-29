@@ -33,6 +33,13 @@
   --transition-fast: all 0.12s ease;
 }
 
+/* WCAG 2.2 keyboard visibility baseline for controls not covered by a
+   component-specific focus rule. */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 body.dark-theme {
   /* Cores Invertidas - Lovable Warm Dark Paper Theme (Modo Escuro Warm) */
   --bg-primary: #121210;       /* Dark warm paper */
