@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --test frontend/tests/*.test.js"
+    "test": "node --test frontend/tests/*.test.js",
+    "mobile:add:android": "npx cap add android",
+    "mobile:sync": "npx cap sync android",
+    "mobile:open": "npx cap open android",
+    "mobile:build:android": "npm run mobile:sync && cd android && gradlew.bat assembleDebug"
   },
   "keywords": [],
   "author": "",
