@@ -7,6 +7,9 @@ const AVATAR_DIR = process.env.AVATAR_DIR || path.join(process.cwd(), 'data', 'a
 const MAX_INPUT_BYTES = 400000;
 const MAX_INPUT_DIMENSION = 4096;
 const OUTPUT_SIZE = 512;
+const MAX_USER_AVATAR_BYTES = Number(process.env.AVATAR_USER_QUOTA_BYTES) > 0
+  ? Number(process.env.AVATAR_USER_QUOTA_BYTES)
+  : 2 * 1024 * 1024;
 const DATA_URL_PATTERN = /^data:image\/(png|jpe?g|webp);base64,([A-Za-z0-9+/]+={0,2})$/i;
 
 class AvatarError extends Error {
@@ -57,12 +60,41 @@ async function writeAvatar(userId, dataUrl) {
     await image.rotate().resize(OUTPUT_SIZE, OUTPUT_SIZE, { fit: 'cover', position: 'centre' })
       .webp({ quality: 82 })
       .toFile(temporaryPath);
+    const existingUsage = await getUserAvatarUsage(userId);
+    const outputSize = (await fs.stat(temporaryPath)).size;
+    if (existingUsage + outputSize > MAX_USER_AVATAR_BYTES) throw new AvatarError('AVATAR_QUOTA_EXCEEDED');
     await fs.rename(temporaryPath, finalPath);
     return filename;
   } catch (error) {
     await fs.rm(temporaryPath, { force: true }).catch(() => {});
     throw new AvatarError('INVALID_AVATAR');
   }
+}
+
+async function getUserAvatarFiles(userId) {
+  const prefix = `${Number(userId)}-`;
+  try {
+    const entries = await fs.readdir(AVATAR_DIR, { withFileTypes: true });
+    return entries.filter(entry => entry.isFile() && entry.name.startsWith(prefix) && resolveAvatarPath(entry.name))
+      .map(entry => entry.name);
+  } catch (error) {
+    if (error.code === 'ENOENT') return [];
+    throw error;
+  }
+}
+
+async function getUserAvatarUsage(userId) {
+  const files = await getUserAvatarFiles(userId);
+  const sizes = await Promise.all(files.map(async filename => {
+    try { return (await fs.stat(resolveAvatarPath(filename))).size; } catch { return 0; }
+  }));
+  return sizes.reduce((total, size) => total + size, 0);
+}
+
+async function cleanupUserAvatars(userId, keepFilename = null) {
+  const files = await getUserAvatarFiles(userId);
+  await Promise.all(files.filter(filename => filename !== keepFilename).map(filename => removeAvatar(filename)));
+  return files.filter(filename => filename !== keepFilename).length;
 }
 
 function resolveAvatarPath(filename) {
@@ -78,6 +110,10 @@ async function removeAvatar(filename) {
 
 module.exports = {
   AvatarError,
+  cleanupUserAvatars,
+  getUserAvatarFiles,
+  getUserAvatarUsage,
+  MAX_USER_AVATAR_BYTES,
   MAX_INPUT_BYTES,
   decodeAvatarDataUrl,
   removeAvatar,

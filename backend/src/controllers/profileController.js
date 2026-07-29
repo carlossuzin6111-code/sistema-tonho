@@ -3,7 +3,7 @@ const fs = require('fs');
 const db = require('../database');
 const { setSessionCookies } = require('../services/sessionService');
 const { AUDIT_ACTIONS, recordAudit } = require('../services/auditService');
-const { AvatarError, removeAvatar, resolveAvatarPath, writeAvatar } = require('../services/avatarService');
+const { AvatarError, cleanupUserAvatars, removeAvatar, resolveAvatarPath, writeAvatar } = require('../services/avatarService');
 
 function publicUser(user) {
   return {
@@ -74,12 +74,18 @@ async function updateAvatar(req, res) {
       await trx('users').where({ id: req.user.id }).update({ avatar_filename: newFilename, avatar_updated_at: trx.fn.now(), updated_at: trx.fn.now() });
       await recordAudit(trx, { actorUserId: req.user.id, action: AUDIT_ACTIONS.PROFILE_AVATAR_UPDATED, targetType: 'user', targetId: req.user.id });
     });
-    await removeAvatar(user.avatar_filename);
+    await cleanupUserAvatars(req.user.id, newFilename).catch(error => {
+      // Reconciliation is best-effort after the database points at the new file.
+      console.error('Avatar orphan cleanup error:', error.message);
+    });
     const updatedUser = await db('users').where({ id: req.user.id }).first();
     return res.json({ message: 'Avatar updated successfully', user: publicUser(updatedUser) });
   } catch (error) {
     if (newFilename) await removeAvatar(newFilename).catch(() => {});
-    if (error instanceof AvatarError) return res.status(400).json({ error: error.code === 'AVATAR_TOO_LARGE' ? 'Avatar is too large' : 'Invalid avatar image' });
+    if (error instanceof AvatarError) {
+      if (error.code === 'AVATAR_QUOTA_EXCEEDED') return res.status(413).json({ error: 'Avatar storage quota exceeded' });
+      return res.status(400).json({ error: error.code === 'AVATAR_TOO_LARGE' ? 'Avatar is too large' : 'Invalid avatar image' });
+    }
     console.error('Profile avatar update error:', error.message);
     return res.status(500).json({ error: 'Internal server error' });
   }
@@ -111,7 +117,9 @@ async function deleteAvatar(req, res) {
       await trx('users').where({ id: req.user.id }).update({ avatar_filename: null, avatar_updated_at: trx.fn.now(), updated_at: trx.fn.now() });
       await recordAudit(trx, { actorUserId: req.user.id, action: AUDIT_ACTIONS.PROFILE_AVATAR_REMOVED, targetType: 'user', targetId: req.user.id });
     });
-    await removeAvatar(user.avatar_filename);
+    await cleanupUserAvatars(req.user.id).catch(error => {
+      console.error('Avatar orphan cleanup error:', error.message);
+    });
     return res.json({ message: 'Avatar removed successfully' });
   } catch (error) {
     console.error('Profile avatar removal error:', error.message);
