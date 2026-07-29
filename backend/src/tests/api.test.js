@@ -260,6 +260,24 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body).toHaveProperty('role', 'personal');
     });
 
+    test('Should expose subscription status and return 402 when the period expires', async () => {
+      const [temporaryPersonalId] = await db('users').insert({ name: 'Temporary Subscription Owner', email: `subscription-${Date.now()}@fitlife.test`, password_hash: 'not-used', role: 'personal' });
+      const start = new Date().toISOString();
+      const end = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      const [subscriptionId] = await db('subscriptions').insert({ personal_id: temporaryPersonalId, status: 'trial', provider: 'test', current_period_start: start, current_period_end: end });
+      const temporaryToken = jwt.sign({ id: temporaryPersonalId, role: 'personal', sessionVersion: 0 }, JWT_SECRET);
+      const status = await request(app).get('/api/subscription').set('Authorization', `Bearer ${temporaryToken}`);
+      expect(status.statusCode).toBe(200);
+      expect(status.body).toMatchObject({ active: true, status: 'trial' });
+      await db('subscriptions').where({ id: subscriptionId }).update({ current_period_end: new Date(Date.now() - 1000).toISOString() });
+      const blocked = await request(app).get('/api/personal/students').set('Authorization', `Bearer ${temporaryToken}`);
+      expect(blocked.statusCode).toBe(402);
+      expect(blocked.body).toMatchObject({ code: 'SUBSCRIPTION_EXPIRED' });
+      const management = await request(app).get('/api/subscription').set('Authorization', `Bearer ${temporaryToken}`);
+      expect(management.statusCode).toBe(200);
+      expect(management.body.active).toBe(false);
+    });
+
     test('Should authenticate browser requests using the HttpOnly cookie', async () => {
       const res = await request(app)
         .get('/api/auth/me')

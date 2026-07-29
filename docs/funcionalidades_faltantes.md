@@ -237,6 +237,9 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-01] Isolamento de Tenant (Subscriptions)
 *   **Especificação**: Tabela `subscriptions` vinculada à conta do Personal. Middleware bloqueia acessos retornando `402 Payment Required` em caso de mensalidade da licença expirada.
+*   **Progresso em 29/07/2026**: migration `202607290015_create_subscriptions` cria histórico por Personal, semeia trial de 30 dias para contas existentes e o cadastro de novos Personals cria o trial na mesma transação.
+*   **Progresso em 29/07/2026**: `subscriptionGuard` é aplicado após autenticação, permite admins e rotas essenciais de autenticação/assinatura, resolve alunos pelo Personal vinculado e responde `402` com códigos `SUBSCRIPTION_REQUIRED`/`SUBSCRIPTION_EXPIRED`; `GET /api/subscription` expõe status, período e indicador de atividade.
+*   **Pendente**: integração com provedor de cobrança, webhooks assinados e idempotentes, renovação/cancelamento, notificações de vencimento, painel administrativo e testes de recuperação de falhas do provedor.
 
 ### [OPS-02] Gestão de Equipe (Head/Junior) e Split de Receitas
 *   **Especificação**: Papéis corporativos com coordenação de equipes de personais juniores associados, bibliotecas compartilhadas e migrações em lote sob desligamento de instrutores.
