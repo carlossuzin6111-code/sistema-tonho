@@ -196,6 +196,10 @@ const bodySchemas = {
   },
   verifyEmail: {
     token: text('token', 256, 32)
+  },
+  waiver: {
+    termsVersion: text('termsVersion', 64, 1),
+    parqAnswers: value => (value && typeof value === 'object' && !Array.isArray(value)) ? null : 'parqAnswers must be an object'
   }
 };
 

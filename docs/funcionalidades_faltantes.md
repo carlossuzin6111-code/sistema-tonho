@@ -69,6 +69,7 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Entrega atual**: o rate limit agora usa chave composta por IP normalizado + e-mail, evitando que ataques contra uma única conta compartilhem apenas o orçamento global de IP. A memória local continua sendo a limitação para múltiplas réplicas; Redis permanece pendente.
 
 ### [SEC-08] PAR-Q e Assinatura Eletrônica de Termos (Waivers)
+*   **Entrega atual**: tabela `signed_waivers` com FK, versão dos termos, JSON do PAR-Q, IP, data e unicidade por usuário/versão; `POST /api/profile/waivers` registra a assinatura e retorna o registro existente em reenvio idempotente.
 *   **Especificação**: Tabela `signed_waivers`:
     ```text
     - id (INTEGER, PK)

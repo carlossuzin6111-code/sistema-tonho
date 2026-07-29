@@ -76,6 +76,7 @@ app.get('/api/health', async (req, res) => {
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
+app.post('/api/profile/waivers', authenticateToken, validateBody('waiver'), profileController.signWaiver);
 app.put('/api/profile/avatar', authenticateToken, validateBody('profileAvatar'), profileController.updateAvatar);
 app.delete('/api/profile/avatar', authenticateToken, profileController.deleteAvatar);
 app.get('/api/profile/avatar/:userId', authenticateToken, validateIdParam('userId'), profileController.getAvatar);
