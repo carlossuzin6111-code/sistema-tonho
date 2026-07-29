@@ -179,7 +179,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Pendente**: tela de anamnese, edição/versionamento e auditoria clínica.
 
 ### [BUS-05] Aderência Semanal e Ordenação no Dashboard
-*   **Especificação**: Cálculo matemático: `aderência = treinos concluídos / treinos previstos`. Ordenações no painel do Personal por alunos com menor frequência ou maior tempo sem treinar.
+*   **Implementado parcialmente**: Endpoint de aderência calcula `treinos concluídos / treinos publicados` no intervalo semanal, limita o percentual a 100%, informa última conclusão e ordena alunos do menor percentual ao maior.
+*   **Pendente**: metas semanais configuráveis, cálculo de treinos previstos por agenda e visualização no dashboard.
 
 ### [BUS-06] Progressão de Carga e Recordes Pessoais
 *   **Implementado parcialmente**: Endpoint calcula volume acumulado (`séries × repetições × carga`) a partir de sessões concluídas, recorde de volume e última carga/repetições por exercício.
