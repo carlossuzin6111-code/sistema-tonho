@@ -178,6 +178,10 @@ const bodySchemas = {
     gifUrl: optionalExerciseImage,
     description: text('description', 5000)
   },
+  catalogMerge: {
+    sourceId: optionalPositiveInteger('sourceId'),
+    targetId: optionalPositiveInteger('targetId')
+  },
   chatMessage: {
     receiverId: optionalPositiveInteger('receiverId'),
     message: text('message', 2000)

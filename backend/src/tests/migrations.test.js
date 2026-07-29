@@ -45,7 +45,8 @@ const migrations = [
   '202607290009_create_student_assessments.js',
 
   '202607290010_add_session_activity.js',
-  '202607290011_create_idempotency_keys.js'
+  '202607290011_create_idempotency_keys.js',
+  '202607290012_add_catalog_governance.js'
 ];
 
 function createDatabase() {
@@ -81,6 +82,9 @@ describe('database migrations', () => {
     await expect(db.schema.hasColumn('users', 'version')).resolves.toBe(true);
     await expect(db.schema.hasColumn('workouts', 'version')).resolves.toBe(true);
     await expect(db.schema.hasColumn('workouts', 'status')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('exercises', 'catalog_scope')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('exercises', 'canonical_name')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('exercises', 'archived_at')).resolves.toBe(true);
     await expect(db.schema.hasColumn('workout_sessions', 'last_activity_at')).resolves.toBe(true);
     await expect(db.schema.hasColumn('users', 'account_status')).resolves.toBe(true);
     await expect(db.schema.hasColumn('student_profiles', 'relationship_status')).resolves.toBe(true);

@@ -858,6 +858,7 @@ app.get('/api/workout-sessions/:id', authenticateToken, validateIdParam('id'), w
  *         description: Erro interno do servidor.
  */
 app.get('/api/catalog/exercises', authenticateToken, exerciseController.getExercises);
+app.get('/api/catalog/governance', authenticateToken, requireRole('personal'), exerciseController.getCatalogGovernance);
 
 /**
  * @openapi
@@ -899,6 +900,7 @@ app.get('/api/catalog/exercises', authenticateToken, exerciseController.getExerc
  *         description: Erro interno do servidor.
  */
 app.post('/api/catalog/exercises', authenticateToken, requireRole('personal'), validateBody('catalogExercise'), exerciseController.createExercise);
+app.post('/api/catalog/governance/merge', authenticateToken, requireRole('personal'), validateBody('catalogMerge'), exerciseController.mergeCatalogExercises);
 
 /**
  * @openapi

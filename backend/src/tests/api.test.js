@@ -632,6 +632,37 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(Array.isArray(res.body)).toBe(true);
       expect(res.body.length).toBeGreaterThan(0);
     });
+
+    test('Should report and merge duplicate custom catalog entries', async () => {
+      const first = await request(app)
+        .post('/api/catalog/exercises')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ name: 'Remada Governança', description: 'Primeira versão' });
+      const second = await request(app)
+        .post('/api/catalog/exercises')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ name: 'remada governança', description: 'Duplicata' });
+      expect(first.statusCode).toBe(201);
+      expect(second.statusCode).toBe(201);
+
+      const governance = await request(app)
+        .get('/api/catalog/governance')
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(governance.statusCode).toBe(200);
+      expect(governance.body.duplicates).toEqual(expect.arrayContaining([
+        expect.objectContaining({ canonicalName: 'remada governança', count: 2 })
+      ]));
+
+      const merged = await request(app)
+        .post('/api/catalog/governance/merge')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ sourceId: second.body.exercise.id, targetId: first.body.exercise.id });
+      expect(merged.statusCode).toBe(200);
+      const visible = await request(app)
+        .get('/api/catalog/exercises?scope=custom')
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(visible.body.some(exercise => exercise.id === second.body.exercise.id)).toBe(false);
+    });
   });
 
   // ==========================================
