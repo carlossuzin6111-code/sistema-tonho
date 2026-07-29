@@ -2,11 +2,108 @@
 
 const API_BASE_URL = '/api';
 const CSRF_COOKIE = 'fitlife_csrf';
+const OFFLINE_DB_NAME = 'fitlife-offline-queue';
+const OFFLINE_STORE = 'mutations';
+
+const OfflineQueue = {
+  supported() {
+    return typeof indexedDB !== 'undefined';
+  },
+
+  open() {
+    if (!this.supported()) return Promise.reject(new Error('IndexedDB indisponível'));
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(OFFLINE_DB_NAME, 1);
+      request.onupgradeneeded = () => {
+        const store = request.result.createObjectStore(OFFLINE_STORE, { keyPath: 'id', autoIncrement: true });
+        store.createIndex('createdAt', 'createdAt');
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async enqueue(request) {
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(OFFLINE_STORE, 'readwrite');
+      tx.objectStore(OFFLINE_STORE).add({ ...request, createdAt: Date.now() });
+      tx.oncomplete = () => { db.close(); resolve(request.idempotencyKey); };
+      tx.onerror = () => { db.close(); reject(tx.error); };
+    });
+  },
+
+  async all() {
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+      const request = db.transaction(OFFLINE_STORE).objectStore(OFFLINE_STORE).getAll();
+      request.onsuccess = () => { db.close(); resolve(request.result.sort((a, b) => a.createdAt - b.createdAt)); };
+      request.onerror = () => { db.close(); reject(request.error); };
+    });
+  },
+
+  async remove(id) {
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(OFFLINE_STORE, 'readwrite');
+      tx.objectStore(OFFLINE_STORE).delete(id);
+      tx.oncomplete = () => { db.close(); resolve(); };
+      tx.onerror = () => { db.close(); reject(tx.error); };
+    });
+  },
+
+  async flush(send) {
+    if (!this.supported() || (typeof navigator !== 'undefined' && !navigator.onLine)) return { sent: 0, pending: 0 };
+    const pending = await this.all();
+    let sent = 0;
+    for (const item of pending) {
+      try {
+        await send(item);
+        await this.remove(item.id);
+        sent += 1;
+      } catch (error) {
+        if (error && error.retryable) break;
+        await this.remove(item.id);
+      }
+    }
+    return { sent, pending: Math.max(0, pending.length - sent) };
+  }
+};
+
+API.flushOfflineQueue = () => API.offlineQueue.flush(async item => {
+  const response = await fetch(`${API_BASE_URL}${item.endpoint}`, {
+    method: item.method,
+    headers: { ...API.getHeaders({ mutating: true }), 'Idempotency-Key': item.idempotencyKey },
+    credentials: 'same-origin',
+    body: item.data === undefined ? undefined : JSON.stringify(item.data)
+  });
+  if (!response.ok) {
+    const error = new Error(`Erro HTTP: ${response.status}`);
+    error.retryable = response.status >= 500 || response.status === 408 || response.status === 429;
+    throw error;
+  }
+  return response;
+});
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => API.flushOfflineQueue().catch(error => {
+    console.warn('Falha ao sincronizar fila offline:', error.message);
+  }));
+}
 
 // Remove credentials left by versions prior to HttpOnly cookie sessions.
 localStorage.removeItem('fitlife_token');
 
 const API = {
+  offlineQueue: OfflineQueue,
+  isQueueable(endpoint) {
+    return /^\/workout-sessions(?:\/|$)/.test(endpoint);
+  },
+
+  createIdempotencyKey() {
+    return globalThis.crypto?.randomUUID?.() || `fitlife-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  },
+
   // Cache only non-sensitive user details. The session credential is an HttpOnly cookie.
   saveSession(user) {
     localStorage.setItem('fitlife_user', JSON.stringify(user));
@@ -66,34 +163,38 @@ const API = {
 
   // HTTP POST request
   async post(endpoint, data) {
+    return this.mutate('POST', endpoint, data);
+  },
+
+  async mutate(method, endpoint, data) {
+    const idempotencyKey = this.isQueueable(endpoint) ? this.createIdempotencyKey() : null;
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: this.getHeaders({ mutating: true }),
+        method,
+        headers: { ...this.getHeaders({ mutating: true }), ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}) },
         credentials: 'same-origin',
-        body: JSON.stringify(data)
+        body: data === undefined ? undefined : JSON.stringify(data)
       });
+      if (!response.ok && (response.status >= 500 || response.status === 408 || response.status === 429)) {
+        const error = new Error(`Erro HTTP: ${response.status}`); error.retryable = true; throw error;
+      }
       return await this.handleResponse(response);
     } catch (err) {
+      if (this.isQueueable(endpoint) && (err.retryable || !navigator.onLine) && idempotencyKey && this.offlineQueue.supported()) {
+        await this.offlineQueue.enqueue({ method, endpoint, data, idempotencyKey });
+        return { queued: true, idempotencyKey };
+      }
       console.error(`API POST ${endpoint} failed:`, err.message);
       throw err;
     }
   },
 
   async patch(endpoint, data) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'PATCH', headers: this.getHeaders({ mutating: true }),
-      credentials: 'same-origin', body: JSON.stringify(data)
-    });
-    return this.handleResponse(response);
+    return this.mutate('PATCH', endpoint, data);
   },
 
   async put(endpoint, data) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'PUT', headers: this.getHeaders({ mutating: true }),
-      credentials: 'same-origin', body: JSON.stringify(data)
-    });
-    return this.handleResponse(response);
+    return this.mutate('PUT', endpoint, data);
   },
 
   // HTTP DELETE request
