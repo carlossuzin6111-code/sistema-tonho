@@ -294,3 +294,5 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [MOB-04] Armazenamento Seguro de Chaves (Secure Storage)
 *   **Especificação**: Em ambiente híbrido móvel, armazenar JWT localmente via plugin `@capacitor-community/secure-storage` integrado ao Keystore/Keychain nativo do celular.
+*   **Progresso em 29/07/2026**: `frontend/js/secure-storage.js` expõe uma ponte que chama somente `Capacitor.Plugins.SecureStorage` e falha sem plugin, sem usar `localStorage`/`sessionStorage`. O teste de contrato confirma ausência de fallback inseguro (58/58 frontend).
+*   **Bloqueio/Pendente**: `@capacitor-community/secure-storage` não está publicado no registro npm no momento da implementação; selecionar uma alternativa mantida, validar Android Keystore/iOS Keychain em dispositivo e só armazenar JWT se o desenho de autenticação móvel deixar de usar cookies HttpOnly.
