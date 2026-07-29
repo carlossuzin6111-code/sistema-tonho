@@ -5,6 +5,10 @@ const { findUnusedAccessKeyId } = require('../services/accessKeyService');
 const { clearSessionCookies, setSessionCookies } = require('../services/sessionService');
 const { isEmailUniqueConstraint, normalizeEmail } = require('../services/userIdentityService');
 const { recordAudit, AUDIT_ACTIONS } = require('../services/auditService');
+const { sendEmailVerification } = require('../services/emailDeliveryService');
+
+const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
+const hashVerificationToken = token => crypto.createHash('sha256').update(token).digest('hex');
 
 class RegistrationError extends Error {
   constructor(code) {
@@ -66,12 +70,17 @@ async function registerPersonal(req, res) {
       await db.seedDefaultExercisesForPersonal(db, insertedId);
     }
 
+    const verificationToken = crypto.randomBytes(32).toString('base64url');
+    const verificationExpiresAt = new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS).toISOString();
+    await db('email_verification_tokens').insert({ user_id: insertedId, token_hash: hashVerificationToken(verificationToken), expires_at: verificationExpiresAt });
+    const delivery = await sendEmailVerification({ email: normalizedEmail, token: verificationToken, expiresAt: verificationExpiresAt });
+
     const user = { id: insertedId, name, email: normalizedEmail, role: 'personal', mustChangePassword: false };
     setSessionCookies(res, user);
 
     res.status(201).json({
       message: 'Personal Trainer registered successfully',
-      user
+      user: { ...user, emailVerified: false, verificationDelivery: delivery.sent ? 'sent' : 'not_configured', ...(process.env.NODE_ENV !== 'production' ? { verificationToken } : {}) }
     });
   } catch (err) {
     if (err.code === 'EMAIL_ALREADY_REGISTERED' || isEmailUniqueConstraint(err)) {
@@ -256,11 +265,30 @@ async function resetPasswordWithToken(req, res) {
   }
 }
 
+async function verifyEmail(req, res) {
+  const tokenHash = hashVerificationToken(req.body.token);
+  try {
+    const verified = await db.transaction(async trx => {
+      const record = await trx('email_verification_tokens').where({ token_hash: tokenHash }).whereNull('used_at').first();
+      if (!record || new Date(record.expires_at).getTime() <= Date.now()) return false;
+      await trx('users').where({ id: record.user_id }).update({ email_verified_at: trx.fn.now(), updated_at: trx.fn.now() });
+      const claimed = await trx('email_verification_tokens').where({ id: record.id, used_at: null }).update({ used_at: trx.fn.now(), updated_at: trx.fn.now() });
+      return claimed === 1;
+    });
+    if (!verified) return res.status(400).json({ error: 'Invalid or expired email verification token' });
+    return res.status(200).json({ message: 'Email verified successfully' });
+  } catch (error) {
+    console.error('Verify email error:', error.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 module.exports = {
   registerPersonal,
   login,
   logout,
   getMe,
   forgotPassword,
-  resetPasswordWithToken
+  resetPasswordWithToken,
+  verifyEmail
 };
