@@ -36,6 +36,7 @@ const teamController = require('./controllers/teamController');
 const partnerController = require('./controllers/partnerController');
 const wearableController = require('./controllers/wearableController');
 const crmController = require('./controllers/crmController');
+const geofenceController = require('./controllers/geofenceController');
 
 // Initialize database
 const db = require('./database');
@@ -100,6 +101,11 @@ app.patch('/api/crm/alerts/:id/resolve', authenticateToken, validateIdParam('id'
 app.get('/api/crm/nps', authenticateToken, crmController.listNps);
 app.get('/api/student/nps', authenticateToken, crmController.listStudentNps);
 app.post('/api/student/nps/:id/respond', authenticateToken, validateIdParam('id'), crmController.respondNps);
+app.post('/api/personal/geofences', authenticateToken, geofenceController.createGeofence);
+app.get('/api/personal/geofences', authenticateToken, geofenceController.listGeofences);
+app.get('/api/personal/checkins', authenticateToken, geofenceController.listCheckins);
+app.post('/api/student/checkins', authenticateToken, geofenceController.checkIn);
+app.post('/api/student/checkins/:id/checkout', authenticateToken, validateIdParam('id'), geofenceController.checkOut);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
