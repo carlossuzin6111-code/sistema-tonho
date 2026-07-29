@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../database');
 const { isEmailUniqueConstraint, normalizeEmail } = require('../services/userIdentityService');
 const { AUDIT_ACTIONS, recordAudit } = require('../services/auditService');
+const { sendStudentInvitation } = require('../services/emailDeliveryService');
 const crypto = require('crypto');
 
 const INVITATION_TTL_MS = 72 * 60 * 60 * 1000;
@@ -29,7 +30,8 @@ async function inviteStudent(req, res) {
       await recordAudit(trx, { actorUserId: personalId, action: 'student.invitation_created', targetType: 'student_invitation', targetId: id, metadata: { email, expiresAt: expiresAt.toISOString() } });
       return { id };
     });
-    const response = { message: 'Student invitation created successfully', invitationId: invitation.id, expiresAt: expiresAt.toISOString() };
+    const delivery = await sendStudentInvitation({ email, token: rawToken, expiresAt: expiresAt.toISOString() });
+    const response = { message: 'Student invitation created successfully', invitationId: invitation.id, expiresAt: expiresAt.toISOString(), delivery: delivery.sent ? 'sent' : 'not_configured' };
     if (process.env.NODE_ENV !== 'production') response.token = rawToken;
     return res.status(201).json(response);
   } catch (error) {

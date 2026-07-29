@@ -31,6 +31,7 @@ describe('SEC-03 student invitations', () => {
       .send({ email: ' New.Student@Test.COM ' });
 
     expect(response.statusCode).toBe(201);
+    expect(response.body.delivery).toBe('not_configured');
     expect(response.body.token).toHaveLength(43);
     const row = await db('student_invitations').where({ id: response.body.invitationId }).first();
     expect(row.personal_id).toBe(personal.id);
