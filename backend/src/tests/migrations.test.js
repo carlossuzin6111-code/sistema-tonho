@@ -40,7 +40,8 @@ const migrations = [
   '202607290006_add_optimistic_versions.js',
   '202607290007_add_workout_status.js',
   '202607290008_add_student_lifecycle_status.js',
-  '202607290009_create_student_assessments.js'
+  '202607290009_create_student_assessments.js',
+  '202607290010_add_session_activity.js'
 ];
 
 function createDatabase() {
@@ -76,6 +77,7 @@ describe('database migrations', () => {
     await expect(db.schema.hasColumn('users', 'version')).resolves.toBe(true);
     await expect(db.schema.hasColumn('workouts', 'version')).resolves.toBe(true);
     await expect(db.schema.hasColumn('workouts', 'status')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('workout_sessions', 'last_activity_at')).resolves.toBe(true);
     await expect(db.schema.hasColumn('users', 'account_status')).resolves.toBe(true);
     await expect(db.schema.hasColumn('student_profiles', 'relationship_status')).resolves.toBe(true);
     await expect(db.schema.hasTable('student_assessments')).resolves.toBe(true);
