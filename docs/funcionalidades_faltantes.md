@@ -289,6 +289,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [MOB-03] CORS para WebViews Locais
 *   **Especificação**: Whitelist do backend Express aceitando requisições oriundas de `http://localhost` (WebView Android) e `capacitor://localhost` (WebView iOS).
+*   **Progresso em 29/07/2026**: `createCorsOptions()` agora permite, por padrão e com comparação exata, `http://localhost` e `capacitor://localhost`; `CORS_ORIGINS` continua substituindo a lista para ambientes controlados. O teste bloqueia `http://localhost:3000` e confirma credenciais para as duas origens suportadas (21/21 focados; backend 191/191).
+*   **Pendente**: incluir o domínio oficial do app via configuração de ambiente, validar preflight em produção e alinhar cookies/CSRF ou Bearer com o fluxo seguro do MOB-02/MOB-04.
 
 ### [MOB-04] Armazenamento Seguro de Chaves (Secure Storage)
 *   **Especificação**: Em ambiente híbrido móvel, armazenar JWT localmente via plugin `@capacitor-community/secure-storage` integrado ao Keystore/Keychain nativo do celular.
