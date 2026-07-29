@@ -2768,3 +2768,6 @@ body.dark-theme .drag-over {
     margin: 0;
   }
 }
+.student-status-tabs { display: flex; gap: .4rem; margin: .75rem 0; }
+.status-tab { border: 1px solid var(--border-color, #d8dee9); background: transparent; border-radius: 999px; padding: .35rem .8rem; cursor: pointer; color: inherit; }
+.status-tab.active { background: var(--primary-color, #2563eb); color: #fff; }

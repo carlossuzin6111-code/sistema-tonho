@@ -207,6 +207,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [BUS-12] Inativação e Abas de Filtragem de Alunos
 *   **Especificação**: Possibilidade de inativar alunos antigos sem deletar seu prontuário físico e separação por abas "Ativos" / "Inativos" na listagem.
+*   **Progresso em 29/07/2026**: o dashboard separa Ativos, Inativos e Todos usando os status de conta/vínculo já persistidos; a filtragem não remove histórico nem registros clínicos.
+*   **Pendente**: filtro no endpoint, confirmação acessível para transições e auditoria específica de inativação.
 
 ### [BUS-13] Periodização Biomecânica Ondulatória
 *   **Especificação**: Suporte a templates e variações de carga/volume estruturadas em microciclos na ficha do aluno, fugindo de fichas estáticas lineares de musculação.

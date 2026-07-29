@@ -4,6 +4,7 @@ let personalStudents = [];
 let selectedStudentId = null;
 let activeWorkoutId = null;
 let activeChatStudentId = null;
+let studentStatusFilter = 'active';
 let exerciseCatalogList = [];
 const catalogVirtualState = { query: '', sort: 'name-asc' };
 const CATALOG_VIRTUAL_BATCH = 15;
@@ -28,6 +29,20 @@ function filterRenderedList({ containerId, cardSelector, emptyId, countId, query
 
 function filterPersonalStudents(query) {
   filterRenderedList({ containerId: 'students-grid', cardSelector: '.student-card', emptyId: 'students-search-empty', countId: 'students-search-count', query });
+}
+
+function filterStudentStatus(status, trigger) {
+  studentStatusFilter = status || 'active';
+  document.querySelectorAll('[data-student-status-filter]').forEach(button => {
+    const selected = button.dataset.studentStatusFilter === studentStatusFilter;
+    button.classList.toggle('active', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  });
+  document.querySelectorAll('#students-grid .student-card').forEach(card => {
+    const isActive = card.dataset.accountStatus === 'active' && ['active', 'invited'].includes(card.dataset.relationshipStatus);
+    card.classList.toggle('hidden', studentStatusFilter === 'active' ? !isActive : studentStatusFilter === 'inactive' ? isActive : false);
+  });
+  filterPersonalStudents(document.getElementById('students-search')?.value || '');
 }
 
 function filterPersonalExercises(query) {
@@ -98,6 +113,8 @@ async function loadPersonalStudents() {
       card.dataset.search = normalizeListSearch(`${student.name} ${student.email}`);
       card.dataset.sortName = normalizeListSearch(student.name);
       card.dataset.unread = String(student.unread_messages || 0);
+      card.dataset.accountStatus = student.account_status || 'active';
+      card.dataset.relationshipStatus = student.relationship_status || 'active';
       
       // Calculate age if birth_date exists
       let ageText = 'N/A';
@@ -157,6 +174,7 @@ async function loadPersonalStudents() {
     lucide.createIcons();
     sortPersonalStudents(document.getElementById('students-sort').value);
     filterPersonalStudents(document.getElementById('students-search').value);
+    filterStudentStatus(studentStatusFilter);
   } catch (err) {
     finishLoadingState(grid);
     SafeDOM.clear(grid);
