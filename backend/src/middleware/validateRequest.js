@@ -182,6 +182,9 @@ const bodySchemas = {
     receiverId: optionalPositiveInteger('receiverId'),
     message: text('message', 2000)
   },
+  chatMessageEdit: {
+    message: text('message', 2000)
+  },
   profileName: {
     name: text('name', 100, 2)
   },
