@@ -31,6 +31,7 @@ const profileController = require('./controllers/profileController');
 const workoutSessionController = require('./controllers/workoutSessionController');
 const progressionController = require('./controllers/progressionController');
 const assessmentController = require('./controllers/assessmentController');
+const wearableController = require('./controllers/wearableController');
 
 // Initialize database
 const db = require('./database');
@@ -76,6 +77,12 @@ app.get('/api/health', async (req, res) => {
     res.status(503).json({ status: 'unavailable' });
   }
 });
+
+app.post('/api/wearables/connections', authenticateToken, wearableController.createConnection);
+app.get('/api/wearables/connections', authenticateToken, wearableController.listConnections);
+app.delete('/api/wearables/connections/:id', authenticateToken, validateIdParam('id'), wearableController.revokeConnection);
+app.post('/api/wearables/connections/:id/metrics', authenticateToken, validateIdParam('id'), wearableController.ingestMetrics);
+app.get('/api/wearables/metrics', authenticateToken, wearableController.listMetrics);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
