@@ -4,12 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --test frontend/tests/safe-dom.test.js frontend/tests/strict-csp.test.js"
+    "test": "node --test frontend/tests/safe-dom.test.js frontend/tests/strict-csp.test.js frontend/tests/capacitor-config.test.js frontend/tests/api-base-url.test.js frontend/tests/secure-storage.test.js",
+    "mobile:add:android": "npx cap add android",
+    "mobile:sync": "npx cap sync android",
+    "mobile:open": "npx cap open android",
+    "mobile:build:android": "npm run mobile:sync && cd android && gradlew.bat assembleDebug"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@capacitor/cli": "^8.4.2",
     "lucide": "1.25.0"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/core": "^8.4.2"
   }
 }
