@@ -34,7 +34,8 @@ const migrations = [
   '202607290001_add_must_change_password.js',
   '202607290002_create_student_invitations.js',
   '202607290003_add_email_verification.js',
-  '202607290004_create_signed_waivers.js'
+  '202607290004_create_signed_waivers.js',
+  '202607290005_add_domain_constraints.js'
 ];
 
 function createDatabase() {
