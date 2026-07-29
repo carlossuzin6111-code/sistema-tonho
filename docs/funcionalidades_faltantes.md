@@ -50,14 +50,18 @@ Este documento atua como o inventário de engenharia contendo especificações d
 ### [SEC-05] Verificação de E-mail
 *   **Implementação atual**: Migration `202607290003_add_email_verification.js` adiciona `users.email_verified_at` e tabela de tokens com hash, validade de 24 horas, uso único e FK para `users`. O cadastro pessoal emite token e usa o adaptador Resend quando configurado.
 *   **Endpoint**: `POST /api/auth/verify-email` confirma o token de forma transacional, marca o e-mail e rejeita replay/expiração.
+*   **Contrato de sessão**: login e `GET /api/auth/me` expõem `emailVerified` sem revelar tokens.
 *   **Regra**: Contas novas recebem e-mail de ativação. Bloquear redefinição de senha e onboarding para contas cujo e-mail não esteja verificado.
 *   **Pendências**: aplicar bloqueios de política no reset/onboarding e criar a tela frontend de confirmação.
+*   **Política adicionada**: `forgot-password` mantém resposta genérica e não cria token para contas sem `email_verified_at`; o frontend sinaliza a necessidade de confirmação. O bloqueio específico de onboarding/login e uma tela dedicada continuam como próximos passos.
+*   **Confirmação frontend**: URLs com `?token=...` são processadas no carregamento da aplicação, chamam o endpoint de confirmação e anunciam sucesso/erro por toast acessível.
 
 ### [SEC-06] Proteção contra CSRF Segregada
 *   **Especificação**:
     *   **Web**: Cookies `HttpOnly` com `SameSite=Strict` mais cabeçalho `Origin` / `Referer`.
     *   **API/Mobile**: Uso de tokens CSRF baseados em *Double Submit Cookie* para requisições que não utilizem cabeçalhos de autorização nativos (Bearer).
 *   **Estado atual relevante**: o fluxo web por cookie já usa double-submit (`X-CSRF-Token` + cookie + claim da sessão). O delta é definir/testar autenticação Bearer e refresh token rotacionado para o aplicativo híbrido.
+*   **Entrega atual**: mutações via cookie agora validam `Origin`/`Referer` contra `APP_ORIGIN` (ou host da requisição) além do double-submit, com rejeição `403` para origem não confiável. Requisições Bearer não recebem CSRF de cookie. Falta implementar refresh token rotacionado.
 
 ### [SEC-07] Rate Limit Combinado (IP + Conta)
 *   **Especificação**: Middleware Express Rate Limit com armazenamento Redis/memory associando o IP da requisição com o e-mail submetido no payload para evitar brute force distribuído.
