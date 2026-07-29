@@ -2,14 +2,32 @@ name: Test suites
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches:
       - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
+  ci-policy:
+    name: CI policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate mandatory workflow policy
+        run: bash .github/scripts/verify-ci-policy.sh
+
   secret-scan:
     name: Secret scan
     runs-on: ubuntu-latest
@@ -54,7 +72,7 @@ jobs:
         run: npm run migrate:status
 
       - name: Audit backend production dependencies
-        run: npm audit --omit=dev
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Run backend tests
         run: npm test
@@ -74,7 +92,7 @@ jobs:
           node-version: '20'
 
       - name: Audit root dependencies
-        run: npm audit
+        run: npm audit --audit-level=high
 
       - name: Run frontend and infrastructure tests
         run: npm test
