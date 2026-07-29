@@ -47,7 +47,7 @@ const migrations = [
   '202607290010_add_session_activity.js',
   '202607290011_create_idempotency_keys.js',
   '202607290012_create_workout_microcycles.js',
-  '202607290013_add_catalog_governance.js'
+  '202607290014_add_catalog_governance.js'
 ];
 
 function createDatabase() {
