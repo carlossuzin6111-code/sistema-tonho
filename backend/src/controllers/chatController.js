@@ -4,6 +4,8 @@ const db = require('../database');
 // Key: userId (integer or string), Value: Set of express response objects
 const activeClients = new Map();
 const SSE_HEARTBEAT_INTERVAL_MS = 25_000;
+const typingLastSent = new Map();
+const typingTimers = new Map();
 
 async function getChatPartner(req, res) {
   if (req.user.role !== 'student') return res.status(403).json({ error: 'Chat partner is available to students only' });
@@ -38,6 +40,45 @@ function notifyUser(userId, data) {
         console.error(`Error writing to SSE stream for user ${userId}:`, err.message);
       }
     }
+  }
+}
+
+function notifyTyping(userId, data) {
+  const streams = activeClients.get(userId.toString());
+  if (!streams) return;
+  const payload = `event: typing\ndata: ${JSON.stringify(data)}\n\n`;
+  for (const stream of streams) {
+    try { stream.write(payload); } catch (error) { console.error('Typing SSE error:', error.message); }
+  }
+}
+
+async function sendTyping(req, res) {
+  const senderId = req.user.id;
+  let { receiverId, isTyping = true } = req.body || {};
+  try {
+    if (req.user.role === 'student') {
+      const profile = await db('student_profiles').select('personal_id').where({ student_id: senderId }).first();
+      if (!profile) return res.status(400).json({ error: 'No Personal Trainer linked to this student' });
+      receiverId = profile.personal_id;
+    } else if (req.user.role === 'personal') {
+      receiverId = Number(receiverId);
+      const linked = await db('student_profiles').where({ student_id: receiverId, personal_id: senderId }).first();
+      if (!linked) return res.status(403).json({ error: 'Chat access forbidden' });
+    } else return res.status(403).json({ error: 'Chat access forbidden' });
+    const key = `${senderId}:${receiverId}`;
+    const now = Date.now();
+    if (isTyping && now - (typingLastSent.get(key) || 0) < 400) return res.status(204).send();
+    typingLastSent.set(key, now);
+    clearTimeout(typingTimers.get(key));
+    notifyTyping(receiverId, { userId: senderId, isTyping: Boolean(isTyping) });
+    if (isTyping) typingTimers.set(key, setTimeout(() => {
+      notifyTyping(receiverId, { userId: senderId, isTyping: false });
+      typingTimers.delete(key);
+    }, 1500));
+    return res.status(204).send();
+  } catch (error) {
+    console.error('Typing notification error:', error.message);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -231,5 +272,6 @@ module.exports = {
   getChatPartner,
   getMessages,
   sendMessage,
+  sendTyping,
   handleChatStream
 };
