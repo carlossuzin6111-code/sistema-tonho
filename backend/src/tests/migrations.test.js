@@ -13,7 +13,8 @@ const applicationTables = [
   'audit_logs',
   'workout_sessions',
   'workout_session_exercises',
-  'password_reset_tokens'
+  'password_reset_tokens',
+  'student_invitations'
 ];
 
 const migrations = [
@@ -28,7 +29,8 @@ const migrations = [
   '202607190001_add_exercise_favorites_and_custom.js',
   '202607200001_create_workout_sessions.js',
   '202607200002_create_password_reset_tokens.js',
-  '202607290001_add_must_change_password.js'
+  '202607290001_add_must_change_password.js',
+  '202607290002_create_student_invitations.js'
 ];
 
 function createDatabase() {

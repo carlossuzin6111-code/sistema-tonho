@@ -21,6 +21,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Evidência**: `backend/src/tests/onboarding.test.js`, `api.test.js`, `passwordReset.test.js` e `migrations.test.js` cobrem migration, bloqueio, troca, revogação e desbloqueio.
 
 ### [SEC-03] Sistema de Convites de Aluno com Expiração
+*   **Implementação atual**: `POST /api/personal/students/invite` cria convite transacional para o Personal autenticado. O token bruto só é retornado fora de produção para integração/testes; o banco armazena exclusivamente SHA-256.
+*   **Expiração e replay**: validade de 72 horas, substituição de convite aberto para o mesmo e-mail/Personal e rejeição de e-mail já cadastrado. A migration adiciona FK para `users`, unicidade por e-mail/Personal e `claimed_at` para uso único.
 *   **Especificação**: Tabela `student_invitations`:
     ```text
     - id (INTEGER, PK)
@@ -30,7 +32,7 @@ Este documento atua como o inventário de engenharia contendo especificações d
     - expires_at (TIMESTAMP)
     - claimed_at (TIMESTAMP, NULLABLE)
     ```
-*   **Endpoint**: `POST /api/personal/students/invite` gerando UUID e enviando convite via Resend/Nodemailer.
+*   **Endpoint pendente**: integração de entrega via Resend/Nodemailer e endpoint de aceite que valide o token, crie a conta com senha temporária e marque `claimed_at` na mesma transação.
 
 ### [SEC-04] Reset de Senha Autônomo para Personais
 *   **Especificação**: Tabela `password_reset_tokens`:

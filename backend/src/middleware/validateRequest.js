@@ -122,6 +122,9 @@ const bodySchemas = {
   passwordReset: {
     newPassword: optionalString({ label: 'newPassword', min: 10, max: 128 })
   },
+  studentInvite: {
+    email
+  },
   measurement: {
     studentId: optionalPositiveInteger('studentId'),
     weight: optionalNumber({ label: 'weight', min: 1, max: 1000 }),

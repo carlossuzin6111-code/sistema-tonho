@@ -337,6 +337,7 @@ app.get('/api/auth/me', authenticateToken, authController.getMe);
  *         description: Erro interno do servidor.
  */
 app.post('/api/personal/students', authenticateToken, requireRole('personal'), validateBody('student'), studentController.createStudent);
+app.post('/api/personal/students/invite', authenticateToken, requireRole('personal'), validateBody('studentInvite'), studentController.inviteStudent);
 
 /**
  * @openapi
