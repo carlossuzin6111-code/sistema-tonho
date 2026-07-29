@@ -178,7 +178,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Especificação**: Tabela `student_assessments` registrando nível de experiência, limitações anatômicas, lesões clínicas, e dividida em campos privados (`personal_notes`) e compartilhados (`student_notes`).
 
 ### [BUS-05] Aderência Semanal e Ordenação no Dashboard
-*   **Especificação**: Cálculo matemático: `aderência = treinos concluídos / treinos previstos`. Ordenações no painel do Personal por alunos com menor frequência ou maior tempo sem treinar.
+*   **Implementado parcialmente**: Endpoint de aderência calcula `treinos concluídos / treinos publicados` no intervalo semanal, limita o percentual a 100%, informa última conclusão e ordena alunos do menor percentual ao maior.
+*   **Pendente**: metas semanais configuráveis, cálculo de treinos previstos por agenda e visualização no dashboard.
 
 ### [BUS-06] Progressão de Carga e Recordes Pessoais
 *   **Especificação**: Monitoramento do volume acumulado (`séries × repetições × carga`). Frontend exibe a última carga e reps executados em cada exercício como sugestão para a sessão atual.
