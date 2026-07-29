@@ -120,7 +120,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | **UX-07** | `../frontend/desktop.html`, `mobile.html`, `css/` | `../frontend/tests/strict-csp.test.js`, `safe-dom.test.js` | `Auditoria WCAG 2.2 AA automatizada e manual` |
 | **UX-08** | `../backend/src/services/avatarService.js`, `../nginx.conf` | `../backend/src/tests/api.test.js` | `Quota por usuário/tenant e persistência/reconciliação de arquivos` |
 | **BUS-04** | `../backend/src/db/migrations/202607290009_create_student_assessments.js`, `assessmentController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Tela de anamnese, edição/versionamento e auditoria clínica` |
-| **OPS-10** | `../backend/src/index.js` | `../backend/src/tests/api.test.js` | `Separar liveness de readiness verificando migrations` |
+| **OPS-10** | `../backend/src/controllers/healthController.js`, `../backend/src/index.js` | `../backend/src/tests/api.test.js` | `Exercitar falha de readiness com banco indisponível e migration pendente em ambiente de deploy` |
 | **UX-01** | `../backend/src/controllers/chatController.js`, `../backend/src/index.js` | `../backend/src/tests/api.test.js` | `Carregar páginas anteriores no frontend e botão/scroll de histórico` |
 | **UX-02** | `../frontend/js/personal.js`, `../frontend/css/style.css`, `mobile.css` | `../frontend/tests/strict-csp.test.js` | `Medição visual de altura por viewport e QA em catálogo muito grande` |
 | **UX-03** | `../frontend/js/datetime.js`, `personal.js`, `student.js`, páginas HTML | `../frontend/tests/strict-csp.test.js` | `Normalizar respostas legadas do backend e auditoria dos demais timestamps administrativos` |
@@ -202,4 +202,5 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 
 main
 | 29/07/2026 | UX-08 | Quota agregada configurável de 20 MiB para imagens Base64 de exercícios, validação de MIME/assinatura mantida e respostas `413` para excesso; avatar já possui quota e reconciliação por usuário | Branch `ux/ux-08-upload-quotas`; backend focado 82/82 | Parcial: migrar novos uploads para multipart e executar reconciliação global periódica |
+| 29/07/2026 | OPS-10 | Endpoints `/health/live` (sem dependência do banco) e `/health/ready` (SQLite + migrations), mantendo `/api/health` como alias compatível | Branch `ops/ops-10-health-checks`; testes de API adicionados | Parcial: validar probes em ambiente de deploy e simular indisponibilidade/migration pendente no CI |
 Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.
