@@ -182,7 +182,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Especificação**: Cálculo matemático: `aderência = treinos concluídos / treinos previstos`. Ordenações no painel do Personal por alunos com menor frequência ou maior tempo sem treinar.
 
 ### [BUS-06] Progressão de Carga e Recordes Pessoais
-*   **Especificação**: Monitoramento do volume acumulado (`séries × repetições × carga`). Frontend exibe a última carga e reps executados em cada exercício como sugestão para a sessão atual.
+*   **Implementado parcialmente**: Endpoint calcula volume acumulado (`séries × repetições × carga`) a partir de sessões concluídas, recorde de volume e última carga/repetições por exercício.
+*   **Pendente**: cálculo de 1-RM com fórmula explícita, sugestões integradas na tela de execução e visualização histórica.
 
 ### [BUS-07] Temporizador de Descanso e Sessão Ativa
 *   **Especificação**: Temporizadores visuais no frontend com gravação de status no backend em `last_activity_at` para recuperar a sessão em andamento caso o navegador seja fechado acidentalmente.

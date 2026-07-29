@@ -27,8 +27,8 @@ const chatController = require('./controllers/chatController');
 const exerciseController = require('./controllers/exerciseController');
 const auditController = require('./controllers/auditController');
 const profileController = require('./controllers/profileController');
-const workoutSessionController = require('./controllers/workoutSessionController');
-const assessmentController = require('./controllers/assessmentController');
+const workoutSessionController = require('./controllers/workoutSessionCont
+const progressionController = require('./controllers/progressionController');
 
 // Initialize database
 const db = require('./database');
@@ -700,6 +700,7 @@ app.delete('/api/exercises/:id', authenticateToken, requireRole('personal'), val
  *         description: Erro interno do servidor.
  */
 app.get('/api/student/workouts', authenticateToken, workoutController.getStudentWorkouts);
+app.get('/api/student/progression', authenticateToken, progressionController.getProgression);
 
 // Sessões Reais de Treino (BUS-01)
 
