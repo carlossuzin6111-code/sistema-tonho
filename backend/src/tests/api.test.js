@@ -704,6 +704,35 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body[0].exercises.length).toBeGreaterThan(0);
     });
 
+    test('Should replace and read an ondulatory periodization plan', async () => {
+      const plan = [
+        { weekNumber: 1, label: 'Acúmulo', intensityPercent: 70, volumeMultiplier: 1.2, notes: 'Técnica e volume' },
+        { weekNumber: 2, label: 'Intensificação', intensityPercent: 82.5, volumeMultiplier: 0.9 },
+        { weekNumber: 3, label: 'Deload', intensityPercent: 60, volumeMultiplier: 0.6 }
+      ];
+      const saved = await request(app)
+        .put(`/api/workouts/${workoutId}/periodization`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ microcycles: plan });
+      expect(saved.statusCode).toBe(200);
+      expect(saved.body.microcycles).toHaveLength(3);
+      expect(saved.body.microcycles[1]).toEqual(expect.objectContaining({ week_number: 2, intensity_percent: 82.5 }));
+
+      const readAsStudent = await request(app)
+        .get(`/api/workouts/${workoutId}/periodization`)
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(readAsStudent.statusCode).toBe(200);
+      expect(readAsStudent.body.microcycles.map(item => item.label)).toEqual(['Acúmulo', 'Intensificação', 'Deload']);
+    });
+
+    test('Should reject invalid or non-sequential microcycles', async () => {
+      const res = await request(app)
+        .put(`/api/workouts/${workoutId}/periodization`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ microcycles: [{ weekNumber: 2, label: 'Inválido', intensityPercent: 300, volumeMultiplier: 0 }] });
+      expect(res.statusCode).toBe(400);
+    });
+
     test('Should return progression volume and latest exercise suggestion', async () => {
       const res = await request(app)
         .get('/api/student/progression')

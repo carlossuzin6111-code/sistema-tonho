@@ -161,6 +161,9 @@ const bodySchemas = {
   workoutStatus: {
     status: value => ['draft', 'published', 'archived'].includes(value) ? null : 'status must be draft, published or archived'
   },
+  periodization: {
+    microcycles: value => Array.isArray(value) && value.length <= 52 ? null : 'microcycles must be an array with at most 52 entries'
+  },
   workoutExercise: {
     name: text('name', 200),
     sets: optionalPositiveInteger('sets'),
