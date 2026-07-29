@@ -31,6 +31,7 @@ const profileController = require('./controllers/profileController');
 const workoutSessionController = require('./controllers/workoutSessionController');
 const progressionController = require('./controllers/progressionController');
 const assessmentController = require('./controllers/assessmentController');
+const crmController = require('./controllers/crmController');
 
 // Initialize database
 const db = require('./database');
@@ -76,6 +77,13 @@ app.get('/api/health', async (req, res) => {
     res.status(503).json({ status: 'unavailable' });
   }
 });
+
+app.post('/api/crm/run-daily', authenticateToken, crmController.runDaily);
+app.get('/api/crm/alerts', authenticateToken, crmController.listAlerts);
+app.patch('/api/crm/alerts/:id/resolve', authenticateToken, validateIdParam('id'), crmController.resolveAlert);
+app.get('/api/crm/nps', authenticateToken, crmController.listNps);
+app.get('/api/student/nps', authenticateToken, crmController.listStudentNps);
+app.post('/api/student/nps/:id/respond', authenticateToken, validateIdParam('id'), crmController.respondNps);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
