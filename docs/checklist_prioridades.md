@@ -41,7 +41,7 @@ Este documento atua como o painel executivo para controle de progresso e roadmap
 | **BUS-01** | Execução Real de Treino (Sessions) | 10/10 | **Não Iniciado** | 24h | Alto | Fullstack | #
 | **BUS-02** | Status da Ficha (Draft/Published) | 9/10 | **Parcial** | 12h | Baixo | Fullstack |
 | **BUS-03** | Ciclo de Vida do Aluno/Vínculo | 9/10 | **Parcial** | 16h | Médio | Fullstack |
-| **BUS-04** | Anamnese Clínica (`Assessments`) | 9/10 | **Não Iniciado** | 16h | Baixo | Fullstack |
+| **BUS-04** | Anamnese Clínica (`Assessments`) | 9/10 | **Parcial** | 16h | Baixo | Fullstack |
 | **BUS-05** | Aderência Semanal Analítica | 8/10 | **Não Iniciado** | 12h | Médio | Backend |
 | **BUS-06** | Progressão de Carga e 1-RM | 7/10 | **Parcial** | 16h | Médio | Fullstack |
 | **BUS-07** | Temporizador e Sessão Ativa | 7/10 | **Não Iniciado** | 14h | Baixo | Frontend |
@@ -113,6 +113,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | **DB-07** | `../backend/src/db/migrations/202607140002_add_query_indexes.js` | `../backend/src/tests/indexes.test.js` | `Constraints de domínio e planos das consultas futuras` |
 | **UX-07** | `../frontend/desktop.html`, `mobile.html`, `css/` | `../frontend/tests/strict-csp.test.js`, `safe-dom.test.js` | `Auditoria WCAG 2.2 AA automatizada e manual` |
 | **UX-08** | `../backend/src/services/avatarService.js`, `../nginx.conf` | `../backend/src/tests/api.test.js` | `Quota por usuário/tenant e persistência/reconciliação de arquivos` |
+| **BUS-04** | `../backend/src/db/migrations/202607290009_create_student_assessments.js`, `assessmentController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Tela de anamnese, edição/versionamento e auditoria clínica` |
 | **OPS-10** | `../backend/src/index.js` | `../backend/src/tests/api.test.js` | `Separar liveness de readiness verificando migrations` |
 | **UX-01** | `../backend/src/controllers/chatController.js`, `../backend/src/index.js` | `../backend/src/tests/api.test.js` | `Carregar páginas anteriores no frontend e botão/scroll de histórico` |
 | **UX-02** | `../frontend/js/personal.js`, `../frontend/css/style.css`, `mobile.css` | `../frontend/tests/strict-csp.test.js` | `Medição visual de altura por viewport e QA em catálogo muito grande` |
@@ -121,13 +122,15 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | **UX-05** | `../nginx.conf`, `../frontend/index.html`, `desktop.html`, `mobile.html` | `../frontend/tests/strict-csp.test.js` | `Build automatizado que gera hashes de conteúdo e impede referências a assets removidos` |
 | **UX-06** | `../backend/src/db/migrations/202607290006_add_optimistic_versions.js`, `profileController.js`, `exerciseController.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Aplicar If-Match a todas as mutações editáveis e enviar versão pelo frontend` |
 | **UX-07** | `../frontend/css/style.css`, `desktop.html`, `mobile.html` | `../frontend/tests/strict-csp.test.js` | `Auditoria manual com leitor de tela, contraste medido e navegação completa por teclado` |
- bus/bus-02-workout-status
 | **BUS-02** | `../backend/src/db/migrations/202607290007_add_workout_status.js`, `workoutController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Controles de status no frontend e auditoria de publicação` |
 | **BUS-03** | `../backend/src/db/migrations/202607290008_add_student_lifecycle_status.js`, `studentController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Aplicar políticas de acesso para contas suspensas/arquivadas e abas de status no frontend` |
+ bus/bus-06-progression
 | **BUS-06** | `../backend/src/controllers/progressionController.js`, `index.js` | `../backend/src/tests/api.test.js` | `Sugestão visual no frontend e cálculo de 1-RM por fórmula validada` |
 =======
-| **UX-08** | `../backend/src/services/avatarService.js`, `mediaQuotaService.js`, `profileController.js`, `exerciseController.js`, `nginx.conf` | `../backend/src/tests/avatarService.test.js`, `mediaQuotaService.test.js`, `httpSecurity.test.js` | `Multipart para novos uploads e reconciliação global agendada` |
+=======
+| **BUS-04** | `../backend/src/db/migrations/202607290009_create_student_assessments.js`, `assessmentController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Tela de anamnese, edição/versionamento e auditoria clínica` |
  main
+| **UX-08** | `../backend/src/services/avatarService.js`, `mediaQuotaService.js`, `profileController.js`, `exerciseController.js`, `nginx.conf` | `../backend/src/tests/avatarService.test.js`, `mediaQuotaService.test.js`, `httpSecurity.test.js` | `Multipart para novos uploads e reconciliação global agendada` |
 
 ---
 
@@ -179,11 +182,13 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | 29/07/2026 | UX-05 | Nginx revalida HTML e aplica cache imutável de longo prazo a CSS/JS versionados; teste automatizado impede política ausente | Branch `ux/ux-05-cache-policy`; frontend 54/54; `git diff --check` aprovado | Parcial: hashing automatizado de conteúdo ainda pendente |
 | 29/07/2026 | UX-06 | Migration adiciona `version` a usuários, fichas, exercícios e itens; perfil e favoritos aceitam `If-Match` e retornam `409` em conflito | Branch `ux/ux-06-optimistic-locking`; backend 66/66; `git diff --check` aprovado | Parcial: cobrir todas as mutações e conectar o cabeçalho no frontend |
 | 29/07/2026 | UX-07 | Indicador global de foco visível para controles navegáveis foi adicionado sem remover regras específicas; teste confirma foco e `prefers-reduced-motion` | Branch `ux/ux-07-focus-accessibility`; frontend 55/55; `git diff --check` aprovado | Parcial: auditoria manual de contraste/leitor de tela ainda pendente |
- bus/bus-02-workout-status
 | 29/07/2026 | BUS-02 | Status `draft`/`published`/`archived` com trigger SQLite, endpoint protegido, arquivamento transacional da ficha publicada anteriormente e filtro de rascunhos para alunos | Branch `bus/bus-02-workout-status`; backend migrations/API 68/68 | Parcial: integrar controles de status na interface e auditar eventos de publicação |
 | 29/07/2026 | BUS-03 | Status de conta `active`/`suspended`/`archived` e vínculo `invited`/`active`/`paused`/`blocked`, triggers SQLite e endpoint protegido para atualização do aluno vinculado | Branch `bus/bus-03-student-lifecycle`; backend migrations/API 69/69 | Parcial: aplicar bloqueios de acesso e filtros/abas na interface |
+ bus/bus-06-progression
 | 29/07/2026 | BUS-06 | Endpoint agrega volume (`séries × repetições × carga`), informa recorde de volume e última carga/repetições por exercício para sugestão de sessão | Branch `bus/bus-06-progression`; backend API 65/65; `git diff --check` aprovado | Parcial: cálculo de 1-RM e integração visual ainda pendentes |
 =======
-| 29/07/2026 | UX-08 | Quota agregada configurável de 20 MiB para imagens Base64 de exercícios, validação de MIME/assinatura mantida e respostas `413` para excesso; avatar já possui quota e reconciliação por usuário | Branch `ux/ux-08-upload-quotas`; backend focado 82/82 | Parcial: migrar novos uploads para multipart e executar reconciliação global periódica |
+=======
+| 29/07/2026 | BUS-04 | Tabela `student_assessments` separa campos privados do Personal e notas compartilhadas; endpoints autenticados controlam ownership e ocultam `personal_notes` do aluno | Branch `bus/bus-04-assessments`; backend migrations/API 69/69 | Parcial: integrar tela, edição/versionamento e auditoria clínica |
  main
+| 29/07/2026 | UX-08 | Quota agregada configurável de 20 MiB para imagens Base64 de exercícios, validação de MIME/assinatura mantida e respostas `413` para excesso; avatar já possui quota e reconciliação por usuário | Branch `ux/ux-08-upload-quotas`; backend focado 82/82 | Parcial: migrar novos uploads para multipart e executar reconciliação global periódica |
 Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.

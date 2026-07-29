@@ -455,6 +455,22 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(restored.statusCode).toBe(200);
     });
 
+    test('Should keep personal assessment notes private from the student', async () => {
+      const created = await request(app)
+        .post(`/api/personal/students/${studentId}/assessments`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ experienceLevel: 'intermediate', clinicalInjuries: 'Joelho esquerdo', personalNotes: 'Acompanhar com cuidado', studentNotes: 'Evitar impacto no início' });
+      expect(created.statusCode).toBe(201);
+      expect(created.body.personal_notes).toBe('Acompanhar com cuidado');
+
+      const studentView = await request(app)
+        .get(`/api/personal/students/${studentId}/assessments`)
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(studentView.statusCode).toBe(200);
+      expect(studentView.body[0]).toMatchObject({ experience_level: 'intermediate', student_notes: 'Evitar impacto no início' });
+      expect(studentView.body[0]).not.toHaveProperty('personal_notes');
+    });
+
     test('Should get student details (Personal Trainer)', async () => {
       const res = await request(app)
         .get(`/api/personal/students/${studentId}`)

@@ -134,6 +134,13 @@ const bodySchemas = {
     accountStatus: value => ['active', 'suspended', 'archived'].includes(value) ? null : 'accountStatus must be active, suspended or archived',
     relationshipStatus: value => ['invited', 'active', 'paused', 'blocked'].includes(value) ? null : 'relationshipStatus must be invited, active, paused or blocked'
   },
+  assessment: {
+    experienceLevel: text('experienceLevel', 50, 1),
+    anatomicalLimitations: text('anatomicalLimitations', 5000),
+    clinicalInjuries: text('clinicalInjuries', 5000),
+    personalNotes: text('personalNotes', 10000),
+    studentNotes: text('studentNotes', 5000)
+  },
   measurement: {
     studentId: optionalPositiveInteger('studentId'),
     weight: optionalNumber({ label: 'weight', min: 1, max: 1000 }),

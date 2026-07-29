@@ -175,7 +175,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
     *   **Regra**: Alunos pausados retêm acesso read-only ao histórico, mas perdem chat e execução de treinos ativos.
 
 ### [BUS-04] Anamnese Clínica (Assessments)
-*   **Especificação**: Tabela `student_assessments` registrando nível de experiência, limitações anatômicas, lesões clínicas, e dividida em campos privados (`personal_notes`) e compartilhados (`student_notes`).
+*   **Implementado parcialmente**: Tabela `student_assessments` registra nível de experiência, limitações anatômicas e lesões clínicas, separando `personal_notes` (privado) de `student_notes` (compartilhado). Endpoints autenticados validam o vínculo e nunca expõem as notas privadas ao aluno.
+*   **Pendente**: tela de anamnese, edição/versionamento e auditoria clínica.
 
 ### [BUS-05] Aderência Semanal e Ordenação no Dashboard
 *   **Especificação**: Cálculo matemático: `aderência = treinos concluídos / treinos previstos`. Ordenações no painel do Personal por alunos com menor frequência ou maior tempo sem treinar.
