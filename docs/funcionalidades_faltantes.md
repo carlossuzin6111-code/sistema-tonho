@@ -290,6 +290,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-11] Sessões por Dispositivo (`user_sessions`)
 *   **Especificação**: Tabela `user_sessions` para listar e revogar tokens de dispositivos individuais sem invalidar a chave JWT global da conta.
+*   **Progresso em 29/07/2026**: migration `202607290023_create_user_sessions.js` persiste sessão por login com ID opaco, dispositivo, user-agent/IP e last-seen; tokens novos carregam `sessionId`, middleware rejeita sessões revogadas e `/api/sessions` lista/revoga apenas dispositivos do próprio usuário.
+*   **Pendente**: expiração/limpeza agendada, limite de sessões, interface de gerenciamento, mascaramento/retensão de IP e telemetria de segurança.
 
 ### [OPS-12] Backoffice de Suporte com Impersonation Seguro
 *   **Especificação**: Função de impersonação de conta pelo administrador com geração de log de auditoria associado a tickets e justificativa.

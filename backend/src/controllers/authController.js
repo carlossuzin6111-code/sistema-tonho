@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const db = require('../database');
 const { findUnusedAccessKeyId } = require('../services/accessKeyService');
-const { clearSessionCookies, setSessionCookies } = require('../services/sessionService');
+const { clearSessionCookies, createSession, setSessionCookies } = require('../services/sessionService');
 const { isEmailUniqueConstraint, normalizeEmail } = require('../services/userIdentityService');
 const { recordAudit, AUDIT_ACTIONS } = require('../services/auditService');
 const { sendEmailVerification } = require('../services/emailDeliveryService');
@@ -86,7 +86,8 @@ async function registerPersonal(req, res) {
     const delivery = await sendEmailVerification({ email: normalizedEmail, token: verificationToken, expiresAt: verificationExpiresAt });
 
     const user = { id: insertedId, name, email: normalizedEmail, role: 'personal', mustChangePassword: false };
-    setSessionCookies(res, user);
+    const sessionId = await createSession(insertedId, { deviceName: req.body.deviceName, userAgent: req.get('user-agent'), ipAddress: req.ip });
+    setSessionCookies(res, user, sessionId);
 
     res.status(201).json({
       message: 'Personal Trainer registered successfully',
@@ -125,7 +126,8 @@ async function login(req, res) {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
 
-    setSessionCookies(res, user);
+    const sessionId = await createSession(user.id, { deviceName: req.body.deviceName, userAgent: req.get('user-agent'), ipAddress: req.ip });
+    setSessionCookies(res, user, sessionId);
 
     res.status(200).json({
       message: 'Login successful',

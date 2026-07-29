@@ -40,6 +40,7 @@ const geofenceController = require('./controllers/geofenceController');
 const readinessController = require('./controllers/readinessController');
 const notificationController = require('./controllers/notificationController');
 const complianceController = require('./controllers/complianceController');
+const sessionController = require('./controllers/sessionController');
 const healthController = require('./controllers/healthController');
 
 // Initialize database
@@ -111,6 +112,8 @@ app.get('/api/notifications', authenticateToken, notificationController.listNoti
 app.patch('/api/notifications/:id/read', authenticateToken, validateIdParam('id'), notificationController.markRead);
 app.get('/api/compliance/export', authenticateToken, complianceController.exportData);
 app.post('/api/compliance/delete', authenticateToken, complianceController.anonymizeAccount);
+app.get('/api/sessions', authenticateToken, sessionController.listSessions);
+app.delete('/api/sessions/:id', authenticateToken, sessionController.revokeSession);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);

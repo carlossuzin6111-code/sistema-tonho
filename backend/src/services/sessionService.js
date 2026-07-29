@@ -52,7 +52,14 @@ function serializeCookie(name, value, { httpOnly = false, maxAge = SESSION_MAX_A
   return attributes.join('; ');
 }
 
-function setSessionCookies(res, user) {
+async function createSession(userId, { deviceName = 'Unknown device', userAgent = null, ipAddress = null } = {}) {
+  const sessionId = crypto.randomBytes(32).toString('base64url');
+  const db = require('../database');
+  await db('user_sessions').insert({ id: sessionId, user_id: userId, device_name: String(deviceName).slice(0, 120) || 'Unknown device', user_agent: userAgent ? String(userAgent).slice(0, 500) : null, ip_address: ipAddress ? String(ipAddress).slice(0, 64) : null });
+  return sessionId;
+}
+
+function setSessionCookies(res, user, sessionId = null) {
   const csrfToken = crypto.randomBytes(32).toString('base64url');
   const sessionToken = jwt.sign(
     {
@@ -61,7 +68,8 @@ function setSessionCookies(res, user) {
       email: user.email,
       role: user.role,
       sessionVersion: user.session_version || 0,
-      csrf: csrfToken
+      csrf: csrfToken,
+      ...(sessionId ? { sessionId } : {})
     },
     JWT_SECRET,
     { expiresIn: SESSION_MAX_AGE_SECONDS }
@@ -85,6 +93,7 @@ module.exports = {
   JWT_SECRET,
   SESSION_COOKIE,
   clearSessionCookies,
+  createSession,
   parseCookies,
   setSessionCookies,
   verifySessionToken
