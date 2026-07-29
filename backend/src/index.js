@@ -41,6 +41,7 @@ const readinessController = require('./controllers/readinessController');
 const notificationController = require('./controllers/notificationController');
 const complianceController = require('./controllers/complianceController');
 const sessionController = require('./controllers/sessionController');
+const impersonationController = require('./controllers/impersonationController');
 const healthController = require('./controllers/healthController');
 
 // Initialize database
@@ -114,6 +115,9 @@ app.get('/api/compliance/export', authenticateToken, complianceController.export
 app.post('/api/compliance/delete', authenticateToken, complianceController.anonymizeAccount);
 app.get('/api/sessions', authenticateToken, sessionController.listSessions);
 app.delete('/api/sessions/:id', authenticateToken, sessionController.revokeSession);
+app.post('/api/support/impersonations', authenticateToken, impersonationController.create);
+app.get('/api/support/impersonations', authenticateToken, impersonationController.list);
+app.post('/api/support/impersonations/:id/revoke', authenticateToken, impersonationController.revoke);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);

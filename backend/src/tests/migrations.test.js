@@ -33,7 +33,8 @@ const applicationTables = [
   'readiness_checkins',
   'notification_preferences',
   'notifications',
-  'user_sessions'
+  'user_sessions',
+  'impersonation_events'
 ];
 
 const migrations = [
@@ -71,7 +72,8 @@ const migrations = [
   '202607290020_create_geofence_checkins.js',
   '202607290021_create_readiness_checkins.js',
   '202607290022_create_notification_center.js',
-  '202607290023_create_user_sessions.js'
+  '202607290023_create_user_sessions.js',
+  '202607290024_create_impersonation_events.js'
 ];
 
 function createDatabase() {

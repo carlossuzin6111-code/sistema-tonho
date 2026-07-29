@@ -42,6 +42,15 @@ async function applyAuthentication(req, authentication) {
     await db('user_sessions').where({ id: payload.sessionId }).update({ last_seen_at: db.fn.now() });
   }
 
+  if (payload.impersonationId) {
+    const event = await db('impersonation_events')
+      .where({ id: payload.impersonationId, actor_user_id: payload.impersonatedBy, target_user_id: user.id })
+      .whereNull('revoked_at')
+      .where('expires_at', '>', db.fn.now())
+      .first();
+    if (!event) throw new Error('Impersonation revoked or expired');
+  }
+
   req.user = {
     ...payload,
     name: user.name,
@@ -49,7 +58,10 @@ async function applyAuthentication(req, authentication) {
     role: user.role,
     organizationRole: user.organization_role || 'standalone',
     mustChangePassword: Boolean(user.must_change_password),
-    sessionId: payload.sessionId || null
+    sessionId: payload.sessionId || null,
+    impersonatedBy: payload.impersonatedBy || null,
+    impersonationId: payload.impersonationId || null,
+    isImpersonation: Boolean(payload.impersonationId)
   };
   req.authSource = authentication.source;
 }
