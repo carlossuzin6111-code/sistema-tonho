@@ -198,6 +198,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [BUS-09] Chaves de Cadastro de Personais via CLI
 *   **Especificação**: Script administrativo CLI no node para emitir, auditar vigência e invalidar as chaves de acesso exigidas no cadastro de novos instrutores.
+*   **Progresso em 29/07/2026**: `node src/scripts/createAccessKey.js create` emite a chave uma única vez; `list` audita ID, datas e uso sem expor hashes; `revoke <id>` invalida chaves não utilizadas. O serviço mantém expiração de sete dias e hash SHA-256.
+*   **Pendente operacional**: executar a CLI em ambiente controlado e integrar armazenamento/rotação de segredos do operador.
 
 ### [BUS-10] Edição e Exclusão de Mensagens no Chat
 *   **Especificação**: Endpoints `PUT /api/chat/:messageId` e `DELETE /api/chat/:messageId` atualizando as streams SSE ativas dos envolvidos.
