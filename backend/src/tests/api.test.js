@@ -453,6 +453,20 @@ describe('FitLife Sync API Integration Tests', () => {
         .set('Authorization', `Bearer ${personalToken}`)
         .send({ accountStatus: 'active', relationshipStatus: 'active' });
       expect(restored.statusCode).toBe(200);
+      const audit = await db('audit_logs').where({ action: 'student.lifecycle_updated', target_id: String(studentId) }).orderBy('id', 'desc').first();
+      expect(audit).toBeTruthy();
+      expect(JSON.parse(audit.metadata)).toMatchObject({ before: expect.any(Object), after: expect.any(Object) });
+    });
+
+    test('Should filter linked students server-side by active, inactive and all status', async () => {
+      const active = await request(app).get('/api/personal/students?status=active').set('Authorization', `Bearer ${personalToken}`);
+      expect(active.statusCode).toBe(200);
+      expect(active.body.every(student => student.account_status === 'active' && ['active', 'invited'].includes(student.relationship_status))).toBe(true);
+      const inactive = await request(app).get('/api/personal/students?status=inactive').set('Authorization', `Bearer ${personalToken}`);
+      expect(inactive.statusCode).toBe(200);
+      expect(inactive.body.every(student => student.account_status !== 'active' || !['active', 'invited'].includes(student.relationship_status))).toBe(true);
+      const invalid = await request(app).get('/api/personal/students?status=unknown').set('Authorization', `Bearer ${personalToken}`);
+      expect(invalid.statusCode).toBe(400);
     });
 
     test('Should keep personal assessment notes private from the student', async () => {

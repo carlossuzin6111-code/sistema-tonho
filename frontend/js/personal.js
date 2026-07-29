@@ -38,6 +38,10 @@ function filterStudentStatus(status, trigger) {
     button.classList.toggle('active', selected);
     button.setAttribute('aria-pressed', String(selected));
   });
+  if (trigger) {
+    loadPersonalStudents();
+    return;
+  }
   document.querySelectorAll('#students-grid .student-card').forEach(card => {
     const isActive = card.dataset.accountStatus === 'active' && ['active', 'invited'].includes(card.dataset.relationshipStatus);
     card.classList.toggle('hidden', studentStatusFilter === 'active' ? !isActive : studentStatusFilter === 'inactive' ? isActive : false);
@@ -86,7 +90,7 @@ async function loadPersonalStudents() {
   renderLoadingSkeletons(grid, { count: 3, variant: 'student', label: 'Carregando lista de alunos' });
 
   try {
-    personalStudents = await API.get('/personal/students');
+    personalStudents = await API.get(`/personal/students?status=${encodeURIComponent(studentStatusFilter)}`);
     finishLoadingState(grid);
     document.getElementById('stat-total-students').textContent = personalStudents.length;
     const globalUnread = personalStudents.reduce((total, student) => total + (student.unread_messages || 0), 0);
