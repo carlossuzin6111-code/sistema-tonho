@@ -53,6 +53,7 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Contrato de sessão**: login e `GET /api/auth/me` expõem `emailVerified` sem revelar tokens.
 *   **Regra**: Contas novas recebem e-mail de ativação. Bloquear redefinição de senha e onboarding para contas cujo e-mail não esteja verificado.
 *   **Pendências**: aplicar bloqueios de política no reset/onboarding e criar a tela frontend de confirmação.
+*   **Política adicionada**: `forgot-password` mantém resposta genérica e não cria token para contas sem `email_verified_at`; o frontend sinaliza a necessidade de confirmação. O bloqueio específico de onboarding/login e uma tela dedicada continuam como próximos passos.
 
 ### [SEC-06] Proteção contra CSRF Segregada
 *   **Especificação**:

@@ -32,7 +32,8 @@ describe('SEC-04 — Self-service Password Reset for Personals', () => {
       email: userEmail,
       password_hash: passwordHash,
       role: 'personal',
-      session_version: 0
+      session_version: 0,
+      email_verified_at: db.fn.now()
     });
     userId = id;
   });

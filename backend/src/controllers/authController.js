@@ -182,6 +182,10 @@ async function forgotPassword(req, res) {
       return res.status(200).json({ message: genericMessage });
     }
 
+    if (!user.email_verified_at) {
+      return res.status(200).json({ message: genericMessage });
+    }
+
     const rawToken = crypto.randomBytes(32).toString('hex');
     const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
