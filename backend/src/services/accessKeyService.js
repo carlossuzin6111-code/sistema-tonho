@@ -37,10 +37,21 @@ async function findUnusedAccessKeyId(dbConnection, accessKey) {
   return key ? key.id : null;
 }
 
+async function listAccessKeys(dbConnection) {
+  return dbConnection('registration_keys').select('id', 'created_at', 'expires_at', 'used_at', 'used_by').orderBy('created_at', 'desc');
+}
+
+async function revokeAccessKey(dbConnection, id) {
+  const updated = await dbConnection('registration_keys').where({ id }).whereNull('used_at').where('expires_at', '>', dbConnection.fn.now()).update({ expires_at: dbConnection.fn.now() });
+  return updated > 0;
+}
+
 module.exports = {
   ACCESS_KEY_TTL_DAYS,
   findUnusedAccessKeyId,
   generateAccessKey,
   hashAccessKey,
-  issueAccessKey
+  issueAccessKey,
+  listAccessKeys,
+  revokeAccessKey
 };
