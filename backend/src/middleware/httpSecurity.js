@@ -1,5 +1,5 @@
 const helmet = require('helmet');
-const { rateLimit } = require('express-rate-limit');
+const { ipKeyGenerator, rateLimit } = require('express-rate-limit');
 
 // Exercise images may be sent as a small Base64 data URL. This remains bounded
 // and is paired with a stricter field-level limit in validateRequest.
@@ -75,6 +75,10 @@ function createAuthRateLimiter(options = {}) {
     standardHeaders: 'draft-8',
     legacyHeaders: false,
     skipSuccessfulRequests: true,
+    keyGenerator: req => {
+      const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+      return `${ipKeyGenerator(req.ip)}:${email || '*'}`;
+    },
     identifier,
     message: { error: 'Too many authentication attempts. Try again later.' }
   });
