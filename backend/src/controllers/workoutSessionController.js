@@ -1,5 +1,5 @@
 const db = require('../database');
-const { logAuditAction } = require('../services/auditService');
+const { recordAudit } = require('../services/auditService');
 
 async function checkStudentBelongsToPersonal(studentId, personalId) {
   const profile = await db('student_profiles')
@@ -90,13 +90,13 @@ async function startSession(req, res) {
         });
       }
 
-      await logAuditAction({
-        userId: req.user.id,
+      await recordAudit(trx, {
+        actorUserId: req.user.id,
         action: 'workout_session.start',
         targetType: 'workout_session',
         targetId: newSessionId,
         metadata: { workoutId: workout.id, studentId: workout.student_id }
-      }, trx);
+      });
 
       const createdSession = await trx('workout_sessions').where('id', newSessionId).first();
       return { session: createdSession, exercises: sessionExercises };
@@ -165,7 +165,7 @@ async function updateExerciseProgress(req, res) {
     }
 
     const updated = await db('workout_session_exercises').where('id', exerciseId).first();
-    return res.status(200).json(updated);
+    return res.status(200).json({ ...updated, completed: Boolean(updated.completed) });
   } catch (error) {
     console.error('Update exercise progress error:', error.message);
     return res.status(500).json({ error: 'Failed to update exercise progress' });
@@ -213,13 +213,13 @@ async function completeSession(req, res) {
           updated_at: trx.fn.now()
         });
 
-      await logAuditAction({
-        userId: req.user.id,
+      await recordAudit(trx, {
+        actorUserId: req.user.id,
         action: 'workout_session.complete',
         targetType: 'workout_session',
         targetId: sessionId,
         metadata: { durationSeconds, studentId: session.student_id }
-      }, trx);
+      });
     });
 
     const updatedSession = await db('workout_sessions').where('id', sessionId).first();
@@ -268,13 +268,13 @@ async function cancelSession(req, res) {
           updated_at: trx.fn.now()
         });
 
-      await logAuditAction({
-        userId: req.user.id,
+      await recordAudit(trx, {
+        actorUserId: req.user.id,
         action: 'workout_session.cancel',
         targetType: 'workout_session',
         targetId: sessionId,
         metadata: { studentId: session.student_id }
-      }, trx);
+      });
     });
 
     const updatedSession = await db('workout_sessions').where('id', sessionId).first();
