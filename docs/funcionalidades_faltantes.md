@@ -299,6 +299,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Especificação**: Função de impersonação de conta pelo administrador com geração de log de auditoria associado a tickets e justificativa.
 
 ### [OPS-13] Logs Estruturados, Métricas e Alertas
+*   **Progresso em 29/07/2026**: logger JSON adiciona timestamp, serviço, request ID, método, rota, status e duração sem registrar corpo; redaction recursivo remove chaves de senha/token/segredo; métricas de requisição ficam disponíveis a `support/admin` em `/api/metrics`.
+*   **Pendente**: exportar formato Prometheus/OpenTelemetry, persistir métricas entre réplicas, configurar alertas/SLO, retenção e correlação distribuída de workers.
 *   **Especificação**: Logs em formato JSON na API, redação automática de CPFs/Senhas nos payloads, métricas RED de latência e alertas sob erros `SQLITE_BUSY`.
 
 ### [OPS-14] CI/CD Obrigatória

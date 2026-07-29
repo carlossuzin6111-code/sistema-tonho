@@ -42,6 +42,8 @@ const notificationController = require('./controllers/notificationController');
 const complianceController = require('./controllers/complianceController');
 const sessionController = require('./controllers/sessionController');
 const impersonationController = require('./controllers/impersonationController');
+const { requestLogger } = require('./services/logger');
+const metricsService = require('./services/metricsService');
 const healthController = require('./controllers/healthController');
 
 // Initialize database
@@ -69,6 +71,11 @@ app.use(cors(createCorsOptions()));
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || DEFAULT_BODY_LIMIT }));
 app.use(optionalAuthentication);
 app.use(csrfProtection);
+app.use(requestLogger);
+app.get('/api/metrics', authenticateToken, (req, res) => {
+  if (!['support', 'admin'].includes(req.user.role)) return res.status(403).json({ error: 'Support or admin role required' });
+  return res.json({ metrics: metricsService.snapshot() });
+});
 
 // Setup Swagger UI API documentation
 setupSwagger(app, {
