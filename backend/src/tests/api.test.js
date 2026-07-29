@@ -440,6 +440,21 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body[0]).not.toHaveProperty('avatar_filename');
     });
 
+    test('Should update the linked student lifecycle statuses', async () => {
+      const paused = await request(app)
+        .patch(`/api/personal/students/${studentId}/status`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ accountStatus: 'suspended', relationshipStatus: 'paused' });
+      expect(paused.statusCode).toBe(200);
+      expect(paused.body).toMatchObject({ account_status: 'suspended', relationship_status: 'paused' });
+
+      const restored = await request(app)
+        .patch(`/api/personal/students/${studentId}/status`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ accountStatus: 'active', relationshipStatus: 'active' });
+      expect(restored.statusCode).toBe(200);
+    });
+
     test('Should get student details (Personal Trainer)', async () => {
       const res = await request(app)
         .get(`/api/personal/students/${studentId}`)
