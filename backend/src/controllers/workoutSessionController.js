@@ -52,6 +52,7 @@ async function startSession(req, res) {
         workout_name: workout.name,
         status: 'in_progress',
         started_at: trx.fn.now(),
+        last_activity_at: trx.fn.now(),
         created_at: trx.fn.now(),
         updated_at: trx.fn.now()
       });
@@ -162,6 +163,7 @@ async function updateExerciseProgress(req, res) {
       await db('workout_session_exercises')
         .where('id', exerciseId)
         .update(updates);
+      await db('workout_sessions').where({ id: sessionId, status: 'in_progress' }).update({ last_activity_at: db.fn.now(), updated_at: db.fn.now() });
     }
 
     const updated = await db('workout_session_exercises').where('id', exerciseId).first();
@@ -169,6 +171,20 @@ async function updateExerciseProgress(req, res) {
   } catch (error) {
     console.error('Update exercise progress error:', error.message);
     return res.status(500).json({ error: 'Failed to update exercise progress' });
+  }
+}
+
+async function keepSessionAlive(req, res) {
+  try {
+    const session = await db('workout_sessions').where({ id: req.params.id }).first();
+    if (!session || session.status !== 'in_progress') return res.status(404).json({ error: 'Active workout session not found' });
+    if (req.user.role === 'student' && session.student_id !== req.user.id) return res.status(403).json({ error: 'Access denied' });
+    if (req.user.role === 'personal' && session.personal_id !== req.user.id) return res.status(403).json({ error: 'Access denied' });
+    await db('workout_sessions').where({ id: session.id, status: 'in_progress' }).update({ last_activity_at: db.fn.now(), updated_at: db.fn.now() });
+    return res.json({ sessionId: session.id, lastActivityAt: new Date().toISOString() });
+  } catch (error) {
+    console.error('Keep session alive error:', error.message);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -365,5 +381,6 @@ module.exports = {
   getSessionDetails,
   getSessions,
   startSession,
-  updateExerciseProgress
+  updateExerciseProgress,
+  keepSessionAlive
 };

@@ -11,6 +11,7 @@ const {
   preventResponseCaching
 } = require('./middleware/httpSecurity');
 const { validateBody, validateIdParam } = require('./middleware/validateRequest');
+const { idempotency } = require('./middleware/idempotency');
 const {
   authenticateToken,
   csrfProtection,
@@ -729,7 +730,7 @@ app.get('/api/student/progression', authenticateToken, progressionController.get
  *       409:
  *         description: Já existe uma sessão em andamento.
  */
-app.post('/api/workout-sessions/start', authenticateToken, validateBody('startWorkoutSession'), workoutSessionController.startSession);
+app.post('/api/workout-sessions/start', authenticateToken, idempotency, validateBody('startWorkoutSession'), workoutSessionController.startSession);
 
 /**
  * @openapi
@@ -752,7 +753,9 @@ app.post('/api/workout-sessions/start', authenticateToken, validateBody('startWo
  *       200:
  *         description: Progresso do exercício atualizado.
  */
+
 app.patch('/api/workout-sessions/:id/exercises/:exerciseId', authenticateToken, validateIdParam('id'), validateIdParam('exerciseId'), validateBody('updateWorkoutSessionExercise'), workoutSessionController.updateExerciseProgress);
+app.patch('/api/workout-sessions/:id/activity', authenticateToken, validateIdParam('id'), workoutSessionController.keepSessionAlive);
 
 /**
  * @openapi
@@ -771,7 +774,7 @@ app.patch('/api/workout-sessions/:id/exercises/:exerciseId', authenticateToken, 
  *       200:
  *         description: Sessão de treino concluída.
  */
-app.post('/api/workout-sessions/:id/complete', authenticateToken, validateIdParam('id'), validateBody('completeWorkoutSession'), workoutSessionController.completeSession);
+app.post('/api/workout-sessions/:id/complete', authenticateToken, idempotency, validateIdParam('id'), validateBody('completeWorkoutSession'), workoutSessionController.completeSession);
 
 /**
  * @openapi
@@ -790,7 +793,7 @@ app.post('/api/workout-sessions/:id/complete', authenticateToken, validateIdPara
  *       200:
  *         description: Sessão cancelada.
  */
-app.post('/api/workout-sessions/:id/cancel', authenticateToken, validateIdParam('id'), workoutSessionController.cancelSession);
+app.post('/api/workout-sessions/:id/cancel', authenticateToken, idempotency, validateIdParam('id'), workoutSessionController.cancelSession);
 
 /**
  * @openapi
