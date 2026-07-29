@@ -40,6 +40,7 @@ const geofenceController = require('./controllers/geofenceController');
 const readinessController = require('./controllers/readinessController');
 const notificationController = require('./controllers/notificationController');
 const complianceController = require('./controllers/complianceController');
+const healthController = require('./controllers/healthController');
 
 // Initialize database
 const db = require('./database');
@@ -73,18 +74,9 @@ setupSwagger(app, {
   enabled: process.env.API_DOCS_ENABLED
 });
 
-// Readiness endpoint used by Compose. It verifies both the HTTP process and the
-// database connection without exposing schema or environment details.
-app.get('/api/health', async (req, res) => {
-  try {
-    await db.ready;
-    await db.raw('SELECT 1');
-    res.json({ status: 'ok' });
-  } catch (error) {
-    console.error('Health check failed:', error.message);
-    res.status(503).json({ status: 'unavailable' });
-  }
-});
+app.get('/health/live', healthController.live);
+app.get('/health/ready', healthController.ready);
+app.get('/api/health', healthController.ready);
 
 app.get('/api/subscription', authenticateToken, subscriptionController.getSubscription);
 app.get('/api/team/members', authenticateToken, requireRole('personal'), teamController.listTeam);

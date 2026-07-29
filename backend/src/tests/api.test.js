@@ -88,6 +88,20 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body).toEqual({ status: 'ok' });
     });
 
+    test('Should expose a database-independent liveness probe', async () => {
+      const res = await request(app).get('/health/live');
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({ status: 'ok' });
+    });
+
+    test('Should expose readiness through the deployment health path', async () => {
+      const res = await request(app).get('/health/ready');
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({ status: 'ok' });
+    });
+
     test('Should apply headers and omit CORS for an untrusted origin', async () => {
       const res = await request(app)
         .get('/api/auth/me')
