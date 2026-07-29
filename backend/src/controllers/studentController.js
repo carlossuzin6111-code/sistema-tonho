@@ -39,6 +39,39 @@ async function inviteStudent(req, res) {
   }
 }
 
+async function claimStudentInvitation(req, res) {
+  const { token, name, password } = req.body;
+  const tokenHash = hashInvitationToken(token);
+  try {
+    const student = await db.transaction(async trx => {
+      const invitation = await trx('student_invitations')
+        .where({ token_hash: tokenHash })
+        .whereNull('claimed_at')
+        .first();
+      if (!invitation || new Date(invitation.expires_at).getTime() <= Date.now()) {
+        const error = new Error('Invalid or expired invitation');
+        error.code = 'INVALID_INVITATION';
+        throw error;
+      }
+      const existing = await trx('users').where({ email: invitation.email }).first();
+      if (existing) { const error = new Error('Email already registered'); error.code = 'EMAIL_ALREADY_REGISTERED'; throw error; }
+      const passwordHash = await bcrypt.hash(password, 10);
+      const [studentId] = await trx('users').insert({ name: name.trim(), email: invitation.email, password_hash: passwordHash, role: 'student', must_change_password: false });
+      await trx('student_profiles').insert({ student_id: studentId, personal_id: invitation.personal_id });
+      const claimed = await trx('student_invitations').where({ id: invitation.id, claimed_at: null }).update({ claimed_at: trx.fn.now(), updated_at: trx.fn.now() });
+      if (claimed !== 1) { const error = new Error('Invitation already claimed'); error.code = 'INVALID_INVITATION'; throw error; }
+      await recordAudit(trx, { actorUserId: studentId, action: 'student.invitation_claimed', targetType: 'student_invitation', targetId: invitation.id, metadata: { personalId: invitation.personal_id } });
+      return { id: studentId, name: name.trim(), email: invitation.email, role: 'student' };
+    });
+    return res.status(201).json({ message: 'Student invitation accepted successfully', student });
+  } catch (error) {
+    if (error.code === 'INVALID_INVITATION') return res.status(400).json({ error: error.message });
+    if (error.code === 'EMAIL_ALREADY_REGISTERED' || isEmailUniqueConstraint(error)) return res.status(400).json({ error: 'Email already registered' });
+    console.error('Claim student invitation error:', error.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 // Create a new student (Personal Trainer only)
 async function createStudent(req, res) {
   const { name, email, password, height, targetWeight, birthDate } = req.body;
@@ -305,6 +338,7 @@ async function resetPassword(req, res) {
 
 module.exports = {
   inviteStudent,
+  claimStudentInvitation,
   createStudent,
   getStudents,
   getStudentDetails,
