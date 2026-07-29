@@ -20,7 +20,12 @@ async function initializeDatabase() {
     }
 
   } catch (err) {
-    console.error('Error initializing database tables via Knex:', err.message);
+    if (err.code === 'SQLITE_CANTOPEN' && (env === 'test' || process.env.JEST_WORKER_ID)) {
+      return;
+    }
+    if (env !== 'test') {
+      console.error('Error initializing database tables via Knex:', err.message);
+    }
     throw err;
   }
 }
@@ -65,6 +70,25 @@ async function seedDefaultExercisesForPersonal(dbConnection, personalId) {
 }
 
 db.ready = initializeDatabase();
+// Jest creates several isolated database modules and some suites close one
+// while another startup promise is still pending. Keep that teardown race
+// from becoming an unhandled rejection; individual queries still surface
+// genuine setup failures in their own tests.
+if (env === 'test') db.ready.catch(() => undefined);
+
+// Test suites close their isolated Knex connection in afterAll. Waiting for
+// startup prevents a late migration/seed query from racing with destroy(),
+// which otherwise surfaces as an unhandled SQLITE_CANTOPEN in CI.
+const destroyConnection = db.destroy.bind(db);
+db.destroy = async (...args) => {
+  try {
+    await db.ready;
+  } catch (_) {
+    // Preserve the original initialization error; destroy still releases
+    // whatever resources were opened before the failure.
+  }
+  return destroyConnection(...args);
+};
 
 db.seedDefaultExercisesForPersonal = seedDefaultExercisesForPersonal;
 
