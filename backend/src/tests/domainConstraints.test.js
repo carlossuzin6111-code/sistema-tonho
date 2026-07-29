@@ -12,6 +12,9 @@ describe('DB-09 domain constraints', () => {
   test('rejects invalid measurement values at database level', async () => {
     const [userId] = await db('users').insert({ name: 'Constraint User', email: 'constraints@test.com', password_hash: 'hash', role: 'student' });
     await expect(db('measurements').insert({ student_id: userId, weight: 0 })).rejects.toThrow(/measurement values/i);
+    for (const field of ['chest', 'waist', 'hips', 'biceps_l', 'biceps_r', 'thigh_l', 'thigh_r']) {
+      await expect(db('measurements').insert({ student_id: userId, weight: 70, [field]: -0.01 })).rejects.toThrow(/measurement values/i);
+    }
   });
 
   test('rejects non-positive exercise sets at database level', async () => {

@@ -29,7 +29,7 @@ Este documento atua como o painel executivo para controle de progresso e roadmap
 | **DB-06** | Deploy expand/contract | 10/10 | **Parcial** | 12h | Alto | DevOps |
 | **DB-07** | Constraints e Índices | 9/10 | **Parcial** | 6h | Médio | Backend |
 | **DB-08** | transação em Cadastros Compostos | 10/10 | **Parcial** | 8h | Alto | Backend |
-| **DB-09** | Precisão e Restrições de Domínio | 8/10 | **Não Iniciado** | 12h | Médio | Backend |
+| **DB-09** | Precisão e Restrições de Domínio | 8/10 | **Parcial** | 12h | Médio | Backend |
 | **UX-01** | Paginação por Cursor no Chat | 8/10 | **Parcial** | 12h | Médio | Fullstack |
 | **UX-02** | Virtual Scrolling no Catálogo | 8/10 | **Parcial** | 16h | Alto | Frontend |
 | **UX-03** | Fuso Horário Local (UTC) | 9/10 | **Parcial** | 10h | Médio | Fullstack |
@@ -117,6 +117,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | **DB-05** | `../backend/src/services/offsiteBackupService.js`, `../backend/src/workers/runBackupWorker.js`, `../docker-compose.yml` | `../backend/src/tests/offsiteBackup.test.js`, `persistenceRestore.test.js` | `Credenciais no secret manager e restore periódico real em S3/R2 isolado` |
 | **DB-06** | `../.github/scripts/verify-migration-policy.sh`, `../.github/workflows/backend-tests.yml` | `../backend/src/tests/migrationPolicy.test.js`, `migrations.test.js` | `Dual-read/dual-write e execução real do deploy em dois ambientes` |
 | **DB-08** | `../backend/src/controllers/workoutController.js` | `../backend/src/tests/api.test.js` | `Rollback negativo para cada falha de exercício e auditoria transacional` |
+| **DB-09** | `../backend/src/db/migrations/202607290005_add_domain_constraints.js` | `../backend/src/tests/domainConstraints.test.js` | `Migrar unidades para inteiros/decimal fixo e cobrir constraints de todo o catálogo` |
 | **DB-07** | `../backend/src/db/migrations/202607140002_add_query_indexes.js` | `../backend/src/tests/indexes.test.js` | `Constraints de domínio e planos das consultas futuras` |
 | **UX-07** | `../frontend/desktop.html`, `mobile.html`, `css/` | `../frontend/tests/strict-csp.test.js`, `safe-dom.test.js` | `Auditoria WCAG 2.2 AA automatizada e manual` |
 | **UX-08** | `../backend/src/services/avatarService.js`, `../nginx.conf` | `../backend/src/tests/api.test.js` | `Quota por usuário/tenant e persistência/reconciliação de arquivos` |
@@ -217,4 +218,5 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | 29/07/2026 | DB-05 | Worker envia bundles AES-256-GCM para S3/R2 em cópias daily/weekly/monthly, aplica retenção 7/4/1 e documenta configuração/RPO/RTO; teste usa cliente S3 injetado e não acessa a nuvem | Branch `db/db-05-offsite-backup`; off-site 3/3; backend 27 suítes/194 testes; audit runtime sem vulnerabilidades | Parcial: configurar secret manager/bucket real e executar restore periódico isolado |
 | 29/07/2026 | DB-06 | CI passa a validar migrations reversíveis e bloqueia operações destrutivas no `up`; runbook documenta expansão, dual-read/dual-write, contração e rollback | Branch `db/db-06-expand-contract`; teste de política incluído na suíte backend | Parcial: validar rollout em staging/produção com dois releases simultâneos |
 | 29/07/2026 | DB-08 | Teste negativo cria ficha com exercício inválido, confirma resposta de erro e verifica que a transação não deixa a ficha principal persistida | Branch `db/db-08-compound-transaction`; API/backend completo | Parcial: ampliar matriz de falhas e auditoria de eventos transacionais |
+| 29/07/2026 | DB-09 | Cobertura de triggers ampliada para peso, todos os perímetros corporais e séries inválidas diretamente no SQLite | Branch `db/db-09-domain-constraints`; domínio focado ampliado e backend completo | Parcial: adotar unidades inteiras/decimal fixo e ampliar invariantes para demais domínios |
 Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.
