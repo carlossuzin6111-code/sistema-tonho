@@ -77,6 +77,17 @@ describe('HTTP security middleware', () => {
     expect(blocked.headers['x-ratelimit-limit']).toBeUndefined();
   });
 
+  test('combines client IP and submitted account in the authentication budget', async () => {
+    const app = express();
+    app.use(express.json());
+    app.use(createAuthRateLimiter({ windowMs: 60_000, limit: 1 }));
+    app.post('/login', (req, res) => res.status(401).json({ error: 'invalid' }));
+
+    await request(app).post('/login').send({ email: 'first@example.com' }).expect(401);
+    await request(app).post('/login').send({ email: 'second@example.com' }).expect(401);
+    await request(app).post('/login').send({ email: 'first@example.com' }).expect(429);
+  });
+
   test('keeps login and registration failure budgets independent', async () => {
     const app = express();
     const registrationLimiter = createAuthRateLimiter({

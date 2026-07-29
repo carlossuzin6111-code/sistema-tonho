@@ -150,9 +150,20 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | 29/07/2026 | SEC-03 | Endpoint público de aceite, criação transacional de aluno/perfil, expiração e bloqueio de replay | PR em abertura `security/sec-03-invitation-claim`; testes focados 5/5 | Parcial: falta integração de entrega via e-mail |
 | 29/07/2026 | SEC-03 | Adaptador de envio via Resend com URL configurável, sem exposição do token em produção e fallback explícito sem provedor | PR #91; testes focados 5/5 | Parcial operacional: configurar `RESEND_API_KEY`, `EMAIL_FROM` e `APP_BASE_URL` |
 | 29/07/2026 | SEC-05 | Migration de verificação, token hash de uso único/24h, emissão no cadastro pessoal e endpoint de confirmação | PR em abertura `security/sec-05-email-verification`; testes focados 6/6 | Parcial: falta bloquear políticas por e-mail não verificado e tela frontend |
+ security/sec-07-account-rate-limit
+| 29/07/2026 | SEC-07 | Rate limit de autenticação combina IP normalizado e conta/e-mail submetido, mantendo budgets separados por operação | PR em abertura `security/sec-07-account-rate-limit`; httpSecurity 20/20 | Parcial: armazenamento compartilhado Redis para múltiplas réplicas ainda pendente |
+=======
+ security/sec-06-csrf-segregation
+| 29/07/2026 | SEC-06 | Mutação autenticada por cookie exige origem confiável além do double-submit CSRF; Bearer permanece sem CSRF por desenho | PR em abertura `security/sec-06-csrf-segregation`; API/httpSecurity 77/77 | Parcial: refresh token rotacionado para mobile ainda pendente |
+
 | 29/07/2026 | SEC-05 | Sessão e `/api/auth/me` passam a expor `emailVerified` para a interface aplicar políticas de acesso | PR #92; commit em atualização | Parcial: bloqueios e tela ainda pendentes |
 | 29/07/2026 | SEC-05 | Reset autônomo deixa de gerar token para contas não verificadas; frontend informa a necessidade de confirmação | PR em abertura `security/sec-05-email-policy`; testes backend 13/13 e frontend 51/51 | Parcial: onboarding/login e tela dedicada ainda pendentes |
 | 29/07/2026 | SEC-05 | Frontend consome token de confirmação da URL, chama `/api/auth/verify-email` e anuncia sucesso/erro | PR #93; frontend 51/51 | Parcial: políticas de login/onboarding ainda pendentes |
+ security/sec-08-waivers
 | 29/07/2026 | SEC-08 | Migration `signed_waivers` e endpoint autenticado para registrar PAR-Q/termos por versão, IP e assinatura idempotente | PR em abertura `security/sec-08-waivers`; waivers/migrations 6/6 | Parcial: tela de consentimento e revisão clínica ainda pendentes |
+=======
+ main
+ main
+ main
 
 Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.

@@ -109,6 +109,11 @@ function csrfProtection(req, res, next) {
     return next();
   }
 
+  const requestOrigin = req.headers.origin || refererOrigin(req.headers.referer);
+  if (requestOrigin && !isTrustedOrigin(requestOrigin, req)) {
+    return res.status(403).json({ error: 'Untrusted request origin' });
+  }
+
   req.cookies = req.cookies || parseCookies(req.headers.cookie);
   const headerToken = req.headers['x-csrf-token'];
   const cookieToken = req.cookies[CSRF_COOKIE];
@@ -117,6 +122,17 @@ function csrfProtection(req, res, next) {
     return res.status(403).json({ error: 'Invalid CSRF token' });
   }
   return next();
+}
+
+function refererOrigin(referer) {
+  if (!referer) return '';
+  try { return new URL(referer).origin; } catch { return ''; }
+}
+
+function isTrustedOrigin(origin, req) {
+  const configured = process.env.APP_ORIGIN;
+  if (configured) return origin === configured.replace(/\/$/, '');
+  return origin === `${req.protocol}://${req.get('host')}`;
 }
 
 function requireRole(role) {
