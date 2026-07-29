@@ -643,11 +643,44 @@ function resetChatSendFeedback(input) {
   if (form && form.dataset.sendState !== 'sending') setChatSendState(form, 'idle', '');
 }
 
+const chatTypingTimers = new WeakMap();
+function handleChatTypingInput(input) {
+  if (!input || !input.value.trim()) return;
+  const receiverId = input.id === 'personal-chat-input'
+    ? (typeof activeChatStudentId !== 'undefined' ? activeChatStudentId : null)
+    : (typeof personalTrainerId !== 'undefined' ? personalTrainerId : null);
+  if (!receiverId) return;
+  const previous = chatTypingTimers.get(input);
+  if (previous) clearTimeout(previous);
+  chatTypingTimers.set(input, setTimeout(() => {
+    API.post('/chat/typing', { receiverId }).catch(() => {});
+    chatTypingTimers.delete(input);
+  }, 350));
+}
+
+function renderTypingIndicator(message) {
+  if (message?.type !== 'typing') return false;
+  const currentUser = API.getCurrentUser();
+  if (!currentUser || String(message.senderId) === String(currentUser.id)) return true;
+  const targetId = currentUser.role === 'personal' ? 'personal-chat-typing' : 'student-chat-typing';
+  const element = document.getElementById(targetId);
+  if (!element) return true;
+  element.textContent = 'Digitando...';
+  element.classList.remove('hidden');
+  clearTimeout(element._typingTimeout);
+  element._typingTimeout = setTimeout(() => {
+    element.textContent = '';
+    element.classList.add('hidden');
+  }, message.expiresInMs || 3000);
+  return true;
+}
+
 // EventSource owns its native retry cycle; opening parallel streams here would
 // duplicate messages after intermittent network failures.
 function connectRealTimeUpdates(user) {
   setChatConnectionStatus(navigator.onLine ? 'connecting' : 'offline');
   API.connectChatStream((message) => {
+    if (renderTypingIndicator(message)) return;
     // 1. Check if active window is chat, and append message
     if (user.role === 'personal') {
       appendPersonalLiveMessage(message);

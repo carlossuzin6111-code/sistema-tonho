@@ -118,6 +118,7 @@ document.addEventListener('input', event => {
   if (event.target.id === 'students-search') filterPersonalStudents(event.target.value);
   if (event.target.id === 'exercises-search') filterPersonalExercises(event.target.value);
   if (['personal-chat-input', 'student-chat-input'].includes(event.target.id)) resetChatSendFeedback(event.target);
+  if (['personal-chat-input', 'student-chat-input'].includes(event.target.id)) handleChatTypingInput(event.target);
   if (['profile-avatar-zoom', 'profile-avatar-x', 'profile-avatar-y'].includes(event.target.id)) renderProfileAvatarCrop();
   const feedbackForm = event.target.closest?.('.auth-form, .form-with-feedback');
   if (feedbackForm) clearFormError(feedbackForm.id);

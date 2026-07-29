@@ -230,11 +230,14 @@ Este documento atua como o inventário de engenharia contendo especificações d
 ### [BUS-12] Inativação e Abas de Filtragem de Alunos
 *   **Especificação**: Possibilidade de inativar alunos antigos sem deletar seu prontuário físico e separação por abas "Ativos" / "Inativos" na listagem.
 *   **Progresso em 29/07/2026**: o dashboard separa Ativos, Inativos e Todos usando os status de conta/vínculo já persistidos; a filtragem não remove histórico nem registros clínicos.
-*   **Pendente**: filtro no endpoint, confirmação acessível para transições e auditoria específica de inativação.
+* **Progresso em 29/07/2026**: `GET /api/personal/students?status=active|inactive|all` aplica o filtro no servidor e rejeita valores desconhecidos. Toda transição autorizada grava `student.lifecycle_updated` com estado anterior e novo dentro da mesma transação.
+* **Pendente**: confirmação acessível antes da transição e consulta visual do histórico de auditoria no dashboard.
 
 ### [BUS-13] Periodização Biomecânica Ondulatória
 *   **Especificação**: Suporte a templates e variações de carga/volume estruturadas em microciclos na ficha do aluno, fugindo de fichas estáticas lineares de musculação.
 *   **Progresso em 29/07/2026**: migration `workout_microcycles` e endpoints autenticados `PUT/GET /api/workouts/:id/periodization` permitem até 52 semanas sequenciais, intensidade percentual, multiplicador de volume e notas; a gravação substitui o plano em uma transação e valida ownership.
+* **Progresso em 29/07/2026**: o dashboard do Personal agora oferece editor acessível para carregar, adicionar, remover e salvar microciclos, com limite visual de 52 semanas e validação server-side dos campos.
+* **Pendente**: visualização da periodização pelo aluno, sugestões automáticas de carga/volume e QA com profissionais de biomecânica.
 *   **Pendente**: editor visual, regras biomecânicas específicas por exercício e versionamento/auditoria das alterações clínicas.
 
 ### [BUS-14] Governança do Catálogo de Exercícios

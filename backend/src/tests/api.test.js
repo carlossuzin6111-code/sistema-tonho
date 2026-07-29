@@ -477,6 +477,20 @@ describe('FitLife Sync API Integration Tests', () => {
         .set('Authorization', `Bearer ${personalToken}`)
         .send({ accountStatus: 'active', relationshipStatus: 'active' });
       expect(restored.statusCode).toBe(200);
+      const audit = await db('audit_logs').where({ action: 'student.lifecycle_updated', target_id: String(studentId) }).orderBy('id', 'desc').first();
+      expect(audit).toBeTruthy();
+      expect(JSON.parse(audit.metadata)).toMatchObject({ before: expect.any(Object), after: expect.any(Object) });
+    });
+
+    test('Should filter linked students server-side by active, inactive and all status', async () => {
+      const active = await request(app).get('/api/personal/students?status=active').set('Authorization', `Bearer ${personalToken}`);
+      expect(active.statusCode).toBe(200);
+      expect(active.body.every(student => student.account_status === 'active' && ['active', 'invited'].includes(student.relationship_status))).toBe(true);
+      const inactive = await request(app).get('/api/personal/students?status=inactive').set('Authorization', `Bearer ${personalToken}`);
+      expect(inactive.statusCode).toBe(200);
+      expect(inactive.body.every(student => student.account_status !== 'active' || !['active', 'invited'].includes(student.relationship_status))).toBe(true);
+      const invalid = await request(app).get('/api/personal/students?status=unknown').set('Authorization', `Bearer ${personalToken}`);
+      expect(invalid.statusCode).toBe(400);
     });
 
     test('Should keep personal assessment notes private from the student', async () => {
@@ -1096,6 +1110,27 @@ describe('FitLife Sync API Integration Tests', () => {
         .delete(`/api/chat/${created.body.id}`)
         .set('Authorization', `Bearer ${studentToken}`);
       expect(remove.statusCode).toBe(404);
+    });
+
+    test('Should send a transient typing event only to an authorized chat partner', async () => {
+      const linkedPersonal = await db('student_profiles').select('personal_id').where({ student_id: studentId }).first();
+      const personalTyping = await request(app)
+        .post('/api/chat/typing')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ receiverId: studentId });
+      expect(personalTyping.statusCode).toBe(200);
+      expect(personalTyping.body).toEqual({ sent: true });
+
+      const studentTyping = await request(app)
+        .post('/api/chat/typing')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ receiverId: linkedPersonal.personal_id + 999 });
+      expect(studentTyping.statusCode).toBe(200);
+      const invalidTyping = await request(app)
+        .post('/api/chat/typing')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ receiverId: otherStudentId });
+      expect(invalidTyping.statusCode).toBe(403);
     });
 
     test('Should open real-time SSE chat connection', (done) => {
