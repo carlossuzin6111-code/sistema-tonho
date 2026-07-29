@@ -125,6 +125,11 @@ const bodySchemas = {
   studentInvite: {
     email
   },
+  studentInviteClaim: {
+    token: text('token', 256, 32),
+    name: text('name', 100, 2),
+    password
+  },
   measurement: {
     studentId: optionalPositiveInteger('studentId'),
     weight: optionalNumber({ label: 'weight', min: 1, max: 1000 }),

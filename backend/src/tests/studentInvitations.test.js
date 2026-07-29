@@ -51,4 +51,21 @@ describe('SEC-03 student invitations', () => {
     expect(response.statusCode).toBe(400);
     expect(response.body.error).toBe('Email already registered');
   });
+
+  test('claims an invitation once and creates the linked student', async () => {
+    const invite = await request(app).post('/api/personal/students/invite').set('Authorization', `Bearer ${token}`).send({ email: 'claim@test.com' });
+    const claimed = await request(app).post('/api/auth/student-invitations/claim').send({ token: invite.body.token, name: 'Claimed Student', password: 'ClaimedPassword123!' });
+    expect(claimed.statusCode).toBe(201);
+    const profile = await db('student_profiles').where({ student_id: claimed.body.student.id }).first();
+    expect(profile.personal_id).toBe(personal.id);
+    const replay = await request(app).post('/api/auth/student-invitations/claim').send({ token: invite.body.token, name: 'Replay', password: 'ReplayPassword123!' });
+    expect(replay.statusCode).toBe(400);
+  });
+
+  test('rejects an expired invitation', async () => {
+    const invite = await request(app).post('/api/personal/students/invite').set('Authorization', `Bearer ${token}`).send({ email: 'expired@test.com' });
+    await db('student_invitations').where({ id: invite.body.invitationId }).update({ expires_at: new Date(Date.now() - 1000).toISOString() });
+    const response = await request(app).post('/api/auth/student-invitations/claim').send({ token: invite.body.token, name: 'Expired', password: 'ExpiredPassword123!' });
+    expect(response.statusCode).toBe(400);
+  });
 });
