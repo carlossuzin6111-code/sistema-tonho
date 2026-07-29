@@ -167,7 +167,9 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Pendente**: integrar seletor/indicador de publicação no frontend e registrar auditoria específica das transições.
 
 ### [BUS-03] Ciclo de Vida do Aluno e do Vínculo
-*   **Especificação**:
+*   **Implementado parcialmente**: usuários possuem `account_status` (`active`, `suspended`, `archived`) e vínculos possuem `relationship_status` (`invited`, `active`, `paused`, `blocked`), ambos protegidos no SQLite. Personal pode atualizar o aluno vinculado pelo endpoint de lifecycle.
+*   **Pendente**: bloquear autenticação/execução conforme status e integrar abas/filtros de ativos, pausados e arquivados no frontend.
+*   **Especificação original**:
     *   **Status da Conta**: `active`, `suspended`, `archived` (soft-deleted).
     *   **Status do Vínculo**: `invited`, `active`, `paused`, `blocked`.
     *   **Regra**: Alunos pausados retêm acesso read-only ao histórico, mas perdem chat e execução de treinos ativos.

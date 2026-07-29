@@ -130,6 +130,10 @@ const bodySchemas = {
     name: text('name', 100, 2),
     password
   },
+  studentLifecycle: {
+    accountStatus: value => ['active', 'suspended', 'archived'].includes(value) ? null : 'accountStatus must be active, suspended or archived',
+    relationshipStatus: value => ['invited', 'active', 'paused', 'blocked'].includes(value) ? null : 'relationshipStatus must be invited, active, paused or blocked'
+  },
   measurement: {
     studentId: optionalPositiveInteger('studentId'),
     weight: optionalNumber({ label: 'weight', min: 1, max: 1000 }),

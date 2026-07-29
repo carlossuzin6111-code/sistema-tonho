@@ -388,6 +388,7 @@ app.get('/api/personal/students', authenticateToken, requireRole('personal'), st
  *         description: Erro interno do servidor.
  */
 app.get('/api/personal/students/:id', authenticateToken, studentController.getStudentDetails);
+app.patch('/api/personal/students/:id/status', authenticateToken, requireRole('personal'), validateIdParam(), validateBody('studentLifecycle'), studentController.updateStudentLifecycle);
 
 /**
  * @openapi
