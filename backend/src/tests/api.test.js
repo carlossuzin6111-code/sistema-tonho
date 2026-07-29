@@ -688,6 +688,16 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body[0].exercises.length).toBeGreaterThan(0);
     });
 
+    test('Should return progression volume and latest exercise suggestion', async () => {
+      const res = await request(app)
+        .get('/api/student/progression')
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveProperty('studentId', studentId);
+      expect(Array.isArray(res.body.exercises)).toBe(true);
+      if (res.body.exercises.length) expect(res.body.exercises[0]).toEqual(expect.objectContaining({ exerciseName: expect.any(String), totalVolume: expect.any(Number) }));
+    });
+
     test('Should archive the previous published workout when replacing it', async () => {
       const replacement = await request(app)
         .post('/api/workouts')
