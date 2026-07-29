@@ -73,6 +73,19 @@ app.get('/health/ready', healthController.ready);
 // Backward-compatible alias used by existing Compose/probes.
 app.get('/api/health', healthController.ready);
 
+app.get('/api/subscription', authenticateToken, subscriptionController.getSubscription);
+app.get('/api/team/members', authenticateToken, requireRole('personal'), teamController.listTeam);
+app.post('/api/team/members', authenticateToken, requireRole('personal'), teamController.addTeamMember);
+app.patch('/api/team/members/:id/end', authenticateToken, requireRole('personal'), validateIdParam('id'), teamController.terminateTeamMember);
+app.post('/api/student/partner-consents', authenticateToken, partnerController.createConsent);
+app.delete('/api/student/partner-consents/:id', authenticateToken, validateIdParam('id'), partnerController.revokeConsent);
+app.get('/api/partner/students/:studentId/summary', authenticateToken, validateIdParam('studentId'), partnerController.getStudentSummary);
+app.post('/api/wearables/connections', authenticateToken, wearableController.createConnection);
+app.get('/api/wearables/connections', authenticateToken, wearableController.listConnections);
+app.delete('/api/wearables/connections/:id', authenticateToken, validateIdParam('id'), wearableController.revokeConnection);
+app.post('/api/wearables/connections/:id/metrics', authenticateToken, validateIdParam('id'), wearableController.ingestMetrics);
+app.get('/api/wearables/metrics', authenticateToken, wearableController.listMetrics);
+
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
 app.post('/api/profile/waivers', authenticateToken, validateBody('waiver'), profileController.signWaiver);
@@ -856,6 +869,7 @@ app.get('/api/workout-sessions/:id', authenticateToken, validateIdParam('id'), w
  *         description: Erro interno do servidor.
  */
 app.get('/api/catalog/exercises', authenticateToken, exerciseController.getExercises);
+app.get('/api/catalog/governance', authenticateToken, requireRole('personal'), exerciseController.getCatalogGovernance);
 
 /**
  * @openapi
@@ -897,6 +911,7 @@ app.get('/api/catalog/exercises', authenticateToken, exerciseController.getExerc
  *         description: Erro interno do servidor.
  */
 app.post('/api/catalog/exercises', authenticateToken, requireRole('personal'), validateBody('catalogExercise'), exerciseController.createExercise);
+app.post('/api/catalog/governance/merge', authenticateToken, requireRole('personal'), validateBody('catalogMerge'), exerciseController.mergeCatalogExercises);
 
 /**
  * @openapi

@@ -242,6 +242,10 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [BUS-14] Governança do Catálogo de Exercícios
 *   **Especificação**: Deduplicação do catálogo e separação em exercícios base globais compartilhados vs customizados criados pelos treinadores.
+* **Progresso em 29/07/2026**: a governança registra escopo `global/custom`, nome canônico e arquivamento; o Personal pode consultar duplicatas e mesclar exercícios transacionalmente, atualizando referências das fichas e criando auditoria.
+* **Pendente**: uma única cópia global compartilhada entre Personals, moderação/aprovação e deduplicação automática em lote.
+*   **Progresso em 29/07/2026**: migration adiciona `catalog_scope`, `canonical_name` e `archived_at`; o catálogo filtra global/custom, expõe duplicatas para o Personal e permite mesclagem transacional com atualização das fichas e auditoria.
+*   **Pendente**: armazenamento de uma única cópia global compartilhada entre Personals, fluxo de moderação/aprovação e deduplicação automática em lote.
 
 ---
 
@@ -249,15 +253,26 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-01] Isolamento de Tenant (Subscriptions)
 *   **Especificação**: Tabela `subscriptions` vinculada à conta do Personal. Middleware bloqueia acessos retornando `402 Payment Required` em caso de mensalidade da licença expirada.
+*   **Progresso em 29/07/2026**: migration `202607290015_create_subscriptions` cria histórico por Personal, semeia trial de 30 dias para contas existentes e o cadastro de novos Personals cria o trial na mesma transação.
+*   **Progresso em 29/07/2026**: `subscriptionGuard` é aplicado após autenticação, permite admins e rotas essenciais de autenticação/assinatura, resolve alunos pelo Personal vinculado e responde `402` com códigos `SUBSCRIPTION_REQUIRED`/`SUBSCRIPTION_EXPIRED`; `GET /api/subscription` expõe status, período e indicador de atividade.
+*   **Pendente**: integração com provedor de cobrança, webhooks assinados e idempotentes, renovação/cancelamento, notificações de vencimento, painel administrativo e testes de recuperação de falhas do provedor.
 
 ### [OPS-02] Gestão de Equipe (Head/Junior) e Split de Receitas
 *   **Especificação**: Papéis corporativos com coordenação de equipes de personais juniores associados, bibliotecas compartilhadas e migrações em lote sob desligamento de instrutores.
+*   **Progresso em 29/07/2026**: migration `202607290016_create_personal_team_memberships` e endpoints autenticados permitem ao Head listar, adicionar e encerrar memberships Junior com percentual de receita validado e estado ativo/encerrado.
+*   **Pendente**: fluxo de convite/aceite, transferência de alunos e fichas no desligamento, bibliotecas compartilhadas, cálculo/pagamento do split e permissões granulares por recurso.
+*   **Progresso em 29/07/2026**: migration cria `organization_role` e memberships Head/Junior; endpoints autenticados permitem adicionar/listar/encerrar vínculos, registrar percentual de receita e transferir alunos durante o desligamento, com auditoria.
+*   **Pendente**: convite/onboarding específico de Junior, bibliotecas compartilhadas, integração de cobrança e split financeiro real.
 
 ### [OPS-03] Acesso Multiprofissional (Parceiros Clínicos)
 *   **Especificação**: Contas do tipo parceiro read-only (Nutricionistas, Fisioterapeutas). Mediante consentimento explícito do aluno, eles acessam logs de treino e realizam upload de exames.
+*   **Progresso em 29/07/2026**: migration `202607290017_create_partner_consents.js` cria perfis profissionais e consentimentos por aluno; o aluno concede/revoga escopos (`workout_logs`, `measurements`, `exams`) e o parceiro consulta apenas um resumo de leitura quando o consentimento está ativo, não expirado e auditado.
+*   **Pendente**: onboarding/convites de parceiros, upload seguro de exames, interface de gestão de consentimentos, expiração configurável com notificações e telemetria/auditoria operacional completa.
 
 ### [OPS-04] Integração com Wearables
 *   **Especificação**: Conectores e adaptadores assíncronos para Apple HealthKit, Google Fit/Health Connect e Garmin. Ingestão passiva de sono e HRV para sugerir autorregulação.
+*   **Progresso em 29/07/2026**: migration `202607290018_create_wearable_integrations.js` cria conexões por aluno e métricas normalizadas; endpoints validam provedores, mantêm tokens fora do banco, aceitam eventos idempotentes de sono/HRV, aplicam ownership e permitem revogação.
+*   **Pendente**: implementar adaptadores OAuth/SDK reais, armazenamento seguro de credenciais, worker de sincronização assíncrona, webhooks/retry e recomendação clínica de autorregulação com revisão profissional.
 
 ### [OPS-05] Alertas CRM de Churn e NPS
 *   **Especificação**: Tarefas diárias no node-cron alertando personais sobre alunos inativos há mais de 5 dias consecutivos e envio automatizado de pesquisas NPS.

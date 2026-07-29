@@ -19,7 +19,13 @@ const applicationTables = [
   'signed_waivers',
   'student_assessments',
   'idempotency_keys',
-  'workout_microcycles'
+  'workout_microcycles',
+  'subscriptions',
+  'personal_team_memberships',
+  'professional_partners',
+  'student_partner_consents',
+  'wearable_connections',
+  'wearable_metrics'
 ];
 
 const migrations = [

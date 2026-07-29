@@ -62,6 +62,16 @@ async function registerPersonal(req, res) {
         .where({ id: accessKeyId })
         .update({ used_by: userId });
 
+      const periodStart = new Date();
+      const periodEnd = new Date(periodStart.getTime() + 30 * 24 * 60 * 60 * 1000);
+      await trx('subscriptions').insert({
+        personal_id: userId,
+        status: 'trial',
+        provider: 'internal',
+        current_period_start: periodStart,
+        current_period_end: periodEnd
+      });
+
       return userId;
     });
 
