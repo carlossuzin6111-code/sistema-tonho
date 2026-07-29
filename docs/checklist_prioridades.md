@@ -72,7 +72,7 @@ bus/bus-08-offline-idempotency
 | **OPS-14** | CI/CD Obrigatória | 9/10 | **Parcial** | 24h | Alto | DevOps | #
 | **MOB-01** | Wrapper Híbrido (Capacitor) | 7/10 | **Parcial** | 20h | Alto | Mobile |
 | **MOB-02** | Resolução Dinâmica Base URL | 8/10 | **Parcial** | 6h | Baixo | Mobile |
-| **MOB-03** | CORS para WebViews | 8/10 | **Não Iniciado** | 6h | Baixo | Backend |
+| **MOB-03** | CORS para WebViews | 8/10 | **Parcial** | 6h | Baixo | Backend |
 | **MOB-04** | Secure Storage | 7/10 | **Não Iniciado** | 10h | Alto | Mobile |
 
 ---
@@ -122,6 +122,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | **OPS-14** | `../.github/workflows/backend-tests.yml`, `../.github/scripts/verify-ci-policy.sh` | Workflow `Test suites` | `Branch protection/required checks no GitHub, deploy automatizado, rollback e ambientes separados` |
 | **MOB-01** | `../capacitor.config.ts`, `../package.json` | `../frontend/tests/capacitor-config.test.js` | `Gerar projeto Android, sincronizar plugins e validar build APK assinado em CI` |
 | **MOB-02** | `../frontend/js/api.js` | `../frontend/tests/api-base-url.test.js` | `Injetar URL de produção no build nativo e validar CORS/Bearer com backend móvel` |
+| **MOB-03** | `../backend/src/middleware/httpSecurity.js` | `../backend/src/tests/httpSecurity.test.js` | `Reforçar origem de produção, cookies/CSRF e teste de preflight no domínio oficial` |
 | **UX-01** | `../backend/src/controllers/chatController.js`, `../backend/src/index.js` | `../backend/src/tests/api.test.js` | `Carregar páginas anteriores no frontend e botão/scroll de histórico` |
 | **UX-02** | `../frontend/js/personal.js`, `../frontend/css/style.css`, `mobile.css` | `../frontend/tests/strict-csp.test.js` | `Medição visual de altura por viewport e QA em catálogo muito grande` |
 | **UX-03** | `../frontend/js/datetime.js`, `personal.js`, `student.js`, páginas HTML | `../frontend/tests/strict-csp.test.js` | `Normalizar respostas legadas do backend e auditoria dos demais timestamps administrativos` |
@@ -203,4 +204,5 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | 29/07/2026 | OPS-14 | Workflow CI reforçado com triggers PR/manual, cancelamento de execuções obsoletas, job de política obrigatória, migrations/testes e auditoria de vulnerabilidades de alta severidade; execução 30477897188 passou em 4/4 jobs e as suítes locais passaram (backend 26/26, 190/190; frontend 55/55) | Branch `ops/ops-14-ci-cd-policy`; script `.github/scripts/verify-ci-policy.sh`; PR #133 | Parcial: required checks/branch protection, deploy, rollback e ambientes separados dependem de configuração da infraestrutura GitHub |
 | 29/07/2026 | MOB-01 | Configuração Capacitor com `webDir: frontend`, identificador/app name estáveis, dependências CLI/Core/Android e comandos de sincronização, abertura e build Debug; teste de contrato mantém a configuração verificável | Branch `mob/mob-01-capacitor-wrapper`; teste frontend 56/56; `npm audit --audit-level=high` sem vulnerabilidades | Parcial: gerar projeto Android (`npx cap add android`), assinar APK e automatizar build em runner Android |
 | 29/07/2026 | MOB-02 | Cliente API mantém `/api` no navegador e, quando `Capacitor.isNativePlatform()` está ativo, exige `__FITLIFE_API_BASE_URL__` HTTPS validada e usa credenciais `include`; todas as chamadas HTTP/SSE reutilizam a base resolvida | Branch `mob/mob-02-api-base-url`; teste frontend 57/57 | Parcial: injetar configuração de produção no artefato mobile e concluir CORS/autenticação Bearer para WebView |
+| 29/07/2026 | MOB-03 | CORS passou a permitir por padrão somente as origens exatas `http://localhost` e `capacitor://localhost`, mantendo `CORS_ORIGINS` como sobrescrita explícita; teste cobre Android, iOS e lookalike com porta bloqueado | Branch `mob/mob-03-webview-cors`; `httpSecurity` 21/21 e backend 191/191 | Parcial: configurar origem de produção, preflight e política de cookie/CSRF ou Bearer conforme o domínio mobile |
 Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.
