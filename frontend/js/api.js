@@ -236,7 +236,7 @@ const API = {
   // Real-Time Chat Server-Sent Events subscription
   chatStream: null,
   
-  connectChatStream(onMessageReceived, { onOpen, onError } = {}) {
+  connectChatStream(onMessageReceived, { onOpen, onError, onTyping } = {}) {
     // If there is an active stream, close it
     this.disconnectChatStream();
 
@@ -255,6 +255,10 @@ const API = {
         console.error('Error parsing SSE message:', err.message);
       }
     };
+
+    this.chatStream.addEventListener('typing', (event) => {
+      try { onTyping?.(JSON.parse(event.data)); } catch (error) { console.error('Error parsing typing event:', error.message); }
+    });
 
     this.chatStream.onerror = (err) => {
       console.error('SSE Chat Stream encountered an error:', err);
