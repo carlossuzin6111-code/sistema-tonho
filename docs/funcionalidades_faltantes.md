@@ -279,6 +279,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [MOB-02] Resolução Dinâmica de Base URL da API
 *   **Especificação**: Código frontend JavaScript detectando a existência de `window.Capacitor` para injetar a URL base de produção nos requests à API de forma condicional.
+*   **Progresso em 29/07/2026**: `frontend/js/api.js` preserva `/api` na web e, em plataforma nativa Capacitor, lê `__FITLIFE_API_BASE_URL__`, exige HTTPS, normaliza a barra final e aplica `credentials: include` a requests e SSE. O teste de contrato cobre a separação de ambientes (frontend 57/57).
+*   **Pendente**: fornecer a variável no build Android/iOS por configuração segura, definir o domínio oficial e integrar o modo de autenticação móvel/CORS (MOB-03) antes de distribuir o app.
 
 ### [MOB-03] CORS para WebViews Locais
 *   **Especificação**: Whitelist do backend Express aceitando requisições oriundas de `http://localhost` (WebView Android) e `capacitor://localhost` (WebView iOS).
