@@ -15,7 +15,7 @@ Este documento atua como o painel executivo para controle de progresso e roadmap
 | **SEC-01** | Proteção contra IDOR | 10/10 | **Parcial** | 8h | Alto | Backend | #
 | **SEC-02** | Onboarding (`must_change_password`) | 9/10 | **Implementado** | 12h | Médio | Fullstack |
 | **SEC-03** | Convites de Aluno com Expiração | 9/10 | **Parcial** | 16h | Médio | Fullstack |
-| **SEC-04** | Reset de Senha do Personal | 8/10 | **Não Iniciado** | 12h | Médio | Backend | #
+| **SEC-04** | Reset de Senha do Personal | 8/10 | **Parcial** | 12h | Médio | Backend |
 | **SEC-05** | Verificação de E-mail | 7/10 | **Parcial** | 8h | Baixo | Backend |
 | **SEC-06** | CSRF Segregado | 9/10 | **Parcial** | 6h | Médio | Backend |
 | **SEC-07** | Rate Limit IP + Conta | 8/10 | **Parcial** | 4h | Médio | Backend |
@@ -124,6 +124,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | **MOB-02** | `../frontend/js/api.js` | `../frontend/tests/api-base-url.test.js` | `Injetar URL de produção no build nativo e validar CORS/Bearer com backend móvel` |
 | **MOB-03** | `../backend/src/middleware/httpSecurity.js` | `../backend/src/tests/httpSecurity.test.js` | `Reforçar origem de produção, cookies/CSRF e teste de preflight no domínio oficial` |
 | **MOB-04** | `../frontend/js/secure-storage.js` | `../frontend/tests/secure-storage.test.js` | `Instalar plugin nativo mantido, integrar ciclo de vida e validar Keystore/Keychain em dispositivos reais` |
+| **SEC-04** | `../backend/src/db/migrations/202607200002_create_password_reset_tokens.js`, `../backend/src/controllers/authController.js`, `../backend/src/index.js` | `../backend/src/tests/passwordReset.test.js` | `Entrega real de e-mail, tela pública dedicada e auditoria/limpeza periódica de tokens` |
 | **UX-01** | `../backend/src/controllers/chatController.js`, `../backend/src/index.js` | `../backend/src/tests/api.test.js` | `Carregar páginas anteriores no frontend e botão/scroll de histórico` |
 | **UX-02** | `../frontend/js/personal.js`, `../frontend/css/style.css`, `mobile.css` | `../frontend/tests/strict-csp.test.js` | `Medição visual de altura por viewport e QA em catálogo muito grande` |
 | **UX-03** | `../frontend/js/datetime.js`, `personal.js`, `student.js`, páginas HTML | `../frontend/tests/strict-csp.test.js` | `Normalizar respostas legadas do backend e auditoria dos demais timestamps administrativos` |
@@ -207,4 +208,5 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | 29/07/2026 | MOB-02 | Cliente API mantém `/api` no navegador e, quando `Capacitor.isNativePlatform()` está ativo, exige `__FITLIFE_API_BASE_URL__` HTTPS validada e usa credenciais `include`; todas as chamadas HTTP/SSE reutilizam a base resolvida | Branch `mob/mob-02-api-base-url`; teste frontend 57/57 | Parcial: injetar configuração de produção no artefato mobile e concluir CORS/autenticação Bearer para WebView |
 | 29/07/2026 | MOB-03 | CORS passou a permitir por padrão somente as origens exatas `http://localhost` e `capacitor://localhost`, mantendo `CORS_ORIGINS` como sobrescrita explícita; teste cobre Android, iOS e lookalike com porta bloqueado | Branch `mob/mob-03-webview-cors`; `httpSecurity` 21/21 e backend 191/191 | Parcial: configurar origem de produção, preflight e política de cookie/CSRF ou Bearer conforme o domínio mobile |
 | 29/07/2026 | MOB-04 | Bridge `FitLifeSecureStorage` usa exclusivamente o plugin nativo `Capacitor.Plugins.SecureStorage`, sem fallback em Web Storage; indisponibilidade falha explicitamente e é coberta por teste | Branch `mob/mob-04-secure-storage`; frontend 58/58 | Parcial: plugin comunitário especificado não está publicado no npm; selecionar/instalar alternativa mantida e integrar tokens somente se o fluxo móvel abandonar cookies HttpOnly |
+| 29/07/2026 | SEC-04 | Fluxo autônomo já possui migration `password_reset_tokens`, hashes SHA-256 de uso único com expiração, respostas genéricas contra enumeração, limitação de tentativas, troca transacional de senha e revogação de sessões; `passwordReset.test.js` cobre emissão, expiração, replay e políticas | Branch `security/sec-04-password-reset-audit`; backend focado 10/10 e incluído na suíte completa | Parcial: configurar entrega real de e-mail/domínio, tela pública de redefinição e job de limpeza/auditoria de tokens expirados |
 Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.
