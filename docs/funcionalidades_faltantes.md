@@ -137,7 +137,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Pendente**: tarefa periódica de reconciliação global, persistência explícita de quota por tenant e migração dos novos uploads para binário/multipart em vez de Base64.
 
 ### [UX-05] Controle de Cache no Nginx e Cache-Busting
-*   **Especificação**: Substituir o versionamento manual por query string hoje presente por hashing de conteúdo automatizado no build; servir assets imutáveis com cache longo e HTML/roteador com revalidação (`no-cache`). Adicionar teste que impeça HTML antigo de apontar para assets removidos.
+*   **Implementado**: Nginx revalida HTML com `no-cache, must-revalidate` e serve CSS/JS versionados com `max-age=31536000, immutable`; a suíte verifica que todos os assets locais compartilham a versão e que as diretivas existem.
+*   **Pendente**: substituir a versão manual por hashing automatizado no build e validar que nenhum HTML publicado referencia assets removidos.
 
 ### [UX-06] Controle de Concorrência (Optimistic Locking)
 *   **Especificação**: Coluna `version` (INTEGER) nos registros editáveis. O frontend envia a versão no cabeçalho `If-Match`. Caso o backend verifique divergência, aborta a escrita com `409 Conflict`.

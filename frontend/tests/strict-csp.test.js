@@ -789,6 +789,13 @@ test('timestamps are parsed as UTC and formatted with the browser local timezone
   }
 });
 
+test('Nginx revalidates HTML and caches versioned CSS/JS immutably', () => {
+  const nginx = fs.readFileSync(path.join(repositoryRoot, 'nginx.conf'), 'utf8');
+  assert.match(nginx, /location ~\* \\.html\$[\s\S]*?Cache-Control "no-cache, must-revalidate"/);
+  assert.match(nginx, /location ~\* \\.\(\?:css\|js\)\$[\s\S]*?Cache-Control "public, max-age=31536000, immutable"/);
+  assert.match(nginx, /location ~\* \\.\(\?:css\|js\)\$[\s\S]*?try_files \$uri =404/);
+});
+
 test('final student-area audit prevents duplicate ids, empty image requests and inaccessible mobile navigation', () => {
   for (const page of ['desktop.html', 'mobile.html']) {
     const html = read(page);
