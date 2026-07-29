@@ -358,6 +358,7 @@ app.post('/api/personal/students/invite', authenticateToken, requireRole('person
  *         description: Erro interno do servidor.
  */
 app.get('/api/personal/students', authenticateToken, requireRole('personal'), studentController.getStudents);
+app.get('/api/personal/analytics/adherence', authenticateToken, requireRole('personal'), adherenceController.getAdherence);
 app.get('/api/personal/students/:id/assessments', authenticateToken, validateIdParam('id'), assessmentController.listAssessments);
 app.post('/api/personal/students/:id/assessments', authenticateToken, requireRole('personal'), validateIdParam('id'), validateBody('assessment'), assessmentController.createAssessment);
 app.get('/api/personal/students/adherence', authenticateToken, adherenceController.getAdherence);
