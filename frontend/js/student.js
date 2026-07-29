@@ -3,6 +3,103 @@ let studentWorkouts = [];
 let studentMeasurements = [];
 let personalTrainerId = null;
 
+const StudentSession = {
+  state: null,
+  heartbeatId: null,
+  elapsedId: null,
+  restId: null,
+  storageKey() {
+    const user = API.getCurrentUser();
+    return user?.id ? `fitlife_active_session_${user.id}` : null;
+  },
+  clearTimers() {
+    if (this.heartbeatId) clearInterval(this.heartbeatId);
+    if (this.elapsedId) clearInterval(this.elapsedId);
+    if (this.restId) clearInterval(this.restId);
+    this.heartbeatId = this.elapsedId = this.restId = null;
+  },
+  save() {
+    const key = this.storageKey();
+    if (key && this.state) sessionStorage.setItem(key, JSON.stringify({ id: this.state.id, workoutId: this.state.workoutId }));
+  },
+  clear() {
+    this.clearTimers();
+    const key = this.storageKey();
+    if (key) sessionStorage.removeItem(key);
+    this.state = null;
+    document.getElementById('student-active-session')?.remove();
+  },
+  format(seconds) {
+    const value = Math.max(0, Math.floor(seconds));
+    return `${String(Math.floor(value / 60)).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`;
+  },
+  render() {
+    let banner = document.getElementById('student-active-session');
+    if (!this.state) return;
+    if (!banner) {
+      banner = SafeDOM.el('div', { id: 'student-active-session', className: 'glass active-session-banner', attrs: { role: 'status', 'aria-live': 'polite' } });
+      document.getElementById('student-workouts-container')?.prepend(banner);
+    }
+    SafeDOM.clear(banner);
+    const elapsed = Math.floor((Date.now() - new Date(this.state.startedAt).getTime()) / 1000);
+    const elapsedLabel = SafeDOM.el('strong', { text: `Sessão ativa · ${this.format(elapsed)}` });
+    const restLabel = SafeDOM.el('span', { id: 'student-rest-timer', className: 'session-rest-timer', text: this.state.restUntil ? `Descanso ${this.format((this.state.restUntil - Date.now()) / 1000)}` : 'Pronto para o próximo exercício' });
+    banner.append(elapsedLabel, SafeDOM.el('span', { className: 'session-workout-name', text: this.state.workoutName || 'Treino' }), restLabel,
+      SafeDOM.el('button', { className: 'btn btn-secondary btn-sm', attrs: { type: 'button', 'data-action': 'start-rest' } }, ['Iniciar descanso']),
+      SafeDOM.el('button', { className: 'btn btn-primary btn-sm', attrs: { type: 'button', 'data-action': 'complete-session' } }, ['Concluir']),
+      SafeDOM.el('button', { className: 'btn btn-danger btn-sm', attrs: { type: 'button', 'data-action': 'cancel-session' } }, ['Cancelar']));
+  },
+  startTimers() {
+    this.clearTimers();
+    this.heartbeatId = setInterval(() => this.heartbeat(), 30000);
+    this.elapsedId = setInterval(() => this.render(), 1000);
+  },
+  async heartbeat() {
+    if (!this.state) return;
+    try { const result = await API.patch(`/workout-sessions/${this.state.id}/activity`, {}); this.state.lastActivityAt = result.lastActivityAt; this.save(); }
+    catch (error) { console.warn('Heartbeat da sessão falhou:', error.message); }
+  },
+  async start(workout) {
+    if (this.state) { showToast('Já existe uma sessão ativa.', 'info'); return; }
+    try {
+      const session = await API.post('/workout-sessions/start', { workoutId: workout.id });
+      this.state = { ...session, workoutId: workout.id, workoutName: workout.name, startedAt: session.started_at || new Date().toISOString() };
+      this.save(); this.render(); this.startTimers(); showToast('Sessão iniciada.', 'success');
+    } catch (error) { showToast(error.message, 'error'); }
+  },
+  async recover() {
+    const key = this.storageKey();
+    if (!key) return;
+    const saved = JSON.parse(sessionStorage.getItem(key) || 'null');
+    if (!saved?.id) return;
+    try {
+      const session = await API.get(`/workout-sessions/${saved.id}`);
+      if (session.status !== 'in_progress') return this.clear();
+      const workout = studentWorkouts.find(item => String(item.id) === String(session.workout_id));
+      this.state = { ...session, workoutId: session.workout_id, workoutName: workout?.name || session.workout_name, startedAt: session.started_at };
+      this.render(); this.startTimers();
+    } catch { this.clear(); }
+  },
+  async finish(action) {
+    if (!this.state) return;
+    try { await API.post(`/workout-sessions/${this.state.id}/${action}`); this.clear(); await loadStudentWorkouts(); showToast(action === 'complete' ? 'Treino concluído.' : 'Sessão cancelada.', 'success'); }
+    catch (error) { showToast(error.message, 'error'); }
+  },
+  rest(seconds = 60) {
+    if (!this.state) return;
+    if (this.restId) clearInterval(this.restId);
+    this.state.restUntil = Date.now() + seconds * 1000;
+    const tick = () => { const left = this.state?.restUntil - Date.now(); const timer = document.getElementById('student-rest-timer'); if (timer) timer.textContent = left > 0 ? `Descanso ${this.format(left / 1000)}` : 'Descanso finalizado'; if (left <= 0 && this.restId) { clearInterval(this.restId); this.restId = null; } };
+    tick(); this.restId = setInterval(tick, 1000);
+  }
+};
+
+function handleStudentSessionAction(action) {
+  if (action === 'start-rest') StudentSession.rest();
+  if (action === 'complete-session') StudentSession.finish('complete');
+  if (action === 'cancel-session') StudentSession.finish('cancel');
+}
+
 function exerciseCheckKey(exerciseId) {
   const userId = API.getCurrentUser()?.id;
   return userId ? `fitlife_chk_user_${userId}_exercise_${exerciseId}` : null;
@@ -53,7 +150,7 @@ async function loadStudentWorkouts() {
       const card = SafeDOM.el('div', { className: 'workout-card glass' });
       const titleBlock = SafeDOM.el('div', {}, [SafeDOM.el('span', { className: 'workout-title', text: workout.name })]);
       if (workout.description) titleBlock.appendChild(SafeDOM.el('p', { className: 'workout-desc', text: workout.description }));
-      card.appendChild(SafeDOM.el('div', { className: 'workout-header' }, [titleBlock]));
+      card.appendChild(SafeDOM.el('div', { className: 'workout-header' }, [titleBlock, SafeDOM.el('button', { className: 'btn btn-primary btn-sm', attrs: { type: 'button', 'data-action': 'start-student-session', 'data-workout-id': workout.id } }, ['Iniciar treino'])]));
       const table = SafeDOM.el('table', { className: 'pedagogical-table' });
       table.appendChild(SafeDOM.el('thead', {}, [SafeDOM.el('tr', {}, [
         SafeDOM.el('th', { text: 'Status', className: 'workout-status-heading', attrs: { scope: 'col' } }),
@@ -94,6 +191,7 @@ async function loadStudentWorkouts() {
       container.appendChild(card);
     }
     lucide.createIcons();
+    await StudentSession.recover();
   } catch (error) {
     studentWorkouts = [];
     updateStudentWorkoutSummary();
@@ -109,6 +207,10 @@ function toggleExerciseCheck(exerciseId, checkbox) {
   if (key) localStorage.setItem(key, checkbox.checked);
   document.getElementById(`ex-name-${exerciseId}`)?.classList.toggle('strike-completed', checkbox.checked);
   updateStudentWorkoutSummary();
+  if (StudentSession.state) {
+    const sessionExercise = (StudentSession.state.exercises || []).find(item => String(item.workout_exercise_id) === String(exerciseId));
+    if (sessionExercise) API.patch(`/workout-sessions/${StudentSession.state.id}/exercises/${sessionExercise.id}`, { completed: checkbox.checked }).catch(error => showToast(error.message, 'error'));
+  }
 }
 
 function updateStudentMeasurementOverview() {
