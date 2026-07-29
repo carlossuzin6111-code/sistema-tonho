@@ -33,6 +33,7 @@ Este documento atua como o inventário de engenharia contendo especificações d
     - claimed_at (TIMESTAMP, NULLABLE)
     ```
 *   **Endpoint pendente**: integração de entrega via Resend/Nodemailer e endpoint de aceite que valide o token, crie a conta com senha temporária e marque `claimed_at` na mesma transação.
+*   **Registro da entrega atual**: PR #90 (`security/sec-03-student-invitations`), commit `05efe29`, testes focados `studentInvitations.test.js` + `migrations.test.js` (8/8). O item permanece **Parcial** até a entrega e o aceite serem implementados.
 
 ### [SEC-04] Reset de Senha Autônomo para Personais
 *   **Especificação**: Tabela `password_reset_tokens`:
