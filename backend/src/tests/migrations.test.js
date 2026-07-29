@@ -20,7 +20,8 @@ const applicationTables = [
   'student_assessments',
   'idempotency_keys',
   'workout_microcycles',
-  'subscriptions'
+  'subscriptions',
+  'personal_team_memberships'
 ];
 
 const migrations = [
@@ -50,7 +51,8 @@ const migrations = [
   '202607290012_create_workout_microcycles.js',
   '202607290013_add_chat_message_lifecycle.js',
   '202607290014_add_catalog_governance.js',
-  '202607290015_create_subscriptions.js'
+  '202607290015_create_subscriptions.js',
+  '202607290016_create_personal_team_memberships.js'
 ];
 
 function createDatabase() {

@@ -28,7 +28,7 @@ async function applyAuthentication(req, authentication) {
   const db = require('../database');
   const payload = verifySessionToken(authentication.token);
   const user = await db('users')
-    .select('id', 'name', 'email', 'role', 'session_version', 'must_change_password')
+    .select('id', 'name', 'email', 'role', 'organization_role', 'session_version', 'must_change_password')
     .where('id', payload.id)
     .first();
 
@@ -41,6 +41,7 @@ async function applyAuthentication(req, authentication) {
     name: user.name,
     email: user.email,
     role: user.role,
+    organizationRole: user.organization_role || 'standalone',
     mustChangePassword: Boolean(user.must_change_password)
   };
   req.authSource = authentication.source;

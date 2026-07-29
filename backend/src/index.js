@@ -32,6 +32,7 @@ const workoutSessionController = require('./controllers/workoutSessionController
 const progressionController = require('./controllers/progressionController');
 const assessmentController = require('./controllers/assessmentController');
 const subscriptionController = require('./controllers/subscriptionController');
+const teamController = require('./controllers/teamController');
 
 // Initialize database
 const db = require('./database');
@@ -79,6 +80,9 @@ app.get('/api/health', async (req, res) => {
 });
 
 app.get('/api/subscription', authenticateToken, subscriptionController.getSubscription);
+app.get('/api/team/members', authenticateToken, requireRole('personal'), teamController.listTeam);
+app.post('/api/team/members', authenticateToken, requireRole('personal'), teamController.addTeamMember);
+app.patch('/api/team/members/:id/end', authenticateToken, requireRole('personal'), validateIdParam('id'), teamController.terminateTeamMember);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
