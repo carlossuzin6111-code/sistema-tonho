@@ -31,6 +31,7 @@ const profileController = require('./controllers/profileController');
 const workoutSessionController = require('./controllers/workoutSessionController');
 const progressionController = require('./controllers/progressionController');
 const assessmentController = require('./controllers/assessmentController');
+const geofenceController = require('./controllers/geofenceController');
 
 // Initialize database
 const db = require('./database');
@@ -76,6 +77,12 @@ app.get('/api/health', async (req, res) => {
     res.status(503).json({ status: 'unavailable' });
   }
 });
+
+app.post('/api/personal/geofences', authenticateToken, geofenceController.createGeofence);
+app.get('/api/personal/geofences', authenticateToken, geofenceController.listGeofences);
+app.get('/api/personal/checkins', authenticateToken, geofenceController.listCheckins);
+app.post('/api/student/checkins', authenticateToken, geofenceController.checkIn);
+app.post('/api/student/checkins/:id/checkout', authenticateToken, validateIdParam('id'), geofenceController.checkOut);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);

@@ -241,6 +241,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-06] Check-ins por Geofencing e Agendamentos
 *   **Especificação**: Validação de presença presencial baseada em coordenadas GPS de geocercas ou conexão Wi-Fi da academia. Sincronização ICS.
+*   **Progresso em 29/07/2026**: migration `202607290020_create_geofence_checkins.js` e endpoints protegidos permitem ao Personal criar geofences, ao aluno realizar check-in somente dentro do raio calculado por Haversine, repetir eventos com segurança e fazer checkout; a consulta respeita o vínculo Personal/aluno.
+*   **Pendente**: sincronização ICS e agenda, verificação Wi-Fi complementar, antifraude (mock GPS/replay avançado), privacidade/retensão de coordenadas e relatórios de presença.
 
 ### [OPS-07] Check-in de Prontidão Física Diária (Readiness)
 *   **Especificação**: Escalas de 1 a 5 para DOMS, sono, fadiga e humor respondidos pelo aluno antes de abrir a ficha de treino do dia.
