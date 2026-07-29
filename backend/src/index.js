@@ -753,7 +753,9 @@ app.post('/api/workout-sessions/start', authenticateToken, idempotency, validate
  *       200:
  *         description: Progresso do exercício atualizado.
  */
-app.patch('/api/workout-sessions/:id/exercises/:exerciseId', authenticateToken, idempotency, validateIdParam('id'), validateIdParam('exerciseId'), validateBody('updateWorkoutSessionExercise'), workoutSessionController.updateExerciseProgress);
+
+app.patch('/api/workout-sessions/:id/exercises/:exerciseId', authenticateToken, validateIdParam('id'), validateIdParam('exerciseId'), validateBody('updateWorkoutSessionExercise'), workoutSessionController.updateExerciseProgress);
+app.patch('/api/workout-sessions/:id/activity', authenticateToken, validateIdParam('id'), workoutSessionController.keepSessionAlive);
 
 /**
  * @openapi

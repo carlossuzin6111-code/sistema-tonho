@@ -186,7 +186,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Pendente**: cálculo de 1-RM com fórmula explícita, sugestões integradas na tela de execução e visualização histórica.
 
 ### [BUS-07] Temporizador de Descanso e Sessão Ativa
-*   **Especificação**: Temporizadores visuais no frontend com gravação de status no backend em `last_activity_at` para recuperar a sessão em andamento caso o navegador seja fechado acidentalmente.
+*   **Implementado parcialmente**: Sessões possuem `last_activity_at`, atualizado ao iniciar e registrar progresso; endpoint heartbeat autenticado mantém a sessão ativa e respeita ownership.
+*   **Pendente**: temporizador visual, polling/heartbeat automático e recuperação da sessão no frontend.
 
 ### [BUS-08] Fila Local (IndexedDB) e Chave de Idempotência
 *   **Especificação**:
