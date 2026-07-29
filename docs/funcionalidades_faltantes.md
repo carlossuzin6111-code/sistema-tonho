@@ -207,6 +207,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [BUS-11] Indicador de "Digitando..." via SSE
 *   **Especificação**: Evento leve `event: typing` enviado pelo Express a partir de chamadas rápidas `POST /api/chat/typing` com de-bounce.
+*   **Progresso em 29/07/2026**: endpoint autenticado valida o vínculo Personal/Aluno, limita emissões repetidas e encerra automaticamente o estado após 1,5s; o cliente escuta o evento SSE e atualiza uma região `aria-live`.
+*   **Pendente**: cobertura automatizada de uma conexão SSE real e métricas de volume/latência dos eventos.
 
 ### [BUS-12] Inativação e Abas de Filtragem de Alunos
 *   **Especificação**: Possibilidade de inativar alunos antigos sem deletar seu prontuário físico e separação por abas "Ativos" / "Inativos" na listagem.

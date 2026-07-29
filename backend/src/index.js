@@ -1017,6 +1017,7 @@ app.get('/api/chat/:userId?', authenticateToken, chatController.getMessages);
  *         description: Erro interno do servidor.
  */
 app.post('/api/chat', authenticateToken, validateBody('chatMessage'), chatController.sendMessage);
+app.post('/api/chat/typing', authenticateToken, chatController.sendTyping);
 
 // Normalize parser failures without exposing Express internals.
 app.use(jsonErrorHandler);
