@@ -37,6 +37,7 @@ const partnerController = require('./controllers/partnerController');
 const wearableController = require('./controllers/wearableController');
 const crmController = require('./controllers/crmController');
 const geofenceController = require('./controllers/geofenceController');
+const readinessController = require('./controllers/readinessController');
 
 // Initialize database
 const db = require('./database');
@@ -106,6 +107,10 @@ app.get('/api/personal/geofences', authenticateToken, geofenceController.listGeo
 app.get('/api/personal/checkins', authenticateToken, geofenceController.listCheckins);
 app.post('/api/student/checkins', authenticateToken, geofenceController.checkIn);
 app.post('/api/student/checkins/:id/checkout', authenticateToken, validateIdParam('id'), geofenceController.checkOut);
+app.post('/api/student/readiness', authenticateToken, readinessController.save);
+app.get('/api/student/readiness', authenticateToken, readinessController.listStudent);
+app.get('/api/student/readiness/recommendation', authenticateToken, readinessController.getRecommendation);
+app.get('/api/personal/students/:id/readiness', authenticateToken, validateIdParam('id'), readinessController.listForPersonal);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);

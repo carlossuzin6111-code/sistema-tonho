@@ -270,6 +270,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-07] Check-in de Prontidão Física Diária (Readiness)
 *   **Especificação**: Escalas de 1 a 5 para DOMS, sono, fadiga e humor respondidos pelo aluno antes de abrir a ficha de treino do dia.
+*   **Progresso em 29/07/2026**: migration `202607290021_create_readiness_checkins.js`, endpoint autenticado com upsert diário, triggers de domínio 1–5, score normalizado e recomendação explicável de volume; Personal só lê alunos vinculados.
+*   **Pendente**: exigir o check-in antes de abrir a ficha, enviar lembretes, integrar o score com periodização/treinos e validar a regra clínica com profissionais.
 
 ### [OPS-08] Centro de Preferências de Notificações
 *   **Especificação**: Mapeamento de canais de recebimento (WhatsApp, E-mail, Push) para cada tipo de evento nas configurações de conta do usuário.
