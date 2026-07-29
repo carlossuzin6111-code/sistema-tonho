@@ -2,10 +2,41 @@ const bcrypt = require('bcryptjs');
 const db = require('../database');
 const { isEmailUniqueConstraint, normalizeEmail } = require('../services/userIdentityService');
 const { AUDIT_ACTIONS, recordAudit } = require('../services/auditService');
+const crypto = require('crypto');
+
+const INVITATION_TTL_MS = 72 * 60 * 60 * 1000;
+const hashInvitationToken = token => crypto.createHash('sha256').update(token).digest('hex');
 
 function withAvatarMetadata(user) {
   const { avatar_filename, avatar_updated_at, ...publicFields } = user;
   return { ...publicFields, hasAvatar: Boolean(avatar_filename), avatarUpdatedAt: avatar_updated_at || null };
+}
+
+async function inviteStudent(req, res) {
+  if (typeof req.body?.email !== 'string' || !req.body.email.trim()) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+  const email = normalizeEmail(req.body.email);
+  const personalId = req.user.id;
+  const expiresAt = new Date(Date.now() + INVITATION_TTL_MS);
+  const rawToken = crypto.randomBytes(32).toString('base64url');
+  try {
+    const invitation = await db.transaction(async trx => {
+      const existingUser = await trx('users').select('id').where('email', email).first();
+      if (existingUser) { const error = new Error('Email already registered'); error.code = 'EMAIL_ALREADY_REGISTERED'; throw error; }
+      await trx('student_invitations').where({ email, personal_id: personalId }).whereNull('claimed_at').del();
+      const [id] = await trx('student_invitations').insert({ email, personal_id: personalId, token_hash: hashInvitationToken(rawToken), expires_at: expiresAt.toISOString() });
+      await recordAudit(trx, { actorUserId: personalId, action: 'student.invitation_created', targetType: 'student_invitation', targetId: id, metadata: { email, expiresAt: expiresAt.toISOString() } });
+      return { id };
+    });
+    const response = { message: 'Student invitation created successfully', invitationId: invitation.id, expiresAt: expiresAt.toISOString() };
+    if (process.env.NODE_ENV !== 'production') response.token = rawToken;
+    return res.status(201).json(response);
+  } catch (error) {
+    if (error.code === 'EMAIL_ALREADY_REGISTERED') return res.status(400).json({ error: error.message });
+    console.error('Invite student error:', error.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 }
 
 // Create a new student (Personal Trainer only)
@@ -273,6 +304,7 @@ async function resetPassword(req, res) {
 }
 
 module.exports = {
+  inviteStudent,
   createStudent,
   getStudents,
   getStudentDetails,

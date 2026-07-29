@@ -14,7 +14,7 @@ Este documento atua como o painel executivo para controle de progresso e roadmap
 |---|---|---|---|---|---|---|
 | **SEC-01** | Proteção contra IDOR | 10/10 | **Parcial** | 8h | Alto | Backend | #
 | **SEC-02** | Onboarding (`must_change_password`) | 9/10 | **Implementado** | 12h | Médio | Fullstack |
-| **SEC-03** | Convites de Aluno com Expiração | 9/10 | **Não Iniciado** | 16h | Médio | Fullstack |
+| **SEC-03** | Convites de Aluno com Expiração | 9/10 | **Parcial** | 16h | Médio | Fullstack |
 | **SEC-04** | Reset de Senha do Personal | 8/10 | **Não Iniciado** | 12h | Médio | Backend | #
 | **SEC-05** | Verificação de E-mail | 7/10 | **Não Iniciado** | 8h | Baixo | Backend |
 | **SEC-06** | CSRF Segregado | 9/10 | **Parcial** | 6h | Médio | Backend |
@@ -102,6 +102,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 |---|---|---|---|
 | **SEC-01** | `../backend/src/controllers/studentController.js`, `workoutController.js`, `chatController.js` | `../backend/src/tests/api.test.js`, `chatController.test.js` | `Matriz IDOR negativa cobrindo toda rota com recurso de aluno` |
 | **SEC-02** | `../backend/src/db/migrations/202607290001_add_must_change_password.js`, `authController.js`, `studentController.js`, `profileController.js`, `middleware/auth.js`, `frontend/js/app.js`, `profile.js` | `../backend/src/tests/onboarding.test.js`, `api.test.js`, `passwordReset.test.js` | `Teste E2E de navegador para impedir fechamento do modal obrigatório` |
+| **SEC-03** | `../backend/src/db/migrations/202607290002_create_student_invitations.js`, `studentController.js`, `middleware/validateRequest.js`, `index.js` | `../backend/src/tests/studentInvitations.test.js`, `migrations.test.js` | `Entrega de e-mail e endpoint de aceite que cria a conta do aluno` |
 | **SEC-06** | `../backend/src/middleware/auth.js`, `httpSecurity.js` | `../backend/src/tests/httpSecurity.test.js`, `api.test.js` | `Fluxo mobile/Bearer e teste E2E em origem pública` |
 | **SEC-07** | `../backend/src/middleware/httpSecurity.js` | `../backend/src/tests/httpSecurity.test.js` | `Chave combinada por IP + e-mail, inclusive múltiplos IPs` |
 | **DB-01** | `../docker-compose.yml` | - | `Checagem física de persistência pós container restart` |
@@ -135,3 +136,15 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 ### [BUS-01] Execução Real de Treino
 *   *Critério 1*: Logs de exercícios devem armazenar valores de peso, repetições e séries reais executadas pelo aluno no ginásio.
 *   *Critério 2*: Sessões de treino devem expor status `started`, `completed` e `abandoned` indexados na tabela `workout_sessions`.
+
+---
+
+## 5. Registro de Progresso e Entregas
+
+| Data | Item | Entrega | Evidência | Estado/Próximo passo |
+|---|---|---|---|---|
+| 29/07/2026 | SEC-02 | Onboarding obrigatório com `must_change_password`, bloqueio `428`, modal de troca, revogação de sessão e reset integrado | PR #88; commit `dd2938e`; frontend 51/51; backend aprovado no CI | Concluído |
+| 29/07/2026 | CI | Dependências vulneráveis corrigidas, encerramento determinístico do Jest e reparo da suíte BUS-01 | PR #89; commits `1319f53`, `e51a32a`, `928d98e`; Backend 165/165 no CI | Concluído |
+| 29/07/2026 | SEC-03 | Migration e endpoint transacional de convite, hash SHA-256, expiração de 72h, substituição e auditoria | PR #90; commit `05efe29`; testes focados 8/8 | Parcial: falta envio de e-mail e aceite que cria a conta |
+
+Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.
