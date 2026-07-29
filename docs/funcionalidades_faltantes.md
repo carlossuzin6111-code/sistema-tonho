@@ -171,6 +171,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Tabelas**:
     *   `workout_sessions` (IDs de vínculos, data de início, término, status `started` / `completed` / `abandoned`).
     *   `exercise_logs` (séries concluídas, repetições reais, carga levantada, RPE percebido de 1 a 10).
+*   **Progresso em 29/07/2026**: `workout_sessions` e `workout_session_exercises` já possuem endpoints autenticados para iniciar, atualizar progresso, manter heartbeat, concluir/cancelar e consultar histórico/detalhes; ownership/IDOR e transações são cobertos por `workoutSessions.test.js` (15/15).
+*   **Pendente**: integrar uma tela de execução no frontend, persistir RPE/logs clínicos e alinhar o contrato de status atual (`in_progress`, `completed`, `cancelled`) com a especificação (`started`, `completed`, `abandoned`).
 
 ### [BUS-02] Estados de Publicação da Ficha de Treino
 *   **Implementado parcialmente**: Fichas possuem campo `status` (`'draft'`, `'published'`, `'archived'`), protegido por triggers SQLite. O aluno só visualiza treinos publicados; ao publicar uma ficha, as anteriores do mesmo aluno/personal são arquivadas em uma transação.
