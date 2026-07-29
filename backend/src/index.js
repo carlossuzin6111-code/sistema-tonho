@@ -30,6 +30,7 @@ const auditController = require('./controllers/auditController');
 const profileController = require('./controllers/profileController');
 const workoutSessionController = require('./controllers/workoutSessionController');
 const progressionController = require('./controllers/progressionController');
+const adherenceController = require('./controllers/adherenceController');
 const assessmentController = require('./controllers/assessmentController');
 const partnerController = require('./controllers/partnerController');
 
@@ -369,6 +370,7 @@ app.post('/api/personal/students/invite', authenticateToken, requireRole('person
 app.get('/api/personal/students', authenticateToken, requireRole('personal'), studentController.getStudents);
 app.get('/api/personal/students/:id/assessments', authenticateToken, validateIdParam('id'), assessmentController.listAssessments);
 app.post('/api/personal/students/:id/assessments', authenticateToken, requireRole('personal'), validateIdParam('id'), validateBody('assessment'), assessmentController.createAssessment);
+app.get('/api/personal/students/adherence', authenticateToken, adherenceController.getAdherence);
 
 /**
  * @openapi
@@ -1020,6 +1022,7 @@ app.get('/api/chat/:userId?', authenticateToken, chatController.getMessages);
  *         description: Erro interno do servidor.
  */
 app.post('/api/chat', authenticateToken, validateBody('chatMessage'), chatController.sendMessage);
+app.post('/api/chat/typing', authenticateToken, chatController.sendTyping);
 
 // Normalize parser failures without exposing Express internals.
 app.use(jsonErrorHandler);
