@@ -677,6 +677,17 @@ describe('FitLife Sync API Integration Tests', () => {
       workoutId = res.body.workoutId;
     });
 
+    test('Should rollback workout when a linked exercise violates database constraints', async () => {
+      const before = await db('workouts').where({ student_id: studentId }).count('* as total').first();
+      const res = await request(app)
+        .post('/api/workouts')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ studentId, name: 'Treino que deve falhar', exercises: [{ name: 'Carga inválida', sets: -1 }] });
+      expect(res.statusCode).toBe(500);
+      const after = await db('workouts').where({ student_id: studentId }).count('* as total').first();
+      expect(Number(after.total)).toBe(Number(before.total));
+    });
+
     test('Should hide draft workouts from students and publish them explicitly', async () => {
       const draft = await request(app)
         .patch(`/api/workouts/${workoutId}/status`)
