@@ -101,9 +101,10 @@ async function getMessages(req, res) {
       ? await query.orderBy([{ column: 'created_at', order: 'desc' }, { column: 'id', order: 'desc' }]).limit(rawLimit + 1)
       : await query.orderBy([{ column: 'created_at', order: 'asc' }, { column: 'id', order: 'asc' }]);
 
-    if (!hasPagination) return res.status(200).json(rows);
-    const hasMore = rows.length > rawLimit;
-    const messages = rows.slice(0, rawLimit).reverse();
+    const visibleRows = rows.map(row => row.deleted_at ? { ...row, message: null } : row);
+    if (!hasPagination) return res.status(200).json(visibleRows);
+    const hasMore = visibleRows.length > rawLimit;
+    const messages = visibleRows.slice(0, rawLimit).reverse();
     return res.status(200).json({
       messages,
       nextCursor: hasMore && messages.length ? String(messages[0].id) : null
@@ -181,6 +182,53 @@ async function sendMessage(req, res) {
   }
 }
 
+async function getOwnedMessage(req, messageId) {
+  const message = await db('chat_messages').where('id', messageId).first();
+  if (!message || Number(message.sender_id) !== Number(req.user.id)) return null;
+  return message;
+}
+
+async function editMessage(req, res) {
+  const messageId = Number(req.params.messageId);
+  const messageText = typeof req.body?.message === 'string' ? req.body.message.trim() : '';
+  if (!Number.isInteger(messageId) || messageId < 1) return res.status(400).json({ error: 'Invalid message id' });
+  if (!messageText) return res.status(400).json({ error: 'Message content cannot be empty' });
+  if (messageText.length > 2000) return res.status(400).json({ error: 'Message content must be at most 2000 characters' });
+  try {
+    const current = await getOwnedMessage(req, messageId);
+    if (!current) return res.status(404).json({ error: 'Message not found' });
+    if (current.deleted_at) return res.status(409).json({ error: 'Deleted messages cannot be edited' });
+    const editedAt = new Date().toISOString();
+    await db('chat_messages').where({ id: messageId, sender_id: req.user.id }).update({ message: messageText, edited_at: editedAt });
+    const updated = { ...current, message: messageText, edited_at: editedAt };
+    notifyUser(current.sender_id, { type: 'message.updated', ...updated });
+    notifyUser(current.receiver_id, { type: 'message.updated', ...updated });
+    return res.json(updated);
+  } catch (error) {
+    console.error('Edit message error:', error.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function deleteMessage(req, res) {
+  const messageId = Number(req.params.messageId);
+  if (!Number.isInteger(messageId) || messageId < 1) return res.status(400).json({ error: 'Invalid message id' });
+  try {
+    const current = await getOwnedMessage(req, messageId);
+    if (!current) return res.status(404).json({ error: 'Message not found' });
+    if (current.deleted_at) return res.json({ id: messageId, deleted_at: current.deleted_at });
+    const deletedAt = new Date().toISOString();
+    await db('chat_messages').where({ id: messageId, sender_id: req.user.id }).update({ message: '', deleted_at: deletedAt });
+    const event = { type: 'message.deleted', id: messageId, sender_id: current.sender_id, receiver_id: current.receiver_id, deleted_at: deletedAt };
+    notifyUser(current.sender_id, event);
+    notifyUser(current.receiver_id, event);
+    return res.json({ id: messageId, deleted_at: deletedAt });
+  } catch (error) {
+    console.error('Delete message error:', error.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 // SSE Connection Handler for Real-Time Updates
 function handleChatStream(req, res) {
   const userId = req.user.id.toString();
@@ -231,5 +279,7 @@ module.exports = {
   getChatPartner,
   getMessages,
   sendMessage,
+  editMessage,
+  deleteMessage,
   handleChatStream
 };

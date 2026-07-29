@@ -1021,6 +1021,48 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body.receiver_id).toBe(otherPersonalId);
     });
 
+    test('Should allow the sender to edit and delete a chat message', async () => {
+      const created = await request(app)
+        .post('/api/chat')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ receiverId: studentId, message: 'Mensagem que será atualizada' });
+      expect(created.statusCode).toBe(201);
+
+      const edited = await request(app)
+        .put(`/api/chat/${created.body.id}`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ message: 'Mensagem atualizada' });
+      expect(edited.statusCode).toBe(200);
+      expect(edited.body.message).toBe('Mensagem atualizada');
+      expect(edited.body.edited_at).toBeTruthy();
+
+      const deleted = await request(app)
+        .delete(`/api/chat/${created.body.id}`)
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(deleted.statusCode).toBe(200);
+      expect(deleted.body.deleted_at).toBeTruthy();
+      const stored = await db('chat_messages').where('id', created.body.id).first();
+      expect(stored.message).toBe('');
+      expect(stored.deleted_at).toBeTruthy();
+    });
+
+    test('Should prevent another user from editing or deleting a chat message', async () => {
+      const created = await request(app)
+        .post('/api/chat')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ receiverId: studentId, message: 'Mensagem protegida' });
+      expect(created.statusCode).toBe(201);
+      const edit = await request(app)
+        .put(`/api/chat/${created.body.id}`)
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ message: 'Tentativa indevida' });
+      expect(edit.statusCode).toBe(404);
+      const remove = await request(app)
+        .delete(`/api/chat/${created.body.id}`)
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(remove.statusCode).toBe(404);
+    });
+
     test('Should open real-time SSE chat connection', (done) => {
       http.get({
         hostname: '127.0.0.1',

@@ -45,15 +45,10 @@ Este documento atua como o painel executivo para controle de progresso e roadmap
 | **BUS-05** | Aderência Semanal Analítica | 8/10 | **Não Iniciado** | 12h | Médio | Backend |
 | **BUS-06** | Progressão de Carga e 1-RM | 7/10 | **Parcial** | 16h | Médio | Fullstack |
 
-bus/bus-08-offline-idempotency
-| **BUS-07** | Temporizador e Sessão Ativa | 7/10 | **Não Iniciado** | 14h | Baixo | Frontend |
-| **BUS-08** | Fila IndexedDB e Idempotency | 8/10 | **Parcial** | 20h | Alto | Fullstack |
-=======
 | **BUS-07** | Temporizador e Sessão Ativa | 7/10 | **Parcial** | 14h | Baixo | Frontend |
-| **BUS-08** | Fila IndexedDB e Idempotency | 8/10 | **Não Iniciado** | 20h | Alto | Frontend |
- main
+| **BUS-08** | Fila IndexedDB e Idempotency | 8/10 | **Parcial** | 20h | Alto | Fullstack |
 | **BUS-09** | Chaves de Cadastro via CLI | 10/10 | **Parcial** | 8h | Baixo | Backend |
-| **BUS-10** | Edição/Exclusão/Leitura de Chat | 8/10 | **Não Iniciado** | 12h | Médio | Fullstack |
+| **BUS-10** | Edição/Exclusão/Leitura de Chat | 8/10 | **Parcial** | 12h | Médio | Fullstack |
 | **BUS-11** | Indicador "Digitando..." via SSE | 5/10 | **Não Iniciado** | 8h | Baixo | Fullstack |
 | **BUS-12** | Inativação e Abas de Alunos | 8/10 | **Parcial** | 8h | Baixo | Fullstack |
 | **BUS-13** | Periodização Biomecânica | 6/10 | **Não Iniciado** | 20h | Alto | Backend |
@@ -120,6 +115,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | **UX-07** | `../frontend/desktop.html`, `mobile.html`, `css/` | `../frontend/tests/strict-csp.test.js`, `safe-dom.test.js` | `Auditoria WCAG 2.2 AA automatizada e manual` |
 | **UX-08** | `../backend/src/services/avatarService.js`, `../nginx.conf` | `../backend/src/tests/api.test.js` | `Quota por usuário/tenant e persistência/reconciliação de arquivos` |
 | **BUS-04** | `../backend/src/db/migrations/202607290009_create_student_assessments.js`, `assessmentController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Tela de anamnese, edição/versionamento e auditoria clínica` |
+| **BUS-10** | `../backend/src/db/migrations/202607290013_add_chat_message_lifecycle.js`, `../backend/src/controllers/chatController.js`, `../backend/src/index.js` | `../backend/src/tests/api.test.js`, `../backend/src/tests/migrations.test.js` | `Editar/excluir pelo frontend e histórico visual de eventos SSE` |
 | **OPS-10** | `../backend/src/index.js` | `../backend/src/tests/api.test.js` | `Separar liveness de readiness verificando migrations` |
 | **UX-01** | `../backend/src/controllers/chatController.js`, `../backend/src/index.js` | `../backend/src/tests/api.test.js` | `Carregar páginas anteriores no frontend e botão/scroll de histórico` |
 | **UX-02** | `../frontend/js/personal.js`, `../frontend/css/style.css`, `mobile.css` | `../frontend/tests/strict-csp.test.js` | `Medição visual de altura por viewport e QA em catálogo muito grande` |
@@ -133,11 +129,8 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | **BUS-06** | `../backend/src/controllers/progressionController.js`, `index.js` | `../backend/src/tests/api.test.js` | `Sugestão visual no frontend e cálculo de 1-RM por fórmula validada` |
 | **BUS-12** | `../backend/src/controllers/studentController.js`, `../frontend/js/personal.js`, `desktop.html`, `mobile.html` | `../backend/src/tests/api.test.js`, `../frontend/tests/strict-csp.test.js` | `Endpoint com filtro persistido e confirmação/auditoria das transições de status` |
 | **BUS-04** | `../backend/src/db/migrations/202607290009_create_student_assessments.js`, `assessmentController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Tela de anamnese, edição/versionamento e auditoria clínica` |
- bus/bus-08-offline-idempotency
 | **BUS-08** | `../backend/src/db/migrations/202607290011_create_idempotency_keys.js`, `../backend/src/middleware/idempotency.js`, `../frontend/js/api.js` | `../backend/src/tests/migrations.test.js`, `../backend/src/tests/workoutSessions.test.js`, `../frontend/tests/strict-csp.test.js` | `Instrumentar fila para todos os fluxos offline e política de retenção/limpeza` |
-=======
 | **BUS-07** | `../backend/src/db/migrations/202607290010_add_session_activity.js`, `workoutSessionController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `workoutSessions.test.js` | `Temporizador visual e recuperação automática da sessão no frontend` |
- main
 | **UX-08** | `../backend/src/services/avatarService.js`, `mediaQuotaService.js`, `profileController.js`, `exerciseController.js`, `nginx.conf` | `../backend/src/tests/avatarService.test.js`, `mediaQuotaService.test.js`, `httpSecurity.test.js` | `Multipart para novos uploads e reconciliação global agendada` |
 
 ---
@@ -195,11 +188,8 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | 29/07/2026 | BUS-06 | Endpoint agrega volume (`séries × repetições × carga`), informa recorde de volume e última carga/repetições por exercício para sugestão de sessão | Branch `bus/bus-06-progression`; backend API 65/65; `git diff --check` aprovado | Parcial: cálculo de 1-RM e integração visual ainda pendentes |
 | 29/07/2026 | BUS-12 | Abas Ativos/Inativos/Todos no dashboard do Personal filtram vínculos sem apagar prontuário; cartões usam `account_status` e `relationship_status` | Branch `bus/bus-12-student-tabs`; frontend 55/55; `git diff --check` aprovado | Parcial: filtro server-side e auditoria/confirmacão da mudança de status ainda pendentes |
 | 29/07/2026 | BUS-04 | Tabela `student_assessments` separa campos privados do Personal e notas compartilhadas; endpoints autenticados controlam ownership e ocultam `personal_notes` do aluno | Branch `bus/bus-04-assessments`; backend migrations/API 69/69 | Parcial: integrar tela, edição/versionamento e auditoria clínica |
- bus/bus-08-offline-idempotency
 | 29/07/2026 | BUS-08 | Fila IndexedDB para mutações de sessões quando offline, reenvio FIFO ao voltar a conexão, `Idempotency-Key` por operação e deduplicação de respostas 2xx no backend | Branch `bus/bus-08-offline-idempotency`; frontend 55/55; backend migrations/workout sessions 15/15; `git diff --check` aprovado | Parcial: ampliar instrumentação para demais mutações offline e adicionar limpeza/telemetria da fila |
-=======
+| 29/07/2026 | BUS-10 | Endpoints autenticados `PUT/DELETE /api/chat/:messageId`, ownership exclusivo do remetente, soft-delete preservando histórico e eventos SSE `message.updated`/`message.deleted` para os envolvidos | Branch `bus/bus-10-chat-lifecycle`; API 70/70, migrations 5/5; `git diff --check` aprovado | Parcial: controles de edição/exclusão e renderização de eventos no frontend |
 | 29/07/2026 | BUS-07 | Campo `last_activity_at`, atualização no início/progresso e endpoint heartbeat autenticado para sessões ativas | Branch `bus/bus-07-active-session`; migrations/workout sessions 15/15; `git diff --check` aprovado | Parcial: temporizador e recuperação automática no frontend ainda pendentes |
-
-main
 | 29/07/2026 | UX-08 | Quota agregada configurável de 20 MiB para imagens Base64 de exercícios, validação de MIME/assinatura mantida e respostas `413` para excesso; avatar já possui quota e reconciliação por usuário | Branch `ux/ux-08-upload-quotas`; backend focado 82/82 | Parcial: migrar novos uploads para multipart e executar reconciliação global periódica |
 Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.
