@@ -30,9 +30,9 @@ const auditController = require('./controllers/auditController');
 const profileController = require('./controllers/profileController');
 const workoutSessionController = require('./controllers/workoutSessionController');
 const progressionController = require('./controllers/progressionController');
+const adherenceController = require('./controllers/adherenceController');
 const assessmentController = require('./controllers/assessmentController');
-const { requestLogger } = require('./services/logger');
-const metricsService = require('./services/metricsService');
+const healthController = require('./controllers/healthController');
 
 // Initialize database
 const db = require('./database');
@@ -72,18 +72,12 @@ setupSwagger(app, {
   enabled: process.env.API_DOCS_ENABLED
 });
 
-// Readiness endpoint used by Compose. It verifies both the HTTP process and the
-// database connection without exposing schema or environment details.
-app.get('/api/health', async (req, res) => {
-  try {
-    await db.ready;
-    await db.raw('SELECT 1');
-    res.json({ status: 'ok' });
-  } catch (error) {
-    console.error('Health check failed:', error.message);
-    res.status(503).json({ status: 'unavailable' });
-  }
-});
+// Liveness is independent from SQLite; readiness verifies the connection and
+// confirms that no migrations are waiting to be applied.
+app.get('/health/live', healthController.live);
+app.get('/health/ready', healthController.ready);
+// Backward-compatible alias used by existing Compose/probes.
+app.get('/api/health', healthController.ready);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
@@ -372,6 +366,7 @@ app.post('/api/personal/students/invite', authenticateToken, requireRole('person
 app.get('/api/personal/students', authenticateToken, requireRole('personal'), studentController.getStudents);
 app.get('/api/personal/students/:id/assessments', authenticateToken, validateIdParam('id'), assessmentController.listAssessments);
 app.post('/api/personal/students/:id/assessments', authenticateToken, requireRole('personal'), validateIdParam('id'), validateBody('assessment'), assessmentController.createAssessment);
+app.get('/api/personal/students/adherence', authenticateToken, adherenceController.getAdherence);
 
 /**
  * @openapi
@@ -1023,6 +1018,7 @@ app.get('/api/chat/:userId?', authenticateToken, chatController.getMessages);
  *         description: Erro interno do servidor.
  */
 app.post('/api/chat', authenticateToken, validateBody('chatMessage'), chatController.sendMessage);
+app.post('/api/chat/typing', authenticateToken, chatController.sendTyping);
 
 // Normalize parser failures without exposing Express internals.
 app.use(jsonErrorHandler);
