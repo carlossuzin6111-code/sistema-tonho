@@ -250,6 +250,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-09] Exportação e Anonimização de Dados (LGPD)
 *   **Especificação**: Endpoints `/api/compliance/export` e `/api/compliance/delete` (anonimizando informações identificáveis na exclusão permanente).
+*   **Progresso em 29/07/2026**: `/api/compliance/export` entrega somente os dados do usuário autenticado sem `password_hash`, com `no-store`; `/api/compliance/delete` exige confirmação literal e senha atual, remove conteúdo conversacional/tokens, anonimiza a conta em transação e incrementa `session_version` para revogar sessões.
+*   **Pendente**: exportação assíncrona/criptografada para grandes volumes, política de retenção, fila de exclusão com lock, confirmação de identidade adicional e revisão jurídica/operacional LGPD.
 
 ### [OPS-10] Health Checks Liveness/Readiness
 *   **Especificação**: Endpoint `/health/live` (status do runtime) e `/health/ready` (valida conexão com SQLite e se há migrations pendentes no Knex).

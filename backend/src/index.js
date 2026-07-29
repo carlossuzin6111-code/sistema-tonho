@@ -31,6 +31,7 @@ const profileController = require('./controllers/profileController');
 const workoutSessionController = require('./controllers/workoutSessionController');
 const progressionController = require('./controllers/progressionController');
 const assessmentController = require('./controllers/assessmentController');
+const complianceController = require('./controllers/complianceController');
 
 // Initialize database
 const db = require('./database');
@@ -76,6 +77,9 @@ app.get('/api/health', async (req, res) => {
     res.status(503).json({ status: 'unavailable' });
   }
 });
+
+app.get('/api/compliance/export', authenticateToken, complianceController.exportData);
+app.post('/api/compliance/delete', authenticateToken, complianceController.anonymizeAccount);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
