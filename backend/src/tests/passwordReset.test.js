@@ -1,3 +1,6 @@
+process.env.NODE_ENV = 'test';
+process.env.JWT_SECRET = 'test-only-jwt-secret-with-at-least-32-bytes';
+
 const request = require('supertest');
 const crypto = require('crypto');
 const db = require('../database');
@@ -12,7 +15,6 @@ describe('SEC-04 — Self-service Password Reset for Personals', () => {
   let newPassword = 'NewPassword999!';
 
   beforeAll(async () => {
-    process.env.NODE_ENV = 'test';
     app = require('../index');
     await db.ready;
   });

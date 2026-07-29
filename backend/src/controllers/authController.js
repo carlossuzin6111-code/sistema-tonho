@@ -50,7 +50,8 @@ async function registerPersonal(req, res) {
         name,
         email: normalizedEmail,
         password_hash: passwordHash,
-        role: 'personal'
+        role: 'personal',
+        must_change_password: false
       });
 
       await trx('registration_keys')
@@ -65,7 +66,7 @@ async function registerPersonal(req, res) {
       await db.seedDefaultExercisesForPersonal(db, insertedId);
     }
 
-    const user = { id: insertedId, name, email: normalizedEmail, role: 'personal' };
+    const user = { id: insertedId, name, email: normalizedEmail, role: 'personal', mustChangePassword: false };
     setSessionCookies(res, user);
 
     res.status(201).json({
@@ -109,7 +110,13 @@ async function login(req, res) {
 
     res.status(200).json({
       message: 'Login successful',
-      user: { id: user.id, name: user.name, email: user.email, role: user.role }
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        mustChangePassword: Boolean(user.must_change_password)
+      }
     });
   } catch (err) {
     console.error('Login error:', err.message);
@@ -126,7 +133,7 @@ function logout(req, res) {
 async function getMe(req, res) {
   try {
     const user = await db('users')
-      .select('id', 'name', 'email', 'role', 'created_at', 'avatar_filename', 'avatar_updated_at')
+      .select('id', 'name', 'email', 'role', 'created_at', 'avatar_filename', 'avatar_updated_at', 'must_change_password')
       .where('id', req.user.id)
       .first();
     if (!user) {
@@ -137,6 +144,7 @@ async function getMe(req, res) {
       name: user.name,
       email: user.email,
       role: user.role,
+      mustChangePassword: Boolean(user.must_change_password),
       created_at: user.created_at,
       hasAvatar: Boolean(user.avatar_filename),
       avatarUpdatedAt: user.avatar_updated_at || null
@@ -165,12 +173,12 @@ async function forgotPassword(req, res) {
 
     const rawToken = crypto.randomBytes(32).toString('hex');
     const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
     await db('password_reset_tokens').insert({
       user_id: user.id,
       token_hash: tokenHash,
-      expires_at: expiresAt
+      expires_at: expiresAt.toISOString()
     });
 
     await recordAudit(db, {
@@ -207,10 +215,12 @@ async function resetPasswordWithToken(req, res) {
     const resetRecord = await db('password_reset_tokens')
       .where({ token_hash: tokenHash })
       .whereNull('used_at')
-      .where('expires_at', '>', db.fn.now())
       .first();
 
-    if (!resetRecord) {
+    const expiresAt = resetRecord && (/^\d+$/.test(String(resetRecord.expires_at))
+      ? Number(resetRecord.expires_at)
+      : new Date(resetRecord.expires_at).getTime());
+    if (!resetRecord || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
       return res.status(400).json({ error: 'Token de redefinição de senha inválido ou expirado' });
     }
 
@@ -222,7 +232,9 @@ async function resetPasswordWithToken(req, res) {
         .where({ id: resetRecord.user_id })
         .update({
           password_hash: passwordHash,
-          session_version: trx.raw('session_version + 1')
+          session_version: trx.raw('session_version + 1'),
+          must_change_password: false,
+          updated_at: trx.fn.now()
         });
 
       await trx('password_reset_tokens')

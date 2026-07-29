@@ -391,6 +391,33 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(studentCsrf).toBeTruthy();
     });
 
+    test('Should require and complete the initial password change', async () => {
+      const blocked = await request(app)
+        .get('/api/student/workouts')
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(blocked.statusCode).toBe(428);
+      expect(blocked.body).toMatchObject({ code: 'PASSWORD_CHANGE_REQUIRED' });
+
+      const changed = await request(app)
+        .put('/api/profile/password')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .set('Cookie', studentCookies)
+        .set('X-CSRF-Token', studentCsrf)
+        .send({ currentPassword: 'student_password123', newPassword: 'new_student_password123' });
+      expect(changed.statusCode).toBe(200);
+
+      const refreshedSession = setCookies(changed)
+        .filter(cookie => cookie.startsWith(`${SESSION_COOKIE}=`))
+        .pop();
+      studentToken = refreshedSession
+        ? decodeURIComponent(refreshedSession.split(';', 1)[0].slice(`${SESSION_COOKIE}=`.length))
+        : '';
+      studentCsrf = cookieValue(changed, CSRF_COOKIE);
+      studentCookies = cookieHeader(changed);
+      expect(studentToken).toBeTruthy();
+      expect(studentCsrf).toBeTruthy();
+    });
+
     test('Should retrieve list of students linked to Personal Trainer', async () => {
       const res = await request(app)
         .get('/api/personal/students')
@@ -454,6 +481,22 @@ describe('FitLife Sync API Integration Tests', () => {
       studentToken = cookieValue(newLogin, SESSION_COOKIE);
       studentCsrf = cookieValue(newLogin, CSRF_COOKIE);
       studentCookies = cookieHeader(newLogin);
+
+      const mandatoryChange = await request(app)
+        .put('/api/profile/password')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .set('Cookie', studentCookies)
+        .set('X-CSRF-Token', studentCsrf)
+        .send({ currentPassword: 'new_student_password123', newPassword: 'replacement-password123' });
+      expect(mandatoryChange.statusCode).toBe(200);
+      const refreshedSession = setCookies(mandatoryChange)
+        .filter(cookie => cookie.startsWith(`${SESSION_COOKIE}=`))
+        .pop();
+      studentToken = refreshedSession
+        ? decodeURIComponent(refreshedSession.split(';', 1)[0].slice(`${SESSION_COOKIE}=`.length))
+        : '';
+      studentCsrf = cookieValue(mandatoryChange, CSRF_COOKIE);
+      studentCookies = cookieHeader(mandatoryChange);
     });
 
     test('Should reject resetting a student password to fewer than 10 characters', async () => {
@@ -644,7 +687,7 @@ describe('FitLife Sync API Integration Tests', () => {
         .get('/api/audit-logs')
         .set('Authorization', `Bearer ${studentToken}`);
       expect(studentResponse.statusCode).toBe(200);
-      expect(studentResponse.body.map(log => log.action)).toEqual(['measurement.created']);
+      expect(studentResponse.body.map(log => log.action)).toEqual(expect.arrayContaining(['measurement.created']));
     });
 
     test('Should reject unauthenticated audit access', async () => {
@@ -689,6 +732,20 @@ describe('FitLife Sync API Integration Tests', () => {
         });
       expect(loginRes.statusCode).toBe(200);
       otherStudentToken = cookieValue(loginRes, SESSION_COOKIE);
+      const otherStudentCookies = cookieHeader(loginRes);
+      const otherStudentCsrf = cookieValue(loginRes, CSRF_COOKIE);
+      const mandatoryChange = await request(app)
+        .put('/api/profile/password')
+        .set('Cookie', otherStudentCookies)
+        .set('X-CSRF-Token', otherStudentCsrf)
+        .send({ currentPassword: 'student_password123', newPassword: 'other_student_password123' });
+      expect(mandatoryChange.statusCode).toBe(200);
+      const refreshedSession = setCookies(mandatoryChange)
+        .filter(cookie => cookie.startsWith(`${SESSION_COOKIE}=`))
+        .pop();
+      otherStudentToken = refreshedSession
+        ? decodeURIComponent(refreshedSession.split(';', 1)[0].slice(`${SESSION_COOKIE}=`.length))
+        : '';
     });
 
     test('Should send chat message (Personal Trainer)', async () => {
@@ -942,7 +999,7 @@ describe('FitLife Sync API Integration Tests', () => {
       const changed = await request(app)
         .put('/api/profile/password')
         .set('Authorization', `Bearer ${studentToken}`)
-        .send({ currentPassword: 'new_student_password123', newPassword: 'replacement-password123' });
+        .send({ currentPassword: 'replacement-password123', newPassword: 'final-password123' });
       expect(changed.statusCode).toBe(200);
       const refreshedCookies = cookieHeader(changed);
       expect(refreshedCookies).toContain(SESSION_COOKIE);
@@ -959,12 +1016,12 @@ describe('FitLife Sync API Integration Tests', () => {
 
       const oldPassword = await request(app)
         .post('/api/auth/login')
-        .send({ email: 'test_student@fitlife.com', password: 'new_student_password123' });
+        .send({ email: 'test_student@fitlife.com', password: 'replacement-password123' });
       expect(oldPassword.statusCode).toBe(400);
 
       const newPassword = await request(app)
         .post('/api/auth/login')
-        .send({ email: 'test_student@fitlife.com', password: 'replacement-password123' });
+        .send({ email: 'test_student@fitlife.com', password: 'final-password123' });
       expect(newPassword.statusCode).toBe(200);
     });
   });

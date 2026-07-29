@@ -184,6 +184,7 @@ function openModal(modalId) {
 function closeModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
+    if (modal.dataset.passwordRequired === 'true') return;
     const returnModalId = modal.dataset.returnModal;
     const formId = modal.dataset.clearFormOnClose;
     modal.classList.remove('active');
@@ -256,6 +257,7 @@ document.addEventListener('keydown', event => {
 
   if (event.key === 'Escape') {
     event.preventDefault();
+    if (modal.dataset.passwordRequired === 'true') return;
     closeModal(modal.id);
     return;
   }
@@ -534,7 +536,7 @@ async function checkAuthSession() {
   try {
     const verifiedUser = await API.get('/auth/me');
     API.saveSession(verifiedUser);
-    if (!cachedUser) setupAppShell(verifiedUser);
+    if (!cachedUser || cachedUser.mustChangePassword !== verifiedUser.mustChangePassword) setupAppShell(verifiedUser);
   } catch (err) {
     console.warn('Session expired or invalid.', err.message);
     API.clearSession();
@@ -572,6 +574,9 @@ function setupAppShell(user) {
 
   // Connect to the real-time chat SSE stream
   connectRealTimeUpdates(user);
+  if (user.mustChangePassword) {
+    window.setTimeout(() => openRequiredPasswordChange(), 0);
+  }
 }
 
 function showLoginScreen() {

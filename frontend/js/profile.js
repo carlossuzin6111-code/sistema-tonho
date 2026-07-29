@@ -67,7 +67,7 @@ function showProfileAvatar(user) {
   }
 }
 
-function openEditProfileModal() {
+function openEditProfileModal({ required = false } = {}) {
   const user = API.getCurrentUser();
   if (!user) return;
   document.getElementById('profile-new-name').value = user.name || '';
@@ -79,9 +79,28 @@ function openEditProfileModal() {
   resetProfileAvatarSelection();
   showProfileAvatar(user);
   showProfileAvatarStatus('');
-  switchProfileTab('name');
+  configurePasswordChangeModal(required);
+  switchProfileTab(required ? 'password' : 'name');
   openModal('modal-edit-profile');
   lucide.createIcons();
+}
+
+function configurePasswordChangeModal(required) {
+  const modal = document.getElementById('modal-edit-profile');
+  if (!modal) return;
+  modal.dataset.passwordRequired = required ? 'true' : 'false';
+  const closeButton = modal.querySelector('[data-action="close-modal"]');
+  const avatarSection = modal.querySelector('.profile-modal-avatar-section');
+  const tabs = modal.querySelector('.profile-modal-tabs');
+  const namePanel = document.getElementById('profile-panel-name');
+  if (closeButton) closeButton.classList.toggle('hidden', required);
+  if (avatarSection) avatarSection.classList.toggle('hidden', required);
+  if (tabs) tabs.classList.toggle('hidden', required);
+  if (namePanel) namePanel.classList.toggle('hidden', required);
+}
+
+function openRequiredPasswordChange() {
+  if (API.getCurrentUser()?.mustChangePassword) openEditProfileModal({ required: true });
 }
 
 function switchProfileTab(tab) {
@@ -135,6 +154,10 @@ async function handleUpdateProfilePassword(event) {
   setFormSubmitting(form, true);
   try {
     await API.put('/profile/password', { currentPassword, newPassword });
+    const currentUser = API.getCurrentUser();
+    API.saveSession({ ...currentUser, mustChangePassword: false });
+    configurePasswordChangeModal(false);
+    closeModal('modal-edit-profile');
     form.reset();
     showToast('Senha alterada; as outras sessões foram encerradas.', 'success');
   } catch (error) {

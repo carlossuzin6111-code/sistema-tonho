@@ -37,7 +37,8 @@ async function createStudent(req, res) {
         name,
         email: normalizedEmail,
         password_hash: passwordHash,
-        role: 'student'
+        role: 'student',
+        must_change_password: true
       });
 
       // Create student profile
@@ -252,7 +253,9 @@ async function resetPassword(req, res) {
     await db.transaction(async trx => {
       await trx('users').where('id', studentId).update({
         password_hash: passwordHash,
-        session_version: trx.raw('session_version + 1')
+        session_version: trx.raw('session_version + 1'),
+        must_change_password: true,
+        updated_at: trx.fn.now()
       });
       await recordAudit(trx, {
         actorUserId: personalId,
