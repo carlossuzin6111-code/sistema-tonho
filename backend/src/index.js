@@ -11,6 +11,7 @@ const {
   preventResponseCaching
 } = require('./middleware/httpSecurity');
 const { validateBody, validateIdParam } = require('./middleware/validateRequest');
+const { idempotency } = require('./middleware/idempotency');
 const {
   authenticateToken,
   csrfProtection,
@@ -27,8 +28,9 @@ const chatController = require('./controllers/chatController');
 const exerciseController = require('./controllers/exerciseController');
 const auditController = require('./controllers/auditController');
 const profileController = require('./controllers/profileController');
-const workoutSessionController = require('./controllers/workoutSessionCont
+const workoutSessionController = require('./controllers/workoutSessionController');
 const progressionController = require('./controllers/progressionController');
+const assessmentController = require('./controllers/assessmentController');
 
 // Initialize database
 const db = require('./database');
@@ -360,8 +362,8 @@ app.post('/api/personal/students/invite', authenticateToken, requireRole('person
  *         description: Erro interno do servidor.
  */
 app.get('/api/personal/students', authenticateToken, requireRole('personal'), studentController.getStudents);
-app.get('/api/personal/students/:id/assessments', authenticateToken, validateIdParam(), assessmentController.listAssessments);
-app.post('/api/personal/students/:id/assessments', authenticateToken, requireRole('personal'), validateIdParam(), validateBody('assessment'), assessmentController.createAssessment);
+app.get('/api/personal/students/:id/assessments', authenticateToken, validateIdParam('id'), assessmentController.listAssessments);
+app.post('/api/personal/students/:id/assessments', authenticateToken, requireRole('personal'), validateIdParam('id'), validateBody('assessment'), assessmentController.createAssessment);
 
 /**
  * @openapi
@@ -391,7 +393,7 @@ app.post('/api/personal/students/:id/assessments', authenticateToken, requireRol
  *         description: Erro interno do servidor.
  */
 app.get('/api/personal/students/:id', authenticateToken, studentController.getStudentDetails);
-app.patch('/api/personal/students/:id/status', authenticateToken, requireRole('personal'), validateIdParam(), validateBody('studentLifecycle'), studentController.updateStudentLifecycle);
+app.patch('/api/personal/students/:id/status', authenticateToken, requireRole('personal'), validateIdParam('id'), validateBody('studentLifecycle'), studentController.updateStudentLifecycle);
 
 /**
  * @openapi
@@ -434,7 +436,7 @@ app.patch('/api/personal/students/:id/status', authenticateToken, requireRole('p
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/personal/students/:id/reset-password', authenticateToken, requireRole('personal'), validateIdParam(), validateBody('passwordReset'), studentController.resetPassword);
+app.post('/api/personal/students/:id/reset-password', authenticateToken, requireRole('personal'), validateIdParam('id'), validateBody('passwordReset'), studentController.resetPassword);
 
 
 // Medidas (Aluno/Personal)
@@ -600,8 +602,8 @@ app.post('/api/workouts', authenticateToken, requireRole('personal'), validateBo
  *       500:
  *         description: Erro interno do servidor.
  */
-app.delete('/api/workouts/:id', authenticateToken, requireRole('personal'), validateIdParam(), workoutController.deleteWorkout);
-app.patch('/api/workouts/:id/status', authenticateToken, requireRole('personal'), validateIdParam(), validateBody('workoutStatus'), workoutController.updateWorkoutStatus);
+app.delete('/api/workouts/:id', authenticateToken, requireRole('personal'), validateIdParam('id'), workoutController.deleteWorkout);
+app.patch('/api/workouts/:id/status', authenticateToken, requireRole('personal'), validateIdParam('id'), validateBody('workoutStatus'), workoutController.updateWorkoutStatus);
 
 /**
  * @openapi
@@ -654,7 +656,7 @@ app.patch('/api/workouts/:id/status', authenticateToken, requireRole('personal')
  *       500:
  *         description: Erro interno do servidor.
  */
-app.post('/api/workouts/:id/exercises', authenticateToken, requireRole('personal'), validateIdParam(), validateBody('workoutExercise'), workoutController.addExercise);
+app.post('/api/workouts/:id/exercises', authenticateToken, requireRole('personal'), validateIdParam('id'), validateBody('workoutExercise'), workoutController.addExercise);
 
 /**
  * @openapi
@@ -681,7 +683,7 @@ app.post('/api/workouts/:id/exercises', authenticateToken, requireRole('personal
  *       500:
  *         description: Erro interno do servidor.
  */
-app.delete('/api/exercises/:id', authenticateToken, requireRole('personal'), validateIdParam(), workoutController.deleteExercise);
+app.delete('/api/exercises/:id', authenticateToken, requireRole('personal'), validateIdParam('id'), workoutController.deleteExercise);
 
 /**
  * @openapi
@@ -728,7 +730,7 @@ app.get('/api/student/progression', authenticateToken, progressionController.get
  *       409:
  *         description: Já existe uma sessão em andamento.
  */
-app.post('/api/workout-sessions/start', authenticateToken, validateBody('startWorkoutSession'), workoutSessionController.startSession);
+app.post('/api/workout-sessions/start', authenticateToken, idempotency, validateBody('startWorkoutSession'), workoutSessionController.startSession);
 
 /**
  * @openapi
@@ -751,7 +753,8 @@ app.post('/api/workout-sessions/start', authenticateToken, validateBody('startWo
  *       200:
  *         description: Progresso do exercício atualizado.
  */
-app.patch('/api/workout-sessions/:id/exercises/:exerciseId', authenticateToken, validateIdParam('id'), validateIdParam('exerciseId'), validateBody('updateWorkoutSessionExercise'), workoutSessionController.updateExerciseProgress);
+app.patch('/api/workout-sessions/:id/exercises/:exerciseId', authenticateToken, idempotency, validateIdParam('id'), validateIdParam('exerciseId'), validateBody('updateWorkoutSessionExercise'), workoutSessionController.updateExerciseProgress);
+app.patch('/api/workout-sessions/:id/activity', authenticateToken, idempotency, validateIdParam('id'), workoutSessionController.keepSessionAlive);
 
 /**
  * @openapi
@@ -770,7 +773,7 @@ app.patch('/api/workout-sessions/:id/exercises/:exerciseId', authenticateToken, 
  *       200:
  *         description: Sessão de treino concluída.
  */
-app.post('/api/workout-sessions/:id/complete', authenticateToken, validateIdParam('id'), validateBody('completeWorkoutSession'), workoutSessionController.completeSession);
+app.post('/api/workout-sessions/:id/complete', authenticateToken, idempotency, validateIdParam('id'), validateBody('completeWorkoutSession'), workoutSessionController.completeSession);
 
 /**
  * @openapi
@@ -789,7 +792,7 @@ app.post('/api/workout-sessions/:id/complete', authenticateToken, validateIdPara
  *       200:
  *         description: Sessão cancelada.
  */
-app.post('/api/workout-sessions/:id/cancel', authenticateToken, validateIdParam('id'), workoutSessionController.cancelSession);
+app.post('/api/workout-sessions/:id/cancel', authenticateToken, idempotency, validateIdParam('id'), workoutSessionController.cancelSession);
 
 /**
  * @openapi
@@ -919,8 +922,8 @@ app.post('/api/catalog/exercises', authenticateToken, requireRole('personal'), v
  *       500:
  *         description: Erro interno do servidor.
  */
-app.delete('/api/catalog/exercises/:id', authenticateToken, requireRole('personal'), validateIdParam(), exerciseController.deleteExercise);
-app.patch('/api/catalog/exercises/:id/favorite', authenticateToken, requireRole('personal'), validateIdParam(), exerciseController.toggleFavorite);
+app.delete('/api/catalog/exercises/:id', authenticateToken, requireRole('personal'), validateIdParam('id'), exerciseController.deleteExercise);
+app.patch('/api/catalog/exercises/:id/favorite', authenticateToken, requireRole('personal'), validateIdParam('id'), exerciseController.toggleFavorite);
 app.put('/api/catalog/exercises/reorder', authenticateToken, requireRole('personal'), exerciseController.reorderExercises);
 
 
