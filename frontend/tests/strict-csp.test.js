@@ -181,9 +181,13 @@ test('registration keys use the transactional database flow only', () => {
 test('Compose gates dependent services on API and Nginx health', () => {
   const compose = fs.readFileSync(path.join(repositoryRoot, 'docker-compose.yml'), 'utf8');
   const backend = fs.readFileSync(path.join(repositoryRoot, 'backend', 'src', 'index.js'), 'utf8');
+  const healthController = fs.readFileSync(path.join(repositoryRoot, 'backend', 'src', 'controllers', 'healthController.js'), 'utf8');
 
   assert.match(backend, /app\.get\('\/api\/health'/);
-  assert.match(backend, /await db\.raw\('SELECT 1'\)/);
+  assert.match(backend, /app\.get\('\/health\/live'/);
+  assert.match(backend, /app\.get\('\/health\/ready'/);
+  assert.match(healthController, /await db\.raw\('SELECT 1'\)/);
+  assert.match(healthController, /db\.migrate\.list\(\)/);
   assert.match(compose, /fetch\('http:\/\/127\.0\.0\.1:3000\/api\/health'\)/);
   assert.match(compose, /wget.*http:\/\/127\.0\.0\.1:3000\//);
   assert.equal((compose.match(/condition: service_healthy/g) || []).length, 4);
