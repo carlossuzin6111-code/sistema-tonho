@@ -24,7 +24,9 @@ async function createExercise(req, res) {
       name,
       gif_url: gifUrl || null,
       description: description || null,
-      is_custom: true
+      is_custom: true,
+      catalog_scope: 'custom',
+      canonical_name: name.trim().toLowerCase()
     });
 
     res.status(201).json({
@@ -59,12 +61,59 @@ async function getExercises(req, res) {
       personalId = profile.personal_id;
     }
 
-    const exercises = await db('exercises').where('personal_id', personalId).orderBy('name', 'asc');
+    const scope = req.query.scope === 'custom' ? 'custom' : req.query.scope === 'global' ? 'global' : null;
+    const query = db('exercises').where('personal_id', personalId).whereNull('archived_at');
+    if (scope) query.where('catalog_scope', scope);
+    const exercises = await query.orderBy('name', 'asc');
 
     res.status(200).json(exercises);
   } catch (err) {
     console.error('Get exercises error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function getCatalogGovernance(req, res) {
+  try {
+    const groups = await db('exercises')
+      .where('personal_id', req.user.id)
+      .whereNull('archived_at')
+      .select('canonical_name')
+      .count({ count: '*' })
+      .groupBy('canonical_name')
+      .orderBy('canonical_name');
+    const duplicates = [];
+    for (const group of groups.filter(item => Number(item.count) > 1)) {
+      const entries = await db('exercises').where({ personal_id: req.user.id, canonical_name: group.canonical_name }).whereNull('archived_at').orderBy('id');
+      duplicates.push({ canonicalName: group.canonical_name, count: entries.length, exercises: entries });
+    }
+    return res.status(200).json({ duplicates });
+  } catch (err) {
+    console.error('Catalog governance list error:', err.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function mergeCatalogExercises(req, res) {
+  const sourceId = Number(req.body.sourceId);
+  const targetId = Number(req.body.targetId);
+  if (!sourceId || !targetId || sourceId === targetId) return res.status(400).json({ error: 'sourceId and targetId must be different positive integers' });
+  try {
+    const [source, target] = await Promise.all([
+      db('exercises').where({ id: sourceId, personal_id: req.user.id }).first(),
+      db('exercises').where({ id: targetId, personal_id: req.user.id }).first()
+    ]);
+    if (!source || !target) return res.status(404).json({ error: 'Source or target exercise not found' });
+    if (source.canonical_name !== target.canonical_name) return res.status(400).json({ error: 'Exercises must share the same canonical name to be merged' });
+    await db.transaction(async trx => {
+      await trx('workout_exercises').where({ exercise_id: sourceId }).update({ exercise_id: targetId });
+      await trx('exercises').where({ id: sourceId, personal_id: req.user.id }).update({ archived_at: trx.fn.now() });
+      await recordAudit(trx, { actorUserId: req.user.id, action: AUDIT_ACTIONS.CATALOG_EXERCISE_MERGED, targetType: 'catalog_exercise', targetId, metadata: { sourceId } });
+    });
+    return res.status(200).json({ message: 'Exercises merged successfully', sourceId, targetId });
+  } catch (err) {
+    console.error('Catalog governance merge error:', err.message);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -166,4 +215,6 @@ module.exports = {
   deleteExercise,
   toggleFavorite,
   reorderExercises
+  ,getCatalogGovernance
+  ,mergeCatalogExercises
 };

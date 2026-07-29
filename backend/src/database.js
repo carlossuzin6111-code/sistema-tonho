@@ -48,7 +48,9 @@ async function seedDefaultExercisesForPersonal(dbConnection, personalId) {
           name: formattedName,
           gif_url: fullGifUrl,
           description: description,
-          is_translated: false
+          is_translated: false,
+          catalog_scope: 'global',
+          canonical_name: formattedName.trim().toLowerCase()
         });
       }
     }
