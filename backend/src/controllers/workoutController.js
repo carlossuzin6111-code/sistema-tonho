@@ -88,6 +88,28 @@ async function deleteWorkout(req, res) {
   }
 }
 
+async function updateWorkoutStatus(req, res) {
+  const workoutId = req.params.id;
+  const { status } = req.body;
+  try {
+    const workout = await db('workouts').where({ id: workoutId, personal_id: req.user.id }).first();
+    if (!workout) return res.status(404).json({ error: 'Workout not found' });
+    await db.transaction(async trx => {
+      if (status === 'published') {
+        await trx('workouts')
+          .where({ student_id: workout.student_id, personal_id: req.user.id })
+          .whereNot('id', workoutId)
+          .update({ status: 'archived', updated_at: trx.fn.now() });
+      }
+      await trx('workouts').where({ id: workoutId, personal_id: req.user.id }).update({ status, updated_at: trx.fn.now() });
+    });
+    return res.status(200).json({ message: 'Workout status updated successfully', status });
+  } catch (err) {
+    console.error('Update workout status error:', err.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 // Add an exercise to a workout (Personal Trainer only)
 async function addExercise(req, res) {
   const workoutId = req.params.id;
@@ -185,7 +207,7 @@ async function getStudentWorkouts(req, res) {
       }
     }
 
-    const workouts = await db('workouts').where('student_id', studentId).orderBy('created_at', 'desc');
+    const workouts = await db('workouts').where({ student_id: studentId, status: 'published' }).orderBy('created_at', 'desc');
 
     for (let i = 0; i < workouts.length; i++) {
       workouts[i].exercises = await db('workout_exercises as we')
@@ -205,6 +227,7 @@ async function getStudentWorkouts(req, res) {
 module.exports = {
   createWorkout,
   deleteWorkout,
+  updateWorkoutStatus,
   addExercise,
   deleteExercise,
   getStudentWorkouts

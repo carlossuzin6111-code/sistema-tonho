@@ -162,8 +162,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
     *   `exercise_logs` (séries concluídas, repetições reais, carga levantada, RPE percebido de 1 a 10).
 
 ### [BUS-02] Estados de Publicação da Ficha de Treino
-*   **Especificação**: Fichas com campo `status` (`'draft'`, `'published'`, `'archived'`).
-*   **Regra**: O aluno só visualiza treinos marcados como `'published'`. Ao publicar um novo treino, o sistema altera automaticamente os treinos antigos do aluno para `'archived'`.
+*   **Implementado parcialmente**: Fichas possuem campo `status` (`'draft'`, `'published'`, `'archived'`), protegido por triggers SQLite. O aluno só visualiza treinos publicados; ao publicar uma ficha, as anteriores do mesmo aluno/personal são arquivadas em uma transação.
+*   **Pendente**: integrar seletor/indicador de publicação no frontend e registrar auditoria específica das transições.
 
 ### [BUS-03] Ciclo de Vida do Aluno e do Vínculo
 *   **Especificação**:

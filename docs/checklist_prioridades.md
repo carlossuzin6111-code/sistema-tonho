@@ -39,7 +39,7 @@ Este documento atua como o painel executivo para controle de progresso e roadmap
 | **UX-07** | Acessibilidade WCAG 2.2 AA | 8/10 | **Parcial** | 20h | Médio | Frontend |
 | **UX-08** | Hardening de Uploads / Cotas | 8/10 | **Parcial** | 8h | Alto | Backend |
 | **BUS-01** | Execução Real de Treino (Sessions) | 10/10 | **Não Iniciado** | 24h | Alto | Fullstack | #
-| **BUS-02** | Status da Ficha (Draft/Published) | 9/10 | **Não Iniciado** | 12h | Baixo | Fullstack |
+| **BUS-02** | Status da Ficha (Draft/Published) | 9/10 | **Parcial** | 12h | Baixo | Fullstack |
 | **BUS-03** | Ciclo de Vida do Aluno/Vínculo | 9/10 | **Não Iniciado** | 16h | Médio | Fullstack |
 | **BUS-04** | Anamnese Clínica (`Assessments`) | 9/10 | **Não Iniciado** | 16h | Baixo | Fullstack |
 | **BUS-05** | Aderência Semanal Analítica | 8/10 | **Não Iniciado** | 12h | Médio | Backend |
@@ -121,6 +121,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | **UX-05** | `../nginx.conf`, `../frontend/index.html`, `desktop.html`, `mobile.html` | `../frontend/tests/strict-csp.test.js` | `Build automatizado que gera hashes de conteúdo e impede referências a assets removidos` |
 | **UX-06** | `../backend/src/db/migrations/202607290006_add_optimistic_versions.js`, `profileController.js`, `exerciseController.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Aplicar If-Match a todas as mutações editáveis e enviar versão pelo frontend` |
 | **UX-07** | `../frontend/css/style.css`, `desktop.html`, `mobile.html` | `../frontend/tests/strict-csp.test.js` | `Auditoria manual com leitor de tela, contraste medido e navegação completa por teclado` |
+| **BUS-02** | `../backend/src/db/migrations/202607290007_add_workout_status.js`, `workoutController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Controles de status no frontend e auditoria de publicação` |
 
 ---
 
@@ -172,4 +173,5 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | 29/07/2026 | UX-05 | Nginx revalida HTML e aplica cache imutável de longo prazo a CSS/JS versionados; teste automatizado impede política ausente | Branch `ux/ux-05-cache-policy`; frontend 54/54; `git diff --check` aprovado | Parcial: hashing automatizado de conteúdo ainda pendente |
 | 29/07/2026 | UX-06 | Migration adiciona `version` a usuários, fichas, exercícios e itens; perfil e favoritos aceitam `If-Match` e retornam `409` em conflito | Branch `ux/ux-06-optimistic-locking`; backend 66/66; `git diff --check` aprovado | Parcial: cobrir todas as mutações e conectar o cabeçalho no frontend |
 | 29/07/2026 | UX-07 | Indicador global de foco visível para controles navegáveis foi adicionado sem remover regras específicas; teste confirma foco e `prefers-reduced-motion` | Branch `ux/ux-07-focus-accessibility`; frontend 55/55; `git diff --check` aprovado | Parcial: auditoria manual de contraste/leitor de tela ainda pendente |
+| 29/07/2026 | BUS-02 | Status `draft`/`published`/`archived` com trigger SQLite, endpoint protegido, arquivamento transacional da ficha publicada anteriormente e filtro de rascunhos para alunos | Branch `bus/bus-02-workout-status`; backend migrations/API 68/68 | Parcial: integrar controles de status na interface e auditar eventos de publicação |
 Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.
