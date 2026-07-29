@@ -955,6 +955,24 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(stored.name).toBe('Student Updated');
     });
 
+    test('Should reject stale If-Match profile updates with 409', async () => {
+      const current = await db('users').select('version').where({ id: studentId }).first();
+      const first = await request(app)
+        .patch('/api/profile')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .set('If-Match', String(current.version))
+        .send({ name: 'Versioned Student' });
+      expect(first.statusCode).toBe(200);
+      expect(first.body.user.version).toBe(current.version + 1);
+
+      const stale = await request(app)
+        .patch('/api/profile')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .set('If-Match', String(current.version))
+        .send({ name: 'Stale Update' });
+      expect(stale.statusCode).toBe(409);
+    });
+
     test('Should reject unknown profile fields', async () => {
       const res = await request(app)
         .patch('/api/profile')

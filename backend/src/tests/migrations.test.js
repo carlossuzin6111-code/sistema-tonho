@@ -35,7 +35,8 @@ const migrations = [
   '202607290002_create_student_invitations.js',
   '202607290003_add_email_verification.js',
   '202607290004_create_signed_waivers.js',
-  '202607290005_add_domain_constraints.js'
+  '202607290005_add_domain_constraints.js',
+  '202607290006_add_optimistic_versions.js'
 ];
 
 function createDatabase() {
@@ -68,6 +69,9 @@ describe('database migrations', () => {
     await expect(db.schema.hasColumn('users', 'avatar_filename')).resolves.toBe(true);
     await expect(db.schema.hasColumn('users', 'avatar_updated_at')).resolves.toBe(true);
     await expect(db.schema.hasColumn('users', 'must_change_password')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('users', 'version')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('workouts', 'version')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('workout_exercises', 'version')).resolves.toBe(true);
     await expect(db.schema.hasColumn('registration_keys', 'expires_at')).resolves.toBe(true);
     const emailIndex = await db('sqlite_master')
       .select('name')
