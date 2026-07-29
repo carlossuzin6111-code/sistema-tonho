@@ -260,6 +260,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-05] Alertas CRM de Churn e NPS
 *   **Especificação**: Tarefas diárias no node-cron alertando personais sobre alunos inativos há mais de 5 dias consecutivos e envio automatizado de pesquisas NPS.
+*   **Progresso em 29/07/2026**: migration `202607290019_create_crm_alerts_and_nps.js`, serviço diário e endpoints protegidos detectam inatividade por sessão, deduplicam alertas por dia, geram pesquisas pendentes, registram resposta 0–10, resolução e auditoria.
+*   **Pendente**: executar o serviço em worker/node-cron com lock distribuído, integrar entrega de e-mail/push, criar templates/opt-out e medir conversão, churn e NPS por período.
 
 ### [OPS-06] Check-ins por Geofencing e Agendamentos
 *   **Especificação**: Validação de presença presencial baseada em coordenadas GPS de geocercas ou conexão Wi-Fi da academia. Sincronização ICS.

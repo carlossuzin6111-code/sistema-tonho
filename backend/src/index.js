@@ -35,6 +35,7 @@ const subscriptionController = require('./controllers/subscriptionController');
 const teamController = require('./controllers/teamController');
 const partnerController = require('./controllers/partnerController');
 const wearableController = require('./controllers/wearableController');
+const crmController = require('./controllers/crmController');
 
 // Initialize database
 const db = require('./database');
@@ -93,6 +94,12 @@ app.get('/api/wearables/connections', authenticateToken, wearableController.list
 app.delete('/api/wearables/connections/:id', authenticateToken, validateIdParam('id'), wearableController.revokeConnection);
 app.post('/api/wearables/connections/:id/metrics', authenticateToken, validateIdParam('id'), wearableController.ingestMetrics);
 app.get('/api/wearables/metrics', authenticateToken, wearableController.listMetrics);
+app.post('/api/crm/run-daily', authenticateToken, crmController.runDaily);
+app.get('/api/crm/alerts', authenticateToken, crmController.listAlerts);
+app.patch('/api/crm/alerts/:id/resolve', authenticateToken, validateIdParam('id'), crmController.resolveAlert);
+app.get('/api/crm/nps', authenticateToken, crmController.listNps);
+app.get('/api/student/nps', authenticateToken, crmController.listStudentNps);
+app.post('/api/student/nps/:id/respond', authenticateToken, validateIdParam('id'), crmController.respondNps);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);

@@ -25,7 +25,9 @@ const applicationTables = [
   'professional_partners',
   'student_partner_consents',
   'wearable_connections',
-  'wearable_metrics'
+  'wearable_metrics',
+  'crm_alerts',
+  'nps_surveys'
 ];
 
 const migrations = [
@@ -58,7 +60,8 @@ const migrations = [
   '202607290015_create_subscriptions.js',
   '202607290016_create_personal_team_memberships.js',
   '202607290017_create_partner_consents.js',
-  '202607290018_create_wearable_integrations.js'
+  '202607290018_create_wearable_integrations.js',
+  '202607290019_create_crm_alerts_and_nps.js'
 ];
 
 function createDatabase() {
