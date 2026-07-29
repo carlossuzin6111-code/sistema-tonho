@@ -147,6 +147,9 @@ const bodySchemas = {
     description: text('description', 5000),
     exercises: optionalExercises
   },
+  workoutStatus: {
+    status: value => ['draft', 'published', 'archived'].includes(value) ? null : 'status must be draft, published or archived'
+  },
   workoutExercise: {
     name: text('name', 200),
     sets: optionalPositiveInteger('sets'),

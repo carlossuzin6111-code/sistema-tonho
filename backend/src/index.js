@@ -597,6 +597,7 @@ app.post('/api/workouts', authenticateToken, requireRole('personal'), validateBo
  *         description: Erro interno do servidor.
  */
 app.delete('/api/workouts/:id', authenticateToken, requireRole('personal'), validateIdParam(), workoutController.deleteWorkout);
+app.patch('/api/workouts/:id/status', authenticateToken, requireRole('personal'), validateIdParam(), validateBody('workoutStatus'), workoutController.updateWorkoutStatus);
 
 /**
  * @openapi

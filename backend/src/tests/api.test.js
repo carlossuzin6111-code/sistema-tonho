@@ -622,6 +622,27 @@ describe('FitLife Sync API Integration Tests', () => {
       workoutId = res.body.workoutId;
     });
 
+    test('Should hide draft workouts from students and publish them explicitly', async () => {
+      const draft = await request(app)
+        .patch(`/api/workouts/${workoutId}/status`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ status: 'draft' });
+      expect(draft.statusCode).toBe(200);
+      expect(draft.body.status).toBe('draft');
+
+      const hidden = await request(app)
+        .get('/api/student/workouts')
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(hidden.body.some(workout => workout.id === workoutId)).toBe(false);
+
+      const published = await request(app)
+        .patch(`/api/workouts/${workoutId}/status`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ status: 'published' });
+      expect(published.statusCode).toBe(200);
+
+    });
+
     test('Should add exercise to the created workout (Personal Trainer)', async () => {
       const res = await request(app)
         .post(`/api/workouts/${workoutId}/exercises`)
@@ -650,6 +671,20 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body.length).toBeGreaterThan(0);
       expect(res.body[0]).toHaveProperty('name', 'Treino A - Adaptativo');
       expect(res.body[0].exercises.length).toBeGreaterThan(0);
+    });
+
+    test('Should archive the previous published workout when replacing it', async () => {
+      const replacement = await request(app)
+        .post('/api/workouts')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ studentId, name: 'Treino B - Publicado' });
+      expect(replacement.statusCode).toBe(201);
+      const published = await request(app)
+        .patch(`/api/workouts/${replacement.body.workoutId}/status`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ status: 'published' });
+      expect(published.statusCode).toBe(200);
+      await expect(db('workouts').where({ id: workoutId }).select('status').first()).resolves.toMatchObject({ status: 'archived' });
     });
 
     test('Should remove exercise from workout (Personal Trainer)', async () => {
