@@ -283,6 +283,16 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(wrong.statusCode).toBe(403);
     });
 
+    test('Should reject cookie mutations from an untrusted origin', async () => {
+      const res = await request(app)
+        .post('/api/auth/logout')
+        .set('Cookie', personalCookies)
+        .set('Origin', 'https://untrusted.example')
+        .set('X-CSRF-Token', personalCsrf);
+      expect(res.statusCode).toBe(403);
+      expect(res.body.error).toBe('Untrusted request origin');
+    });
+
     test('Should clear session cookies on logout with valid CSRF', async () => {
       const login = await request(app)
         .post('/api/auth/login')
