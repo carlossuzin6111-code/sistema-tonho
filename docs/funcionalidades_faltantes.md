@@ -229,6 +229,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-02] Gestão de Equipe (Head/Junior) e Split de Receitas
 *   **Especificação**: Papéis corporativos com coordenação de equipes de personais juniores associados, bibliotecas compartilhadas e migrações em lote sob desligamento de instrutores.
+*   **Progresso em 29/07/2026**: migration cria `organization_role` e memberships Head/Junior; endpoints autenticados permitem adicionar/listar/encerrar vínculos, registrar percentual de receita e transferir alunos durante o desligamento, com auditoria.
+*   **Pendente**: convite/onboarding específico de Junior, bibliotecas compartilhadas, integração de cobrança e split financeiro real.
 
 ### [OPS-03] Acesso Multiprofissional (Parceiros Clínicos)
 *   **Especificação**: Contas do tipo parceiro read-only (Nutricionistas, Fisioterapeutas). Mediante consentimento explícito do aluno, eles acessam logs de treino e realizam upload de exames.

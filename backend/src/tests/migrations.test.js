@@ -19,7 +19,8 @@ const applicationTables = [
   'signed_waivers',
   'student_assessments',
   'idempotency_keys',
-  'workout_microcycles'
+  'workout_microcycles',
+  'personal_team_memberships'
 ];
 
 const migrations = [
@@ -45,7 +46,9 @@ const migrations = [
   '202607290009_create_student_assessments.js',
 
   '202607290010_add_session_activity.js',
-  '202607290011_create_idempotency_keys.js'
+  '202607290011_create_idempotency_keys.js',
+  '202607290012_create_workout_microcycles.js',
+  '202607290016_create_personal_team_memberships.js'
 ];
 
 function createDatabase() {
@@ -75,6 +78,8 @@ describe('database migrations', () => {
     }
     await expect(db.schema.hasColumn('exercises', 'is_translated')).resolves.toBe(true);
     await expect(db.schema.hasColumn('users', 'session_version')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('users', 'organization_role')).resolves.toBe(true);
+    await expect(db.schema.hasTable('personal_team_memberships')).resolves.toBe(true);
     await expect(db.schema.hasColumn('users', 'avatar_filename')).resolves.toBe(true);
     await expect(db.schema.hasColumn('users', 'avatar_updated_at')).resolves.toBe(true);
     await expect(db.schema.hasColumn('users', 'must_change_password')).resolves.toBe(true);

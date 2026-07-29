@@ -31,6 +31,7 @@ const profileController = require('./controllers/profileController');
 const workoutSessionController = require('./controllers/workoutSessionController');
 const progressionController = require('./controllers/progressionController');
 const assessmentController = require('./controllers/assessmentController');
+const teamController = require('./controllers/teamController');
 
 // Initialize database
 const db = require('./database');
@@ -76,6 +77,10 @@ app.get('/api/health', async (req, res) => {
     res.status(503).json({ status: 'unavailable' });
   }
 });
+
+app.get('/api/team/members', authenticateToken, requireRole('personal'), teamController.listTeam);
+app.post('/api/team/members', authenticateToken, requireRole('personal'), teamController.addTeamMember);
+app.patch('/api/team/members/:id/end', authenticateToken, requireRole('personal'), validateIdParam('id'), teamController.terminateTeamMember);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);

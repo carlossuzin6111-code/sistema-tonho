@@ -863,6 +863,30 @@ describe('FitLife Sync API Integration Tests', () => {
         : '';
     });
 
+    test('Should add, list and end a Head/Junior team membership', async () => {
+      const head = await db('users').where({ email: 'test_personal@fitlife.com' }).first();
+      await db('users').where({ id: head.id }).update({ organization_role: 'head' });
+      const added = await request(app)
+        .post('/api/team/members')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ juniorPersonalId: otherPersonalId, revenueSharePercent: 25 });
+      expect(added.statusCode).toBe(201);
+      expect(added.body.membership).toEqual(expect.objectContaining({ head_personal_id: head.id, junior_personal_id: otherPersonalId }));
+
+      const listed = await request(app)
+        .get('/api/team/members')
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(listed.statusCode).toBe(200);
+      expect(listed.body).toHaveLength(1);
+
+      const ended = await request(app)
+        .patch(`/api/team/members/${added.body.membership.id}/end`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({});
+      expect(ended.statusCode).toBe(200);
+      expect((await db('personal_team_memberships').where({ id: added.body.membership.id }).first()).status).toBe('ended');
+    });
+
     test('Should send chat message (Personal Trainer)', async () => {
       const res = await request(app)
         .post('/api/chat')
