@@ -39,6 +39,7 @@ const crmController = require('./controllers/crmController');
 const geofenceController = require('./controllers/geofenceController');
 const readinessController = require('./controllers/readinessController');
 const notificationController = require('./controllers/notificationController');
+const complianceController = require('./controllers/complianceController');
 
 // Initialize database
 const db = require('./database');
@@ -116,6 +117,8 @@ app.get('/api/notifications/preferences', authenticateToken, notificationControl
 app.put('/api/notifications/preferences', authenticateToken, notificationController.putPreferences);
 app.get('/api/notifications', authenticateToken, notificationController.listNotifications);
 app.patch('/api/notifications/:id/read', authenticateToken, validateIdParam('id'), notificationController.markRead);
+app.get('/api/compliance/export', authenticateToken, complianceController.exportData);
+app.post('/api/compliance/delete', authenticateToken, complianceController.anonymizeAccount);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
