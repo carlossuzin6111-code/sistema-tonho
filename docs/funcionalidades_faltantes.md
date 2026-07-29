@@ -262,6 +262,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-10] Health Checks Liveness/Readiness
 *   **Especificação**: Endpoint `/health/live` (status do runtime) e `/health/ready` (valida conexão com SQLite e se há migrations pendentes no Knex).
+*   **Progresso em 29/07/2026**: `/health/live` responde sem tocar no banco; `/health/ready` verifica `db.ready`, `SELECT 1` e a lista de migrations pendentes; `/api/health` permanece como alias para compatibilidade.
+*   **Pendente**: conectar probes do Compose/Nginx aos novos caminhos e cobrir falhas simuladas de banco/migrations no CI.
 
 ### [OPS-11] Sessões por Dispositivo (`user_sessions`)
 *   **Especificação**: Tabela `user_sessions` para listar e revogar tokens de dispositivos individuais sem invalidar a chave JWT global da conta.
