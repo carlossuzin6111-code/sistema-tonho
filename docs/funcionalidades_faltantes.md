@@ -264,7 +264,7 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Especificação**: Logs em formato JSON na API, redação automática de CPFs/Senhas nos payloads, métricas RED de latência e alertas sob erros `SQLITE_BUSY`.
 
 ### [OPS-14] CI/CD Obrigatória
-*   **Progresso em 29/07/2026**: workflow `Test suites` ganhou triggers explícitos de PR, push e execução manual, cancelamento de concorrência por branch/PR, job `CI policy` que verifica invariantes do próprio pipeline, validação de migrations, testes e auditoria com nível alto.
+*   **Progresso em 29/07/2026**: workflow `Test suites` ganhou triggers explícitos de PR, push e execução manual, cancelamento de concorrência por branch/PR, job `CI policy` que verifica invariantes do próprio pipeline, validação de migrations, testes e auditoria com nível alto. O run `30477897188` passou em 4/4 jobs após incluir `202607290012_create_workout_microcycles.js` na expectativa de migrations; validação local passou em backend (26/26 suítes, 190/190 testes) e frontend (55/55).
 *   **Pendente**: configurar branch protection/required checks no GitHub, deploy automatizado por ambiente, rollback verificável, aprovações de produção e segregação de segredos.
 *   **Especificação**: Pipelines no GitHub Actions exigindo testes unitários/integrados, auditoria npm, scanner de segredos e checagem de migrations antes de aprovar pull requests.
 
