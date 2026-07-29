@@ -9,22 +9,31 @@ const { JWT_SECRET } = require('../services/sessionService');
 
 describe('wearable integrations', () => {
   let studentId;
+  let personalId;
   let token;
   let connectionId;
 
   beforeAll(async () => {
     await db.ready;
+    [personalId] = await db('users').insert({
+      name: 'Wearable Personal',
+      email: `wearable-personal-${Date.now()}@fitlife.com`,
+      password_hash: 'not-used',
+      role: 'personal'
+    });
     [studentId] = await db('users').insert({
       name: 'Wearable Student',
       email: `wearable-${Date.now()}@fitlife.com`,
       password_hash: 'not-used',
       role: 'student'
     });
+    await db('student_profiles').insert({ student_id: studentId, personal_id: personalId });
     token = jwt.sign({ id: studentId, role: 'student', sessionVersion: 0, csrf: 'wearable-csrf' }, JWT_SECRET, { expiresIn: '1h' });
   });
 
   afterAll(async () => {
     if (studentId) await db('users').where({ id: studentId }).del();
+    if (personalId) await db('users').where({ id: personalId }).del();
     await db.destroy();
   });
 
