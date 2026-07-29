@@ -190,7 +190,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Pendente**: tela de anamnese, edição/versionamento e auditoria clínica.
 
 ### [BUS-05] Aderência Semanal e Ordenação no Dashboard
-*   **Especificação**: Cálculo matemático: `aderência = treinos concluídos / treinos previstos`. Ordenações no painel do Personal por alunos com menor frequência ou maior tempo sem treinar.
+*   **Implementado parcialmente**: Endpoint de aderência calcula `treinos concluídos / treinos publicados` no intervalo semanal, limita o percentual a 100%, informa última conclusão e ordena alunos do menor percentual ao maior.
+*   **Pendente**: metas semanais configuráveis, cálculo de treinos previstos por agenda e visualização no dashboard.
 
 ### [BUS-06] Progressão de Carga e Recordes Pessoais
 *   **Implementado parcialmente**: Endpoint calcula volume acumulado (`séries × repetições × carga`) a partir de sessões concluídas, recorde de volume e última carga/repetições por exercício.
@@ -217,6 +218,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [BUS-11] Indicador de "Digitando..." via SSE
 *   **Especificação**: Evento leve `event: typing` enviado pelo Express a partir de chamadas rápidas `POST /api/chat/typing` com de-bounce.
+*   **Progresso em 29/07/2026**: endpoint autenticado valida o vínculo Personal/Aluno, limita emissões repetidas e encerra automaticamente o estado após 1,5s; o cliente escuta o evento SSE e atualiza uma região `aria-live`.
+*   **Pendente**: cobertura automatizada de uma conexão SSE real e métricas de volume/latência dos eventos.
 
 ### [BUS-12] Inativação e Abas de Filtragem de Alunos
 *   **Especificação**: Possibilidade de inativar alunos antigos sem deletar seu prontuário físico e separação por abas "Ativos" / "Inativos" na listagem.
@@ -264,6 +267,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-10] Health Checks Liveness/Readiness
 *   **Especificação**: Endpoint `/health/live` (status do runtime) e `/health/ready` (valida conexão com SQLite e se há migrations pendentes no Knex).
+*   **Progresso em 29/07/2026**: `/health/live` responde sem tocar no banco; `/health/ready` verifica `db.ready`, `SELECT 1` e a lista de migrations pendentes; `/api/health` permanece como alias para compatibilidade.
+*   **Pendente**: conectar probes do Compose/Nginx aos novos caminhos e cobrir falhas simuladas de banco/migrations no CI.
 
 ### [OPS-11] Sessões por Dispositivo (`user_sessions`)
 *   **Especificação**: Tabela `user_sessions` para listar e revogar tokens de dispositivos individuais sem invalidar a chave JWT global da conta.
