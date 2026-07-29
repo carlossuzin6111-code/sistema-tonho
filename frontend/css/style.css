@@ -2394,6 +2394,26 @@ body.dark-theme .metric-item {
 }
 
 /* ---- Exercise Catalog Card ---- */
+.exercise-catalog-virtual-viewport {
+  max-height: min(70vh, 820px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  contain: strict;
+  grid-column: 1 / -1;
+}
+
+.exercise-catalog-virtual-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.exercise-catalog-virtual-spacer-row {
+  height: 184px;
+  pointer-events: none;
+}
+
 .exercise-db-card {
   position: relative;
   border-radius: 12px;
@@ -2741,4 +2761,3 @@ body.dark-theme .drag-over {
     margin: 0;
   }
 }
-
