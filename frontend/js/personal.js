@@ -5,6 +5,9 @@ let selectedStudentId = null;
 let activeWorkoutId = null;
 let activeChatStudentId = null;
 let exerciseCatalogList = [];
+const catalogVirtualState = { query: '', sort: 'name-asc' };
+const CATALOG_VIRTUAL_BATCH = 15;
+const CATALOG_ITEM_HEIGHT = 184;
 
 function normalizeListSearch(value) {
   return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
@@ -28,6 +31,7 @@ function filterPersonalStudents(query) {
 }
 
 function filterPersonalExercises(query) {
+  catalogVirtualState.query = query || '';
   const prioritySection = document.getElementById('exercises-priority-section');
   if (prioritySection) {
     if (query && query.trim() !== '') {
@@ -39,7 +43,7 @@ function filterPersonalExercises(query) {
       }
     }
   }
-  filterRenderedList({ containerId: 'exercises-catalog-list', cardSelector: '.exercise-db-card', emptyId: 'exercises-search-empty', countId: 'exercises-search-count', query });
+  renderCatalogExercisesGrid();
 }
 
 function sortRenderedList(containerId, cardSelector, compare) {
@@ -57,11 +61,8 @@ function sortPersonalStudents(value) {
 }
 
 function sortPersonalExercises(value) {
-  sortRenderedList('exercises-catalog-list', '.exercise-db-card', (a, b) => {
-    const direction = value === 'name-desc' ? -1 : 1;
-    return direction * a.dataset.sortName.localeCompare(b.dataset.sortName, 'pt-BR');
-  });
-  filterPersonalExercises(document.getElementById('exercises-search').value);
+  catalogVirtualState.sort = value || 'name-asc';
+  renderCatalogExercisesGrid();
 }
 
 // Renders the list of students in the Personal Dashboard
@@ -1143,24 +1144,7 @@ function renderPriorityExercises() {
   setupPriorityDragAndDrop();
 }
 
-function renderCatalogExercisesGrid() {
-  const container = document.getElementById('exercises-catalog-list');
-  container.innerHTML = '';
-  
-  if (exerciseCatalogList.length === 0) {
-    container.innerHTML = `
-      <div class="chat-empty-state glass grid-span-full empty-state-catalog">
-        <i data-lucide="dumbbell" class="chat-empty-icon icon-40"></i>
-        <h3>Sua biblioteca está vazia</h3>
-        <p>Cadastre seu primeiro exercício personalizado clicando no botão "Novo Exercício".</p>
-      </div>
-    `;
-    appendEmptyStateAction(container, { label: 'Criar primeiro exercício', icon: 'plus-circle', onClick: () => openCreateCatalogExerciseModal() });
-    lucide.createIcons();
-    return;
-  }
-  
-  exerciseCatalogList.forEach(ex => {
+function createCatalogExerciseCard(ex) {
     const card = document.createElement('div');
     card.className = 'exercise-db-card glass';
     const descText = ex.description ? ex.description : 'Sem orientações técnicas cadastradas.';
@@ -1215,10 +1199,74 @@ function renderCatalogExercisesGrid() {
     }, [SafeDOM.icon('trash-2')]));
     
     SafeDOM.appendChildren(card, [info, btnFavorite, actions]);
-    container.appendChild(card);
+    return card;
+}
+
+function renderCatalogExercisesGrid() {
+  const container = document.getElementById('exercises-catalog-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (exerciseCatalogList.length === 0) {
+    container.innerHTML = `
+      <div class="chat-empty-state glass grid-span-full empty-state-catalog">
+        <i data-lucide="dumbbell" class="chat-empty-icon icon-40"></i>
+        <h3>Sua biblioteca está vazia</h3>
+        <p>Cadastre seu primeiro exercício personalizado clicando no botão "Novo Exercício".</p>
+      </div>`;
+    appendEmptyStateAction(container, { label: 'Criar primeiro exercício', icon: 'plus-circle', onClick: () => openCreateCatalogExerciseModal() });
+    lucide.createIcons();
+    return;
+  }
+
+  const query = normalizeListSearch(catalogVirtualState.query);
+  const filtered = exerciseCatalogList.filter(ex => {
+    const description = ex.description || 'Sem orientações técnicas cadastradas.';
+    return !query || normalizeListSearch(`${ex.name} ${description}`).includes(query);
+  }).sort((a, b) => {
+    const direction = catalogVirtualState.sort === 'name-desc' ? -1 : 1;
+    return direction * normalizeListSearch(a.name).localeCompare(normalizeListSearch(b.name), 'pt-BR');
   });
-  
-  lucide.createIcons();
+
+  const count = document.getElementById('exercises-search-count');
+  if (count) count.textContent = `${filtered.length} de ${exerciseCatalogList.length}`;
+  const empty = document.getElementById('exercises-search-empty');
+  if (empty) empty.classList.toggle('hidden', !query || filtered.length > 0);
+  if (!filtered.length) {
+    const emptyMessage = document.createElement('div');
+    emptyMessage.className = 'chat-empty-state glass grid-span-full';
+    emptyMessage.textContent = 'Nenhum exercício corresponde à busca.';
+    container.appendChild(emptyMessage);
+    return;
+  }
+
+  const viewport = document.createElement('div');
+  viewport.className = 'exercise-catalog-virtual-viewport';
+  viewport.setAttribute('aria-label', 'Catálogo virtualizado de exercícios');
+  const topSpacer = document.createElement('div');
+  const cards = document.createElement('div');
+  cards.className = 'exercise-catalog-virtual-cards';
+  const bottomSpacer = document.createElement('div');
+  const fillSpacer = (spacer, count) => {
+    spacer.replaceChildren(...Array.from({ length: count }, () => {
+      const row = document.createElement('div');
+      row.className = 'exercise-catalog-virtual-spacer-row';
+      return row;
+    }));
+  };
+  viewport.append(topSpacer, cards, bottomSpacer);
+  container.appendChild(viewport);
+
+  const renderWindow = () => {
+    const first = Math.max(0, Math.floor(viewport.scrollTop / CATALOG_ITEM_HEIGHT) - 2);
+    const visible = Math.min(filtered.length, first + CATALOG_VIRTUAL_BATCH);
+    fillSpacer(topSpacer, first);
+    fillSpacer(bottomSpacer, Math.max(0, filtered.length - visible));
+    cards.replaceChildren(...filtered.slice(first, visible).map(createCatalogExerciseCard));
+    lucide.createIcons();
+  };
+  viewport.addEventListener('scroll', renderWindow, { passive: true });
+  renderWindow();
 }
 
 async function toggleExerciseFavorite(id, event) {

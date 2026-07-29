@@ -125,7 +125,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Pendente**: integrar carregamento incremental no frontend (scroll/botão), preservando mensagens recebidas pelo SSE.
 
 ### [UX-02] Virtual Scrolling no Catálogo
-*   **Especificação**: Lógica no frontend para carregar no DOM apenas os cartões de exercícios atualmente visíveis no contêiner com buffer de segurança (aprox. 15 itens renderizados por vez).
+*   **Implementado**: O catálogo mantém busca e ordenação em memória, mas monta somente uma janela de até 15 cartões por vez, com overscan de duas posições e spacers fixos para preservar a rolagem. O viewport possui rolagem própria e uma coluna no mobile.
+*   **Pendente**: QA visual com milhares de exercícios para calibrar a altura média do cartão e confirmar a experiência em diferentes larguras.
 
 ### [UX-03] Conversão e Tratamento de Timezones
 *   **Especificação**: Todas as colunas `TIMESTAMP` do SQLite são gravadas em UTC ISO 8601. Conversão regional realizada estritamente no frontend com a API `Intl.DateTimeFormat` do navegador.
