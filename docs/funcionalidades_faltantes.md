@@ -274,6 +274,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [MOB-01] Wrapper Híbrido com Capacitor
 *   **Especificação**: Configuração de Capacitor CLI apontando para a pasta frontend estática (`--web-dir=frontend`) e compilação do APK Android.
+*   **Progresso em 29/07/2026**: `capacitor.config.ts` fixa `br.com.fitlifesync.app`, usa `frontend` como `webDir` e define o esquema HTTPS no Android. As dependências `@capacitor/cli`, `@capacitor/core` e `@capacitor/android` e os comandos `mobile:add:android`, `mobile:sync`, `mobile:open` e `mobile:build:android` foram adicionados; contrato automatizado passou no frontend (56/56).
+*   **Pendente**: executar `npx cap add android` em ambiente com SDK/Gradle, validar o APK, configurar assinatura e publicar o build Android no CI sem incluir credenciais no repositório.
 
 ### [MOB-02] Resolução Dinâmica de Base URL da API
 *   **Especificação**: Código frontend JavaScript detectando a existência de `window.Capacitor` para injetar a URL base de produção nos requests à API de forma condicional.

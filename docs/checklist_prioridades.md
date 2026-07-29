@@ -70,7 +70,7 @@ bus/bus-08-offline-idempotency
 | **OPS-12** | Impersonation Auditável | 6/10 | **Não Iniciado** | 14h | Alto | Backend |
 | **OPS-13** | Logs JSON, Redaction e Métricas | 8/10 | **Não Iniciado** | 16h | Médio | DevOps |
 | **OPS-14** | CI/CD Obrigatória | 9/10 | **Parcial** | 24h | Alto | DevOps | #
-| **MOB-01** | Wrapper Híbrido (Capacitor) | 7/10 | **Não Iniciado** | 20h | Alto | Mobile |
+| **MOB-01** | Wrapper Híbrido (Capacitor) | 7/10 | **Parcial** | 20h | Alto | Mobile |
 | **MOB-02** | Resolução Dinâmica Base URL | 8/10 | **Não Iniciado** | 6h | Baixo | Mobile |
 | **MOB-03** | CORS para WebViews | 8/10 | **Não Iniciado** | 6h | Baixo | Backend |
 | **MOB-04** | Secure Storage | 7/10 | **Não Iniciado** | 10h | Alto | Mobile |
@@ -120,6 +120,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | **BUS-04** | `../backend/src/db/migrations/202607290009_create_student_assessments.js`, `assessmentController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Tela de anamnese, edição/versionamento e auditoria clínica` |
 | **OPS-10** | `../backend/src/index.js` | `../backend/src/tests/api.test.js` | `Separar liveness de readiness verificando migrations` |
 | **OPS-14** | `../.github/workflows/backend-tests.yml`, `../.github/scripts/verify-ci-policy.sh` | Workflow `Test suites` | `Branch protection/required checks no GitHub, deploy automatizado, rollback e ambientes separados` |
+| **MOB-01** | `../capacitor.config.ts`, `../package.json` | `../frontend/tests/capacitor-config.test.js` | `Gerar projeto Android, sincronizar plugins e validar build APK assinado em CI` |
 | **UX-01** | `../backend/src/controllers/chatController.js`, `../backend/src/index.js` | `../backend/src/tests/api.test.js` | `Carregar páginas anteriores no frontend e botão/scroll de histórico` |
 | **UX-02** | `../frontend/js/personal.js`, `../frontend/css/style.css`, `mobile.css` | `../frontend/tests/strict-csp.test.js` | `Medição visual de altura por viewport e QA em catálogo muito grande` |
 | **UX-03** | `../frontend/js/datetime.js`, `personal.js`, `student.js`, páginas HTML | `../frontend/tests/strict-csp.test.js` | `Normalizar respostas legadas do backend e auditoria dos demais timestamps administrativos` |
@@ -199,4 +200,5 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | 29/07/2026 | UX-08 | Quota agregada configurável de 20 MiB para imagens Base64 de exercícios, validação de MIME/assinatura mantida e respostas `413` para excesso; avatar já possui quota e reconciliação por usuário | Branch `ux/ux-08-upload-quotas`; backend focado 82/82 | Parcial: migrar novos uploads para multipart e executar reconciliação global periódica |
 | 29/07/2026 | UX-08 | Quota agregada configurável de 20 MiB para imagens Base64 de exercícios, validação de MIME/assinatura mantida e respostas `413` para excesso; avatar já possui quota e reconciliação por usuário | Branch `ux/ux-08-upload-quotas`; backend focado 82/82 | Parcial: migrar novos uploads para multipart e executar reconciliação global periódica |
 | 29/07/2026 | OPS-14 | Workflow CI reforçado com triggers PR/manual, cancelamento de execuções obsoletas, job de política obrigatória, migrations/testes e auditoria de vulnerabilidades de alta severidade; execução 30477897188 passou em 4/4 jobs e as suítes locais passaram (backend 26/26, 190/190; frontend 55/55) | Branch `ops/ops-14-ci-cd-policy`; script `.github/scripts/verify-ci-policy.sh`; PR #133 | Parcial: required checks/branch protection, deploy, rollback e ambientes separados dependem de configuração da infraestrutura GitHub |
+| 29/07/2026 | MOB-01 | Configuração Capacitor com `webDir: frontend`, identificador/app name estáveis, dependências CLI/Core/Android e comandos de sincronização, abertura e build Debug; teste de contrato mantém a configuração verificável | Branch `mob/mob-01-capacitor-wrapper`; teste frontend 56/56; `npm audit --audit-level=high` sem vulnerabilidades | Parcial: gerar projeto Android (`npx cap add android`), assinar APK e automatizar build em runner Android |
 Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.
