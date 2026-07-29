@@ -33,6 +33,13 @@
   --transition-fast: all 0.12s ease;
 }
 
+/* WCAG 2.2 keyboard visibility baseline for controls not covered by a
+   component-specific focus rule. */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 body.dark-theme {
   /* Cores Invertidas - Lovable Warm Dark Paper Theme (Modo Escuro Warm) */
   --bg-primary: #121210;       /* Dark warm paper */
@@ -2394,6 +2401,26 @@ body.dark-theme .metric-item {
 }
 
 /* ---- Exercise Catalog Card ---- */
+.exercise-catalog-virtual-viewport {
+  max-height: min(70vh, 820px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  contain: strict;
+  grid-column: 1 / -1;
+}
+
+.exercise-catalog-virtual-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.exercise-catalog-virtual-spacer-row {
+  height: 184px;
+  pointer-events: none;
+}
+
 .exercise-db-card {
   position: relative;
   border-radius: 12px;
@@ -2741,4 +2768,6 @@ body.dark-theme .drag-over {
     margin: 0;
   }
 }
-
+.student-status-tabs { display: flex; gap: .4rem; margin: .75rem 0; }
+.status-tab { border: 1px solid var(--border-color, #d8dee9); background: transparent; border-radius: 999px; padding: .35rem .8rem; cursor: pointer; color: inherit; }
+.status-tab.active { background: var(--primary-color, #2563eb); color: #fff; }

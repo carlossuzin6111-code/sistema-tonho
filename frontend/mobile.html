@@ -8,9 +8,9 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Base Styles (Components, Colors, Lovable) -->
-  <link rel="stylesheet" href="css/style.css?v=20260719.19">
+  <link rel="stylesheet" href="css/style.css?v=20260729.20">
   <!-- Mobile Architecture Overrides (PWA Lock) -->
-  <link rel="stylesheet" href="css/mobile.css?v=20260719.19">
+  <link rel="stylesheet" href="css/mobile.css?v=20260729.20">
 </head>
 <body>
 
@@ -54,6 +54,7 @@
             <input type="password" id="login-password" required autocomplete="current-password" placeholder="Sua senha">
             <button type="button" class="password-toggle" data-action="toggle-password" data-target="login-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
           </div>
+          <div class="student-status-tabs" role="group" aria-label="Filtrar alunos por status"><button class="status-tab active" data-action="filter-student-status" data-student-status-filter="active" aria-pressed="true">Ativos</button><button class="status-tab" data-action="filter-student-status" data-student-status-filter="inactive" aria-pressed="false">Inativos</button><button class="status-tab" data-action="filter-student-status" data-student-status-filter="all" aria-pressed="false">Todos</button></div>
         </div>
         <p id="login-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
         <button type="submit" class="btn btn-primary btn-full btn-glow" data-default-label="Acessar Painel" data-loading-label="Entrando..."><span data-submit-label>Acessar Painel</span></button>
@@ -605,12 +606,13 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260719.19"></script>
-  <script src="js/safe-dom.js?v=20260719.19"></script>
-  <script src="js/app.js?v=20260719.19"></script>
-  <script src="js/personal.js?v=20260719.19"></script>
-  <script src="js/student.js?v=20260719.19"></script>
-  <script src="js/profile.js?v=20260719.19"></script>
-  <script src="js/events.js?v=20260719.19"></script>
+  <script src="js/api.js?v=20260729.20"></script>
+  <script src="js/safe-dom.js?v=20260729.20"></script>
+  <script src="js/datetime.js?v=20260729.20"></script>
+  <script src="js/app.js?v=20260729.20"></script>
+  <script src="js/personal.js?v=20260729.20"></script>
+  <script src="js/student.js?v=20260729.20"></script>
+  <script src="js/profile.js?v=20260729.20"></script>
+  <script src="js/events.js?v=20260729.20"></script>
 </body>
 </html>

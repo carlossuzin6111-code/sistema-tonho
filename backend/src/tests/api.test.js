@@ -440,6 +440,37 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body[0]).not.toHaveProperty('avatar_filename');
     });
 
+    test('Should update the linked student lifecycle statuses', async () => {
+      const paused = await request(app)
+        .patch(`/api/personal/students/${studentId}/status`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ accountStatus: 'suspended', relationshipStatus: 'paused' });
+      expect(paused.statusCode).toBe(200);
+      expect(paused.body).toMatchObject({ account_status: 'suspended', relationship_status: 'paused' });
+
+      const restored = await request(app)
+        .patch(`/api/personal/students/${studentId}/status`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ accountStatus: 'active', relationshipStatus: 'active' });
+      expect(restored.statusCode).toBe(200);
+    });
+
+    test('Should keep personal assessment notes private from the student', async () => {
+      const created = await request(app)
+        .post(`/api/personal/students/${studentId}/assessments`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ experienceLevel: 'intermediate', clinicalInjuries: 'Joelho esquerdo', personalNotes: 'Acompanhar com cuidado', studentNotes: 'Evitar impacto no início' });
+      expect(created.statusCode).toBe(201);
+      expect(created.body.personal_notes).toBe('Acompanhar com cuidado');
+
+      const studentView = await request(app)
+        .get(`/api/personal/students/${studentId}/assessments`)
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(studentView.statusCode).toBe(200);
+      expect(studentView.body[0]).toMatchObject({ experience_level: 'intermediate', student_notes: 'Evitar impacto no início' });
+      expect(studentView.body[0]).not.toHaveProperty('personal_notes');
+    });
+
     test('Should get student details (Personal Trainer)', async () => {
       const res = await request(app)
         .get(`/api/personal/students/${studentId}`)
@@ -622,6 +653,27 @@ describe('FitLife Sync API Integration Tests', () => {
       workoutId = res.body.workoutId;
     });
 
+    test('Should hide draft workouts from students and publish them explicitly', async () => {
+      const draft = await request(app)
+        .patch(`/api/workouts/${workoutId}/status`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ status: 'draft' });
+      expect(draft.statusCode).toBe(200);
+      expect(draft.body.status).toBe('draft');
+
+      const hidden = await request(app)
+        .get('/api/student/workouts')
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(hidden.body.some(workout => workout.id === workoutId)).toBe(false);
+
+      const published = await request(app)
+        .patch(`/api/workouts/${workoutId}/status`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ status: 'published' });
+      expect(published.statusCode).toBe(200);
+
+    });
+
     test('Should add exercise to the created workout (Personal Trainer)', async () => {
       const res = await request(app)
         .post(`/api/workouts/${workoutId}/exercises`)
@@ -650,6 +702,59 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body.length).toBeGreaterThan(0);
       expect(res.body[0]).toHaveProperty('name', 'Treino A - Adaptativo');
       expect(res.body[0].exercises.length).toBeGreaterThan(0);
+    });
+
+    test('Should replace and read an ondulatory periodization plan', async () => {
+      const plan = [
+        { weekNumber: 1, label: 'Acúmulo', intensityPercent: 70, volumeMultiplier: 1.2, notes: 'Técnica e volume' },
+        { weekNumber: 2, label: 'Intensificação', intensityPercent: 82.5, volumeMultiplier: 0.9 },
+        { weekNumber: 3, label: 'Deload', intensityPercent: 60, volumeMultiplier: 0.6 }
+      ];
+      const saved = await request(app)
+        .put(`/api/workouts/${workoutId}/periodization`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ microcycles: plan });
+      expect(saved.statusCode).toBe(200);
+      expect(saved.body.microcycles).toHaveLength(3);
+      expect(saved.body.microcycles[1]).toEqual(expect.objectContaining({ week_number: 2, intensity_percent: 82.5 }));
+
+      const readAsStudent = await request(app)
+        .get(`/api/workouts/${workoutId}/periodization`)
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(readAsStudent.statusCode).toBe(200);
+      expect(readAsStudent.body.microcycles.map(item => item.label)).toEqual(['Acúmulo', 'Intensificação', 'Deload']);
+    });
+
+    test('Should reject invalid or non-sequential microcycles', async () => {
+      const res = await request(app)
+        .put(`/api/workouts/${workoutId}/periodization`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ microcycles: [{ weekNumber: 2, label: 'Inválido', intensityPercent: 300, volumeMultiplier: 0 }] });
+      expect(res.statusCode).toBe(400);
+    });
+
+    test('Should return progression volume and latest exercise suggestion', async () => {
+      const res = await request(app)
+        .get('/api/student/progression')
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveProperty('studentId', studentId);
+      expect(Array.isArray(res.body.exercises)).toBe(true);
+      if (res.body.exercises.length) expect(res.body.exercises[0]).toEqual(expect.objectContaining({ exerciseName: expect.any(String), totalVolume: expect.any(Number) }));
+    });
+
+    test('Should archive the previous published workout when replacing it', async () => {
+      const replacement = await request(app)
+        .post('/api/workouts')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ studentId, name: 'Treino B - Publicado' });
+      expect(replacement.statusCode).toBe(201);
+      const published = await request(app)
+        .patch(`/api/workouts/${replacement.body.workoutId}/status`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ status: 'published' });
+      expect(published.statusCode).toBe(200);
+      await expect(db('workouts').where({ id: workoutId }).select('status').first()).resolves.toMatchObject({ status: 'archived' });
     });
 
     test('Should remove exercise from workout (Personal Trainer)', async () => {
@@ -820,6 +925,31 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(Array.isArray(res.body)).toBe(true);
     });
 
+    test('Should paginate chat history with a bounded cursor window', async () => {
+      const first = await request(app)
+        .get(`/api/chat/${studentId}?limit=2`)
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(first.statusCode).toBe(200);
+      expect(first.body).toEqual(expect.objectContaining({ messages: expect.any(Array), nextCursor: expect.anything() }));
+      expect(first.body.messages).toHaveLength(2);
+      expect(first.body.messages[0].id).toBeLessThan(first.body.messages[1].id);
+
+      const older = await request(app)
+        .get(`/api/chat/${studentId}?before=${first.body.nextCursor}&limit=2`)
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(older.statusCode).toBe(200);
+      expect(older.body).toHaveProperty('messages');
+      expect(older.body.messages.every(message => message.id < Number(first.body.nextCursor))).toBe(true);
+    });
+
+    test('Should reject invalid chat pagination parameters', async () => {
+      const res = await request(app)
+        .get(`/api/chat/${studentId}?limit=51`)
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatch(/limit/);
+    });
+
     test('Should expose only the linked Personal Trainer public avatar metadata to a Student', async () => {
       const res = await request(app)
         .get('/api/chat/partner')
@@ -928,6 +1058,24 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body.user.name).toBe('Student Updated');
       const stored = await db('users').where({ id: studentId }).first();
       expect(stored.name).toBe('Student Updated');
+    });
+
+    test('Should reject stale If-Match profile updates with 409', async () => {
+      const current = await db('users').select('version').where({ id: studentId }).first();
+      const first = await request(app)
+        .patch('/api/profile')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .set('If-Match', String(current.version))
+        .send({ name: 'Versioned Student' });
+      expect(first.statusCode).toBe(200);
+      expect(first.body.user.version).toBe(current.version + 1);
+
+      const stale = await request(app)
+        .patch('/api/profile')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .set('If-Match', String(current.version))
+        .send({ name: 'Stale Update' });
+      expect(stale.statusCode).toBe(409);
     });
 
     test('Should reject unknown profile fields', async () => {

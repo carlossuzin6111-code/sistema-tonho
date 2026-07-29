@@ -634,6 +634,10 @@ body.dark-theme .mobile-bottom-nav {
   grid-template-columns: minmax(0, 1fr) !important;
 }
 
+.exercise-catalog-virtual-cards {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .exercise-db-card {
   width: 100% !important;
   max-width: 100% !important;

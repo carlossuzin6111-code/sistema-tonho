@@ -130,6 +130,17 @@ const bodySchemas = {
     name: text('name', 100, 2),
     password
   },
+  studentLifecycle: {
+    accountStatus: value => ['active', 'suspended', 'archived'].includes(value) ? null : 'accountStatus must be active, suspended or archived',
+    relationshipStatus: value => ['invited', 'active', 'paused', 'blocked'].includes(value) ? null : 'relationshipStatus must be invited, active, paused or blocked'
+  },
+  assessment: {
+    experienceLevel: text('experienceLevel', 50, 1),
+    anatomicalLimitations: text('anatomicalLimitations', 5000),
+    clinicalInjuries: text('clinicalInjuries', 5000),
+    personalNotes: text('personalNotes', 10000),
+    studentNotes: text('studentNotes', 5000)
+  },
   measurement: {
     studentId: optionalPositiveInteger('studentId'),
     weight: optionalNumber({ label: 'weight', min: 1, max: 1000 }),
@@ -146,6 +157,12 @@ const bodySchemas = {
     name: text('name', 200),
     description: text('description', 5000),
     exercises: optionalExercises
+  },
+  workoutStatus: {
+    status: value => ['draft', 'published', 'archived'].includes(value) ? null : 'status must be draft, published or archived'
+  },
+  periodization: {
+    microcycles: value => Array.isArray(value) && value.length <= 52 ? null : 'microcycles must be an array with at most 52 entries'
   },
   workoutExercise: {
     name: text('name', 200),

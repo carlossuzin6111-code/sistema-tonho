@@ -1,5 +1,7 @@
 const db = require('../database');
 const { AUDIT_ACTIONS, recordAudit } = require('../services/auditService');
+const { expectedVersion } = require('../services/optimisticLockService');
+const { embeddedImageBytes, hasMediaQuota } = require('../services/mediaQuotaService');
 
 // Create a new exercise (Personal Trainer only)
 async function createExercise(req, res) {
@@ -11,6 +13,12 @@ async function createExercise(req, res) {
   }
 
   try {
+    const [{ usedBytes }] = await db('exercises')
+      .where({ personal_id: personalId, is_custom: 1 })
+      .select(db.raw('COALESCE(SUM(LENGTH(gif_url)), 0) as usedBytes'));
+    if (!hasMediaQuota(usedBytes, embeddedImageBytes(gifUrl))) {
+      return res.status(413).json({ error: 'Exercise media quota exceeded' });
+    }
     const [insertedId] = await db('exercises').insert({
       personal_id: personalId,
       name,
@@ -104,16 +112,22 @@ async function toggleFavorite(req, res) {
     }
 
     const newFavoriteState = !exercise.is_favorite;
+    const version = expectedVersion(req);
+    if (Number.isNaN(version)) return res.status(400).json({ error: 'If-Match must contain a numeric version' });
     const updateData = {
       is_favorite: newFavoriteState,
       favorited_at: newFavoriteState ? new Date().toISOString() : null
     };
 
-    await db('exercises').where({ id: exerciseId, personal_id: personalId }).update(updateData);
+    const query = db('exercises').where({ id: exerciseId, personal_id: personalId });
+    if (version !== null) query.where('version', version);
+    const updated = await query.update({ ...updateData, ...(version === null ? {} : { version: version + 1 }) });
+    if (version !== null && updated !== 1) return res.status(409).json({ error: 'Resource was modified; reload before saving' });
 
     res.status(200).json({
       message: newFavoriteState ? 'Exercise favorited' : 'Exercise unfavorited',
-      is_favorite: newFavoriteState
+      is_favorite: newFavoriteState,
+      version: version === null ? exercise.version : version + 1
     });
   } catch (err) {
     console.error('Toggle favorite error:', err.message);

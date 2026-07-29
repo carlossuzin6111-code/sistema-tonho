@@ -16,7 +16,10 @@ const applicationTables = [
   'password_reset_tokens',
   'student_invitations',
   'email_verification_tokens',
-  'signed_waivers'
+  'signed_waivers',
+  'student_assessments',
+  'idempotency_keys',
+  'workout_microcycles'
 ];
 
 const migrations = [
@@ -35,7 +38,14 @@ const migrations = [
   '202607290002_create_student_invitations.js',
   '202607290003_add_email_verification.js',
   '202607290004_create_signed_waivers.js',
-  '202607290005_add_domain_constraints.js'
+  '202607290005_add_domain_constraints.js',
+  '202607290006_add_optimistic_versions.js',
+  '202607290007_add_workout_status.js',
+  '202607290008_add_student_lifecycle_status.js',
+  '202607290009_create_student_assessments.js',
+
+  '202607290010_add_session_activity.js',
+  '202607290011_create_idempotency_keys.js'
 ];
 
 function createDatabase() {
@@ -68,6 +78,15 @@ describe('database migrations', () => {
     await expect(db.schema.hasColumn('users', 'avatar_filename')).resolves.toBe(true);
     await expect(db.schema.hasColumn('users', 'avatar_updated_at')).resolves.toBe(true);
     await expect(db.schema.hasColumn('users', 'must_change_password')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('users', 'version')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('workouts', 'version')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('workouts', 'status')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('workout_sessions', 'last_activity_at')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('users', 'account_status')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('student_profiles', 'relationship_status')).resolves.toBe(true);
+    await expect(db.schema.hasTable('student_assessments')).resolves.toBe(true);
+    await expect(db.schema.hasTable('idempotency_keys')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('workout_exercises', 'version')).resolves.toBe(true);
     await expect(db.schema.hasColumn('registration_keys', 'expires_at')).resolves.toBe(true);
     const emailIndex = await db('sqlite_master')
       .select('name')

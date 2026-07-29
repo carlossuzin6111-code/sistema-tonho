@@ -763,6 +763,46 @@ test('student chat keeps only messages scrollable and offers bounded resilient s
   assert.match(controller, /message\.length > 2000/);
 });
 
+test('exercise catalog virtualizes large lists while keeping search and mobile layout hooks', () => {
+  const personal = read(path.join('js', 'personal.js'));
+  const style = read(path.join('css', 'style.css'));
+  const mobile = read(path.join('css', 'mobile.css'));
+  assert.match(personal, /CATALOG_VIRTUAL_BATCH\s*=\s*15/);
+  assert.match(personal, /addEventListener\('scroll', renderWindow/);
+  assert.match(personal, /replaceChildren\(\.\.\.filtered\.slice\(first, visible\)/);
+  assert.match(style, /\.exercise-catalog-virtual-viewport[^}]*overflow-y:\s*auto/s);
+  assert.match(style, /\.exercise-catalog-virtual-cards[^}]*grid-template-columns/s);
+  assert.match(mobile, /\.exercise-catalog-virtual-cards[^}]*grid-template-columns:\s*minmax\(0, 1fr\)/s);
+});
+
+test('timestamps are parsed as UTC and formatted with the browser local timezone', () => {
+  const datetime = read(path.join('js', 'datetime.js'));
+  const personal = read(path.join('js', 'personal.js'));
+  const student = read(path.join('js', 'student.js'));
+  assert.match(datetime, /replace\(' ', 'T'\).*\}Z/s);
+  assert.match(datetime, /new Intl\.DateTimeFormat\(undefined, options\)/);
+  assert.match(datetime, /global\.AppDateTime/);
+  assert.doesNotMatch(personal, /toLocaleDateString|toLocaleTimeString/);
+  assert.doesNotMatch(student, /toLocaleDateString|toLocaleTimeString/);
+  for (const page of ['desktop.html', 'mobile.html']) {
+    assert.match(read(page), /js\/datetime\.js\?v=20260729\.20/);
+  }
+});
+
+test('Nginx revalidates HTML and caches versioned CSS/JS immutably', () => {
+  const nginx = fs.readFileSync(path.join(repositoryRoot, 'nginx.conf'), 'utf8');
+  assert.match(nginx, /location ~\* \\.html\$[\s\S]*?Cache-Control "no-cache, must-revalidate"/);
+  assert.match(nginx, /location ~\* \\.\(\?:css\|js\)\$[\s\S]*?Cache-Control "public, max-age=31536000, immutable"/);
+  assert.match(nginx, /location ~\* \\.\(\?:css\|js\)\$[\s\S]*?try_files \$uri =404/);
+});
+
+test('all keyboard-focusable controls have a visible WCAG focus indicator', () => {
+  const style = read(path.join('css', 'style.css'));
+  assert.match(style, /:where\(button, a, input, select, textarea, \[tabindex\]\):focus-visible/);
+  assert.match(style, /:where\(button, a, input, select, textarea, \[tabindex\]\):focus-visible[^}]*outline:\s*3px solid var\(--focus-ring\)/s);
+  assert.match(style, /@media \(prefers-reduced-motion: reduce\)/);
+});
+
 test('final student-area audit prevents duplicate ids, empty image requests and inaccessible mobile navigation', () => {
   for (const page of ['desktop.html', 'mobile.html']) {
     const html = read(page);

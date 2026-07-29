@@ -88,6 +88,74 @@ async function deleteWorkout(req, res) {
   }
 }
 
+async function updateWorkoutStatus(req, res) {
+  const workoutId = req.params.id;
+  const { status } = req.body;
+  try {
+    const workout = await db('workouts').where({ id: workoutId, personal_id: req.user.id }).first();
+    if (!workout) return res.status(404).json({ error: 'Workout not found' });
+    await db.transaction(async trx => {
+      if (status === 'published') {
+        await trx('workouts')
+          .where({ student_id: workout.student_id, personal_id: req.user.id })
+          .whereNot('id', workoutId)
+          .update({ status: 'archived', updated_at: trx.fn.now() });
+      }
+      await trx('workouts').where({ id: workoutId, personal_id: req.user.id }).update({ status, updated_at: trx.fn.now() });
+    });
+    return res.status(200).json({ message: 'Workout status updated successfully', status });
+  } catch (err) {
+    console.error('Update workout status error:', err.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function replaceWorkoutPeriodization(req, res) {
+  const workoutId = Number(req.params.id);
+  const microcycles = req.body.microcycles || [];
+  try {
+    const workout = await db('workouts').where({ id: workoutId, personal_id: req.user.id }).first();
+    if (!workout) return res.status(404).json({ error: 'Workout not found' });
+    if (microcycles.some((item, index) => !item || item.weekNumber !== index + 1 ||
+      !Number.isFinite(Number(item.intensityPercent)) || Number(item.intensityPercent) <= 0 || Number(item.intensityPercent) > 200 ||
+      !Number.isFinite(Number(item.volumeMultiplier)) || Number(item.volumeMultiplier) <= 0 || Number(item.volumeMultiplier) > 10 ||
+      typeof item.label !== 'string' || item.label.trim().length < 1 || item.label.length > 120)) {
+      return res.status(400).json({ error: 'Each microcycle requires sequential weekNumber, label, intensityPercent and volumeMultiplier within valid ranges' });
+    }
+    await db.transaction(async trx => {
+      await trx('workout_microcycles').where({ workout_id: workoutId }).del();
+      if (microcycles.length) await trx('workout_microcycles').insert(microcycles.map(item => ({
+        workout_id: workoutId,
+        week_number: item.weekNumber,
+        label: item.label.trim(),
+        intensity_percent: Number(item.intensityPercent),
+        volume_multiplier: Number(item.volumeMultiplier),
+        notes: item.notes ? String(item.notes).slice(0, 2000) : null
+      })));
+    });
+    const saved = await db('workout_microcycles').where({ workout_id: workoutId }).orderBy('week_number');
+    return res.status(200).json({ workoutId, microcycles: saved });
+  } catch (err) {
+    console.error('Replace workout periodization error:', err.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function getWorkoutPeriodization(req, res) {
+  const workoutId = Number(req.params.id);
+  try {
+    const workout = await db('workouts').where('id', workoutId).first();
+    if (!workout) return res.status(404).json({ error: 'Workout not found' });
+    if (req.user.role === 'personal' && workout.personal_id !== req.user.id) return res.status(403).json({ error: 'Access denied' });
+    if (req.user.role === 'student' && workout.student_id !== req.user.id) return res.status(403).json({ error: 'Access denied' });
+    const microcycles = await db('workout_microcycles').where({ workout_id: workoutId }).orderBy('week_number');
+    return res.status(200).json({ workoutId, microcycles });
+  } catch (err) {
+    console.error('Get workout periodization error:', err.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 // Add an exercise to a workout (Personal Trainer only)
 async function addExercise(req, res) {
   const workoutId = req.params.id;
@@ -185,7 +253,7 @@ async function getStudentWorkouts(req, res) {
       }
     }
 
-    const workouts = await db('workouts').where('student_id', studentId).orderBy('created_at', 'desc');
+    const workouts = await db('workouts').where({ student_id: studentId, status: 'published' }).orderBy('created_at', 'desc');
 
     for (let i = 0; i < workouts.length; i++) {
       workouts[i].exercises = await db('workout_exercises as we')
@@ -205,6 +273,9 @@ async function getStudentWorkouts(req, res) {
 module.exports = {
   createWorkout,
   deleteWorkout,
+  updateWorkoutStatus,
+  replaceWorkoutPeriodization,
+  getWorkoutPeriodization,
   addExercise,
   deleteExercise,
   getStudentWorkouts

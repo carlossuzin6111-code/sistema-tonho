@@ -144,7 +144,7 @@ async function getStudents(req, res) {
   try {
     const students = await db('users as u')
       .join('student_profiles as sp', 'u.id', 'sp.student_id')
-      .select('u.id', 'u.name', 'u.email', 'u.avatar_filename', 'u.avatar_updated_at', 'sp.height', 'sp.target_weight', 'sp.birth_date')
+      .select('u.id', 'u.name', 'u.email', 'u.avatar_filename', 'u.avatar_updated_at', 'u.account_status', 'sp.relationship_status', 'sp.height', 'sp.target_weight', 'sp.birth_date')
       .select(db.raw('(SELECT weight FROM measurements WHERE student_id = u.id ORDER BY recorded_at DESC LIMIT 1) as latest_weight'))
       .select(db.raw('(SELECT recorded_at FROM measurements WHERE student_id = u.id ORDER BY recorded_at DESC LIMIT 1) as latest_weight_date'))
       .select(db.raw('(SELECT COUNT(*) FROM chat_messages WHERE sender_id = u.id AND receiver_id = ? AND read_status = 0) as unread_messages', [personalId]))
@@ -155,6 +155,24 @@ async function getStudents(req, res) {
   } catch (err) {
     console.error('Get students error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function updateStudentLifecycle(req, res) {
+  const studentId = Number(req.params.id);
+  const { accountStatus, relationshipStatus } = req.body;
+  try {
+    const profile = await db('student_profiles').where({ student_id: studentId, personal_id: req.user.id }).first();
+    if (!profile) return res.status(404).json({ error: 'Student not found' });
+    await db.transaction(async trx => {
+      if (accountStatus) await trx('users').where({ id: studentId, role: 'student' }).update({ account_status: accountStatus, updated_at: trx.fn.now() });
+      if (relationshipStatus) await trx('student_profiles').where({ student_id: studentId, personal_id: req.user.id }).update({ relationship_status: relationshipStatus });
+    });
+    const current = await db('users as u').join('student_profiles as sp', 'sp.student_id', 'u.id').select('u.account_status', 'sp.relationship_status').where('u.id', studentId).first();
+    return res.json({ studentId, ...current });
+  } catch (error) {
+    console.error('Update student lifecycle error:', error.message);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -343,6 +361,7 @@ module.exports = {
   claimStudentInvitation,
   createStudent,
   getStudents,
+  updateStudentLifecycle,
   getStudentDetails,
   addMeasurement,
   getMeasurements,

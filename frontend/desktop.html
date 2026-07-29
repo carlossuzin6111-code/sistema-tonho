@@ -9,7 +9,7 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260719.19">
+  <link rel="stylesheet" href="css/style.css?v=20260729.20">
 </head>
 <body>
 
@@ -179,6 +179,7 @@
             <span id="students-search-count" class="list-search-count" role="status" aria-live="polite"></span>
             <select id="students-sort" class="list-sort-select" aria-label="Ordenar alunos"><option value="name-asc">Nome A–Z</option><option value="name-desc">Nome Z–A</option><option value="unread">Mensagens não lidas</option></select>
           </div>
+          <div class="student-status-tabs" role="group" aria-label="Filtrar alunos por status"><button class="status-tab active" data-action="filter-student-status" data-student-status-filter="active" aria-pressed="true">Ativos</button><button class="status-tab" data-action="filter-student-status" data-student-status-filter="inactive" aria-pressed="false">Inativos</button><button class="status-tab" data-action="filter-student-status" data-student-status-filter="all" aria-pressed="false">Todos</button></div>
           <!-- Students Grid -->
           <div id="students-grid" class="grid grid-3">
             <!-- Dynamic student cards go here -->
@@ -867,12 +868,13 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260719.19"></script>
-  <script src="js/safe-dom.js?v=20260719.19"></script>
-  <script src="js/app.js?v=20260719.19"></script>
-  <script src="js/personal.js?v=20260719.19"></script>
-  <script src="js/student.js?v=20260719.19"></script>
-  <script src="js/profile.js?v=20260719.19"></script>
-  <script src="js/events.js?v=20260719.19"></script>
+  <script src="js/api.js?v=20260729.20"></script>
+  <script src="js/safe-dom.js?v=20260729.20"></script>
+  <script src="js/datetime.js?v=20260729.20"></script>
+  <script src="js/app.js?v=20260729.20"></script>
+  <script src="js/personal.js?v=20260729.20"></script>
+  <script src="js/student.js?v=20260729.20"></script>
+  <script src="js/profile.js?v=20260729.20"></script>
+  <script src="js/events.js?v=20260729.20"></script>
 </body>
 </html>

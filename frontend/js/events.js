@@ -61,6 +61,7 @@ const clickActions = Object.freeze({
   },
   'open-profile-modal': () => openEditProfileModal(),
   'switch-profile-tab': element => switchProfileTab(element.dataset.tab),
+  'filter-student-status': element => filterStudentStatus(element.dataset.studentStatusFilter, element),
   'save-profile-avatar': () => handleSaveAvatar(),
   'remove-profile-avatar': () => handleRemoveAvatar()
 });
