@@ -46,6 +46,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
     - expires_at (TIMESTAMP)
     ```
 *   **Endpoint**: `POST /api/auth/forgot-password` (envia e-mail com link) e `POST /api/auth/reset-password` (valida o hash e atualiza `users.password`).
+*   **Progresso em 29/07/2026**: migration, endpoints, rate limits e serviço de e-mail já estão implementados; tokens são armazenados apenas como SHA-256, expiram, não podem ser reutilizados, não revelam existência da conta e invalidam sessões após a troca. A suíte `passwordReset.test.js` cobre o contrato completo.
+*   **Pendente operacional**: configurar provedor/domínio de e-mail, criar tela pública acessível para consumir o link e executar limpeza/auditoria periódica dos tokens expirados.
 
 ### [SEC-05] Verificação de E-mail
 *   **Implementação atual**: Migration `202607290003_add_email_verification.js` adiciona `users.email_verified_at` e tabela de tokens com hash, validade de 24 horas, uso único e FK para `users`. O cadastro pessoal emite token e usa o adaptador Resend quando configurado.
@@ -70,6 +72,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [SEC-08] PAR-Q e Assinatura Eletrônica de Termos (Waivers)
 *   **Entrega atual**: tabela `signed_waivers` com FK, versão dos termos, JSON do PAR-Q, IP, data e unicidade por usuário/versão; `POST /api/profile/waivers` registra a assinatura e retorna o registro existente em reenvio idempotente.
+*   **Progresso em 29/07/2026**: `waivers.test.js` cobre criação e repetição sem duplicidade, mantendo os metadados necessários para auditoria.
+*   **Pendente**: construir a tela PAR-Q acessível, exigir a versão vigente nos fluxos necessários e criar consulta/revisão clínica com auditoria de alterações.
 *   **Especificação**: Tabela `signed_waivers`:
     ```text
     - id (INTEGER, PK)
@@ -102,19 +106,25 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [DB-05] Backup Off-Site com RPO/RTO
 *   **Especificação**: Integração com Cloudflare R2 ou Amazon S3 para upload seguro do arquivo de backup encriptado, com retenção programada (7 diários, 4 semanais, 1 mensal) e runbook documentado de restore.
+*   **Progresso em 29/07/2026**: `offsiteBackupService.js` cifra o SQLite com AES-256-GCM, envia cópias S3-compatible para prefixes `daily`, `weekly` e `monthly`, aplica retenção remota 7/4/1 e integra o worker local sem ativar rede quando o bucket não está configurado. `docs/runbooks/db-05-offsite-restore.md` documenta chaves, RPO/RTO e restore; testes cobrem envelope criptográfico e uploads (3/3 focados).
+*   **Pendente operacional**: configurar bucket/secret manager reais, ativar versionamento/lifecycle e executar restore periódico isolado com medição de RTO.
 
 ### [DB-06] Governança de Migrations e Deploy Expand/Contract
 *   **Especificação**: Scripts de migrations devem ser transacionais e retrocompatíveis. O deployment de novos esquemas deve ser feito em duas fases (Phase 1: Add new table/column nullable; Phase 2: Deploy code using it and drop old fields in future release).
+*   **Progresso em 29/07/2026**: `.github/scripts/verify-migration-policy.sh` e `migrationPolicy.test.js` exigem `up/down` reversíveis e impedem `dropTable`, `dropColumn` e `renameColumn` na fase `up`; o job obrigatório `Migration policy` e o runbook `docs/runbooks/db-06-expand-contract.md` formalizam o fluxo.
+*   **Pendente**: executar um rollout real com releases simultâneos em staging e produção, incluindo dual-read/dual-write quando o schema mudar.
 
 ### [DB-07] Constraints de Domínio e Índices Relacionais
 *   **Especificação**: Migrations criando índices de cobertura em `chat_messages(sender_id, receiver_id)`, `workouts(student_id)` e constraints `UNIQUE` de tabelas pivô de exercícios.
 
 ### [DB-08] Atomicidade de Escrita em Cadastros Compostos
 *   **Especificação**: No controller de criação de fichas (`createWorkout`), envolver a inserção da ficha (`workouts`) e exercícios vinculados (`workout_exercises`) dentro de uma transação Knex (`knex.transaction`), garantindo rollback total sob falha parcial.
+*   **Progresso em 29/07/2026**: o controller já grava ficha e exercícios dentro de `db.transaction`; o teste API negativo força `sets` inválido, espera erro e confirma que a ficha não permanece no banco após a falha.
+*   **Pendente**: ampliar cenários de falha para todos os campos pivot e registrar auditoria transacional sem expor dados sensíveis.
 
 ### [DB-09] Restrições de Domínio de Unidades (Evitar Floats)
-*   **Entrega atual**: migration `202607290005_add_domain_constraints.js` adiciona triggers de banco para peso positivo, medidas não negativas e séries positivas, protegendo gravações que contornem a API. Testes `domainConstraints.test.js` cobrem rejeição direta no SQLite.
-*   **Extensão**: os mesmos invariantes agora cobrem nome/identidade de fichas, mensagens de chat vazias e estados inválidos de sessões de treino.
+*   **Entrega atual**: migration `202607290005_add_domain_constraints.js` adiciona triggers de banco para peso positivo, medidas não negativas e séries positivas, protegendo gravações que contornem a API. Testes `domainConstraints.test.js` cobrem peso, todos os perímetros e séries diretamente no SQLite.
+*   **Pendente**: migrar pesos/medidas para inteiros (gramas/milímetros) ou decimal de precisão fixa e ampliar invariantes para todos os domínios numéricos.
 *   **Especificação**: Armazenar pesos e medidas em inteiros (ex: gramas para pesos, milímetros para perímetros biológicos) ou decimal de precisão fixa, prevenindo inconsistências de ponto flutuante em comparadores matemáticos.
 
 ---
@@ -122,28 +132,36 @@ Este documento atua como o inventário de engenharia contendo especificações d
 ## 3. Desempenho, UX e UI (Grupo UX)
 
 ### [UX-01] Paginação de Chat Baseada em Cursor
-*   **Especificação**: Endpoint `/api/chat/:userId?before=<msgId>&limit=50` evitando a sobrecarga de memória do banco ao recuperar logs extensos.
+*   **Implementado no backend**: Endpoint `/api/chat/:userId?before=<msgId>&limit=<1..50>` executa consulta limitada por ID, ordena por data/ID de forma determinística e devolve `{ messages, nextCursor }`. Sem parâmetros, mantém a resposta em array para compatibilidade com os clientes atuais.
+*   **Pendente**: integrar carregamento incremental no frontend (scroll/botão), preservando mensagens recebidas pelo SSE.
 
 ### [UX-02] Virtual Scrolling no Catálogo
-*   **Especificação**: Lógica no frontend para carregar no DOM apenas os cartões de exercícios atualmente visíveis no contêiner com buffer de segurança (aprox. 15 itens renderizados por vez).
+*   **Implementado**: O catálogo mantém busca e ordenação em memória, mas monta somente uma janela de até 15 cartões por vez, com overscan de duas posições e spacers fixos para preservar a rolagem. O viewport possui rolagem própria e uma coluna no mobile.
+*   **Pendente**: QA visual com milhares de exercícios para calibrar a altura média do cartão e confirmar a experiência em diferentes larguras.
 
 ### [UX-03] Conversão e Tratamento de Timezones
-*   **Especificação**: Todas as colunas `TIMESTAMP` do SQLite são gravadas em UTC ISO 8601. Conversão regional realizada estritamente no frontend com a API `Intl.DateTimeFormat` do navegador.
+*   **Implementado no frontend**: `AppDateTime` interpreta valores SQLite sem sufixo como UTC e usa exclusivamente `Intl.DateTimeFormat` para converter datas, horas e gráficos ao fuso local do navegador. As páginas carregam o utilitário com a mesma versão de cache-busting.
+*   **Pendente no backend**: normalizar serialização das colunas temporais legadas para ISO 8601 com `Z` e auditar endpoints administrativos restantes.
 
 ### [UX-04] Bloqueio de Base64 e Remoção de Mídias Órfãs
-*   **Especificação**: O avatar já é validado, convertido para WebP, escrito por arquivo temporário/rename e removido via serviço. Completar persistência do diretório, quota, reconciliação de órfãos e tratamento compensatório quando banco e filesystem divergirem. Para novos uploads, preferir binário/multipart a Base64.
+*   **Implementado**: O avatar é validado por assinatura e `sharp`, convertido para WebP via arquivo temporário/rename, limitado a 2 MiB por usuário e reconciliado após troca ou remoção. Falha de transação remove o novo arquivo para evitar órfãos; falha de limpeza posterior é registrada sem apagar o arquivo referenciado pelo banco.
+*   **Pendente**: tarefa periódica de reconciliação global, persistência explícita de quota por tenant e migração dos novos uploads para binário/multipart em vez de Base64.
 
 ### [UX-05] Controle de Cache no Nginx e Cache-Busting
-*   **Especificação**: Substituir o versionamento manual por query string hoje presente por hashing de conteúdo automatizado no build; servir assets imutáveis com cache longo e HTML/roteador com revalidação (`no-cache`). Adicionar teste que impeça HTML antigo de apontar para assets removidos.
+*   **Implementado**: Nginx revalida HTML com `no-cache, must-revalidate` e serve CSS/JS versionados com `max-age=31536000, immutable`; a suíte verifica que todos os assets locais compartilham a versão e que as diretivas existem.
+*   **Pendente**: substituir a versão manual por hashing automatizado no build e validar que nenhum HTML publicado referencia assets removidos.
 
 ### [UX-06] Controle de Concorrência (Optimistic Locking)
-*   **Especificação**: Coluna `version` (INTEGER) nos registros editáveis. O frontend envia a versão no cabeçalho `If-Match`. Caso o backend verifique divergência, aborta a escrita com `409 Conflict`.
+*   **Implementado parcialmente**: Migration adiciona `version` inteiro aos registros de usuários, fichas, itens de ficha e exercícios. Atualização de nome de perfil e favoritos de exercício verificam `If-Match`, incrementam a versão atomicamente e retornam `409 Conflict` em divergência; sem cabeçalho, a compatibilidade legada é mantida.
+*   **Pendente**: aplicar o mesmo contrato a todas as mutações editáveis e fazer o frontend enviar/atualizar automaticamente o cabeçalho `If-Match`.
 
 ### [UX-07] Acessibilidade WCAG 2.2 AA
-*   **Especificação**: Modais com Focus Trap, suporte nativo para `prefers-reduced-motion` no CSS, anúncios acessíveis (`aria-live`) em toasts e tags ARIA consistentes nos grupos de abas.
+*   **Implementado parcialmente**: além do Focus Trap, `aria-live` e `prefers-reduced-motion` já existentes, a folha global garante indicador de foco de 3px para controles navegáveis, inclusive componentes sem regra específica.
+*   **Pendente**: auditoria manual com leitor de tela, medição formal de contraste e validação de todos os fluxos apenas por teclado.
 
 ### [UX-08] Hardening de Uploads e Cotas de Mídia
-*   **Especificação**: Validação de assinaturas/MIME mágicos de arquivos em uploads, renomeação aleatória contra injeções de diretório, e limite estrito no Nginx de `client_max_body_size 600K` coerente com a cota JSON do backend.
+*   **Implementado parcialmente**: validação de assinaturas/MIME, nomes aleatórios fora da área pública, limite Nginx de `600K`, quota configurável de avatar por usuário e quota agregada de 20 MiB para imagens Base64 do catálogo. Excesso retorna `413` e não grava o registro.
+*   **Pendente**: preferir multipart/binário para novos uploads e executar reconciliação global periódica de arquivos/linhas órfãs.
 
 ---
 
@@ -156,34 +174,43 @@ Este documento atua como o inventário de engenharia contendo especificações d
     *   `exercise_logs` (séries concluídas, repetições reais, carga levantada, RPE percebido de 1 a 10).
 
 ### [BUS-02] Estados de Publicação da Ficha de Treino
-*   **Especificação**: Fichas com campo `status` (`'draft'`, `'published'`, `'archived'`).
-*   **Regra**: O aluno só visualiza treinos marcados como `'published'`. Ao publicar um novo treino, o sistema altera automaticamente os treinos antigos do aluno para `'archived'`.
+*   **Implementado parcialmente**: Fichas possuem campo `status` (`'draft'`, `'published'`, `'archived'`), protegido por triggers SQLite. O aluno só visualiza treinos publicados; ao publicar uma ficha, as anteriores do mesmo aluno/personal são arquivadas em uma transação.
+*   **Pendente**: integrar seletor/indicador de publicação no frontend e registrar auditoria específica das transições.
 
 ### [BUS-03] Ciclo de Vida do Aluno e do Vínculo
-*   **Especificação**:
+*   **Implementado parcialmente**: usuários possuem `account_status` (`active`, `suspended`, `archived`) e vínculos possuem `relationship_status` (`invited`, `active`, `paused`, `blocked`), ambos protegidos no SQLite. Personal pode atualizar o aluno vinculado pelo endpoint de lifecycle.
+*   **Pendente**: bloquear autenticação/execução conforme status e integrar abas/filtros de ativos, pausados e arquivados no frontend.
+*   **Especificação original**:
     *   **Status da Conta**: `active`, `suspended`, `archived` (soft-deleted).
     *   **Status do Vínculo**: `invited`, `active`, `paused`, `blocked`.
     *   **Regra**: Alunos pausados retêm acesso read-only ao histórico, mas perdem chat e execução de treinos ativos.
 
 ### [BUS-04] Anamnese Clínica (Assessments)
-*   **Especificação**: Tabela `student_assessments` registrando nível de experiência, limitações anatômicas, lesões clínicas, e dividida em campos privados (`personal_notes`) e compartilhados (`student_notes`).
+*   **Implementado parcialmente**: Tabela `student_assessments` registra nível de experiência, limitações anatômicas e lesões clínicas, separando `personal_notes` (privado) de `student_notes` (compartilhado). Endpoints autenticados validam o vínculo e nunca expõem as notas privadas ao aluno.
+*   **Pendente**: tela de anamnese, edição/versionamento e auditoria clínica.
 
 ### [BUS-05] Aderência Semanal e Ordenação no Dashboard
 *   **Especificação**: Cálculo matemático: `aderência = treinos concluídos / treinos previstos`. Ordenações no painel do Personal por alunos com menor frequência ou maior tempo sem treinar.
 
 ### [BUS-06] Progressão de Carga e Recordes Pessoais
-*   **Especificação**: Monitoramento do volume acumulado (`séries × repetições × carga`). Frontend exibe a última carga e reps executados em cada exercício como sugestão para a sessão atual.
+*   **Implementado parcialmente**: Endpoint calcula volume acumulado (`séries × repetições × carga`) a partir de sessões concluídas, recorde de volume e última carga/repetições por exercício.
+*   **Pendente**: cálculo de 1-RM com fórmula explícita, sugestões integradas na tela de execução e visualização histórica.
 
 ### [BUS-07] Temporizador de Descanso e Sessão Ativa
-*   **Especificação**: Temporizadores visuais no frontend com gravação de status no backend em `last_activity_at` para recuperar a sessão em andamento caso o navegador seja fechado acidentalmente.
+*   **Implementado parcialmente**: Sessões possuem `last_activity_at`, atualizado ao iniciar e registrar progresso; endpoint heartbeat autenticado mantém a sessão ativa e respeita ownership.
+*   **Pendente**: temporizador visual, polling/heartbeat automático e recuperação da sessão no frontend.
 
 ### [BUS-08] Fila Local (IndexedDB) e Chave de Idempotência
 *   **Especificação**:
     *   Fila local no cliente (`IndexedDB`) guardando logs quando desconectado.
     *   Envio das rotas com o cabeçalho `Idempotency-Key: <UUID>` para prevenir que reenvios causados por oscilações gerem duplicidade de treinos/pesos.
+*   **Progresso em 29/07/2026**: `frontend/js/api.js` implementa armazenamento FIFO, reenvio automático no evento `online` e chaves únicas nas mutações de sessões. A migration `202607290011_create_idempotency_keys.js` e o middleware autenticado persistem respostas 2xx para que reenvios retornem o mesmo resultado sem duplicar a operação.
+*   **Pendente**: aplicar a fila a outros fluxos mutáveis, definir retenção/limpeza e expor telemetria de itens pendentes para suporte operacional.
 
 ### [BUS-09] Chaves de Cadastro de Personais via CLI
 *   **Especificação**: Script administrativo CLI no node para emitir, auditar vigência e invalidar as chaves de acesso exigidas no cadastro de novos instrutores.
+*   **Progresso em 29/07/2026**: `node src/scripts/createAccessKey.js create` emite a chave uma única vez; `list` audita ID, datas e uso sem expor hashes; `revoke <id>` invalida chaves não utilizadas. O serviço mantém expiração de sete dias e hash SHA-256.
+*   **Pendente operacional**: executar a CLI em ambiente controlado e integrar armazenamento/rotação de segredos do operador.
 
 ### [BUS-10] Edição e Exclusão de Mensagens no Chat
 *   **Especificação**: Endpoints `PUT /api/chat/:messageId` e `DELETE /api/chat/:messageId` atualizando as streams SSE ativas dos envolvidos.
@@ -193,9 +220,13 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [BUS-12] Inativação e Abas de Filtragem de Alunos
 *   **Especificação**: Possibilidade de inativar alunos antigos sem deletar seu prontuário físico e separação por abas "Ativos" / "Inativos" na listagem.
+*   **Progresso em 29/07/2026**: o dashboard separa Ativos, Inativos e Todos usando os status de conta/vínculo já persistidos; a filtragem não remove histórico nem registros clínicos.
+*   **Pendente**: filtro no endpoint, confirmação acessível para transições e auditoria específica de inativação.
 
 ### [BUS-13] Periodização Biomecânica Ondulatória
 *   **Especificação**: Suporte a templates e variações de carga/volume estruturadas em microciclos na ficha do aluno, fugindo de fichas estáticas lineares de musculação.
+*   **Progresso em 29/07/2026**: migration `workout_microcycles` e endpoints autenticados `PUT/GET /api/workouts/:id/periodization` permitem até 52 semanas sequenciais, intensidade percentual, multiplicador de volume e notas; a gravação substitui o plano em uma transação e valida ownership.
+*   **Pendente**: editor visual, regras biomecânicas específicas por exercício e versionamento/auditoria das alterações clínicas.
 
 ### [BUS-14] Governança do Catálogo de Exercícios
 *   **Especificação**: Deduplicação do catálogo e separação em exercícios base globais compartilhados vs customizados criados pelos treinadores.
@@ -244,6 +275,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Especificação**: Logs em formato JSON na API, redação automática de CPFs/Senhas nos payloads, métricas RED de latência e alertas sob erros `SQLITE_BUSY`.
 
 ### [OPS-14] CI/CD Obrigatória
+*   **Progresso em 29/07/2026**: workflow `Test suites` ganhou triggers explícitos de PR, push e execução manual, cancelamento de concorrência por branch/PR, job `CI policy` que verifica invariantes do próprio pipeline, validação de migrations, testes e auditoria com nível alto. O run `30477897188` passou em 4/4 jobs após incluir `202607290012_create_workout_microcycles.js` na expectativa de migrations; validação local passou em backend (26/26 suítes, 190/190 testes) e frontend (55/55).
+*   **Pendente**: configurar branch protection/required checks no GitHub, deploy automatizado por ambiente, rollback verificável, aprovações de produção e segregação de segredos.
 *   **Especificação**: Pipelines no GitHub Actions exigindo testes unitários/integrados, auditoria npm, scanner de segredos e checagem de migrations antes de aprovar pull requests.
 
 ---
@@ -252,12 +285,20 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [MOB-01] Wrapper Híbrido com Capacitor
 *   **Especificação**: Configuração de Capacitor CLI apontando para a pasta frontend estática (`--web-dir=frontend`) e compilação do APK Android.
+*   **Progresso em 29/07/2026**: `capacitor.config.ts` fixa `br.com.fitlifesync.app`, usa `frontend` como `webDir` e define o esquema HTTPS no Android. As dependências `@capacitor/cli`, `@capacitor/core` e `@capacitor/android` e os comandos `mobile:add:android`, `mobile:sync`, `mobile:open` e `mobile:build:android` foram adicionados; contrato automatizado passou no frontend (56/56).
+*   **Pendente**: executar `npx cap add android` em ambiente com SDK/Gradle, validar o APK, configurar assinatura e publicar o build Android no CI sem incluir credenciais no repositório.
 
 ### [MOB-02] Resolução Dinâmica de Base URL da API
 *   **Especificação**: Código frontend JavaScript detectando a existência de `window.Capacitor` para injetar a URL base de produção nos requests à API de forma condicional.
+*   **Progresso em 29/07/2026**: `frontend/js/api.js` preserva `/api` na web e, em plataforma nativa Capacitor, lê `__FITLIFE_API_BASE_URL__`, exige HTTPS, normaliza a barra final e aplica `credentials: include` a requests e SSE. O teste de contrato cobre a separação de ambientes (frontend 57/57).
+*   **Pendente**: fornecer a variável no build Android/iOS por configuração segura, definir o domínio oficial e integrar o modo de autenticação móvel/CORS (MOB-03) antes de distribuir o app.
 
 ### [MOB-03] CORS para WebViews Locais
 *   **Especificação**: Whitelist do backend Express aceitando requisições oriundas de `http://localhost` (WebView Android) e `capacitor://localhost` (WebView iOS).
+*   **Progresso em 29/07/2026**: `createCorsOptions()` agora permite, por padrão e com comparação exata, `http://localhost` e `capacitor://localhost`; `CORS_ORIGINS` continua substituindo a lista para ambientes controlados. O teste bloqueia `http://localhost:3000` e confirma credenciais para as duas origens suportadas (21/21 focados; backend 191/191).
+*   **Pendente**: incluir o domínio oficial do app via configuração de ambiente, validar preflight em produção e alinhar cookies/CSRF ou Bearer com o fluxo seguro do MOB-02/MOB-04.
 
 ### [MOB-04] Armazenamento Seguro de Chaves (Secure Storage)
 *   **Especificação**: Em ambiente híbrido móvel, armazenar JWT localmente via plugin `@capacitor-community/secure-storage` integrado ao Keystore/Keychain nativo do celular.
+*   **Progresso em 29/07/2026**: `frontend/js/secure-storage.js` expõe uma ponte que chama somente `Capacitor.Plugins.SecureStorage` e falha sem plugin, sem usar `localStorage`/`sessionStorage`. O teste de contrato confirma ausência de fallback inseguro (58/58 frontend).
+*   **Bloqueio/Pendente**: `@capacitor-community/secure-storage` não está publicado no registro npm no momento da implementação; selecionar uma alternativa mantida, validar Android Keystore/iOS Keychain em dispositivo e só armazenar JWT se o desenho de autenticação móvel deixar de usar cookies HttpOnly.
