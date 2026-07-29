@@ -46,6 +46,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
     - expires_at (TIMESTAMP)
     ```
 *   **Endpoint**: `POST /api/auth/forgot-password` (envia e-mail com link) e `POST /api/auth/reset-password` (valida o hash e atualiza `users.password`).
+*   **Progresso em 29/07/2026**: migration, endpoints, rate limits e serviço de e-mail já estão implementados; tokens são armazenados apenas como SHA-256, expiram, não podem ser reutilizados, não revelam existência da conta e invalidam sessões após a troca. A suíte `passwordReset.test.js` cobre o contrato completo.
+*   **Pendente operacional**: configurar provedor/domínio de e-mail, criar tela pública acessível para consumir o link e executar limpeza/auditoria periódica dos tokens expirados.
 
 ### [SEC-05] Verificação de E-mail
 *   **Implementação atual**: Migration `202607290003_add_email_verification.js` adiciona `users.email_verified_at` e tabela de tokens com hash, validade de 24 horas, uso único e FK para `users`. O cadastro pessoal emite token e usa o adaptador Resend quando configurado.
