@@ -4,7 +4,9 @@ const {
   findUnusedAccessKeyId,
   generateAccessKey,
   hashAccessKey,
-  issueAccessKey
+  issueAccessKey,
+  listAccessKeys,
+  revokeAccessKey
 } = require('../services/accessKeyService');
 
 describe('access key service', () => {
@@ -52,5 +54,15 @@ describe('access key service', () => {
     });
 
     await expect(findUnusedAccessKeyId(db, accessKey)).resolves.toBeNull();
+  });
+
+  test('lists safe metadata and revokes unused keys', async () => {
+    const accessKey = await issueAccessKey(db);
+    const storedKey = await db('registration_keys').where({ key_hash: hashAccessKey(accessKey) }).first();
+    const listed = await listAccessKeys(db);
+    expect(listed[0]).not.toHaveProperty('key_hash');
+    await expect(revokeAccessKey(db, storedKey.id)).resolves.toBe(true);
+    await expect(findUnusedAccessKeyId(db, accessKey)).resolves.toBeNull();
+    await expect(revokeAccessKey(db, storedKey.id)).resolves.toBe(false);
   });
 });
