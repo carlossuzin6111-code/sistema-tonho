@@ -232,6 +232,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-03] Acesso Multiprofissional (Parceiros Clínicos)
 *   **Especificação**: Contas do tipo parceiro read-only (Nutricionistas, Fisioterapeutas). Mediante consentimento explícito do aluno, eles acessam logs de treino e realizam upload de exames.
+*   **Progresso em 29/07/2026**: migration `202607290017_create_partner_consents.js` cria perfis profissionais e consentimentos por aluno; o aluno concede/revoga escopos (`workout_logs`, `measurements`, `exams`) e o parceiro consulta apenas um resumo de leitura quando o consentimento está ativo, não expirado e auditado.
+*   **Pendente**: onboarding/convites de parceiros, upload seguro de exames, interface de gestão de consentimentos, expiração configurável com notificações e telemetria/auditoria operacional completa.
 
 ### [OPS-04] Integração com Wearables
 *   **Especificação**: Conectores e adaptadores assíncronos para Apple HealthKit, Google Fit/Health Connect e Garmin. Ingestão passiva de sono e HRV para sugerir autorregulação.
