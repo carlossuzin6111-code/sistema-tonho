@@ -32,6 +32,7 @@ const workoutSessionController = require('./controllers/workoutSessionController
 const progressionController = require('./controllers/progressionController');
 const adherenceController = require('./controllers/adherenceController');
 const assessmentController = require('./controllers/assessmentController');
+const healthController = require('./controllers/healthController');
 
 // Initialize database
 const db = require('./database');
@@ -65,18 +66,12 @@ setupSwagger(app, {
   enabled: process.env.API_DOCS_ENABLED
 });
 
-// Readiness endpoint used by Compose. It verifies both the HTTP process and the
-// database connection without exposing schema or environment details.
-app.get('/api/health', async (req, res) => {
-  try {
-    await db.ready;
-    await db.raw('SELECT 1');
-    res.json({ status: 'ok' });
-  } catch (error) {
-    console.error('Health check failed:', error.message);
-    res.status(503).json({ status: 'unavailable' });
-  }
-});
+// Liveness is independent from SQLite; readiness verifies the connection and
+// confirms that no migrations are waiting to be applied.
+app.get('/health/live', healthController.live);
+app.get('/health/ready', healthController.ready);
+// Backward-compatible alias used by existing Compose/probes.
+app.get('/api/health', healthController.ready);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
