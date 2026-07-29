@@ -48,10 +48,8 @@ Este documento atua como o painel executivo para controle de progresso e roadmap
 bus/bus-08-offline-idempotency
 | **BUS-07** | Temporizador e Sessão Ativa | 7/10 | **Não Iniciado** | 14h | Baixo | Frontend |
 | **BUS-08** | Fila IndexedDB e Idempotency | 8/10 | **Parcial** | 20h | Alto | Fullstack |
-=======
 | **BUS-07** | Temporizador e Sessão Ativa | 7/10 | **Parcial** | 14h | Baixo | Frontend |
 | **BUS-08** | Fila IndexedDB e Idempotency | 8/10 | **Não Iniciado** | 20h | Alto | Frontend |
- main
 | **BUS-09** | Chaves de Cadastro via CLI | 10/10 | **Parcial** | 8h | Baixo | Backend |
 | **BUS-10** | Edição/Exclusão/Leitura de Chat | 8/10 | **Não Iniciado** | 12h | Médio | Fullstack |
 | **BUS-11** | Indicador "Digitando..." via SSE | 5/10 | **Não Iniciado** | 8h | Baixo | Fullstack |
@@ -65,7 +63,7 @@ bus/bus-08-offline-idempotency
 | **OPS-05** | Alertas CRM de Churn e NPS | 5/10 | **Não Iniciado** | 16h | Baixo | Backend |
 | **OPS-06** | Check-ins por Geofencing | 4/10 | **Não Iniciado** | 30h | Alto | Fullstack |
 | **OPS-07** | Check-in de Prontidão (Readiness) | 5/10 | **Não Iniciado** | 12h | Baixo | Fullstack |
-| **OPS-08** | Central de Notificações | 5/10 | **Não Iniciado** | 16h | Baixo | Fullstack |
+| **OPS-08** | Central de Notificações | 5/10 | **Parcial** | 16h | Baixo | Fullstack |
 | **OPS-09** | Exportação e Anonimização LGPD | 9/10 | **Não Iniciado** | 14h | Alto | Backend |
 | **OPS-10** | Health Checks Liveness/Readiness | 8/10 | **Parcial** | 8h | Baixo | DevOps |
 | **OPS-11** | Sessões por Dispositivo | 6/10 | **Não Iniciado** | 18h | Médio | Backend |
@@ -121,6 +119,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | **UX-08** | `../backend/src/services/avatarService.js`, `../nginx.conf` | `../backend/src/tests/api.test.js` | `Quota por usuário/tenant e persistência/reconciliação de arquivos` |
 | **BUS-04** | `../backend/src/db/migrations/202607290009_create_student_assessments.js`, `assessmentController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Tela de anamnese, edição/versionamento e auditoria clínica` |
 | **OPS-10** | `../backend/src/index.js` | `../backend/src/tests/api.test.js` | `Separar liveness de readiness verificando migrations` |
+| **OPS-08** | `../backend/src/db/migrations/202607290022_create_notification_center.js`, `../backend/src/services/notificationService.js`, `../backend/src/controllers/notificationController.js` | `../backend/src/tests/notificationController.test.js`, `migrations.test.js` | `Entrega externa por e-mail/push/WhatsApp, templates, retry e preferências de opt-out por tenant` |
 | **UX-01** | `../backend/src/controllers/chatController.js`, `../backend/src/index.js` | `../backend/src/tests/api.test.js` | `Carregar páginas anteriores no frontend e botão/scroll de histórico` |
 | **UX-02** | `../frontend/js/personal.js`, `../frontend/css/style.css`, `mobile.css` | `../frontend/tests/strict-csp.test.js` | `Medição visual de altura por viewport e QA em catálogo muito grande` |
 | **UX-03** | `../frontend/js/datetime.js`, `personal.js`, `student.js`, páginas HTML | `../frontend/tests/strict-csp.test.js` | `Normalizar respostas legadas do backend e auditoria dos demais timestamps administrativos` |
@@ -135,9 +134,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | **BUS-04** | `../backend/src/db/migrations/202607290009_create_student_assessments.js`, `assessmentController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Tela de anamnese, edição/versionamento e auditoria clínica` |
  bus/bus-08-offline-idempotency
 | **BUS-08** | `../backend/src/db/migrations/202607290011_create_idempotency_keys.js`, `../backend/src/middleware/idempotency.js`, `../frontend/js/api.js` | `../backend/src/tests/migrations.test.js`, `../backend/src/tests/workoutSessions.test.js`, `../frontend/tests/strict-csp.test.js` | `Instrumentar fila para todos os fluxos offline e política de retenção/limpeza` |
-=======
 | **BUS-07** | `../backend/src/db/migrations/202607290010_add_session_activity.js`, `workoutSessionController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `workoutSessions.test.js` | `Temporizador visual e recuperação automática da sessão no frontend` |
- main
 | **UX-08** | `../backend/src/services/avatarService.js`, `mediaQuotaService.js`, `profileController.js`, `exerciseController.js`, `nginx.conf` | `../backend/src/tests/avatarService.test.js`, `mediaQuotaService.test.js`, `httpSecurity.test.js` | `Multipart para novos uploads e reconciliação global agendada` |
 
 ---
@@ -197,9 +194,9 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | 29/07/2026 | BUS-04 | Tabela `student_assessments` separa campos privados do Personal e notas compartilhadas; endpoints autenticados controlam ownership e ocultam `personal_notes` do aluno | Branch `bus/bus-04-assessments`; backend migrations/API 69/69 | Parcial: integrar tela, edição/versionamento e auditoria clínica |
  bus/bus-08-offline-idempotency
 | 29/07/2026 | BUS-08 | Fila IndexedDB para mutações de sessões quando offline, reenvio FIFO ao voltar a conexão, `Idempotency-Key` por operação e deduplicação de respostas 2xx no backend | Branch `bus/bus-08-offline-idempotency`; frontend 55/55; backend migrations/workout sessions 15/15; `git diff --check` aprovado | Parcial: ampliar instrumentação para demais mutações offline e adicionar limpeza/telemetria da fila |
-=======
 | 29/07/2026 | BUS-07 | Campo `last_activity_at`, atualização no início/progresso e endpoint heartbeat autenticado para sessões ativas | Branch `bus/bus-07-active-session`; migrations/workout sessions 15/15; `git diff --check` aprovado | Parcial: temporizador e recuperação automática no frontend ainda pendentes |
 
-main
 | 29/07/2026 | UX-08 | Quota agregada configurável de 20 MiB para imagens Base64 de exercícios, validação de MIME/assinatura mantida e respostas `413` para excesso; avatar já possui quota e reconciliação por usuário | Branch `ux/ux-08-upload-quotas`; backend focado 82/82 | Parcial: migrar novos uploads para multipart e executar reconciliação global periódica |
+| 29/07/2026 | UX-08 | Quota agregada configurável de 20 MiB para imagens Base64 de exercícios, validação de MIME/assinatura mantida e respostas `413` para excesso; avatar já possui quota e reconciliação por usuário | Branch `ux/ux-08-upload-quotas`; backend focado 82/82 | Parcial: migrar novos uploads para multipart e executar reconciliação global periódica |
+| 29/07/2026 | OPS-08 | Central interna com preferências por evento/canal, fila de notificações idempotente, contador de não lidas e acknowledge protegido por usuário | Branch `ops/ops-08-notification-center`; migration `202607290022_create_notification_center.js`; testes focados 8/8 | Parcial: adaptadores e-mail/push/WhatsApp, templates, retry/outbox e opt-out/consentimento operacional ainda pendentes |
 Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.
