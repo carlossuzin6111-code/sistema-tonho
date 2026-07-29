@@ -141,7 +141,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Pendente**: substituir a versão manual por hashing automatizado no build e validar que nenhum HTML publicado referencia assets removidos.
 
 ### [UX-06] Controle de Concorrência (Optimistic Locking)
-*   **Especificação**: Coluna `version` (INTEGER) nos registros editáveis. O frontend envia a versão no cabeçalho `If-Match`. Caso o backend verifique divergência, aborta a escrita com `409 Conflict`.
+*   **Implementado parcialmente**: Migration adiciona `version` inteiro aos registros de usuários, fichas, itens de ficha e exercícios. Atualização de nome de perfil e favoritos de exercício verificam `If-Match`, incrementam a versão atomicamente e retornam `409 Conflict` em divergência; sem cabeçalho, a compatibilidade legada é mantida.
+*   **Pendente**: aplicar o mesmo contrato a todas as mutações editáveis e fazer o frontend enviar/atualizar automaticamente o cabeçalho `If-Match`.
 
 ### [UX-07] Acessibilidade WCAG 2.2 AA
 *   **Especificação**: Modais com Focus Trap, suporte nativo para `prefers-reduced-motion` no CSS, anúncios acessíveis (`aria-live`) em toasts e tags ARIA consistentes nos grupos de abas.
