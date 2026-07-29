@@ -111,6 +111,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [DB-06] Governança de Migrations e Deploy Expand/Contract
 *   **Especificação**: Scripts de migrations devem ser transacionais e retrocompatíveis. O deployment de novos esquemas deve ser feito em duas fases (Phase 1: Add new table/column nullable; Phase 2: Deploy code using it and drop old fields in future release).
+*   **Progresso em 29/07/2026**: `.github/scripts/verify-migration-policy.sh` e `migrationPolicy.test.js` exigem `up/down` reversíveis e impedem `dropTable`, `dropColumn` e `renameColumn` na fase `up`; o job obrigatório `Migration policy` e o runbook `docs/runbooks/db-06-expand-contract.md` formalizam o fluxo.
+*   **Pendente**: executar um rollout real com releases simultâneos em staging e produção, incluindo dual-read/dual-write quando o schema mudar.
 
 ### [DB-07] Constraints de Domínio e Índices Relacionais
 *   **Especificação**: Migrations criando índices de cobertura em `chat_messages(sender_id, receiver_id)`, `workouts(student_id)` e constraints `UNIQUE` de tabelas pivô de exercícios.

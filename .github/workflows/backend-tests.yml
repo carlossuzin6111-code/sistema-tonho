@@ -28,6 +28,18 @@ jobs:
       - name: Validate mandatory workflow policy
         run: bash .github/scripts/verify-ci-policy.sh
 
+  migration-policy:
+    name: Migration policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate expand/contract migrations
+        run: bash .github/scripts/verify-migration-policy.sh
+
   secret-scan:
     name: Secret scan
     runs-on: ubuntu-latest
