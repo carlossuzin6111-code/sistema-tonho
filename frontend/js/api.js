@@ -24,6 +24,8 @@ const API_CREDENTIALS = isNativeCapacitor ? 'include' : 'same-origin';
 const CSRF_COOKIE = 'fitlife_csrf';
 const OFFLINE_DB_NAME = 'fitlife-offline-queue';
 const OFFLINE_STORE = 'mutations';
+const OFFLINE_MAX_ITEMS = 100;
+const OFFLINE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 const OfflineQueue = {
   supported() {
@@ -44,6 +46,7 @@ const OfflineQueue = {
   },
 
   async enqueue(request) {
+    await this.prune();
     const db = await this.open();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(OFFLINE_STORE, 'readwrite');
@@ -62,6 +65,28 @@ const OfflineQueue = {
     });
   },
 
+  async prune() {
+    if (!this.supported()) return { removed: 0 };
+    const items = await this.all();
+    const cutoff = Date.now() - OFFLINE_MAX_AGE_MS;
+    const stale = items.filter(item => item.createdAt < cutoff);
+    const overflow = items.filter((item, index) => index < Math.max(0, items.length - OFFLINE_MAX_ITEMS));
+    const ids = new Set([...stale, ...overflow].map(item => item.id));
+    for (const id of ids) await this.remove(id);
+    return { removed: ids.size };
+  },
+
+  async stats() {
+    const items = this.supported() ? await this.all() : [];
+    return {
+      pending: items.length,
+      oldestAt: items[0]?.createdAt || null,
+      newestAt: items.at(-1)?.createdAt || null,
+      maxItems: OFFLINE_MAX_ITEMS,
+      maxAgeMs: OFFLINE_MAX_AGE_MS
+    };
+  },
+
   async remove(id) {
     const db = await this.open();
     return new Promise((resolve, reject) => {
@@ -74,6 +99,7 @@ const OfflineQueue = {
 
   async flush(send) {
     if (!this.supported() || (typeof navigator !== 'undefined' && !navigator.onLine)) return { sent: 0, pending: 0 };
+    await this.prune();
     const pending = await this.all();
     let sent = 0;
     for (const item of pending) {
@@ -104,6 +130,8 @@ API.flushOfflineQueue = () => API.offlineQueue.flush(async item => {
   }
   return response;
 });
+
+API.getOfflineQueueStatus = () => API.offlineQueue.stats();
 
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => API.flushOfflineQueue().catch(error => {

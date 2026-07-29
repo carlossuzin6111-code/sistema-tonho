@@ -209,7 +209,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
     *   Fila local no cliente (`IndexedDB`) guardando logs quando desconectado.
     *   Envio das rotas com o cabeçalho `Idempotency-Key: <UUID>` para prevenir que reenvios causados por oscilações gerem duplicidade de treinos/pesos.
 *   **Progresso em 29/07/2026**: `frontend/js/api.js` implementa armazenamento FIFO, reenvio automático no evento `online` e chaves únicas nas mutações de sessões. A migration `202607290011_create_idempotency_keys.js` e o middleware autenticado persistem respostas 2xx para que reenvios retornem o mesmo resultado sem duplicar a operação.
-*   **Pendente**: aplicar a fila a outros fluxos mutáveis, definir retenção/limpeza e expor telemetria de itens pendentes para suporte operacional.
+* **Progresso em 29/07/2026**: A fila agora remove itens com mais de sete dias ou acima de 100 pendências antes de enfileirar/enviar, evitando crescimento ilimitado. `API.getOfflineQueueStatus()` expõe quantidade, idade do item mais antigo/novo e limites operacionais sem revelar dados sensíveis.
+* **Pendente**: aplicar a fila a outros fluxos mutáveis e integrar a telemetria ao suporte operacional.
 
 ### [BUS-09] Chaves de Cadastro de Personais via CLI
 *   **Especificação**: Script administrativo CLI no node para emitir, auditar vigência e invalidar as chaves de acesso exigidas no cadastro de novos instrutores.
