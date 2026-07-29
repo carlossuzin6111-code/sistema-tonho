@@ -2,9 +2,19 @@ process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-only-jwt-secret-with-at-least-32-bytes';
 
 const request = require('supertest');
+const jwt = require('jsonwebtoken');
 const app = require('../index');
 const db = require('../database');
-const { generateToken } = require('../services/sessionService');
+const { JWT_SECRET } = require('../services/sessionService');
+
+function generateToken(user) {
+  return jwt.sign({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    sessionVersion: user.session_version || 0
+  }, JWT_SECRET);
+}
 
 describe('BUS-01: Workout Execution Sessions API', () => {
   let personalToken;
