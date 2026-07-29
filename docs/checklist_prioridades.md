@@ -73,7 +73,7 @@ bus/bus-08-offline-idempotency
 | **MOB-01** | Wrapper Híbrido (Capacitor) | 7/10 | **Parcial** | 20h | Alto | Mobile |
 | **MOB-02** | Resolução Dinâmica Base URL | 8/10 | **Parcial** | 6h | Baixo | Mobile |
 | **MOB-03** | CORS para WebViews | 8/10 | **Parcial** | 6h | Baixo | Backend |
-| **MOB-04** | Secure Storage | 7/10 | **Não Iniciado** | 10h | Alto | Mobile |
+| **MOB-04** | Secure Storage | 7/10 | **Parcial** | 10h | Alto | Mobile |
 
 ---
 
@@ -123,6 +123,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | **MOB-01** | `../capacitor.config.ts`, `../package.json` | `../frontend/tests/capacitor-config.test.js` | `Gerar projeto Android, sincronizar plugins e validar build APK assinado em CI` |
 | **MOB-02** | `../frontend/js/api.js` | `../frontend/tests/api-base-url.test.js` | `Injetar URL de produção no build nativo e validar CORS/Bearer com backend móvel` |
 | **MOB-03** | `../backend/src/middleware/httpSecurity.js` | `../backend/src/tests/httpSecurity.test.js` | `Reforçar origem de produção, cookies/CSRF e teste de preflight no domínio oficial` |
+| **MOB-04** | `../frontend/js/secure-storage.js` | `../frontend/tests/secure-storage.test.js` | `Instalar plugin nativo mantido, integrar ciclo de vida e validar Keystore/Keychain em dispositivos reais` |
 | **UX-01** | `../backend/src/controllers/chatController.js`, `../backend/src/index.js` | `../backend/src/tests/api.test.js` | `Carregar páginas anteriores no frontend e botão/scroll de histórico` |
 | **UX-02** | `../frontend/js/personal.js`, `../frontend/css/style.css`, `mobile.css` | `../frontend/tests/strict-csp.test.js` | `Medição visual de altura por viewport e QA em catálogo muito grande` |
 | **UX-03** | `../frontend/js/datetime.js`, `personal.js`, `student.js`, páginas HTML | `../frontend/tests/strict-csp.test.js` | `Normalizar respostas legadas do backend e auditoria dos demais timestamps administrativos` |
@@ -205,4 +206,5 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | 29/07/2026 | MOB-01 | Configuração Capacitor com `webDir: frontend`, identificador/app name estáveis, dependências CLI/Core/Android e comandos de sincronização, abertura e build Debug; teste de contrato mantém a configuração verificável | Branch `mob/mob-01-capacitor-wrapper`; teste frontend 56/56; `npm audit --audit-level=high` sem vulnerabilidades | Parcial: gerar projeto Android (`npx cap add android`), assinar APK e automatizar build em runner Android |
 | 29/07/2026 | MOB-02 | Cliente API mantém `/api` no navegador e, quando `Capacitor.isNativePlatform()` está ativo, exige `__FITLIFE_API_BASE_URL__` HTTPS validada e usa credenciais `include`; todas as chamadas HTTP/SSE reutilizam a base resolvida | Branch `mob/mob-02-api-base-url`; teste frontend 57/57 | Parcial: injetar configuração de produção no artefato mobile e concluir CORS/autenticação Bearer para WebView |
 | 29/07/2026 | MOB-03 | CORS passou a permitir por padrão somente as origens exatas `http://localhost` e `capacitor://localhost`, mantendo `CORS_ORIGINS` como sobrescrita explícita; teste cobre Android, iOS e lookalike com porta bloqueado | Branch `mob/mob-03-webview-cors`; `httpSecurity` 21/21 e backend 191/191 | Parcial: configurar origem de produção, preflight e política de cookie/CSRF ou Bearer conforme o domínio mobile |
+| 29/07/2026 | MOB-04 | Bridge `FitLifeSecureStorage` usa exclusivamente o plugin nativo `Capacitor.Plugins.SecureStorage`, sem fallback em Web Storage; indisponibilidade falha explicitamente e é coberta por teste | Branch `mob/mob-04-secure-storage`; frontend 58/58 | Parcial: plugin comunitário especificado não está publicado no npm; selecionar/instalar alternativa mantida e integrar tokens somente se o fluxo móvel abandonar cookies HttpOnly |
 Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.
