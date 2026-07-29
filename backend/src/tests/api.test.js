@@ -1063,6 +1063,27 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(remove.statusCode).toBe(404);
     });
 
+    test('Should send a transient typing event only to an authorized chat partner', async () => {
+      const linkedPersonal = await db('student_profiles').select('personal_id').where({ student_id: studentId }).first();
+      const personalTyping = await request(app)
+        .post('/api/chat/typing')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ receiverId: studentId });
+      expect(personalTyping.statusCode).toBe(200);
+      expect(personalTyping.body).toEqual({ sent: true });
+
+      const studentTyping = await request(app)
+        .post('/api/chat/typing')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ receiverId: linkedPersonal.personal_id + 999 });
+      expect(studentTyping.statusCode).toBe(200);
+      const invalidTyping = await request(app)
+        .post('/api/chat/typing')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ receiverId: otherStudentId });
+      expect(invalidTyping.statusCode).toBe(403);
+    });
+
     test('Should open real-time SSE chat connection', (done) => {
       http.get({
         hostname: '127.0.0.1',

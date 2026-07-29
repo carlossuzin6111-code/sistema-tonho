@@ -1017,6 +1017,7 @@ app.get('/api/chat/:userId?', authenticateToken, chatController.getMessages);
 app.post('/api/chat', authenticateToken, validateBody('chatMessage'), chatController.sendMessage);
 app.put('/api/chat/:messageId', authenticateToken, validateBody('chatMessageEdit'), chatController.editMessage);
 app.delete('/api/chat/:messageId', authenticateToken, chatController.deleteMessage);
+app.post('/api/chat/typing', authenticateToken, validateBody('chatTyping'), chatController.sendTyping);
 
 // Normalize parser failures without exposing Express internals.
 app.use(jsonErrorHandler);

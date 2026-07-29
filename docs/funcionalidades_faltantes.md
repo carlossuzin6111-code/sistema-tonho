@@ -208,6 +208,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [BUS-11] Indicador de "Digitando..." via SSE
 *   **Especificação**: Evento leve `event: typing` enviado pelo Express a partir de chamadas rápidas `POST /api/chat/typing` com de-bounce.
+* **Progresso em 29/07/2026**: `POST /api/chat/typing` autoriza somente parceiros vinculados e publica evento transitório sem gravar texto. O frontend usa debounce de 350 ms, mantém uma única expiração visual de 3 s e anuncia o estado com `role=status`/`aria-live` em desktop e mobile.
+* **Pendente**: QA visual, tratamento explícito quando offline e calibração do debounce conforme uso real.
 
 ### [BUS-12] Inativação e Abas de Filtragem de Alunos
 *   **Especificação**: Possibilidade de inativar alunos antigos sem deletar seu prontuário físico e separação por abas "Ativos" / "Inativos" na listagem.

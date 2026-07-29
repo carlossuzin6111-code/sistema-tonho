@@ -281,7 +281,8 @@
                 </div>
                 <!-- Input Area -->
                 <form id="personal-chat-form" class="chat-input-form">
-                  <input type="text" id="personal-chat-input" placeholder="Digite uma mensagem para o aluno..." autocomplete="off" aria-label="Mensagem para o aluno">
+                <span id="personal-chat-typing" class="chat-typing-indicator hidden" role="status" aria-live="polite"></span>
+                <input type="text" id="personal-chat-input" placeholder="Digite uma mensagem para o aluno..." autocomplete="off" aria-label="Mensagem para o aluno">
                   <span class="chat-send-status" data-chat-send-status role="status" aria-live="polite"></span>
                   <button type="submit" class="btn-chat-send btn-glow" aria-label="Enviar mensagem">
                     <i data-lucide="send"></i>
@@ -449,6 +450,7 @@
                 <!-- Dynamic messages loaded here -->
               </div>
               <form id="student-chat-form" class="chat-input-form">
+                <span id="student-chat-typing" class="chat-typing-indicator hidden" role="status" aria-live="polite"></span>
                 <input type="text" id="student-chat-input" placeholder="Tire dúvidas, mande feedbacks de treinos..." autocomplete="off" maxlength="2000" enterkeyhint="send" aria-label="Mensagem para o personal">
                 <span class="chat-send-status" data-chat-send-status role="status" aria-live="polite"></span>
                 <button type="submit" class="btn-chat-send btn-glow" aria-label="Enviar mensagem">
