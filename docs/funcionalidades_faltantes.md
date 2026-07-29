@@ -121,7 +121,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 ## 3. Desempenho, UX e UI (Grupo UX)
 
 ### [UX-01] Paginação de Chat Baseada em Cursor
-*   **Especificação**: Endpoint `/api/chat/:userId?before=<msgId>&limit=50` evitando a sobrecarga de memória do banco ao recuperar logs extensos.
+*   **Implementado no backend**: Endpoint `/api/chat/:userId?before=<msgId>&limit=<1..50>` executa consulta limitada por ID, ordena por data/ID de forma determinística e devolve `{ messages, nextCursor }`. Sem parâmetros, mantém a resposta em array para compatibilidade com os clientes atuais.
+*   **Pendente**: integrar carregamento incremental no frontend (scroll/botão), preservando mensagens recebidas pelo SSE.
 
 ### [UX-02] Virtual Scrolling no Catálogo
 *   **Especificação**: Lógica no frontend para carregar no DOM apenas os cartões de exercícios atualmente visíveis no contêiner com buffer de segurança (aprox. 15 itens renderizados por vez).

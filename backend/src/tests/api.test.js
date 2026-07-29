@@ -820,6 +820,31 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(Array.isArray(res.body)).toBe(true);
     });
 
+    test('Should paginate chat history with a bounded cursor window', async () => {
+      const first = await request(app)
+        .get(`/api/chat/${studentId}?limit=2`)
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(first.statusCode).toBe(200);
+      expect(first.body).toEqual(expect.objectContaining({ messages: expect.any(Array), nextCursor: expect.anything() }));
+      expect(first.body.messages).toHaveLength(2);
+      expect(first.body.messages[0].id).toBeLessThan(first.body.messages[1].id);
+
+      const older = await request(app)
+        .get(`/api/chat/${studentId}?before=${first.body.nextCursor}&limit=2`)
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(older.statusCode).toBe(200);
+      expect(older.body).toHaveProperty('messages');
+      expect(older.body.messages.every(message => message.id < Number(first.body.nextCursor))).toBe(true);
+    });
+
+    test('Should reject invalid chat pagination parameters', async () => {
+      const res = await request(app)
+        .get(`/api/chat/${studentId}?limit=51`)
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error).toMatch(/limit/);
+    });
+
     test('Should expose only the linked Personal Trainer public avatar metadata to a Student', async () => {
       const res = await request(app)
         .get('/api/chat/partner')

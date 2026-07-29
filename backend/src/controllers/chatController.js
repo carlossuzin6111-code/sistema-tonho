@@ -48,6 +48,15 @@ async function getMessages(req, res) {
   let targetId = req.params.userId;
 
   try {
+    const hasPagination = req.query.before !== undefined || req.query.limit !== undefined;
+    const rawLimit = req.query.limit === undefined ? 50 : Number(req.query.limit);
+    const rawBefore = req.query.before === undefined ? null : Number(req.query.before);
+    if (!Number.isInteger(rawLimit) || rawLimit < 1 || rawLimit > 50) {
+      return res.status(400).json({ error: 'limit must be an integer between 1 and 50' });
+    }
+    if (rawBefore !== null && (!Number.isInteger(rawBefore) || rawBefore < 1)) {
+      return res.status(400).json({ error: 'before must be a positive integer message id' });
+    }
     // Students can only chat with their linked Personal Trainer.
     if (userRole === 'student') {
       const profile = await db('student_profiles')
@@ -80,16 +89,25 @@ async function getMessages(req, res) {
       .update({ read_status: 1 });
 
     // Fetch chat history between current user and target user
-    const messages = await db('chat_messages')
+    const query = db('chat_messages')
       .where(function() {
         this.where('sender_id', userId).andWhere('receiver_id', targetId);
       })
       .orWhere(function() {
         this.where('sender_id', targetId).andWhere('receiver_id', userId);
-      })
-      .orderBy('created_at', 'asc');
+      });
+    if (rawBefore !== null) query.andWhere('id', '<', rawBefore);
+    const rows = hasPagination
+      ? await query.orderBy([{ column: 'created_at', order: 'desc' }, { column: 'id', order: 'desc' }]).limit(rawLimit + 1)
+      : await query.orderBy([{ column: 'created_at', order: 'asc' }, { column: 'id', order: 'asc' }]);
 
-    res.status(200).json(messages);
+    if (!hasPagination) return res.status(200).json(rows);
+    const hasMore = rows.length > rawLimit;
+    const messages = rows.slice(0, rawLimit).reverse();
+    return res.status(200).json({
+      messages,
+      nextCursor: hasMore && messages.length ? String(messages[0].id) : null
+    });
   } catch (err) {
     console.error('Get messages error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
