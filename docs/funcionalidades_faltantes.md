@@ -123,8 +123,7 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Pendente**: ampliar cenários de falha para todos os campos pivot e registrar auditoria transacional sem expor dados sensíveis.
 
 ### [DB-09] Restrições de Domínio de Unidades (Evitar Floats)
-*   **Entrega atual**: migration `202607290005_add_domain_constraints.js` adiciona triggers de banco para peso positivo, medidas não negativas e séries positivas, protegendo gravações que contornem a API. Testes `domainConstraints.test.js` cobrem peso, todos os perímetros e séries diretamente no SQLite.
-*   **Pendente**: migrar pesos/medidas para inteiros (gramas/milímetros) ou decimal de precisão fixa e ampliar invariantes para todos os domínios numéricos.
+*   **Entrega atual**: migration `202607290005_add_domain_constraints.js` adiciona triggers de banco para peso positivo, medidas não negativas e séries positivas, protegendo gravações que contornem a API. Testes `domainConstraints.test.js` cobrem rejeição direta no SQLite.
 *   **Especificação**: Armazenar pesos e medidas em inteiros (ex: gramas para pesos, milímetros para perímetros biológicos) ou decimal de precisão fixa, prevenindo inconsistências de ponto flutuante em comparadores matemáticos.
 
 ---
