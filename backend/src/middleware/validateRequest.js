@@ -193,6 +193,9 @@ const bodySchemas = {
   resetPasswordToken: {
     token: text('token', 256, 32),
     newPassword: optionalString({ label: 'newPassword', min: 10, max: 128 })
+  },
+  verifyEmail: {
+    token: text('token', 256, 32)
   }
 };
 

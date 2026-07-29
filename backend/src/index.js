@@ -239,6 +239,7 @@ app.post('/api/auth/forgot-password', forgotPasswordRateLimiter, validateBody('f
  *         description: Erro interno do servidor.
  */
 app.post('/api/auth/reset-password', resetPasswordRateLimiter, validateBody('resetPasswordToken'), authController.resetPasswordWithToken);
+app.post('/api/auth/verify-email', resetPasswordRateLimiter, validateBody('verifyEmail'), authController.verifyEmail);
 app.post('/api/auth/student-invitations/claim', resetPasswordRateLimiter, validateBody('studentInviteClaim'), studentController.claimStudentInvitation);
 
 /**
