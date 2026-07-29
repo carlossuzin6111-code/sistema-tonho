@@ -62,6 +62,13 @@ async function registerPersonal(req, res) {
         .where({ id: accessKeyId })
         .update({ used_by: userId });
 
+      await trx('subscriptions').insert({
+        personal_id: userId,
+        plan: 'trial',
+        status: 'trialing',
+        current_period_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+      });
+
       return userId;
     });
 

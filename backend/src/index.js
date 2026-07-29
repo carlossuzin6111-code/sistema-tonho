@@ -31,6 +31,8 @@ const profileController = require('./controllers/profileController');
 const workoutSessionController = require('./controllers/workoutSessionController');
 const progressionController = require('./controllers/progressionController');
 const assessmentController = require('./controllers/assessmentController');
+const subscriptionController = require('./controllers/subscriptionController');
+const { subscriptionGate } = require('./services/subscriptionService');
 
 // Initialize database
 const db = require('./database');
@@ -57,6 +59,7 @@ app.use(cors(createCorsOptions()));
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || DEFAULT_BODY_LIMIT }));
 app.use(optionalAuthentication);
 app.use(csrfProtection);
+app.use(subscriptionGate);
 
 // Setup Swagger UI API documentation
 setupSwagger(app, {
@@ -76,6 +79,8 @@ app.get('/api/health', async (req, res) => {
     res.status(503).json({ status: 'unavailable' });
   }
 });
+
+app.get('/api/subscription', authenticateToken, subscriptionController.getCurrentSubscription);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);

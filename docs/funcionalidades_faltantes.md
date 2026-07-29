@@ -214,6 +214,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [BUS-13] Periodização Biomecânica Ondulatória
 *   **Especificação**: Suporte a templates e variações de carga/volume estruturadas em microciclos na ficha do aluno, fugindo de fichas estáticas lineares de musculação.
+*   **Progresso em 29/07/2026**: migration `workout_microcycles` e endpoints autenticados `PUT/GET /api/workouts/:id/periodization` permitem até 52 semanas sequenciais com intensidade, volume e notas; a substituição é transacional e respeita ownership.
+*   **Pendente**: editor visual, regras biomecânicas por exercício e versionamento/auditoria clínica.
 *   **Progresso em 29/07/2026**: migration `workout_microcycles` e endpoints autenticados `PUT/GET /api/workouts/:id/periodization` permitem até 52 semanas sequenciais, intensidade percentual, multiplicador de volume e notas; a gravação substitui o plano em uma transação e valida ownership.
 *   **Pendente**: editor visual, regras biomecânicas específicas por exercício e versionamento/auditoria das alterações clínicas.
 
@@ -226,6 +228,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-01] Isolamento de Tenant (Subscriptions)
 *   **Especificação**: Tabela `subscriptions` vinculada à conta do Personal. Middleware bloqueia acessos retornando `402 Payment Required` em caso de mensalidade da licença expirada.
+*   **Progresso em 29/07/2026**: migration cria uma subscription única por Personal com trial inicial; alunos resolvem a assinatura do Personal vinculado; o middleware permite período ativo/carência e retorna `402 SUBSCRIPTION_EXPIRED` quando expirado; `/api/subscription` expõe o estado sem dados do provedor.
+*   **Pendente**: integração com webhook/provedor de cobrança, portal de assinatura e métricas/alertas de inadimplência.
 
 ### [OPS-02] Gestão de Equipe (Head/Junior) e Split de Receitas
 *   **Especificação**: Papéis corporativos com coordenação de equipes de personais juniores associados, bibliotecas compartilhadas e migrações em lote sob desligamento de instrutores.

@@ -260,6 +260,24 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body).toHaveProperty('role', 'personal');
     });
 
+    test('Should expose subscription and return 402 after the grace period expires', async () => {
+      const current = await request(app)
+        .get('/api/subscription')
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(current.statusCode).toBe(200);
+      expect(current.body).toEqual(expect.objectContaining({ plan: 'trial', status: 'trialing' }));
+
+      const personal = await db('users').where({ email: 'test_personal@fitlife.com' }).first();
+      await db('subscriptions').where({ personal_id: personal.id }).update({ status: 'active', current_period_end: new Date(Date.now() - 60 * 1000).toISOString(), grace_period_end: null });
+      const blocked = await request(app)
+        .get('/api/personal/students')
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(blocked.statusCode).toBe(402);
+      expect(blocked.body.code).toBe('SUBSCRIPTION_EXPIRED');
+
+      await db('subscriptions').where({ personal_id: personal.id }).update({ status: 'trialing', current_period_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() });
+    });
+
     test('Should authenticate browser requests using the HttpOnly cookie', async () => {
       const res = await request(app)
         .get('/api/auth/me')
