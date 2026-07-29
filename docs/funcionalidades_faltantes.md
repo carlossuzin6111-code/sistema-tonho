@@ -149,7 +149,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Pendente**: auditoria manual com leitor de tela, medição formal de contraste e validação de todos os fluxos apenas por teclado.
 
 ### [UX-08] Hardening de Uploads e Cotas de Mídia
-*   **Especificação**: Validação de assinaturas/MIME mágicos de arquivos em uploads, renomeação aleatória contra injeções de diretório, e limite estrito no Nginx de `client_max_body_size 600K` coerente com a cota JSON do backend.
+*   **Implementado parcialmente**: validação de assinaturas/MIME, nomes aleatórios fora da área pública, limite Nginx de `600K`, quota configurável de avatar por usuário e quota agregada de 20 MiB para imagens Base64 do catálogo. Excesso retorna `413` e não grava o registro.
+*   **Pendente**: preferir multipart/binário para novos uploads e executar reconciliação global periódica de arquivos/linhas órfãs.
 
 ---
 

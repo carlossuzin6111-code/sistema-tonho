@@ -1,6 +1,7 @@
 const db = require('../database');
 const { AUDIT_ACTIONS, recordAudit } = require('../services/auditService');
 const { expectedVersion } = require('../services/optimisticLockService');
+const { embeddedImageBytes, hasMediaQuota } = require('../services/mediaQuotaService');
 
 // Create a new exercise (Personal Trainer only)
 async function createExercise(req, res) {
@@ -12,6 +13,12 @@ async function createExercise(req, res) {
   }
 
   try {
+    const [{ usedBytes }] = await db('exercises')
+      .where({ personal_id: personalId, is_custom: 1 })
+      .select(db.raw('COALESCE(SUM(LENGTH(gif_url)), 0) as usedBytes'));
+    if (!hasMediaQuota(usedBytes, embeddedImageBytes(gifUrl))) {
+      return res.status(413).json({ error: 'Exercise media quota exceeded' });
+    }
     const [insertedId] = await db('exercises').insert({
       personal_id: personalId,
       name,
