@@ -42,7 +42,7 @@ Este documento atua como o painel executivo para controle de progresso e roadmap
 | **BUS-02** | Status da Ficha (Draft/Published) | 9/10 | **Parcial** | 12h | Baixo | Fullstack |
 | **BUS-03** | Ciclo de Vida do Aluno/Vínculo | 9/10 | **Parcial** | 16h | Médio | Fullstack |
 | **BUS-04** | Anamnese Clínica (`Assessments`) | 9/10 | **Parcial** | 16h | Baixo | Fullstack |
-| **BUS-05** | Aderência Semanal Analítica | 8/10 | **Não Iniciado** | 12h | Médio | Backend |
+| **BUS-05** | Aderência Semanal Analítica | 8/10 | **Parcial** | 12h | Médio | Backend |
 | **BUS-06** | Progressão de Carga e 1-RM | 7/10 | **Parcial** | 16h | Médio | Fullstack |
 
 bus/bus-08-offline-idempotency
@@ -117,6 +117,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | **DB-03** | `../backend/knexfile.js` | `../backend/src/tests/migrations.test.js` | `Confirmar pragma em cada conexão e rejeitar registro órfão` |
 | **DB-04** | `../backend/src/scripts/backupDatabase.js`, `workers/backupWorker.js` | `../backend/src/tests/backupDatabase.test.js`, `backupWorker.test.js` | `Restore periódico em ambiente isolado` |
 | **BUS-01** | `../backend/src/db/migrations/202607200001_create_workout_sessions.js`, `../backend/src/controllers/workoutSessionController.js`, `../backend/src/index.js` | `../backend/src/tests/workoutSessions.test.js`, `api.test.js` | `Tela de execução, logs clínicos/RPE e reconciliação dos nomes de status com o contrato` |
+| **BUS-05** | `../backend/src/services/adherenceService.js`, `../backend/src/controllers/adherenceController.js`, `../backend/src/index.js` | `../backend/src/tests/adherenceService.test.js` | `Endpoint E2E com fixtures, metas de frequência configuráveis e visualização no dashboard` |
 | **DB-07** | `../backend/src/db/migrations/202607140002_add_query_indexes.js` | `../backend/src/tests/indexes.test.js` | `Constraints de domínio e planos das consultas futuras` |
 | **UX-07** | `../frontend/desktop.html`, `mobile.html`, `css/` | `../frontend/tests/strict-csp.test.js`, `safe-dom.test.js` | `Auditoria WCAG 2.2 AA automatizada e manual` |
 | **UX-08** | `../backend/src/services/avatarService.js`, `../nginx.conf` | `../backend/src/tests/api.test.js` | `Quota por usuário/tenant e persistência/reconciliação de arquivos` |
@@ -185,6 +186,7 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | 29/07/2026 | SEC-05 | Frontend consome token de confirmação da URL, chama `/api/auth/verify-email` e anuncia sucesso/erro | PR #93; frontend 51/51 | Parcial: políticas de login/onboarding ainda pendentes |
 | 29/07/2026 | SEC-08 | Migration `signed_waivers` e endpoint autenticado para registrar PAR-Q/termos por versão, IP e assinatura idempotente | PR em abertura `security/sec-08-waivers`; waivers/migrations 6/6 | Parcial: tela de consentimento e revisão clínica ainda pendentes |
 | 29/07/2026 | BUS-01 | Sessões persistem início, progresso por exercício, heartbeat, conclusão/cancelamento, duração, histórico e proteção IDOR; `workoutSessions.test.js` cobre 10 cenários de API | Branch `bus/bus-01-session-status`; backend focado 10/10 | Parcial: falta tela frontend de execução, RPE/logs clínicos e decidir se `in_progress/cancelled` substituem ou mapeiam `started/abandoned` da especificação |
+| 29/07/2026 | BUS-05 | Nova API `GET /api/personal/analytics/adherence` calcula treinos concluídos/publicados por semanas, valida período e ordena alunos por menor aderência/maior tempo sem treinar; cálculo puro coberto em 3/3 testes | Branch `bus/bus-05-adherence-analytics`; endpoint protegido por role `personal` | Parcial: fixture E2E, metas de frequência por aluno e integração visual no dashboard ainda pendentes |
 | 29/07/2026 | UX-01 | GET `/api/chat/:userId?before=<id>&limit=<1..50>` com consulta limitada, ordenação determinística, cursor de mensagens anteriores e compatibilidade com resposta legada sem paginação | Branch `ux/ux-01-chat-cursor`; testes API adicionados | Parcial: integrar carregamento incremental no frontend |
 | 29/07/2026 | UX-02 | Catálogo renderiza janela de até 15 cartões, usa spacers fixos sem estilos inline, mantém busca/ordenação/favoritos e layout móvel | Branch `ux/ux-02-catalog-virtual-scroll`; frontend 52/52; `git diff --check` aprovado | Parcial: validar visualmente com catálogo extenso e integrar ajustes de altura real |
 | 29/07/2026 | UX-03 | Utilitário `AppDateTime` interpreta timestamps SQLite sem fuso como UTC e formata datas/horas via `Intl.DateTimeFormat` no fuso local do navegador; cache-busting atualizado | Branch `ux/ux-03-local-timezone`; frontend 53/53; `git diff --check` aprovado | Parcial: normalizar timestamps legados no backend e cobrir telas administrativas |

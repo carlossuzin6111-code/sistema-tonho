@@ -182,6 +182,8 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [BUS-05] Aderência Semanal e Ordenação no Dashboard
 *   **Especificação**: Cálculo matemático: `aderência = treinos concluídos / treinos previstos`. Ordenações no painel do Personal por alunos com menor frequência ou maior tempo sem treinar.
+*   **Progresso em 29/07/2026**: `GET /api/personal/analytics/adherence` calcula a aderência sobre fichas publicadas por semanas do período, retorna `planned`, `completed`, `adherence` e `lastWorkoutAt`, valida datas e ordena menor aderência primeiro. O cálculo e a ordenação têm cobertura unitária (3/3).
+*   **Pendente**: definir metas de frequência por aluno, adicionar teste E2E com dados reais e integrar cards/gráficos no dashboard do Personal.
 
 ### [BUS-06] Progressão de Carga e Recordes Pessoais
 *   **Implementado parcialmente**: Endpoint calcula volume acumulado (`séries × repetições × carga`) a partir de sessões concluídas, recorde de volume e última carga/repetições por exercício.

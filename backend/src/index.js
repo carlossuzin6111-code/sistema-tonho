@@ -31,6 +31,7 @@ const profileController = require('./controllers/profileController');
 const workoutSessionController = require('./controllers/workoutSessionController');
 const progressionController = require('./controllers/progressionController');
 const assessmentController = require('./controllers/assessmentController');
+const adherenceController = require('./controllers/adherenceController');
 
 // Initialize database
 const db = require('./database');
@@ -362,6 +363,7 @@ app.post('/api/personal/students/invite', authenticateToken, requireRole('person
  *         description: Erro interno do servidor.
  */
 app.get('/api/personal/students', authenticateToken, requireRole('personal'), studentController.getStudents);
+app.get('/api/personal/analytics/adherence', authenticateToken, requireRole('personal'), adherenceController.getAdherence);
 app.get('/api/personal/students/:id/assessments', authenticateToken, validateIdParam('id'), assessmentController.listAssessments);
 app.post('/api/personal/students/:id/assessments', authenticateToken, requireRole('personal'), validateIdParam('id'), validateBody('assessment'), assessmentController.createAssessment);
 
