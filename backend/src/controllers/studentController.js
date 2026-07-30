@@ -140,16 +140,22 @@ async function createStudent(req, res) {
 // Get all students for a Personal Trainer
 async function getStudents(req, res) {
   const personalId = req.user.id;
+  const status = String(req.query.status || 'all').toLowerCase();
+  if (!['active', 'inactive', 'all'].includes(status)) return res.status(400).json({ error: 'status must be active, inactive or all' });
 
   try {
-    const students = await db('users as u')
+    const query = db('users as u')
       .join('student_profiles as sp', 'u.id', 'sp.student_id')
       .select('u.id', 'u.name', 'u.email', 'u.avatar_filename', 'u.avatar_updated_at', 'u.account_status', 'sp.relationship_status', 'sp.height', 'sp.target_weight', 'sp.birth_date')
       .select(db.raw('(SELECT weight FROM measurements WHERE student_id = u.id ORDER BY recorded_at DESC LIMIT 1) as latest_weight'))
       .select(db.raw('(SELECT recorded_at FROM measurements WHERE student_id = u.id ORDER BY recorded_at DESC LIMIT 1) as latest_weight_date'))
       .select(db.raw('(SELECT COUNT(*) FROM chat_messages WHERE sender_id = u.id AND receiver_id = ? AND read_status = 0) as unread_messages', [personalId]))
-      .where('sp.personal_id', personalId)
-      .orderBy('u.name', 'asc');
+      .where('sp.personal_id', personalId);
+    if (status === 'active') query.where('u.account_status', 'active').whereIn('sp.relationship_status', ['active', 'invited']);
+    if (status === 'inactive') query.where(function () {
+      this.whereNot('u.account_status', 'active').orWhereNotIn('sp.relationship_status', ['active', 'invited']);
+    });
+    const students = await query.orderBy('u.name', 'asc');
 
     res.status(200).json(students.map(withAvatarMetadata));
   } catch (err) {
@@ -165,8 +171,16 @@ async function updateStudentLifecycle(req, res) {
     const profile = await db('student_profiles').where({ student_id: studentId, personal_id: req.user.id }).first();
     if (!profile) return res.status(404).json({ error: 'Student not found' });
     await db.transaction(async trx => {
+      const before = await trx('users as u').join('student_profiles as sp', 'sp.student_id', 'u.id').select('u.account_status', 'sp.relationship_status').where('u.id', studentId).first();
       if (accountStatus) await trx('users').where({ id: studentId, role: 'student' }).update({ account_status: accountStatus, updated_at: trx.fn.now() });
       if (relationshipStatus) await trx('student_profiles').where({ student_id: studentId, personal_id: req.user.id }).update({ relationship_status: relationshipStatus });
+      await recordAudit(trx, {
+        actorUserId: req.user.id,
+        action: 'student.lifecycle_updated',
+        targetType: 'student',
+        targetId: studentId,
+        metadata: { before, after: { accountStatus: accountStatus || before.account_status, relationshipStatus: relationshipStatus || before.relationship_status } }
+      });
     });
     const current = await db('users as u').join('student_profiles as sp', 'sp.student_id', 'u.id').select('u.account_status', 'sp.relationship_status').where('u.id', studentId).first();
     return res.json({ studentId, ...current });

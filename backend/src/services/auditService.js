@@ -4,6 +4,7 @@ const AUDIT_ACTIONS = Object.freeze({
   WORKOUT_DELETED: 'workout.deleted',
   WORKOUT_EXERCISE_DELETED: 'workout_exercise.deleted',
   CATALOG_EXERCISE_DELETED: 'catalog_exercise.deleted',
+  CATALOG_EXERCISE_MERGED: 'catalog_exercise.merged',
   PROFILE_NAME_UPDATED: 'profile.name_updated',
   PROFILE_PASSWORD_CHANGED: 'profile.password_changed',
   PROFILE_AVATAR_UPDATED: 'profile.avatar_updated',

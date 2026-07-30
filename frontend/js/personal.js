@@ -38,6 +38,10 @@ function filterStudentStatus(status, trigger) {
     button.classList.toggle('active', selected);
     button.setAttribute('aria-pressed', String(selected));
   });
+  if (trigger) {
+    loadPersonalStudents();
+    return;
+  }
   document.querySelectorAll('#students-grid .student-card').forEach(card => {
     const isActive = card.dataset.accountStatus === 'active' && ['active', 'invited'].includes(card.dataset.relationshipStatus);
     card.classList.toggle('hidden', studentStatusFilter === 'active' ? !isActive : studentStatusFilter === 'inactive' ? isActive : false);
@@ -86,7 +90,7 @@ async function loadPersonalStudents() {
   renderLoadingSkeletons(grid, { count: 3, variant: 'student', label: 'Carregando lista de alunos' });
 
   try {
-    personalStudents = await API.get('/personal/students');
+    personalStudents = await API.get(`/personal/students?status=${encodeURIComponent(studentStatusFilter)}`);
     finishLoadingState(grid);
     document.getElementById('stat-total-students').textContent = personalStudents.length;
     const globalUnread = personalStudents.reduce((total, student) => total + (student.unread_messages || 0), 0);
@@ -297,6 +301,48 @@ function switchModalSubtab(subtab) {
 }
 
 // Render student workouts list in the details modal
+async function openWorkoutPeriodizationEditor(workout, card) {
+  let editor = card.querySelector('.periodization-editor');
+  if (editor) { editor.remove(); return; }
+  editor = SafeDOM.el('div', { className: 'periodization-editor glass', attrs: { role: 'region', 'aria-label': `Periodização de ${workout.name}` } });
+  card.appendChild(editor);
+  const heading = SafeDOM.el('h4', { text: 'Periodização ondulatória' });
+  const rows = SafeDOM.el('div', { className: 'periodization-rows' });
+  const footer = SafeDOM.el('div', { className: 'inline-actions' });
+  const addWeek = SafeDOM.el('button', { className: 'btn btn-secondary btn-sm', attrs: { type: 'button' }, on: { click: () => appendPeriodizationRow(rows) } }, ['Adicionar semana']);
+  const save = SafeDOM.el('button', { className: 'btn btn-primary btn-sm', attrs: { type: 'button' }, on: { click: async () => {
+    const microcycles = [...rows.querySelectorAll('.periodization-row')].map((row, index) => ({
+      weekNumber: index + 1,
+      label: row.querySelector('[data-field="label"]').value.trim(),
+      intensityPercent: Number(row.querySelector('[data-field="intensity"]').value),
+      volumeMultiplier: Number(row.querySelector('[data-field="volume"]').value),
+      notes: row.querySelector('[data-field="notes"]').value.trim()
+    }));
+    try { await API.put(`/workouts/${workout.id}/periodization`, { microcycles }); showToast('Periodização salva.', 'success'); await openWorkoutPeriodizationEditor(workout, card); }
+    catch (error) { showToast(error.message, 'error'); }
+  } } }, ['Salvar periodização']);
+  footer.append(addWeek, save);
+  editor.append(heading, rows, footer);
+  try {
+    const result = await API.get(`/workouts/${workout.id}/periodization`);
+    (result.microcycles || []).forEach(item => appendPeriodizationRow(rows, item));
+    if (!result.microcycles?.length) appendPeriodizationRow(rows);
+  } catch (error) { editor.appendChild(SafeDOM.errorAlert('Erro ao carregar periodização: ', error.message)); }
+}
+
+function appendPeriodizationRow(container, item = {}) {
+  if (container.children.length >= 52) return showToast('Limite de 52 semanas atingido.', 'info');
+  const row = SafeDOM.el('div', { className: 'periodization-row' });
+  const field = (label, key, type, value, min, max, step) => {
+    const input = SafeDOM.el('input', { attrs: { type, min, max, step, 'data-field': key, 'aria-label': `${label} da semana ${container.children.length + 1}` } });
+    input.value = value ?? '';
+    return SafeDOM.el('label', { className: 'periodization-field' }, [SafeDOM.el('span', { text: label }), input]);
+  };
+  const remove = SafeDOM.el('button', { className: 'btn-icon text-danger', attrs: { type: 'button', 'aria-label': `Remover semana ${container.children.length + 1}` }, on: { click: () => row.remove() } }, [SafeDOM.icon('trash-2')]);
+  row.append(SafeDOM.el('span', { className: 'periodization-week', text: `Semana ${container.children.length + 1}` }), field('Fase', 'label', 'text', item.label || '', undefined, undefined, undefined), field('Intensidade %', 'intensity', 'number', item.intensity_percent ?? 100, 1, 200, 0.5), field('Volume ×', 'volume', 'number', item.volume_multiplier ?? 1, 0.1, 10, 0.1), field('Notas', 'notes', 'text', item.notes || '', undefined, undefined, undefined), remove);
+  container.appendChild(row);
+}
+
 function renderPersonalStudentWorkouts(workouts) {
   const listContainer = document.getElementById('modal-workouts-list');
   if (workouts.length === 0) {
@@ -332,9 +378,13 @@ function renderPersonalStudentWorkouts(workouts) {
       className: 'btn btn-danger btn-sm',
       on: { click: () => deletePersonalWorkout(workout.id, workout.name) }
     }, [SafeDOM.icon('trash-2'), ' Excluir Treino']);
+    const periodizationButton = SafeDOM.el('button', {
+      className: 'btn btn-secondary btn-sm', attrs: { type: 'button' },
+      on: { click: () => openWorkoutPeriodizationEditor(workout, card) }
+    }, [SafeDOM.icon('calendar-range'), ' Periodização']);
     card.appendChild(SafeDOM.el('div', { className: 'workout-header' }, [
       titleBlock,
-      SafeDOM.el('div', { className: 'inline-actions' }, [addButton, deleteButton])
+      SafeDOM.el('div', { className: 'inline-actions' }, [addButton, periodizationButton, deleteButton])
     ]));
 
     const exercisesList = SafeDOM.el('div', { className: 'exercises-list' });

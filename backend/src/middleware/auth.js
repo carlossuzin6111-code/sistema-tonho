@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { subscriptionGuard } = require('./subscriptionGuard');
 const {
   CSRF_COOKIE,
   JWT_SECRET,
@@ -27,7 +28,7 @@ async function applyAuthentication(req, authentication) {
   const db = require('../database');
   const payload = verifySessionToken(authentication.token);
   const user = await db('users')
-    .select('id', 'name', 'email', 'role', 'session_version', 'must_change_password')
+    .select('id', 'name', 'email', 'role', 'organization_role', 'session_version', 'must_change_password')
     .where('id', payload.id)
     .first();
 
@@ -35,12 +36,32 @@ async function applyAuthentication(req, authentication) {
     throw new Error('Session revoked');
   }
 
+  if (payload.sessionId) {
+    const activeSession = await db('user_sessions').where({ id: payload.sessionId, user_id: user.id, status: 'active' }).first();
+    if (!activeSession) throw new Error('Device session revoked');
+    await db('user_sessions').where({ id: payload.sessionId }).update({ last_seen_at: db.fn.now() });
+  }
+
+  if (payload.impersonationId) {
+    const event = await db('impersonation_events')
+      .where({ id: payload.impersonationId, actor_user_id: payload.impersonatedBy, target_user_id: user.id })
+      .whereNull('revoked_at')
+      .where('expires_at', '>', db.fn.now())
+      .first();
+    if (!event) throw new Error('Impersonation revoked or expired');
+  }
+
   req.user = {
     ...payload,
     name: user.name,
     email: user.email,
     role: user.role,
-    mustChangePassword: Boolean(user.must_change_password)
+    organizationRole: user.organization_role || 'standalone',
+    mustChangePassword: Boolean(user.must_change_password),
+    sessionId: payload.sessionId || null,
+    impersonatedBy: payload.impersonatedBy || null,
+    impersonationId: payload.impersonationId || null,
+    isImpersonation: Boolean(payload.impersonationId)
   };
   req.authSource = authentication.source;
 }
@@ -65,7 +86,7 @@ async function authenticateToken(req, res, next) {
         code: 'PASSWORD_CHANGE_REQUIRED'
       });
     }
-    return next();
+    return subscriptionGuard(req, res, next);
   }
 
   const authentication = extractAuthentication(req);
@@ -81,7 +102,7 @@ async function authenticateToken(req, res, next) {
         code: 'PASSWORD_CHANGE_REQUIRED'
       });
     }
-    return next();
+    return subscriptionGuard(req, res, next);
   } catch {
     return res.status(403).json({ error: 'Invalid or expired token' });
   }
