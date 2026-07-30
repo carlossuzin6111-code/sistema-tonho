@@ -30,9 +30,7 @@ const auditController = require('./controllers/auditController');
 const profileController = require('./controllers/profileController');
 const workoutSessionController = require('./controllers/workoutSessionController');
 const progressionController = require('./controllers/progressionController');
-const adherenceController = require('./controllers/adherenceController');
 const assessmentController = require('./controllers/assessmentController');
-const healthController = require('./controllers/healthController');
 const subscriptionController = require('./controllers/subscriptionController');
 const teamController = require('./controllers/teamController');
 const partnerController = require('./controllers/partnerController');
@@ -42,6 +40,11 @@ const geofenceController = require('./controllers/geofenceController');
 const readinessController = require('./controllers/readinessController');
 const notificationController = require('./controllers/notificationController');
 const complianceController = require('./controllers/complianceController');
+const sessionController = require('./controllers/sessionController');
+const impersonationController = require('./controllers/impersonationController');
+const { requestLogger } = require('./services/logger');
+const metricsService = require('./services/metricsService');
+const healthController = require('./controllers/healthController');
 
 // Initialize database
 const db = require('./database');
@@ -68,6 +71,11 @@ app.use(cors(createCorsOptions()));
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || DEFAULT_BODY_LIMIT }));
 app.use(optionalAuthentication);
 app.use(csrfProtection);
+app.use(requestLogger);
+app.get('/api/metrics', authenticateToken, (req, res) => {
+  if (!['support', 'admin'].includes(req.user.role)) return res.status(403).json({ error: 'Support or admin role required' });
+  return res.json({ metrics: metricsService.snapshot() });
+});
 
 // Setup Swagger UI API documentation
 setupSwagger(app, {
@@ -75,11 +83,8 @@ setupSwagger(app, {
   enabled: process.env.API_DOCS_ENABLED
 });
 
-// Liveness is independent from SQLite; readiness verifies the connection and
-// confirms that no migrations are waiting to be applied.
 app.get('/health/live', healthController.live);
 app.get('/health/ready', healthController.ready);
-// Backward-compatible alias used by existing Compose/probes.
 app.get('/api/health', healthController.ready);
 
 app.get('/api/subscription', authenticateToken, subscriptionController.getSubscription);
@@ -115,6 +120,11 @@ app.get('/api/notifications', authenticateToken, notificationController.listNoti
 app.patch('/api/notifications/:id/read', authenticateToken, validateIdParam('id'), notificationController.markRead);
 app.get('/api/compliance/export', authenticateToken, complianceController.exportData);
 app.post('/api/compliance/delete', authenticateToken, complianceController.anonymizeAccount);
+app.get('/api/sessions', authenticateToken, sessionController.listSessions);
+app.delete('/api/sessions/:id', authenticateToken, sessionController.revokeSession);
+app.post('/api/support/impersonations', authenticateToken, impersonationController.create);
+app.get('/api/support/impersonations', authenticateToken, impersonationController.list);
+app.post('/api/support/impersonations/:id/revoke', authenticateToken, impersonationController.revoke);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
@@ -401,10 +411,8 @@ app.post('/api/personal/students/invite', authenticateToken, requireRole('person
  *         description: Erro interno do servidor.
  */
 app.get('/api/personal/students', authenticateToken, requireRole('personal'), studentController.getStudents);
-app.get('/api/personal/analytics/adherence', authenticateToken, requireRole('personal'), adherenceController.getAdherence);
 app.get('/api/personal/students/:id/assessments', authenticateToken, validateIdParam('id'), assessmentController.listAssessments);
 app.post('/api/personal/students/:id/assessments', authenticateToken, requireRole('personal'), validateIdParam('id'), validateBody('assessment'), assessmentController.createAssessment);
-app.get('/api/personal/students/adherence', authenticateToken, adherenceController.getAdherence);
 
 /**
  * @openapi
@@ -1058,11 +1066,9 @@ app.get('/api/chat/:userId?', authenticateToken, chatController.getMessages);
  *         description: Erro interno do servidor.
  */
 app.post('/api/chat', authenticateToken, validateBody('chatMessage'), chatController.sendMessage);
-app.put('/api/chat/:messageId', authenticateToken, chatController.editMessage);
+app.put('/api/chat/:messageId', authenticateToken, validateBody('chatMessageEdit'), chatController.editMessage);
 app.delete('/api/chat/:messageId', authenticateToken, chatController.deleteMessage);
-app.post('/api/chat/typing', authenticateToken, chatController.sendTyping);
-app.patch('/api/chat/messages/:messageId', authenticateToken, chatController.editMessage);
-app.delete('/api/chat/messages/:messageId', authenticateToken, chatController.deleteMessage);
+app.post('/api/chat/typing', authenticateToken, validateBody('chatTyping'), chatController.sendTyping);
 
 // Normalize parser failures without exposing Express internals.
 app.use(jsonErrorHandler);
