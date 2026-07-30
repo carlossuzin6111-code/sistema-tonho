@@ -8,6 +8,7 @@ const StudentSession = {
   heartbeatId: null,
   elapsedId: null,
   restId: null,
+  visibilityHandler: null,
   storageKey() {
     const user = API.getCurrentUser();
     return user?.id ? `fitlife_active_session_${user.id}` : null;
@@ -16,7 +17,9 @@ const StudentSession = {
     if (this.heartbeatId) clearInterval(this.heartbeatId);
     if (this.elapsedId) clearInterval(this.elapsedId);
     if (this.restId) clearInterval(this.restId);
+    if (this.visibilityHandler) document.removeEventListener('visibilitychange', this.visibilityHandler);
     this.heartbeatId = this.elapsedId = this.restId = null;
+    this.visibilityHandler = null;
   },
   save() {
     const key = this.storageKey();
@@ -53,6 +56,13 @@ const StudentSession = {
     this.clearTimers();
     this.heartbeatId = setInterval(() => this.heartbeat(), 30000);
     this.elapsedId = setInterval(() => this.render(), 1000);
+    this.visibilityHandler = () => {
+      if (document.visibilityState === 'visible') {
+        this.render();
+        this.heartbeat();
+      }
+    };
+    document.addEventListener('visibilitychange', this.visibilityHandler);
   },
   async heartbeat() {
     if (!this.state) return;
@@ -70,7 +80,9 @@ const StudentSession = {
   async recover() {
     const key = this.storageKey();
     if (!key) return;
-    const saved = JSON.parse(sessionStorage.getItem(key) || 'null');
+    let saved;
+    try { saved = JSON.parse(sessionStorage.getItem(key) || 'null'); }
+    catch { sessionStorage.removeItem(key); return; }
     if (!saved?.id) return;
     try {
       const session = await API.get(`/workout-sessions/${saved.id}`);
