@@ -32,7 +32,6 @@ const workoutSessionController = require('./controllers/workoutSessionController
 const progressionController = require('./controllers/progressionController');
 const adherenceController = require('./controllers/adherenceController');
 const assessmentController = require('./controllers/assessmentController');
-const healthController = require('./controllers/healthController');
 const subscriptionController = require('./controllers/subscriptionController');
 const teamController = require('./controllers/teamController');
 const partnerController = require('./controllers/partnerController');
