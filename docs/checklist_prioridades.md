@@ -53,6 +53,15 @@ Este documento atua como o painel executivo para controle de progresso e roadmap
 | **BUS-10** | Edição/Exclusão/Leitura de Chat | 8/10 | **Parcial** | 12h | Médio | Fullstack |
 | **BUS-11** | Indicador "Digitando..." via SSE | 5/10 | **Parcial** | 8h | Baixo | Fullstack |
 | **BUS-12** | Inativação e Abas de Alunos | 8/10 | **Parcial** | 8h | Baixo | Fullstack |
+| **BUS-13** | Periodização Biomecânica | 6/10 | **Parcial** | 20h | Alto | Fullstack |
+| **BUS-14** | Governança do Catálogo | 7/10 | **Parcial** | 16h | Médio | Backend |
+| **OPS-01** | Subscriptions e Bloqueio 402 | 7/10 | **Parcial** | 16h | Alto | Backend |
+| **OPS-02** | Gestão de Equipe (Head/Junior) | 6/10 | **Parcial** | 30h | Alto | Backend |
+| **OPS-03** | Acesso Multiprofissional | 5/10 | **Parcial** | 24h | Médio | Fullstack |
+| **OPS-04** | Integração com Wearables | 4/10 | **Parcial** | 40h | Alto | Fullstack |
+| **OPS-05** | Alertas CRM de Churn e NPS | 5/10 | **Parcial** | 16h | Baixo | Backend |
+| **OPS-06** | Check-ins por Geofencing | 4/10 | **Parcial** | 30h | Alto | Fullstack |
+| **OPS-07** | Check-in de Prontidão (Readiness) | 5/10 | **Parcial** | 12h | Baixo | Fullstack |
 | **BUS-11** | Indicador "Digitando..." via SSE | 5/10 | **Parcial** | 8h | Baixo | Fullstack |
 | **BUS-12** | Inativação e Abas de Alunos | 8/10 | **Não Iniciado** | 8h | Baixo | Fullstack |
 | **BUS-13** | Periodização Biomecânica | 6/10 | **Não Iniciado** | 20h | Alto | Backend |
@@ -207,3 +216,5 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 | 29/07/2026 | UX-08 | Quota agregada configurável de 20 MiB para imagens Base64 de exercícios, validação de MIME/assinatura mantida e respostas `413` para excesso; avatar já possui quota e reconciliação por usuário | Branch `ux/ux-08-upload-quotas`; backend focado 82/82 | Parcial: migrar novos uploads para multipart e executar reconciliação global periódica |
 | 29/07/2026 | OPS-10 | Endpoints `/health/live` (sem dependência do banco) e `/health/ready` (SQLite + migrations), mantendo `/api/health` como alias compatível | Branch `ops/ops-10-health-checks`; testes de API adicionados | Parcial: validar probes em ambiente de deploy e simular indisponibilidade/migration pendente no CI |
 Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.
+
+| 30/07/2026 | CI-HOTFIX | Corrigidos conflitos de integração no `main`: importações de controllers ausentes, função `sendTyping` duplicada, rotas/exportações de edição e exclusão de chat e contrato atualizado da suíte de migrations | Branch `fix/ci-chat-duplicate`; backend 36 suítes, 229/230 testes após correção (último caso de API em ajuste) | Em validação no CI |

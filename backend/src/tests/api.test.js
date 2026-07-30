@@ -74,6 +74,8 @@ describe('FitLife Sync API Integration Tests', () => {
   let otherPersonalId = null;
   let otherStudentToken = '';
   let otherStudentId = null;
+  let partnerToken = '';
+  let partnerProfileId = null;
   let workoutId = null;
   let exerciseId = null;
   let workoutExerciseId = null;
@@ -272,6 +274,24 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveProperty('email', 'test_personal@fitlife.com');
       expect(res.body).toHaveProperty('role', 'personal');
+    });
+
+    test('Should expose subscription status and return 402 when the period expires', async () => {
+      const [temporaryPersonalId] = await db('users').insert({ name: 'Temporary Subscription Owner', email: `subscription-${Date.now()}@fitlife.test`, password_hash: 'not-used', role: 'personal' });
+      const start = new Date().toISOString();
+      const end = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      const [subscriptionId] = await db('subscriptions').insert({ personal_id: temporaryPersonalId, status: 'trial', provider: 'test', current_period_start: start, current_period_end: end });
+      const temporaryToken = jwt.sign({ id: temporaryPersonalId, role: 'personal', sessionVersion: 0 }, JWT_SECRET);
+      const status = await request(app).get('/api/subscription').set('Authorization', `Bearer ${temporaryToken}`);
+      expect(status.statusCode).toBe(200);
+      expect(status.body).toMatchObject({ active: true, status: 'trial' });
+      await db('subscriptions').where({ id: subscriptionId }).update({ current_period_end: new Date(Date.now() - 1000).toISOString() });
+      const blocked = await request(app).get('/api/personal/students').set('Authorization', `Bearer ${temporaryToken}`);
+      expect(blocked.statusCode).toBe(402);
+      expect(blocked.body).toMatchObject({ code: 'SUBSCRIPTION_EXPIRED' });
+      const management = await request(app).get('/api/subscription').set('Authorization', `Bearer ${temporaryToken}`);
+      expect(management.statusCode).toBe(200);
+      expect(management.body.active).toBe(false);
     });
 
     test('Should authenticate browser requests using the HttpOnly cookie', async () => {
@@ -941,6 +961,59 @@ describe('FitLife Sync API Integration Tests', () => {
       otherStudentToken = refreshedSession
         ? decodeURIComponent(refreshedSession.split(';', 1)[0].slice(`${SESSION_COOKIE}=`.length))
         : '';
+
+      const [partnerUserId] = await db('users').insert({ name: 'Partner Clinico', email: 'partner@fitlife.com', password_hash: 'not-used', role: 'partner' });
+      [partnerProfileId] = await db('professional_partners').insert({ user_id: partnerUserId, specialty: 'Fisioterapia', organization: 'Clinica Fit' });
+      partnerToken = jwt.sign({ id: partnerUserId, role: 'partner', sessionVersion: 0, csrf: 'partner-csrf' }, JWT_SECRET, { expiresIn: '1h' });
+    });
+
+    test('Should enforce explicit partner consent for read-only student data', async () => {
+      const denied = await request(app)
+        .get(`/api/partner/students/${studentId}/summary`)
+        .set('Authorization', `Bearer ${partnerToken}`);
+      expect(denied.statusCode).toBe(403);
+
+      const consent = await request(app)
+        .post('/api/student/partner-consents')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ partnerId: partnerProfileId, scopes: ['measurements'] });
+      expect(consent.statusCode).toBe(201);
+
+      const allowed = await request(app)
+        .get(`/api/partner/students/${studentId}/summary`)
+        .set('Authorization', `Bearer ${partnerToken}`);
+      expect(allowed.statusCode).toBe(200);
+      expect(allowed.body.scopes).toEqual(['measurements']);
+      expect(Array.isArray(allowed.body.measurements)).toBe(true);
+
+      const revoked = await request(app)
+        .delete(`/api/student/partner-consents/${consent.body.consentId}`)
+        .set('Authorization', `Bearer ${studentToken}`);
+      expect(revoked.statusCode).toBe(200);
+    });
+
+    test('Should add, list and end a Head/Junior team membership', async () => {
+      const head = await db('users').where({ email: 'test_personal@fitlife.com' }).first();
+      await db('users').where({ id: head.id }).update({ organization_role: 'head' });
+      const added = await request(app)
+        .post('/api/team/members')
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ juniorPersonalId: otherPersonalId, revenueSharePercent: 25 });
+      expect(added.statusCode).toBe(201);
+      expect(added.body.membership).toEqual(expect.objectContaining({ head_personal_id: head.id, junior_personal_id: otherPersonalId }));
+
+      const listed = await request(app)
+        .get('/api/team/members')
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(listed.statusCode).toBe(200);
+      expect(listed.body).toHaveLength(1);
+
+      const ended = await request(app)
+        .patch(`/api/team/members/${added.body.membership.id}/end`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({});
+      expect(ended.statusCode).toBe(200);
+      expect((await db('personal_team_memberships').where({ id: added.body.membership.id }).first()).status).toBe('ended');
     });
 
     test('Should send chat message (Personal Trainer)', async () => {
