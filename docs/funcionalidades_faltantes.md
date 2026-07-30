@@ -308,6 +308,9 @@ O centro de notificações agora está integrado ao desktop e mobile, com contad
 *   **Progresso em 29/07/2026**: `/api/compliance/export` entrega somente os dados do usuário autenticado sem `password_hash`, com `no-store`; `/api/compliance/delete` exige confirmação literal e senha atual, remove conteúdo conversacional/tokens, anonimiza a conta em transação e incrementa `session_version` para revogar sessões.
 *   **Pendente**: exportação assíncrona/criptografada para grandes volumes, política de retenção, fila de exclusão com lock, confirmação de identidade adicional e revisão jurídica/operacional LGPD.
 
+### Grupo de privacidade e sessões no perfil (30/07/2026)
+O perfil autenticado agora oferece exportação imediata dos dados em JSON e consulta das sessões ativas, mantendo a autorização no backend e sem armazenar credenciais no navegador. Permanecem a exclusão assistida com confirmação visual, revogação individual e o fluxo assíncrono para grandes volumes.
+
 ### [OPS-10] Health Checks Liveness/Readiness
 *   **Especificação**: Endpoint `/health/live` (status do runtime) e `/health/ready` (valida conexão com SQLite e se há migrations pendentes no Knex).
 *   **Progresso em 29/07/2026**: `/health/live` responde sem tocar no banco; `/health/ready` verifica `db.ready`, `SELECT 1` e a lista de migrations pendentes; `/api/health` permanece como alias para compatibilidade.
