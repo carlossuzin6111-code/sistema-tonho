@@ -123,6 +123,26 @@ describe('HTTP security middleware', () => {
     await request(app).post('/login').expect(429);
   });
 
+  test('accepts a shared rate-limit store for multi-replica deployments', async () => {
+    const calls = [];
+    const store = {
+      init() {},
+      async increment(key) {
+        calls.push(key);
+        return { totalHits: calls.filter(item => item === key).length, resetTime: new Date(Date.now() + 60000) };
+      },
+      async decrement() {},
+      async resetKey() {}
+    };
+    const app = express();
+    app.use(express.json());
+    app.use(createAuthRateLimiter({ windowMs: 60_000, limit: 2, store }));
+    app.post('/login', (req, res) => res.status(401).json({ error: 'invalid' }));
+    await request(app).post('/login').send({ email: 'shared@example.com' }).expect(401);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toContain('shared@example.com');
+  });
+
   test('keys failures by the client address supplied by one trusted proxy', async () => {
     const app = express();
     app.set('trust proxy', 1);
