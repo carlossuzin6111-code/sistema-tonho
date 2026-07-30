@@ -49,6 +49,9 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Progresso em 29/07/2026**: migration, endpoints, rate limits e serviço de e-mail já estão implementados; tokens são armazenados apenas como SHA-256, expiram, não podem ser reutilizados, não revelam existência da conta e invalidam sessões após a troca. A suíte `passwordReset.test.js` cobre o contrato completo.
 *   **Pendente operacional**: configurar provedor/domínio de e-mail, criar tela pública acessível para consumir o link e executar limpeza/auditoria periódica dos tokens expirados.
 
+### Pacote consolidado de segurança de conta (30/07/2026)
+O cliente agora oferece entrada de recuperação pública de senha com resposta anti-enumeração, exportação LGPD pelo perfil e revogação individual de sessões remotas. A tela dedicada para consumir o token de redefinição e a exclusão LGPD guiada ainda precisam ser concluídas no próximo lote.
+
 ### [SEC-05] Verificação de E-mail
 *   **Implementação atual**: Migration `202607290003_add_email_verification.js` adiciona `users.email_verified_at` e tabela de tokens com hash, validade de 24 horas, uso único e FK para `users`. O cadastro pessoal emite token e usa o adaptador Resend quando configurado.
 *   **Endpoint**: `POST /api/auth/verify-email` confirma o token de forma transacional, marca o e-mail e rejeita replay/expiração.
