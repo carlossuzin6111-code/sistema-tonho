@@ -42,6 +42,7 @@ const geofenceController = require('./controllers/geofenceController');
 const readinessController = require('./controllers/readinessController');
 const notificationController = require('./controllers/notificationController');
 const complianceController = require('./controllers/complianceController');
+const sessionController = require('./controllers/sessionController');
 
 // Initialize database
 const db = require('./database');
