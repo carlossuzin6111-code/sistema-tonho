@@ -488,6 +488,7 @@ async function handleLogin(event) {
   try {
     const data = await API.post('/auth/login', { email, password });
     API.saveSession(data.user);
+    API.setMobileAccessToken(data.accessToken);
     await API.saveMobileRefreshToken(data.refreshToken);
     showToast('Login realizado com sucesso!', 'success');
     setupAppShell(data.user);

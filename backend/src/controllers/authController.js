@@ -141,6 +141,7 @@ async function login(req, res) {
         mustChangePassword: Boolean(user.must_change_password),
         emailVerified: Boolean(user.email_verified_at)
       },
+      accessToken: createAccessToken(user, sessionId),
       refreshToken: refresh.token,
       refreshExpiresAt: refresh.expiresAt
     });

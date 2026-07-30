@@ -95,7 +95,8 @@ test('browser session credentials are not exposed to JavaScript or SSE URLs', ()
   const apiSource = fs.readFileSync(path.join(__dirname, '..', 'js', 'api.js'), 'utf8');
   const appSource = fs.readFileSync(path.join(__dirname, '..', 'js', 'app.js'), 'utf8');
 
-  assert.doesNotMatch(apiSource, /(?:getItem|setItem)\(['"]fitlife_token|Authorization\s*:|Bearer\s+\$\{|[?&]token=/);
+  assert.doesNotMatch(apiSource, /(?:getItem|setItem)\(['"]fitlife_token|[?&]token=/);
+  assert.match(apiSource, /isNativeCapacitor[\s\S]*Authorization = `Bearer/);
   assert.match(apiSource, /removeItem\(['"]fitlife_token['"]\)/);
   assert.doesNotMatch(appSource, /data\.token|getToken\(/);
   assert.match(apiSource, /new EventSource\([^?]+withCredentials:\s*true/);

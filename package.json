@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --test frontend/tests/safe-dom.test.js frontend/tests/strict-csp.test.js frontend/tests/capacitor-config.test.js frontend/tests/api-base-url.test.js frontend/tests/secure-storage.test.js",
+    "test": "node --test frontend/tests/safe-dom.test.js frontend/tests/strict-csp.test.js frontend/tests/capacitor-config.test.js frontend/tests/api-base-url.test.js frontend/tests/secure-storage.test.js frontend/tests/refresh-token.test.js",
     "mobile:add:android": "npx cap add android",
     "mobile:sync": "npx cap sync android",
     "mobile:open": "npx cap open android",
