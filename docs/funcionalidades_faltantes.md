@@ -344,6 +344,9 @@ Criada a tabela `refresh_tokens` e o endpoint `POST /api/auth/refresh`. Tokens s
 ### Grupo de integração mobile do refresh token (30/07/2026)
 O cliente agora salva o refresh token retornado no login somente via `FitLifeSecureStorage` em ambiente Capacitor e o remove no logout. Na web, cookies HttpOnly continuam sendo o mecanismo de sessão e nenhum token é gravado em `localStorage`/`sessionStorage`. A validação em dispositivo real depende de um plugin Secure Storage mantido.
 
+### Grupo de backup/restore operacional (30/07/2026)
+Adicionado `npm run db:verify-backup -- <diretório>` para validar um bundle de backup completo em diretório temporário, incluindo checksum, integridade SQLite e avatars, removendo o destino ao terminar. Continua pendente executar o procedimento em ambiente isolado de disaster recovery.
+
 ## 6. Empacotamento Híbrido Mobile APK (Grupo MOB)
 
 ### [MOB-01] Wrapper Híbrido com Capacitor

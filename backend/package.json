@@ -16,6 +16,7 @@
     "access-key:create": "node src/scripts/createAccessKey.js",
     "db:backup": "node src/scripts/backupDatabase.js",
     "db:restore": "node src/scripts/restoreBackup.js",
+    "db:verify-backup": "node src/scripts/verifyBackup.js",
     "worker:translate": "node src/workers/runTranslationWorker.js",
     "worker:backup": "node src/workers/runBackupWorker.js"
   },
