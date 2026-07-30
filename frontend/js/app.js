@@ -728,6 +728,7 @@ function connectRealTimeUpdates(user) {
   setChatConnectionStatus(navigator.onLine ? 'connecting' : 'offline');
   API.connectChatStream((message) => {
     if (renderTypingIndicator(message)) return;
+    if (handleChatLifecycleEvent(message)) return;
     // 1. Check if active window is chat, and append message
     if (user.role === 'personal') {
       appendPersonalLiveMessage(message);
@@ -739,6 +740,22 @@ function connectRealTimeUpdates(user) {
     onError: () => setChatConnectionStatus(navigator.onLine ? 'reconnecting' : 'offline'),
     onTyping: setChatTypingIndicator
   });
+}
+
+function handleChatLifecycleEvent(message) {
+  if (!['message.updated', 'message.deleted'].includes(message?.type)) return false;
+  const bubble = document.querySelector(`[data-message-id="${CSS.escape(String(message.id))}"]`);
+  if (!bubble) return true;
+  if (message.type === 'message.deleted') {
+    bubble.replaceChildren(document.createTextNode('Mensagem excluída'));
+    bubble.classList.add('message-deleted');
+  } else {
+    const time = bubble.querySelector('.chat-time');
+    bubble.replaceChildren(document.createTextNode(String(message.message || '')));
+    if (time) bubble.appendChild(time);
+    bubble.appendChild(document.createTextNode(' (editada)'));
+  }
+  return true;
 }
 
 function setChatTypingIndicator(payload) {
