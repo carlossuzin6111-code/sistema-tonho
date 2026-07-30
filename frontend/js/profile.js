@@ -1,6 +1,23 @@
 // Own-profile UI shared by desktop.html and mobile.html.
 let pendingProfileAvatar = null;
 
+async function exportMyData() {
+  try {
+    const payload = await API.get('/compliance/export');
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob); const link = document.createElement('a');
+    link.href = url; link.download = `fitlife-export-${new Date().toISOString().slice(0, 10)}.json`; link.click(); URL.revokeObjectURL(url);
+    showToast('Exportação preparada.', 'success');
+  } catch (error) { showToast(error.message, 'error'); }
+}
+async function manageSessions() {
+  try {
+    const sessions = await API.get('/sessions');
+    const message = sessions.map(item => `${item.device_name || 'Dispositivo'} · ${item.last_seen_at || item.created_at || 'sem data'}`).join('\n') || 'Nenhuma sessão ativa.';
+    window.alert(`Sessões ativas:\n\n${message}`);
+  } catch (error) { showToast(error.message, 'error'); }
+}
+
 function profileAvatarUrl(user) {
   if (!user?.hasAvatar) return '';
   const version = user.avatarUpdatedAt ? new Date(user.avatarUpdatedAt).getTime() : Date.now();
