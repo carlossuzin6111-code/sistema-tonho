@@ -73,7 +73,8 @@ const migrations = [
   '202607290021_create_readiness_checkins.js',
   '202607290022_create_notification_center.js',
   '202607290023_create_user_sessions.js',
-  '202607290024_create_impersonation_events.js'
+  '202607290024_create_impersonation_events.js',
+  '202607300001_create_refresh_tokens.js'
 ];
 
 function createDatabase() {

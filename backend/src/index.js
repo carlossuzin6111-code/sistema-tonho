@@ -223,6 +223,7 @@ app.post('/api/auth/register', registrationRateLimiter, validateBody('register')
  *         description: Erro interno do servidor.
  */
 app.post('/api/auth/login', loginRateLimiter, validateBody('login'), authController.login);
+app.post('/api/auth/refresh', loginRateLimiter, authController.refresh);
 
 app.post('/api/auth/logout', authenticateToken, authController.logout);
 
