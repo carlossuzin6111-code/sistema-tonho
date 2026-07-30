@@ -1,10 +1,11 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
 
-const root = new URL('../../', import.meta.url);
-const config = fs.readFileSync(new URL('capacitor.config.ts', root), 'utf8');
-const packageJson = JSON.parse(fs.readFileSync(new URL('package.json', root), 'utf8'));
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const config = fs.readFileSync(path.join(root, 'capacitor.config.ts'), 'utf8');
+const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 test('Capacitor targets the static frontend and exposes reproducible Android commands', () => {
   assert.match(config, /webDir:\s*['"]frontend['"]/);
