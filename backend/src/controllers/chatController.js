@@ -270,27 +270,6 @@ async function deleteMessage(req, res) {
   }
 }
 
-async function sendTyping(req, res) {
-  const senderId = Number(req.user.id);
-  let receiverId = Number(req.body?.receiverId);
-  if (req.user.role === 'student') {
-    const profile = await db('student_profiles').select('personal_id').where('student_id', senderId).first();
-    if (!profile) return res.status(404).json({ error: 'Chat partner not found' });
-    receiverId = Number(profile.personal_id);
-  } else if (req.user.role !== 'personal' || !Number.isInteger(receiverId) || receiverId < 1) {
-    return res.status(400).json({ error: 'Receiver ID is required' });
-  }
-  try {
-    const link = await db('student_profiles').where({ student_id: req.user.role === 'student' ? senderId : receiverId, personal_id: req.user.role === 'student' ? receiverId : senderId }).first();
-    if (!link) return res.status(403).json({ error: 'Chat access forbidden' });
-    notifyUser(receiverId, { type: 'typing', senderId, receiverId, isTyping: true, expiresInMs: 3000 });
-    return res.json({ sent: true });
-  } catch (error) {
-    console.error('Typing notification error:', error.message);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-}
-
 // SSE Connection Handler for Real-Time Updates
 function handleChatStream(req, res) {
   const userId = req.user.id.toString();
