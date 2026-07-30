@@ -297,6 +297,7 @@ app.post('/api/auth/forgot-password', forgotPasswordRateLimiter, validateBody('f
  */
 app.post('/api/auth/reset-password', resetPasswordRateLimiter, validateBody('resetPasswordToken'), authController.resetPasswordWithToken);
 app.post('/api/auth/verify-email', resetPasswordRateLimiter, validateBody('verifyEmail'), authController.verifyEmail);
+app.post('/api/auth/resend-verification', resetPasswordRateLimiter, authController.resendEmailVerification);
 app.post('/api/auth/student-invitations/claim', resetPasswordRateLimiter, validateBody('studentInviteClaim'), studentController.claimStudentInvitation);
 
 /**

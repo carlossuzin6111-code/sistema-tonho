@@ -332,6 +332,9 @@ Foi adicionado `scripts/compose-smoke.ps1`, executado por `npm run ops:compose-s
 ### Grupo de hardening de sessões (30/07/2026)
 `sessionService` agora revoga sessões ativas ociosas além de `SESSION_IDLE_TIMEOUT_DAYS` e mantém no máximo `MAX_ACTIVE_SESSIONS` por usuário, revogando as mais antigas. A tela de gerenciamento, mascaramento/retensão de IP e telemetria continuam pendentes.
 
+### Grupo de política de verificação de e-mail (30/07/2026)
+Adicionado `POST /api/auth/resend-verification`, com resposta genérica para impedir enumeração, invalidação transacional dos tokens anteriores e novo token com TTL de 24 horas. A entrega continua usando o adaptador configurável de e-mail; bloqueio de login/onboarding não verificado e tela dedicada permanecem pendentes.
+
 ## 6. Empacotamento Híbrido Mobile APK (Grupo MOB)
 
 ### [MOB-01] Wrapper Híbrido com Capacitor
