@@ -38,11 +38,13 @@
     node.replaceChildren();
   }
 
-  function chatBubble(message, time, direction) {
+  function chatBubble(message, time, direction, { id = null, canEdit = false } = {}) {
     const bubble = el('div', { className: `chat-bubble ${direction}` });
+    if (id !== null) bubble.dataset.messageId = String(id);
     bubble.appendChild(document.createTextNode(String(message ?? '')));
     bubble.appendChild(document.createTextNode(' '));
     bubble.appendChild(el('span', { className: 'chat-time', text: time }));
+    if (canEdit) bubble.append(el('button', { className: 'chat-message-action', attrs: { type: 'button', 'data-action': 'edit-chat-message', 'data-message-id': id, 'aria-label': 'Editar mensagem' } }, ['Editar']), el('button', { className: 'chat-message-action', attrs: { type: 'button', 'data-action': 'delete-chat-message', 'data-message-id': id, 'aria-label': 'Excluir mensagem' } }, ['Excluir']));
     return bubble;
   }
 

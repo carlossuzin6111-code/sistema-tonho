@@ -920,7 +920,7 @@ async function openPersonalChatThread(studentId, studentName) {
       messages.forEach(msg => {
         const isMe = msg.sender_id.toString() !== studentId.toString();
         const time = AppDateTime.time(msg.created_at);
-        const bubble = SafeDOM.chatBubble(msg.message, time, isMe ? 'sent' : 'received');
+        const bubble = SafeDOM.chatBubble(msg.message, time, isMe ? 'sent' : 'received', { id: msg.id, canEdit: isMe && !msg.deleted_at });
         chatMessagesBox.appendChild(bubble);
       });
     }
