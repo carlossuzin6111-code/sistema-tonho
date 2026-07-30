@@ -302,6 +302,27 @@ async function verifyEmail(req, res) {
   }
 }
 
+async function resendEmailVerification(req, res) {
+  const normalizedEmail = typeof req.body?.email === 'string' ? normalizeEmail(req.body.email) : '';
+  const generic = { message: 'If the account exists and is not verified, a verification email will be sent.' };
+  if (!normalizedEmail) return res.status(200).json(generic);
+  try {
+    const user = await db('users').select('id', 'email', 'email_verified_at').where({ email: normalizedEmail, role: 'personal' }).first();
+    if (!user || user.email_verified_at) return res.status(200).json(generic);
+    const verificationToken = crypto.randomBytes(32).toString('base64url');
+    const expiresAt = new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS).toISOString();
+    await db.transaction(async trx => {
+      await trx('email_verification_tokens').where({ user_id: user.id }).whereNull('used_at').update({ used_at: trx.fn.now() });
+      await trx('email_verification_tokens').insert({ user_id: user.id, token_hash: hashVerificationToken(verificationToken), expires_at: expiresAt });
+    });
+    const delivery = await sendEmailVerification({ email: user.email, token: verificationToken, expiresAt });
+    return res.status(200).json({ ...generic, delivery: delivery.sent ? 'sent' : 'not_configured', ...(process.env.NODE_ENV !== 'production' ? { verificationToken } : {}) });
+  } catch (error) {
+    console.error('Resend email verification error:', error.message);
+    return res.status(200).json(generic);
+  }
+}
+
 module.exports = {
   registerPersonal,
   login,
@@ -309,5 +330,6 @@ module.exports = {
   getMe,
   forgotPassword,
   resetPasswordWithToken,
-  verifyEmail
+  verifyEmail,
+  resendEmailVerification
 };
