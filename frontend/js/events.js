@@ -63,7 +63,14 @@ const clickActions = Object.freeze({
   'switch-profile-tab': element => switchProfileTab(element.dataset.tab),
   'filter-student-status': element => filterStudentStatus(element.dataset.studentStatusFilter, element),
   'save-profile-avatar': () => handleSaveAvatar(),
-  'remove-profile-avatar': () => handleRemoveAvatar()
+  'remove-profile-avatar': () => handleRemoveAvatar(),
+  'start-student-session': element => {
+    const workout = studentWorkouts.find(item => String(item.id) === String(element.dataset.workoutId));
+    if (workout) StudentSession.start(workout);
+  },
+  'start-rest': () => handleStudentSessionAction('start-rest'),
+  'complete-session': () => handleStudentSessionAction('complete-session'),
+  'cancel-session': () => handleStudentSessionAction('cancel-session')
 });
 
 const submitHandlers = Object.freeze({
