@@ -76,6 +76,11 @@ function createAuthRateLimiter(options = {}) {
     standardHeaders: 'draft-8',
     legacyHeaders: false,
     skipSuccessfulRequests: true,
+    // A shared express-rate-limit store (Redis, Postgres, etc.) can be
+    // injected by the composition root for multi-replica deployments. The
+    // default remains the in-memory store for local development.
+    store: options.store,
+    passOnStoreError: options.passOnStoreError ?? process.env.RATE_LIMIT_PASS_ON_STORE_ERROR === 'true',
     keyGenerator: req => {
       const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
       return `${ipKeyGenerator(req.ip)}:${email || '*'}`;

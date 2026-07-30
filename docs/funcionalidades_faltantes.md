@@ -335,6 +335,9 @@ Foi adicionado `scripts/compose-smoke.ps1`, executado por `npm run ops:compose-s
 ### Grupo de política de verificação de e-mail (30/07/2026)
 Adicionado `POST /api/auth/resend-verification`, com resposta genérica para impedir enumeração, invalidação transacional dos tokens anteriores e novo token com TTL de 24 horas. A entrega continua usando o adaptador configurável de e-mail; bloqueio de login/onboarding não verificado e tela dedicada permanecem pendentes.
 
+### Grupo de rate limit distribuído (30/07/2026)
+`createAuthRateLimiter` agora aceita um store compatível com `express-rate-limit` por injeção, permitindo Redis/Postgres compartilhado entre réplicas, e explicita o comportamento de falha com `RATE_LIMIT_PASS_ON_STORE_ERROR`. O ambiente local mantém o store em memória; a conexão com Redis gerenciado permanece pendente.
+
 ## 6. Empacotamento Híbrido Mobile APK (Grupo MOB)
 
 ### [MOB-01] Wrapper Híbrido com Capacitor
