@@ -22,6 +22,7 @@ function resolveApiBaseUrl() {
 const API_BASE_URL = resolveApiBaseUrl();
 const API_CREDENTIALS = isNativeCapacitor ? 'include' : 'same-origin';
 const CSRF_COOKIE = 'fitlife_csrf';
+const MOBILE_REFRESH_TOKEN_KEY = 'fitlife_refresh_token';
 const OFFLINE_DB_NAME = 'fitlife-offline-queue';
 const OFFLINE_STORE = 'mutations';
 const OFFLINE_MAX_ITEMS = 100;
@@ -155,6 +156,22 @@ const API = {
   // Cache only non-sensitive user details. The session credential is an HttpOnly cookie.
   saveSession(user) {
     localStorage.setItem('fitlife_user', JSON.stringify(user));
+  },
+
+  async saveMobileRefreshToken(token) {
+    if (!isNativeCapacitor || !token) return;
+    if (!globalThis.FitLifeSecureStorage?.available()) throw new Error('Secure Storage nativo indisponível.');
+    await globalThis.FitLifeSecureStorage.set(MOBILE_REFRESH_TOKEN_KEY, token);
+  },
+
+  async getMobileRefreshToken() {
+    if (!isNativeCapacitor || !globalThis.FitLifeSecureStorage?.available()) return null;
+    return globalThis.FitLifeSecureStorage.get(MOBILE_REFRESH_TOKEN_KEY);
+  },
+
+  async clearMobileRefreshToken() {
+    if (!isNativeCapacitor || !globalThis.FitLifeSecureStorage?.available()) return;
+    await globalThis.FitLifeSecureStorage.remove(MOBILE_REFRESH_TOKEN_KEY);
   },
 
   // Clear session on logout
