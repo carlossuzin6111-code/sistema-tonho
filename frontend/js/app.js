@@ -488,6 +488,7 @@ async function handleLogin(event) {
   try {
     const data = await API.post('/auth/login', { email, password });
     API.saveSession(data.user);
+    await API.saveMobileRefreshToken(data.refreshToken);
     showToast('Login realizado com sucesso!', 'success');
     setupAppShell(data.user);
   } catch (err) {
@@ -601,6 +602,7 @@ function showLoginScreen() {
 async function logout() {
   try {
     await API.post('/auth/logout', {});
+    await API.clearMobileRefreshToken();
   } catch (err) {
     console.warn('Server logout failed; clearing local cache.', err.message);
   } finally {

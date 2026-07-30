@@ -341,6 +341,9 @@ Adicionado `POST /api/auth/resend-verification`, com resposta genérica para imp
 ### Grupo de refresh token mobile (30/07/2026)
 Criada a tabela `refresh_tokens` e o endpoint `POST /api/auth/refresh`. Tokens são armazenados somente como hash, têm TTL configurável, rotação de uso único e revogação de toda a família quando um token já usado é reapresentado. O frontend/mobile ainda precisa guardar o token no Secure Storage nativo.
 
+### Grupo de integração mobile do refresh token (30/07/2026)
+O cliente agora salva o refresh token retornado no login somente via `FitLifeSecureStorage` em ambiente Capacitor e o remove no logout. Na web, cookies HttpOnly continuam sendo o mecanismo de sessão e nenhum token é gravado em `localStorage`/`sessionStorage`. A validação em dispositivo real depende de um plugin Secure Storage mantido.
+
 ## 6. Empacotamento Híbrido Mobile APK (Grupo MOB)
 
 ### [MOB-01] Wrapper Híbrido com Capacitor
