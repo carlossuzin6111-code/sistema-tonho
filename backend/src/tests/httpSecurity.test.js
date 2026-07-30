@@ -48,6 +48,20 @@ describe('HTTP security middleware', () => {
     expect(noOrigin.statusCode).toBe(200);
   });
 
+  test('allows the exact Capacitor WebView origins by default', async () => {
+    const app = express();
+    app.use(cors(createCorsOptions()));
+    app.get('/resource', (req, res) => res.json({ ok: true }));
+
+    const android = await request(app).get('/resource').set('Origin', 'http://localhost');
+    const ios = await request(app).get('/resource').set('Origin', 'capacitor://localhost');
+    const lookalike = await request(app).get('/resource').set('Origin', 'http://localhost:3000');
+
+    expect(android.headers['access-control-allow-origin']).toBe('http://localhost');
+    expect(ios.headers['access-control-allow-origin']).toBe('capacitor://localhost');
+    expect(lookalike.headers['access-control-allow-origin']).toBeUndefined();
+  });
+
   test('prevents API responses from being stored by browsers or intermediaries', async () => {
     const app = express();
     app.disable('etag');
