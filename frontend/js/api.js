@@ -23,6 +23,7 @@ const API_BASE_URL = resolveApiBaseUrl();
 const API_CREDENTIALS = isNativeCapacitor ? 'include' : 'same-origin';
 const CSRF_COOKIE = 'fitlife_csrf';
 const MOBILE_REFRESH_TOKEN_KEY = 'fitlife_refresh_token';
+let mobileAccessToken = null;
 const OFFLINE_DB_NAME = 'fitlife-offline-queue';
 const OFFLINE_STORE = 'mutations';
 const OFFLINE_MAX_ITEMS = 100;
@@ -118,7 +119,7 @@ const OfflineQueue = {
 };
 
 API.flushOfflineQueue = () => API.offlineQueue.flush(async item => {
-  const response = await fetch(`${API_BASE_URL}${item.endpoint}`, {
+  const response = await API.request(`${API_BASE_URL}${item.endpoint}`, {
     method: item.method,
     headers: { ...API.getHeaders({ mutating: true }), 'Idempotency-Key': item.idempotencyKey },
     credentials: API_CREDENTIALS,
@@ -171,7 +172,37 @@ const API = {
 
   async clearMobileRefreshToken() {
     if (!isNativeCapacitor || !globalThis.FitLifeSecureStorage?.available()) return;
+    mobileAccessToken = null;
     await globalThis.FitLifeSecureStorage.remove(MOBILE_REFRESH_TOKEN_KEY);
+  },
+
+  setMobileAccessToken(token) {
+    mobileAccessToken = isNativeCapacitor && typeof token === 'string' && token ? token : null;
+  },
+
+  async refreshMobileSession() {
+    if (!isNativeCapacitor) return false;
+    const refreshToken = await this.getMobileRefreshToken();
+    if (!refreshToken) return false;
+    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      credentials: API_CREDENTIALS, body: JSON.stringify({ refreshToken })
+    });
+    if (!response.ok) { await this.clearMobileRefreshToken(); return false; }
+    const data = await response.json();
+    await this.saveMobileRefreshToken(data.refreshToken);
+    this.setMobileAccessToken(data.accessToken);
+    return true;
+  },
+
+  async request(url, options = {}, { retry = true } = {}) {
+    const headers = { ...(options.headers || {}) };
+    if (isNativeCapacitor && mobileAccessToken) headers.Authorization = `Bearer ${mobileAccessToken}`;
+    const response = await fetch(url, { ...options, headers });
+    if (response.status === 401 && retry && isNativeCapacitor && !url.endsWith('/auth/refresh')) {
+      if (await this.refreshMobileSession()) return this.request(url, options, { retry: false });
+    }
+    return response;
   },
 
   // Clear session on logout
@@ -214,7 +245,7 @@ const API = {
   // HTTP GET request
   async get(endpoint) {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const response = await this.request(`${API_BASE_URL}${endpoint}`, {
         method: 'GET',
         headers: this.getHeaders(),
         credentials: API_CREDENTIALS
@@ -234,7 +265,7 @@ const API = {
   async mutate(method, endpoint, data) {
     const idempotencyKey = this.isQueueable(endpoint) ? this.createIdempotencyKey() : null;
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const response = await this.request(`${API_BASE_URL}${endpoint}`, {
         method,
         headers: { ...this.getHeaders({ mutating: true }), ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}) },
         credentials: API_CREDENTIALS,
@@ -265,7 +296,7 @@ const API = {
   // HTTP DELETE request
   async delete(endpoint) {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const response = await this.request(`${API_BASE_URL}${endpoint}`, {
         method: 'DELETE',
         headers: this.getHeaders({ mutating: true }),
         credentials: API_CREDENTIALS
