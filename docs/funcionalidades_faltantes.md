@@ -338,6 +338,9 @@ Adicionado `POST /api/auth/resend-verification`, com resposta genérica para imp
 ### Grupo de rate limit distribuído (30/07/2026)
 `createAuthRateLimiter` agora aceita um store compatível com `express-rate-limit` por injeção, permitindo Redis/Postgres compartilhado entre réplicas, e explicita o comportamento de falha com `RATE_LIMIT_PASS_ON_STORE_ERROR`. O ambiente local mantém o store em memória; a conexão com Redis gerenciado permanece pendente.
 
+### Grupo de refresh token mobile (30/07/2026)
+Criada a tabela `refresh_tokens` e o endpoint `POST /api/auth/refresh`. Tokens são armazenados somente como hash, têm TTL configurável, rotação de uso único e revogação de toda a família quando um token já usado é reapresentado. O frontend/mobile ainda precisa guardar o token no Secure Storage nativo.
+
 ## 6. Empacotamento Híbrido Mobile APK (Grupo MOB)
 
 ### [MOB-01] Wrapper Híbrido com Capacitor

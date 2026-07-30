@@ -6,6 +6,7 @@ const { clearSessionCookies, createSession, setSessionCookies } = require('../se
 const { isEmailUniqueConstraint, normalizeEmail } = require('../services/userIdentityService');
 const { recordAudit, AUDIT_ACTIONS } = require('../services/auditService');
 const { sendEmailVerification } = require('../services/emailDeliveryService');
+const { issueRefreshToken, rotateRefreshToken, createAccessToken } = require('../services/refreshTokenService');
 
 const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 const hashVerificationToken = token => crypto.createHash('sha256').update(token).digest('hex');
@@ -129,6 +130,7 @@ async function login(req, res) {
     const sessionId = await createSession(user.id, { deviceName: req.body.deviceName, userAgent: req.get('user-agent'), ipAddress: req.ip });
     setSessionCookies(res, user, sessionId);
 
+    const refresh = await issueRefreshToken(user);
     res.status(200).json({
       message: 'Login successful',
       user: {
@@ -138,12 +140,22 @@ async function login(req, res) {
         role: user.role,
         mustChangePassword: Boolean(user.must_change_password),
         emailVerified: Boolean(user.email_verified_at)
-      }
+      },
+      refreshToken: refresh.token,
+      refreshExpiresAt: refresh.expiresAt
     });
   } catch (err) {
     console.error('Login error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
+}
+
+async function refresh(req, res) {
+  const token = typeof req.body?.refreshToken === 'string' ? req.body.refreshToken : '';
+  if (!token) return res.status(401).json({ error: 'Refresh token required' });
+  const rotated = await rotateRefreshToken(token, createAccessToken);
+  if (!rotated) return res.status(401).json({ error: 'Invalid or expired refresh token' });
+  return res.json(rotated);
 }
 
 function logout(req, res) {
@@ -326,6 +338,7 @@ async function resendEmailVerification(req, res) {
 module.exports = {
   registerPersonal,
   login,
+  refresh,
   logout,
   getMe,
   forgotPassword,
