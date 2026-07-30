@@ -8,6 +8,33 @@ const DASHBOARD_TABS = Object.freeze({
   student: ['workouts', 'measurements', 'chat']
 });
 
+async function openNotifications() {
+  let modal = document.getElementById('notifications-modal');
+  if (!modal) {
+    modal = SafeDOM.el('div', { id: 'notifications-modal', className: 'modal-overlay', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'notifications-title' } });
+    const card = SafeDOM.el('section', { className: 'modal-card glass' });
+    card.append(SafeDOM.el('div', { className: 'modal-header' }, [SafeDOM.el('h2', { id: 'notifications-title', text: 'Notificações' }), SafeDOM.el('button', { className: 'btn-icon', attrs: { type: 'button', 'data-action': 'close-notifications', 'aria-label': 'Fechar notificações' } }, [SafeDOM.icon('x')])]), SafeDOM.el('div', { id: 'notifications-list', className: 'notifications-list' }));
+    modal.appendChild(card); document.body.appendChild(modal);
+  }
+  modal.classList.add('active');
+  const list = document.getElementById('notifications-list'); SafeDOM.clear(list); list.appendChild(SafeDOM.el('p', { className: 'no-data-msg', text: 'Carregando...' }));
+  try {
+    const data = await API.get('/notifications'); SafeDOM.clear(list);
+    if (!data.items.length) list.appendChild(SafeDOM.el('p', { className: 'no-data-msg', text: 'Nenhuma notificação.' }));
+    for (const item of data.items) {
+      const row = SafeDOM.el('article', { className: `notification-item ${item.status === 'unread' ? 'notification-unread' : ''}` });
+      row.append(SafeDOM.el('strong', { text: item.title }), SafeDOM.el('p', { text: item.body }), SafeDOM.el('small', { text: item.status === 'unread' ? 'Não lida' : 'Lida' }));
+      if (item.status === 'unread') row.appendChild(SafeDOM.el('button', { className: 'btn btn-secondary btn-sm', attrs: { type: 'button', 'data-action': 'mark-notification-read', 'data-notification-id': item.id } }, ['Marcar como lida']));
+      list.appendChild(row);
+    }
+    updateNotificationBadge(data.unread);
+  } catch (error) { SafeDOM.clear(list); list.appendChild(SafeDOM.errorAlert('Falha ao carregar notificações: ', error.message)); }
+  lucide.createIcons();
+}
+function closeNotifications() { document.getElementById('notifications-modal')?.classList.remove('active'); }
+async function markNotificationRead(element) { await API.patch(`/notifications/${element.dataset.notificationId}/read`, {}); await openNotifications(); }
+function updateNotificationBadge(count) { document.querySelectorAll('#notification-unread-count').forEach(item => { item.textContent = count ? String(count) : ''; item.classList.toggle('hidden', !count); }); }
+
 function dashboardRoute(role, tab) {
   return `#/${role}/${tab}`;
 }
