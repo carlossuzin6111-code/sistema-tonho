@@ -33,6 +33,20 @@ const progressionController = require('./controllers/progressionController');
 const adherenceController = require('./controllers/adherenceController');
 const assessmentController = require('./controllers/assessmentController');
 const healthController = require('./controllers/healthController');
+const subscriptionController = require('./controllers/subscriptionController');
+const teamController = require('./controllers/teamController');
+const partnerController = require('./controllers/partnerController');
+const wearableController = require('./controllers/wearableController');
+const crmController = require('./controllers/crmController');
+const geofenceController = require('./controllers/geofenceController');
+const readinessController = require('./controllers/readinessController');
+const notificationController = require('./controllers/notificationController');
+const complianceController = require('./controllers/complianceController');
+const sessionController = require('./controllers/sessionController');
+const impersonationController = require('./controllers/impersonationController');
+const { requestLogger } = require('./services/logger');
+const metricsService = require('./services/metricsService');
+const healthController = require('./controllers/healthController');
 
 // Initialize database
 const db = require('./database');
@@ -59,6 +73,11 @@ app.use(cors(createCorsOptions()));
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || DEFAULT_BODY_LIMIT }));
 app.use(optionalAuthentication);
 app.use(csrfProtection);
+app.use(requestLogger);
+app.get('/api/metrics', authenticateToken, (req, res) => {
+  if (!['support', 'admin'].includes(req.user.role)) return res.status(403).json({ error: 'Support or admin role required' });
+  return res.json({ metrics: metricsService.snapshot() });
+});
 
 // Setup Swagger UI API documentation
 setupSwagger(app, {
@@ -1054,7 +1073,11 @@ app.get('/api/chat/:userId?', authenticateToken, chatController.getMessages);
  *         description: Erro interno do servidor.
  */
 app.post('/api/chat', authenticateToken, validateBody('chatMessage'), chatController.sendMessage);
+app.put('/api/chat/:messageId', authenticateToken, chatController.editMessage);
+app.delete('/api/chat/:messageId', authenticateToken, chatController.deleteMessage);
 app.post('/api/chat/typing', authenticateToken, chatController.sendTyping);
+app.patch('/api/chat/messages/:messageId', authenticateToken, chatController.editMessage);
+app.delete('/api/chat/messages/:messageId', authenticateToken, chatController.deleteMessage);
 
 // Normalize parser failures without exposing Express internals.
 app.use(jsonErrorHandler);
