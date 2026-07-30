@@ -33,6 +33,15 @@ const progressionController = require('./controllers/progressionController');
 const adherenceController = require('./controllers/adherenceController');
 const assessmentController = require('./controllers/assessmentController');
 const healthController = require('./controllers/healthController');
+const subscriptionController = require('./controllers/subscriptionController');
+const teamController = require('./controllers/teamController');
+const partnerController = require('./controllers/partnerController');
+const wearableController = require('./controllers/wearableController');
+const crmController = require('./controllers/crmController');
+const geofenceController = require('./controllers/geofenceController');
+const readinessController = require('./controllers/readinessController');
+const notificationController = require('./controllers/notificationController');
+const complianceController = require('./controllers/complianceController');
 
 // Initialize database
 const db = require('./database');
@@ -1049,7 +1058,11 @@ app.get('/api/chat/:userId?', authenticateToken, chatController.getMessages);
  *         description: Erro interno do servidor.
  */
 app.post('/api/chat', authenticateToken, validateBody('chatMessage'), chatController.sendMessage);
+app.put('/api/chat/:messageId', authenticateToken, chatController.editMessage);
+app.delete('/api/chat/:messageId', authenticateToken, chatController.deleteMessage);
 app.post('/api/chat/typing', authenticateToken, chatController.sendTyping);
+app.patch('/api/chat/messages/:messageId', authenticateToken, chatController.editMessage);
+app.delete('/api/chat/messages/:messageId', authenticateToken, chatController.deleteMessage);
 
 // Normalize parser failures without exposing Express internals.
 app.use(jsonErrorHandler);
