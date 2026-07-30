@@ -292,6 +292,9 @@ Ao retornar o dashboard do aluno ao foreground, o cliente redesenha o cronômetr
 *   **Progresso em 29/07/2026**: migration `202607290021_create_readiness_checkins.js`, endpoint autenticado com upsert diário, triggers de domínio 1–5, score normalizado e recomendação explicável de volume; Personal só lê alunos vinculados.
 *   **Pendente**: exigir o check-in antes de abrir a ficha, enviar lembretes, integrar o score com periodização/treinos e validar a regra clínica com profissionais.
 
+### Grupo de bloqueio de prontidão no dashboard (30/07/2026)
+O dashboard do aluno consulta o check-in do dia e não carrega a ficha enquanto as quatro escalas (dor muscular, sono, fadiga e humor) não forem respondidas. O formulário usa submissão delegada pela allowlist CSP e envia a data local ao endpoint autenticado. Permanecem lembretes, integração clínica com periodização e QA móvel.
+
 ### [OPS-08] Centro de Preferências de Notificações
 *   **Especificação**: Mapeamento de canais de recebimento (WhatsApp, E-mail, Push) para cada tipo de evento nas configurações de conta do usuário.
 *   **Progresso em 29/07/2026**: migration `202607290022_create_notification_center.js` e endpoints autenticados persistem preferências por evento/canal, criam notificações internas idempotentes, exibem contador de não lidas e permitem marcar como lida somente ao proprietário.
