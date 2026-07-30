@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
 const { promisify } = require('util');
+const { uploadOffsiteBackup } = require('../services/offsiteBackupService');
 
 const execFileAsync = promisify(execFile);
 const AUTOMATIC_BACKUP_PATTERN = /^backup-\d{8}T\d{9}Z$/;
@@ -74,8 +75,9 @@ async function runBackupCycle(options = {}) {
     fs.writeFileSync(path.join(stagingDirectory, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`, { flag: 'wx' });
     fs.renameSync(stagingDirectory, finalDirectory);
     const retained = cleanupBackups(backupDirectory, retention);
-    console.log(`[Backup] Created ${finalDirectory} (${avatars.length} avatars, integrity ${databaseReport.integrity}). Retained ${retained.length}.`);
-    return { destination: finalDirectory, integrity: databaseReport.integrity, size: databaseReport.size, avatars: avatars.length, retained };
+    const offsite = await uploadOffsiteBackup(finalDirectory, { now: options.now });
+    console.log(`[Backup] Created ${finalDirectory} (${avatars.length} avatars, integrity ${databaseReport.integrity}). Retained ${retained.length}. Off-site: ${offsite.uploaded ? 'uploaded' : offsite.reason}.`);
+    return { destination: finalDirectory, integrity: databaseReport.integrity, size: databaseReport.size, avatars: avatars.length, retained, offsite };
   } catch (error) {
     fs.rmSync(stagingDirectory, { recursive: true, force: true });
     throw error;
