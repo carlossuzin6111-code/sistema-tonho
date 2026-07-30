@@ -13,8 +13,13 @@ async function exportMyData() {
 async function manageSessions() {
   try {
     const sessions = await API.get('/sessions');
-    const message = sessions.map(item => `${item.device_name || 'Dispositivo'} · ${item.last_seen_at || item.created_at || 'sem data'}`).join('\n') || 'Nenhuma sessão ativa.';
-    window.alert(`Sessões ativas:\n\n${message}`);
+    const remote = sessions.filter(item => !item.current);
+    if (!remote.length) return showToast('Não há outras sessões ativas.', 'info');
+    for (const item of remote) {
+      const label = `${item.deviceName || 'Dispositivo'} · ${item.lastSeenAt || item.createdAt || 'sem data'}`;
+      if (window.confirm(`Encerrar a sessão em ${label}?`)) await API.delete(`/sessions/${encodeURIComponent(item.id)}`);
+    }
+    showToast('Sessões selecionadas foram encerradas.', 'success');
   } catch (error) { showToast(error.message, 'error'); }
 }
 

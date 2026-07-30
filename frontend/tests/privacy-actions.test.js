@@ -6,6 +6,7 @@ const events = fs.readFileSync('frontend/js/events.js', 'utf8');
 test('profile exposes authenticated LGPD export and session management actions', () => {
   assert.match(profile, /API\.get\('\/compliance\/export'\)/);
   assert.match(profile, /API\.get\('\/sessions'\)/);
+  assert.match(profile, /API\.delete\(`\/sessions\/\$\{encodeURIComponent\(item\.id\)\}`/);
   assert.match(events, /export-my-data/);
   assert.match(events, /manage-sessions/);
 });
