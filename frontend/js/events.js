@@ -37,6 +37,7 @@ const clickActions = Object.freeze({
   'open-notifications': () => openNotifications(),
   'close-notifications': () => closeNotifications(),
   'mark-notification-read': element => markNotificationRead(element),
+  'save-notification-preferences': () => saveNotificationPreferences(),
   'switch-personal-tab': element => switchPersonalTab(element.dataset.tab),
   'switch-student-tab': element => switchStudentTab(element.dataset.tab),
   'close-chat-thread': () => closeChatThreadMobile(),

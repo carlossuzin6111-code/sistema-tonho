@@ -13,7 +13,7 @@ async function openNotifications() {
   if (!modal) {
     modal = SafeDOM.el('div', { id: 'notifications-modal', className: 'modal-overlay', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'notifications-title' } });
     const card = SafeDOM.el('section', { className: 'modal-card glass' });
-    card.append(SafeDOM.el('div', { className: 'modal-header' }, [SafeDOM.el('h2', { id: 'notifications-title', text: 'Notificações' }), SafeDOM.el('button', { className: 'btn-icon', attrs: { type: 'button', 'data-action': 'close-notifications', 'aria-label': 'Fechar notificações' } }, [SafeDOM.icon('x')])]), SafeDOM.el('div', { id: 'notifications-list', className: 'notifications-list' }));
+    card.append(SafeDOM.el('div', { className: 'modal-header' }, [SafeDOM.el('h2', { id: 'notifications-title', text: 'Notificações' }), SafeDOM.el('button', { className: 'btn-icon', attrs: { type: 'button', 'data-action': 'close-notifications', 'aria-label': 'Fechar notificações' } }, [SafeDOM.icon('x')])]), SafeDOM.el('div', { id: 'notifications-list', className: 'notifications-list' }), SafeDOM.el('button', { className: 'btn btn-secondary btn-sm', attrs: { type: 'button', 'data-action': 'save-notification-preferences' } }, ['Salvar preferências']));
     modal.appendChild(card); document.body.appendChild(modal);
   }
   modal.classList.add('active');
@@ -28,12 +28,23 @@ async function openNotifications() {
       list.appendChild(row);
     }
     updateNotificationBadge(data.unread);
+    const preferences = await API.get('/notifications/preferences');
+    for (const item of preferences) {
+      const label = SafeDOM.el('label', { className: 'notification-preference', text: `${item.eventType} · ${item.channel}` });
+      const input = SafeDOM.el('input', { attrs: { type: 'checkbox', 'data-notification-preference': '', 'data-event-type': item.eventType, 'data-channel': item.channel } });
+      input.checked = item.enabled; label.prepend(input); list.appendChild(label);
+    }
   } catch (error) { SafeDOM.clear(list); list.appendChild(SafeDOM.errorAlert('Falha ao carregar notificações: ', error.message)); }
   lucide.createIcons();
 }
 function closeNotifications() { document.getElementById('notifications-modal')?.classList.remove('active'); }
 async function markNotificationRead(element) { await API.patch(`/notifications/${element.dataset.notificationId}/read`, {}); await openNotifications(); }
 function updateNotificationBadge(count) { document.querySelectorAll('#notification-unread-count').forEach(item => { item.textContent = count ? String(count) : ''; item.classList.toggle('hidden', !count); }); }
+async function saveNotificationPreferences() {
+  const preferences = [...document.querySelectorAll('[data-notification-preference]')].map(input => ({ eventType: input.dataset.eventType, channel: input.dataset.channel, enabled: input.checked }));
+  await API.put('/notifications/preferences', { preferences });
+  showToast('Preferências salvas.', 'success');
+}
 
 function dashboardRoute(role, tab) {
   return `#/${role}/${tab}`;
