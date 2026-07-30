@@ -236,10 +236,16 @@ Este documento atua como o inventário de engenharia contendo especificações d
 ### [BUS-13] Periodização Biomecânica Ondulatória
 *   **Especificação**: Suporte a templates e variações de carga/volume estruturadas em microciclos na ficha do aluno, fugindo de fichas estáticas lineares de musculação.
 *   **Progresso em 29/07/2026**: migration `workout_microcycles` e endpoints autenticados `PUT/GET /api/workouts/:id/periodization` permitem até 52 semanas sequenciais, intensidade percentual, multiplicador de volume e notas; a gravação substitui o plano em uma transação e valida ownership.
+* **Progresso em 29/07/2026**: o dashboard do Personal agora oferece editor acessível para carregar, adicionar, remover e salvar microciclos, com limite visual de 52 semanas e validação server-side dos campos.
+* **Pendente**: visualização da periodização pelo aluno, sugestões automáticas de carga/volume e QA com profissionais de biomecânica.
 *   **Pendente**: editor visual, regras biomecânicas específicas por exercício e versionamento/auditoria das alterações clínicas.
 
 ### [BUS-14] Governança do Catálogo de Exercícios
 *   **Especificação**: Deduplicação do catálogo e separação em exercícios base globais compartilhados vs customizados criados pelos treinadores.
+* **Progresso em 29/07/2026**: a governança registra escopo `global/custom`, nome canônico e arquivamento; o Personal pode consultar duplicatas e mesclar exercícios transacionalmente, atualizando referências das fichas e criando auditoria.
+* **Pendente**: uma única cópia global compartilhada entre Personals, moderação/aprovação e deduplicação automática em lote.
+*   **Progresso em 29/07/2026**: migration adiciona `catalog_scope`, `canonical_name` e `archived_at`; o catálogo filtra global/custom, expõe duplicatas para o Personal e permite mesclagem transacional com atualização das fichas e auditoria.
+*   **Pendente**: armazenamento de uma única cópia global compartilhada entre Personals, fluxo de moderação/aprovação e deduplicação automática em lote.
 
 ---
 
@@ -247,30 +253,51 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-01] Isolamento de Tenant (Subscriptions)
 *   **Especificação**: Tabela `subscriptions` vinculada à conta do Personal. Middleware bloqueia acessos retornando `402 Payment Required` em caso de mensalidade da licença expirada.
+*   **Progresso em 29/07/2026**: migration `202607290015_create_subscriptions` cria histórico por Personal, semeia trial de 30 dias para contas existentes e o cadastro de novos Personals cria o trial na mesma transação.
+*   **Progresso em 29/07/2026**: `subscriptionGuard` é aplicado após autenticação, permite admins e rotas essenciais de autenticação/assinatura, resolve alunos pelo Personal vinculado e responde `402` com códigos `SUBSCRIPTION_REQUIRED`/`SUBSCRIPTION_EXPIRED`; `GET /api/subscription` expõe status, período e indicador de atividade.
+*   **Pendente**: integração com provedor de cobrança, webhooks assinados e idempotentes, renovação/cancelamento, notificações de vencimento, painel administrativo e testes de recuperação de falhas do provedor.
 
 ### [OPS-02] Gestão de Equipe (Head/Junior) e Split de Receitas
 *   **Especificação**: Papéis corporativos com coordenação de equipes de personais juniores associados, bibliotecas compartilhadas e migrações em lote sob desligamento de instrutores.
+*   **Progresso em 29/07/2026**: migration `202607290016_create_personal_team_memberships` e endpoints autenticados permitem ao Head listar, adicionar e encerrar memberships Junior com percentual de receita validado e estado ativo/encerrado.
+*   **Pendente**: fluxo de convite/aceite, transferência de alunos e fichas no desligamento, bibliotecas compartilhadas, cálculo/pagamento do split e permissões granulares por recurso.
+*   **Progresso em 29/07/2026**: migration cria `organization_role` e memberships Head/Junior; endpoints autenticados permitem adicionar/listar/encerrar vínculos, registrar percentual de receita e transferir alunos durante o desligamento, com auditoria.
+*   **Pendente**: convite/onboarding específico de Junior, bibliotecas compartilhadas, integração de cobrança e split financeiro real.
 
 ### [OPS-03] Acesso Multiprofissional (Parceiros Clínicos)
 *   **Especificação**: Contas do tipo parceiro read-only (Nutricionistas, Fisioterapeutas). Mediante consentimento explícito do aluno, eles acessam logs de treino e realizam upload de exames.
+*   **Progresso em 29/07/2026**: migration `202607290017_create_partner_consents.js` cria perfis profissionais e consentimentos por aluno; o aluno concede/revoga escopos (`workout_logs`, `measurements`, `exams`) e o parceiro consulta apenas um resumo de leitura quando o consentimento está ativo, não expirado e auditado.
+*   **Pendente**: onboarding/convites de parceiros, upload seguro de exames, interface de gestão de consentimentos, expiração configurável com notificações e telemetria/auditoria operacional completa.
 
 ### [OPS-04] Integração com Wearables
 *   **Especificação**: Conectores e adaptadores assíncronos para Apple HealthKit, Google Fit/Health Connect e Garmin. Ingestão passiva de sono e HRV para sugerir autorregulação.
+*   **Progresso em 29/07/2026**: migration `202607290018_create_wearable_integrations.js` cria conexões por aluno e métricas normalizadas; endpoints validam provedores, mantêm tokens fora do banco, aceitam eventos idempotentes de sono/HRV, aplicam ownership e permitem revogação.
+*   **Pendente**: implementar adaptadores OAuth/SDK reais, armazenamento seguro de credenciais, worker de sincronização assíncrona, webhooks/retry e recomendação clínica de autorregulação com revisão profissional.
 
 ### [OPS-05] Alertas CRM de Churn e NPS
 *   **Especificação**: Tarefas diárias no node-cron alertando personais sobre alunos inativos há mais de 5 dias consecutivos e envio automatizado de pesquisas NPS.
+*   **Progresso em 29/07/2026**: migration `202607290019_create_crm_alerts_and_nps.js`, serviço diário e endpoints protegidos detectam inatividade por sessão, deduplicam alertas por dia, geram pesquisas pendentes, registram resposta 0–10, resolução e auditoria.
+*   **Pendente**: executar o serviço em worker/node-cron com lock distribuído, integrar entrega de e-mail/push, criar templates/opt-out e medir conversão, churn e NPS por período.
 
 ### [OPS-06] Check-ins por Geofencing e Agendamentos
 *   **Especificação**: Validação de presença presencial baseada em coordenadas GPS de geocercas ou conexão Wi-Fi da academia. Sincronização ICS.
+*   **Progresso em 29/07/2026**: migration `202607290020_create_geofence_checkins.js` e endpoints protegidos permitem ao Personal criar geofences, ao aluno realizar check-in somente dentro do raio calculado por Haversine, repetir eventos com segurança e fazer checkout; a consulta respeita o vínculo Personal/aluno.
+*   **Pendente**: sincronização ICS e agenda, verificação Wi-Fi complementar, antifraude (mock GPS/replay avançado), privacidade/retensão de coordenadas e relatórios de presença.
 
 ### [OPS-07] Check-in de Prontidão Física Diária (Readiness)
 *   **Especificação**: Escalas de 1 a 5 para DOMS, sono, fadiga e humor respondidos pelo aluno antes de abrir a ficha de treino do dia.
+*   **Progresso em 29/07/2026**: migration `202607290021_create_readiness_checkins.js`, endpoint autenticado com upsert diário, triggers de domínio 1–5, score normalizado e recomendação explicável de volume; Personal só lê alunos vinculados.
+*   **Pendente**: exigir o check-in antes de abrir a ficha, enviar lembretes, integrar o score com periodização/treinos e validar a regra clínica com profissionais.
 
 ### [OPS-08] Centro de Preferências de Notificações
 *   **Especificação**: Mapeamento de canais de recebimento (WhatsApp, E-mail, Push) para cada tipo de evento nas configurações de conta do usuário.
+*   **Progresso em 29/07/2026**: migration `202607290022_create_notification_center.js` e endpoints autenticados persistem preferências por evento/canal, criam notificações internas idempotentes, exibem contador de não lidas e permitem marcar como lida somente ao proprietário.
+*   **Pendente**: integrar provedores externos, templates/localização, retry/outbox transacional, consentimento/opt-out por canal e telemetria de entrega.
 
 ### [OPS-09] Exportação e Anonimização de Dados (LGPD)
 *   **Especificação**: Endpoints `/api/compliance/export` e `/api/compliance/delete` (anonimizando informações identificáveis na exclusão permanente).
+*   **Progresso em 29/07/2026**: `/api/compliance/export` entrega somente os dados do usuário autenticado sem `password_hash`, com `no-store`; `/api/compliance/delete` exige confirmação literal e senha atual, remove conteúdo conversacional/tokens, anonimiza a conta em transação e incrementa `session_version` para revogar sessões.
+*   **Pendente**: exportação assíncrona/criptografada para grandes volumes, política de retenção, fila de exclusão com lock, confirmação de identidade adicional e revisão jurídica/operacional LGPD.
 
 ### [OPS-10] Health Checks Liveness/Readiness
 *   **Especificação**: Endpoint `/health/live` (status do runtime) e `/health/ready` (valida conexão com SQLite e se há migrations pendentes no Knex).
@@ -279,11 +306,17 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-11] Sessões por Dispositivo (`user_sessions`)
 *   **Especificação**: Tabela `user_sessions` para listar e revogar tokens de dispositivos individuais sem invalidar a chave JWT global da conta.
+*   **Progresso em 29/07/2026**: migration `202607290023_create_user_sessions.js` persiste sessão por login com ID opaco, dispositivo, user-agent/IP e last-seen; tokens novos carregam `sessionId`, middleware rejeita sessões revogadas e `/api/sessions` lista/revoga apenas dispositivos do próprio usuário.
+*   **Pendente**: expiração/limpeza agendada, limite de sessões, interface de gerenciamento, mascaramento/retensão de IP e telemetria de segurança.
 
 ### [OPS-12] Backoffice de Suporte com Impersonation Seguro
+*   **Progresso em 29/07/2026**: migration `202607290024_create_impersonation_events.js` e endpoints protegidos permitem somente `support`/`admin` emitir token de 15 minutos com motivo obrigatório; cada emissão/revogação é auditada e o middleware rejeita tokens expirados ou revogados, marcando o contexto de impersonação.
+*   **Pendente**: backoffice visual, aprovação dupla para casos sensíveis, escopo read-only/allowlist por rota, alertas de uso anômalo e política de retenção dos eventos.
 *   **Especificação**: Função de impersonação de conta pelo administrador com geração de log de auditoria associado a tickets e justificativa.
 
 ### [OPS-13] Logs Estruturados, Métricas e Alertas
+*   **Progresso em 29/07/2026**: logger JSON adiciona timestamp, serviço, request ID, método, rota, status e duração sem registrar corpo; redaction recursivo remove chaves de senha/token/segredo; métricas de requisição ficam disponíveis a `support/admin` em `/api/metrics`.
+*   **Pendente**: exportar formato Prometheus/OpenTelemetry, persistir métricas entre réplicas, configurar alertas/SLO, retenção e correlação distribuída de workers.
 *   **Especificação**: Logs em formato JSON na API, redação automática de CPFs/Senhas nos payloads, métricas RED de latência e alertas sob erros `SQLITE_BUSY`.
 
 ### [OPS-14] CI/CD Obrigatória
@@ -314,3 +347,6 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Especificação**: Em ambiente híbrido móvel, armazenar JWT localmente via plugin `@capacitor-community/secure-storage` integrado ao Keystore/Keychain nativo do celular.
 *   **Progresso em 29/07/2026**: `frontend/js/secure-storage.js` expõe uma ponte que chama somente `Capacitor.Plugins.SecureStorage` e falha sem plugin, sem usar `localStorage`/`sessionStorage`. O teste de contrato confirma ausência de fallback inseguro (58/58 frontend).
 *   **Bloqueio/Pendente**: `@capacitor-community/secure-storage` não está publicado no registro npm no momento da implementação; selecionar uma alternativa mantida, validar Android Keystore/iOS Keychain em dispositivo e só armazenar JWT se o desenho de autenticação móvel deixar de usar cookies HttpOnly.
+
+### Correção transversal de CI (30/07/2026)
+Foi identificada uma causa comum nas falhas recentes: controllers usados pelas rotas não eram importados, sendTyping estava declarado duas vezes e as operações de edição/exclusão de chat não estavam expostas nas rotas legadas. A correção também atualiza a lista de migrations esperadas (013–022). O hotfix deve ser integrado antes de reavaliar os PRs dependentes.

@@ -33,6 +33,20 @@ const progressionController = require('./controllers/progressionController');
 const adherenceController = require('./controllers/adherenceController');
 const assessmentController = require('./controllers/assessmentController');
 const healthController = require('./controllers/healthController');
+const subscriptionController = require('./controllers/subscriptionController');
+const teamController = require('./controllers/teamController');
+const partnerController = require('./controllers/partnerController');
+const wearableController = require('./controllers/wearableController');
+const crmController = require('./controllers/crmController');
+const geofenceController = require('./controllers/geofenceController');
+const readinessController = require('./controllers/readinessController');
+const notificationController = require('./controllers/notificationController');
+const complianceController = require('./controllers/complianceController');
+const sessionController = require('./controllers/sessionController');
+const impersonationController = require('./controllers/impersonationController');
+const { requestLogger } = require('./services/logger');
+const metricsService = require('./services/metricsService');
+const healthController = require('./controllers/healthController');
 
 // Initialize database
 const db = require('./database');
@@ -59,6 +73,11 @@ app.use(cors(createCorsOptions()));
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || DEFAULT_BODY_LIMIT }));
 app.use(optionalAuthentication);
 app.use(csrfProtection);
+app.use(requestLogger);
+app.get('/api/metrics', authenticateToken, (req, res) => {
+  if (!['support', 'admin'].includes(req.user.role)) return res.status(403).json({ error: 'Support or admin role required' });
+  return res.json({ metrics: metricsService.snapshot() });
+});
 
 // Setup Swagger UI API documentation
 setupSwagger(app, {
@@ -72,6 +91,45 @@ app.get('/health/live', healthController.live);
 app.get('/health/ready', healthController.ready);
 // Backward-compatible alias used by existing Compose/probes.
 app.get('/api/health', healthController.ready);
+
+app.get('/api/subscription', authenticateToken, subscriptionController.getSubscription);
+app.get('/api/team/members', authenticateToken, requireRole('personal'), teamController.listTeam);
+app.post('/api/team/members', authenticateToken, requireRole('personal'), teamController.addTeamMember);
+app.patch('/api/team/members/:id/end', authenticateToken, requireRole('personal'), validateIdParam('id'), teamController.terminateTeamMember);
+app.post('/api/student/partner-consents', authenticateToken, partnerController.createConsent);
+app.delete('/api/student/partner-consents/:id', authenticateToken, validateIdParam('id'), partnerController.revokeConsent);
+app.get('/api/partner/students/:studentId/summary', authenticateToken, validateIdParam('studentId'), partnerController.getStudentSummary);
+app.post('/api/wearables/connections', authenticateToken, wearableController.createConnection);
+app.get('/api/wearables/connections', authenticateToken, wearableController.listConnections);
+app.delete('/api/wearables/connections/:id', authenticateToken, validateIdParam('id'), wearableController.revokeConnection);
+app.post('/api/wearables/connections/:id/metrics', authenticateToken, validateIdParam('id'), wearableController.ingestMetrics);
+app.get('/api/wearables/metrics', authenticateToken, wearableController.listMetrics);
+app.post('/api/crm/run-daily', authenticateToken, crmController.runDaily);
+app.get('/api/crm/alerts', authenticateToken, crmController.listAlerts);
+app.patch('/api/crm/alerts/:id/resolve', authenticateToken, validateIdParam('id'), crmController.resolveAlert);
+app.get('/api/crm/nps', authenticateToken, crmController.listNps);
+app.get('/api/student/nps', authenticateToken, crmController.listStudentNps);
+app.post('/api/student/nps/:id/respond', authenticateToken, validateIdParam('id'), crmController.respondNps);
+app.post('/api/personal/geofences', authenticateToken, geofenceController.createGeofence);
+app.get('/api/personal/geofences', authenticateToken, geofenceController.listGeofences);
+app.get('/api/personal/checkins', authenticateToken, geofenceController.listCheckins);
+app.post('/api/student/checkins', authenticateToken, geofenceController.checkIn);
+app.post('/api/student/checkins/:id/checkout', authenticateToken, validateIdParam('id'), geofenceController.checkOut);
+app.post('/api/student/readiness', authenticateToken, readinessController.save);
+app.get('/api/student/readiness', authenticateToken, readinessController.listStudent);
+app.get('/api/student/readiness/recommendation', authenticateToken, readinessController.getRecommendation);
+app.get('/api/personal/students/:id/readiness', authenticateToken, validateIdParam('id'), readinessController.listForPersonal);
+app.get('/api/notifications/preferences', authenticateToken, notificationController.getPreferences);
+app.put('/api/notifications/preferences', authenticateToken, notificationController.putPreferences);
+app.get('/api/notifications', authenticateToken, notificationController.listNotifications);
+app.patch('/api/notifications/:id/read', authenticateToken, validateIdParam('id'), notificationController.markRead);
+app.get('/api/compliance/export', authenticateToken, complianceController.exportData);
+app.post('/api/compliance/delete', authenticateToken, complianceController.anonymizeAccount);
+app.get('/api/sessions', authenticateToken, sessionController.listSessions);
+app.delete('/api/sessions/:id', authenticateToken, sessionController.revokeSession);
+app.post('/api/support/impersonations', authenticateToken, impersonationController.create);
+app.get('/api/support/impersonations', authenticateToken, impersonationController.list);
+app.post('/api/support/impersonations/:id/revoke', authenticateToken, impersonationController.revoke);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
@@ -856,6 +914,7 @@ app.get('/api/workout-sessions/:id', authenticateToken, validateIdParam('id'), w
  *         description: Erro interno do servidor.
  */
 app.get('/api/catalog/exercises', authenticateToken, exerciseController.getExercises);
+app.get('/api/catalog/governance', authenticateToken, requireRole('personal'), exerciseController.getCatalogGovernance);
 
 /**
  * @openapi
@@ -897,6 +956,7 @@ app.get('/api/catalog/exercises', authenticateToken, exerciseController.getExerc
  *         description: Erro interno do servidor.
  */
 app.post('/api/catalog/exercises', authenticateToken, requireRole('personal'), validateBody('catalogExercise'), exerciseController.createExercise);
+app.post('/api/catalog/governance/merge', authenticateToken, requireRole('personal'), validateBody('catalogMerge'), exerciseController.mergeCatalogExercises);
 
 /**
  * @openapi
@@ -1013,7 +1073,11 @@ app.get('/api/chat/:userId?', authenticateToken, chatController.getMessages);
  *         description: Erro interno do servidor.
  */
 app.post('/api/chat', authenticateToken, validateBody('chatMessage'), chatController.sendMessage);
+app.put('/api/chat/:messageId', authenticateToken, chatController.editMessage);
+app.delete('/api/chat/:messageId', authenticateToken, chatController.deleteMessage);
 app.post('/api/chat/typing', authenticateToken, chatController.sendTyping);
+app.patch('/api/chat/messages/:messageId', authenticateToken, chatController.editMessage);
+app.delete('/api/chat/messages/:messageId', authenticateToken, chatController.deleteMessage);
 
 // Normalize parser failures without exposing Express internals.
 app.use(jsonErrorHandler);

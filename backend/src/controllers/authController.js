@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const db = require('../database');
 const { findUnusedAccessKeyId } = require('../services/accessKeyService');
-const { clearSessionCookies, setSessionCookies } = require('../services/sessionService');
+const { clearSessionCookies, createSession, setSessionCookies } = require('../services/sessionService');
 const { isEmailUniqueConstraint, normalizeEmail } = require('../services/userIdentityService');
 const { recordAudit, AUDIT_ACTIONS } = require('../services/auditService');
 const { sendEmailVerification } = require('../services/emailDeliveryService');
@@ -62,6 +62,16 @@ async function registerPersonal(req, res) {
         .where({ id: accessKeyId })
         .update({ used_by: userId });
 
+      const periodStart = new Date();
+      const periodEnd = new Date(periodStart.getTime() + 30 * 24 * 60 * 60 * 1000);
+      await trx('subscriptions').insert({
+        personal_id: userId,
+        status: 'trial',
+        provider: 'internal',
+        current_period_start: periodStart,
+        current_period_end: periodEnd
+      });
+
       return userId;
     });
 
@@ -76,7 +86,8 @@ async function registerPersonal(req, res) {
     const delivery = await sendEmailVerification({ email: normalizedEmail, token: verificationToken, expiresAt: verificationExpiresAt });
 
     const user = { id: insertedId, name, email: normalizedEmail, role: 'personal', mustChangePassword: false };
-    setSessionCookies(res, user);
+    const sessionId = await createSession(insertedId, { deviceName: req.body.deviceName, userAgent: req.get('user-agent'), ipAddress: req.ip });
+    setSessionCookies(res, user, sessionId);
 
     res.status(201).json({
       message: 'Personal Trainer registered successfully',
@@ -115,7 +126,8 @@ async function login(req, res) {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
 
-    setSessionCookies(res, user);
+    const sessionId = await createSession(user.id, { deviceName: req.body.deviceName, userAgent: req.get('user-agent'), ipAddress: req.ip });
+    setSessionCookies(res, user, sessionId);
 
     res.status(200).json({
       message: 'Login successful',
@@ -156,6 +168,7 @@ async function getMe(req, res) {
       role: user.role,
       mustChangePassword: Boolean(user.must_change_password),
       emailVerified: Boolean(user.email_verified_at),
+      ...(req.user.isImpersonation ? { impersonation: { actorUserId: req.user.impersonatedBy, eventId: req.user.impersonationId } } : {}),
       created_at: user.created_at,
       hasAvatar: Boolean(user.avatar_filename),
       avatarUpdatedAt: user.avatar_updated_at || null
