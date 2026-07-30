@@ -75,7 +75,7 @@ async function sendTyping(req, res) {
       notifyTyping(receiverId, { userId: senderId, isTyping: false });
       typingTimers.delete(key);
     }, 1500));
-    return res.status(204).send();
+    return res.status(200).json({ sent: true });
   } catch (error) {
     console.error('Typing notification error:', error.message);
     return res.status(500).json({ error: 'Internal server error' });
@@ -321,5 +321,7 @@ module.exports = {
   getMessages,
   sendMessage,
   sendTyping,
+  editMessage,
+  deleteMessage,
   handleChatStream
 };
