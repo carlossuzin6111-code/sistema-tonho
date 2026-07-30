@@ -34,6 +34,7 @@ const clickActions = Object.freeze({
   'switch-auth-tab': element => switchAuthTab(element.dataset.tab),
   'toggle-theme': () => toggleTheme(),
   'logout': () => logout(),
+  'open-forgot-password': () => openForgotPassword(),
   'export-my-data': () => exportMyData(),
   'manage-sessions': () => manageSessions(),
   'open-notifications': () => openNotifications(),

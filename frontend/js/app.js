@@ -40,6 +40,12 @@ async function openNotifications() {
 function closeNotifications() { document.getElementById('notifications-modal')?.classList.remove('active'); }
 async function markNotificationRead(element) { await API.patch(`/notifications/${element.dataset.notificationId}/read`, {}); await openNotifications(); }
 function updateNotificationBadge(count) { document.querySelectorAll('#notification-unread-count').forEach(item => { item.textContent = count ? String(count) : ''; item.classList.toggle('hidden', !count); }); }
+
+function openForgotPassword() {
+  const email = window.prompt('Informe o e-mail da conta para receber o link de redefinição:');
+  if (!email?.trim()) return;
+  API.post('/auth/forgot-password', { email: email.trim() }).then(() => showToast('Se o e-mail existir, enviaremos instruções.', 'success')).catch(error => showToast(error.message, 'error'));
+}
 async function saveNotificationPreferences() {
   const preferences = [...document.querySelectorAll('[data-notification-preference]')].map(input => ({ eventType: input.dataset.eventType, channel: input.dataset.channel, enabled: input.checked }));
   await API.put('/notifications/preferences', { preferences });
