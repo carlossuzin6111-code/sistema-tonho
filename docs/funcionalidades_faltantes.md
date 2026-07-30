@@ -329,6 +329,9 @@ Este documento atua como o inventário de engenharia contendo especificações d
 ### PR agrupado de hardening operacional (30/07/2026)
 Foi adicionado `scripts/compose-smoke.ps1`, executado por `npm run ops:compose-smoke`, para aguardar os containers `app` e `web` saudáveis e validar API, liveness e readiness. A execução em deploy real e o restore automatizado continuam pendentes.
 
+### Grupo de hardening de sessões (30/07/2026)
+`sessionService` agora revoga sessões ativas ociosas além de `SESSION_IDLE_TIMEOUT_DAYS` e mantém no máximo `MAX_ACTIVE_SESSIONS` por usuário, revogando as mais antigas. A tela de gerenciamento, mascaramento/retensão de IP e telemetria continuam pendentes.
+
 ## 6. Empacotamento Híbrido Mobile APK (Grupo MOB)
 
 ### [MOB-01] Wrapper Híbrido com Capacitor

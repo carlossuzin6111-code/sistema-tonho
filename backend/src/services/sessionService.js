@@ -20,6 +20,8 @@ if (process.env.NODE_ENV === 'production' && (looksLikePlaceholder || distinctCh
 const SESSION_COOKIE = 'fitlife_session';
 const CSRF_COOKIE = 'fitlife_csrf';
 const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+const SESSION_IDLE_TIMEOUT_DAYS = Number(process.env.SESSION_IDLE_TIMEOUT_DAYS || 30);
+const MAX_ACTIVE_SESSIONS = Math.max(1, Number(process.env.MAX_ACTIVE_SESSIONS || 5));
 
 function parseCookies(cookieHeader = '') {
   return cookieHeader.split(';').reduce((cookies, part) => {
@@ -56,7 +58,22 @@ async function createSession(userId, { deviceName = 'Unknown device', userAgent 
   const sessionId = crypto.randomBytes(32).toString('base64url');
   const db = require('../database');
   await db('user_sessions').insert({ id: sessionId, user_id: userId, device_name: String(deviceName).slice(0, 120) || 'Unknown device', user_agent: userAgent ? String(userAgent).slice(0, 500) : null, ip_address: ipAddress ? String(ipAddress).slice(0, 64) : null });
+  await pruneUserSessions(userId, db);
   return sessionId;
+}
+
+async function pruneUserSessions(userId, database = null) {
+  const db = database || require('../database');
+  const cutoff = new Date(Date.now() - SESSION_IDLE_TIMEOUT_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  await db('user_sessions').where({ user_id: userId, status: 'active' }).where('last_seen_at', '<', cutoff)
+    .update({ status: 'revoked', revoked_at: db.fn.now(), updated_at: db.fn.now() });
+  const active = await db('user_sessions').where({ user_id: userId, status: 'active' })
+    .orderBy('last_seen_at', 'desc').select('id').offset(MAX_ACTIVE_SESSIONS);
+  if (active.length) {
+    await db('user_sessions').whereIn('id', active.map(row => row.id))
+      .update({ status: 'revoked', revoked_at: db.fn.now(), updated_at: db.fn.now() });
+  }
+  return active.length;
 }
 
 function setSessionCookies(res, user, sessionId = null) {
@@ -94,6 +111,8 @@ module.exports = {
   SESSION_COOKIE,
   clearSessionCookies,
   createSession,
+  MAX_ACTIVE_SESSIONS,
+  pruneUserSessions,
   parseCookies,
   setSessionCookies,
   verifySessionToken
