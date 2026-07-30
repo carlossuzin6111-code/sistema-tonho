@@ -347,3 +347,6 @@ Este documento atua como o inventário de engenharia contendo especificações d
 *   **Especificação**: Em ambiente híbrido móvel, armazenar JWT localmente via plugin `@capacitor-community/secure-storage` integrado ao Keystore/Keychain nativo do celular.
 *   **Progresso em 29/07/2026**: `frontend/js/secure-storage.js` expõe uma ponte que chama somente `Capacitor.Plugins.SecureStorage` e falha sem plugin, sem usar `localStorage`/`sessionStorage`. O teste de contrato confirma ausência de fallback inseguro (58/58 frontend).
 *   **Bloqueio/Pendente**: `@capacitor-community/secure-storage` não está publicado no registro npm no momento da implementação; selecionar uma alternativa mantida, validar Android Keystore/iOS Keychain em dispositivo e só armazenar JWT se o desenho de autenticação móvel deixar de usar cookies HttpOnly.
+
+### Correção transversal de CI (30/07/2026)
+Foi identificada uma causa comum nas falhas recentes: controllers usados pelas rotas não eram importados, sendTyping estava declarado duas vezes e as operações de edição/exclusão de chat não estavam expostas nas rotas legadas. A correção também atualiza a lista de migrations esperadas (013–022). O hotfix deve ser integrado antes de reavaliar os PRs dependentes.
