@@ -33,6 +33,15 @@ const progressionController = require('./controllers/progressionController');
 const adherenceController = require('./controllers/adherenceController');
 const assessmentController = require('./controllers/assessmentController');
 const healthController = require('./controllers/healthController');
+const subscriptionController = require('./controllers/subscriptionController');
+const teamController = require('./controllers/teamController');
+const partnerController = require('./controllers/partnerController');
+const wearableController = require('./controllers/wearableController');
+const crmController = require('./controllers/crmController');
+const geofenceController = require('./controllers/geofenceController');
+const readinessController = require('./controllers/readinessController');
+const notificationController = require('./controllers/notificationController');
+const complianceController = require('./controllers/complianceController');
 
 // Initialize database
 const db = require('./database');
