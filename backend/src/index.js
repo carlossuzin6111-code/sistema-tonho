@@ -42,6 +42,11 @@ const geofenceController = require('./controllers/geofenceController');
 const readinessController = require('./controllers/readinessController');
 const notificationController = require('./controllers/notificationController');
 const complianceController = require('./controllers/complianceController');
+const sessionController = require('./controllers/sessionController');
+const impersonationController = require('./controllers/impersonationController');
+const { requestLogger } = require('./services/logger');
+const metricsService = require('./services/metricsService');
+const healthController = require('./controllers/healthController');
 
 // Initialize database
 const db = require('./database');
@@ -68,6 +73,11 @@ app.use(cors(createCorsOptions()));
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || DEFAULT_BODY_LIMIT }));
 app.use(optionalAuthentication);
 app.use(csrfProtection);
+app.use(requestLogger);
+app.get('/api/metrics', authenticateToken, (req, res) => {
+  if (!['support', 'admin'].includes(req.user.role)) return res.status(403).json({ error: 'Support or admin role required' });
+  return res.json({ metrics: metricsService.snapshot() });
+});
 
 // Setup Swagger UI API documentation
 setupSwagger(app, {
@@ -115,6 +125,11 @@ app.get('/api/notifications', authenticateToken, notificationController.listNoti
 app.patch('/api/notifications/:id/read', authenticateToken, validateIdParam('id'), notificationController.markRead);
 app.get('/api/compliance/export', authenticateToken, complianceController.exportData);
 app.post('/api/compliance/delete', authenticateToken, complianceController.anonymizeAccount);
+app.get('/api/sessions', authenticateToken, sessionController.listSessions);
+app.delete('/api/sessions/:id', authenticateToken, sessionController.revokeSession);
+app.post('/api/support/impersonations', authenticateToken, impersonationController.create);
+app.get('/api/support/impersonations', authenticateToken, impersonationController.list);
+app.post('/api/support/impersonations/:id/revoke', authenticateToken, impersonationController.revoke);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);

@@ -306,11 +306,17 @@ Este documento atua como o inventário de engenharia contendo especificações d
 
 ### [OPS-11] Sessões por Dispositivo (`user_sessions`)
 *   **Especificação**: Tabela `user_sessions` para listar e revogar tokens de dispositivos individuais sem invalidar a chave JWT global da conta.
+*   **Progresso em 29/07/2026**: migration `202607290023_create_user_sessions.js` persiste sessão por login com ID opaco, dispositivo, user-agent/IP e last-seen; tokens novos carregam `sessionId`, middleware rejeita sessões revogadas e `/api/sessions` lista/revoga apenas dispositivos do próprio usuário.
+*   **Pendente**: expiração/limpeza agendada, limite de sessões, interface de gerenciamento, mascaramento/retensão de IP e telemetria de segurança.
 
 ### [OPS-12] Backoffice de Suporte com Impersonation Seguro
+*   **Progresso em 29/07/2026**: migration `202607290024_create_impersonation_events.js` e endpoints protegidos permitem somente `support`/`admin` emitir token de 15 minutos com motivo obrigatório; cada emissão/revogação é auditada e o middleware rejeita tokens expirados ou revogados, marcando o contexto de impersonação.
+*   **Pendente**: backoffice visual, aprovação dupla para casos sensíveis, escopo read-only/allowlist por rota, alertas de uso anômalo e política de retenção dos eventos.
 *   **Especificação**: Função de impersonação de conta pelo administrador com geração de log de auditoria associado a tickets e justificativa.
 
 ### [OPS-13] Logs Estruturados, Métricas e Alertas
+*   **Progresso em 29/07/2026**: logger JSON adiciona timestamp, serviço, request ID, método, rota, status e duração sem registrar corpo; redaction recursivo remove chaves de senha/token/segredo; métricas de requisição ficam disponíveis a `support/admin` em `/api/metrics`.
+*   **Pendente**: exportar formato Prometheus/OpenTelemetry, persistir métricas entre réplicas, configurar alertas/SLO, retenção e correlação distribuída de workers.
 *   **Especificação**: Logs em formato JSON na API, redação automática de CPFs/Senhas nos payloads, métricas RED de latência e alertas sob erros `SQLITE_BUSY`.
 
 ### [OPS-14] CI/CD Obrigatória

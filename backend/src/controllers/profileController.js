@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const db = require('../database');
-const { setSessionCookies } = require('../services/sessionService');
+const { createSession, setSessionCookies } = require('../services/sessionService');
 const { AUDIT_ACTIONS, recordAudit } = require('../services/auditService');
 const { AvatarError, cleanupUserAvatars, removeAvatar, resolveAvatarPath, writeAvatar } = require('../services/avatarService');
 const { expectedVersion } = require('../services/optimisticLockService');
@@ -36,7 +36,8 @@ async function updateName(req, res) {
       await recordAudit(trx, { actorUserId: req.user.id, action: AUDIT_ACTIONS.PROFILE_NAME_UPDATED, targetType: 'user', targetId: req.user.id });
     });
     const user = await db('users').where({ id: req.user.id }).first();
-    setSessionCookies(res, user);
+    const sessionId = await createSession(user.id, { deviceName: req.body.deviceName, userAgent: req.get('user-agent'), ipAddress: req.ip });
+    setSessionCookies(res, user, sessionId);
     return res.json({ message: 'Profile updated successfully', user: publicUser(user) });
   } catch (error) {
     if (error.code === 'VERSION_CONFLICT') return res.status(409).json({ error: 'Resource was modified; reload before saving' });
@@ -67,7 +68,8 @@ async function updatePassword(req, res) {
       await recordAudit(trx, { actorUserId: req.user.id, action: AUDIT_ACTIONS.PROFILE_PASSWORD_CHANGED, targetType: 'user', targetId: req.user.id });
     });
     const updatedUser = await db('users').where({ id: req.user.id }).first();
-    setSessionCookies(res, updatedUser);
+    const sessionId = await createSession(updatedUser.id, { deviceName: req.body.deviceName, userAgent: req.get('user-agent'), ipAddress: req.ip });
+    setSessionCookies(res, updatedUser, sessionId);
     return res.json({ message: 'Password updated successfully' });
   } catch (error) {
     console.error('Profile password update error:', error.message);
