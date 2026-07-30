@@ -89,6 +89,7 @@ services:
     restart: always
 
   cloudflared:
+    profiles: ["tunnel"]
     image: cloudflare/cloudflared:latest@sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d
     container_name: fitlife_tunnel
     restart: always
