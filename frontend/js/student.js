@@ -2,6 +2,38 @@
 let studentWorkouts = [];
 let studentMeasurements = [];
 let personalTrainerId = null;
+let todayReadiness = null;
+
+function localDateKey() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function renderReadinessPrompt(container) {
+  SafeDOM.clear(container);
+  const form = SafeDOM.el('form', { className: 'glass empty-state-large readiness-checkin-form', attrs: { id: 'student-readiness-form' } });
+  form.append(SafeDOM.el('h3', { text: 'Check-in de prontidão' }), SafeDOM.el('p', { text: 'Responda às quatro escalas antes de abrir sua ficha de treino de hoje.' }));
+  for (const [key, label] of [['doms', 'Dor muscular'], ['sleepQuality', 'Qualidade do sono'], ['fatigue', 'Fadiga'], ['mood', 'Humor']]) {
+    const select = SafeDOM.el('select', { attrs: { name: key, required: '', 'aria-label': label } });
+    select.append(SafeDOM.el('option', { attrs: { value: '' }, text: label }));
+    for (let score = 1; score <= 5; score += 1) select.append(SafeDOM.el('option', { attrs: { value: score }, text: `${score} / 5` }));
+    form.append(SafeDOM.el('label', { className: 'form-group', text: label }, [select]));
+  }
+  form.append(SafeDOM.el('button', { className: 'btn btn-primary', attrs: { type: 'submit' } }, ['Salvar check-in']));
+  container.appendChild(form);
+  lucide.createIcons();
+}
+
+async function submitStudentReadiness(event) {
+  event.preventDefault();
+  const form = event.target;
+  const values = Object.fromEntries(new FormData(form).entries());
+  try {
+    await API.post('/student/readiness', { ...values, date: localDateKey() });
+    todayReadiness = values;
+    await loadStudentWorkouts();
+  } catch (error) { showToast(error.message, 'error'); }
+}
 
 const StudentSession = {
   state: null,
@@ -142,6 +174,9 @@ async function loadStudentWorkouts() {
   const container = document.getElementById('student-workouts-container');
   renderLoadingSkeletons(container, { count: 3, variant: 'workout', label: 'Carregando ficha de treinos' });
   try {
+    const readiness = await API.get('/student/readiness');
+    todayReadiness = readiness.find(item => item.date === localDateKey()) || null;
+    if (!todayReadiness) { renderReadinessPrompt(container); return; }
     studentWorkouts = await API.get('/student/workouts');
     finishLoadingState(container);
     updateStudentWorkoutSummary();
