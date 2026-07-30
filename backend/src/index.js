@@ -100,6 +100,12 @@ app.post('/api/student/readiness', authenticateToken, readinessController.save);
 app.get('/api/student/readiness', authenticateToken, readinessController.listStudent);
 app.get('/api/student/readiness/recommendation', authenticateToken, readinessController.getRecommendation);
 app.get('/api/personal/students/:id/readiness', authenticateToken, validateIdParam('id'), readinessController.listForPersonal);
+app.get('/api/notifications/preferences', authenticateToken, notificationController.getPreferences);
+app.put('/api/notifications/preferences', authenticateToken, notificationController.putPreferences);
+app.get('/api/notifications', authenticateToken, notificationController.listNotifications);
+app.patch('/api/notifications/:id/read', authenticateToken, validateIdParam('id'), notificationController.markRead);
+app.get('/api/compliance/export', authenticateToken, complianceController.exportData);
+app.post('/api/compliance/delete', authenticateToken, complianceController.anonymizeAccount);
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);

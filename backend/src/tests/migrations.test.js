@@ -30,7 +30,9 @@ const applicationTables = [
   'nps_surveys',
   'gym_geofences',
   'student_checkins',
-  'readiness_checkins'
+  'readiness_checkins',
+  'notification_preferences',
+  'notifications'
 ];
 
 const migrations = [
