@@ -8,7 +8,8 @@
     "mobile:add:android": "npx cap add android",
     "mobile:sync": "npx cap sync android",
     "mobile:open": "npx cap open android",
-    "mobile:build:android": "npm run mobile:sync && cd android && gradlew.bat assembleDebug"
+    "mobile:build:android": "npm run mobile:sync && cd android && gradlew.bat assembleDebug",
+    "ops:compose-smoke": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/compose-smoke.ps1"
   },
   "keywords": [],
   "author": "",

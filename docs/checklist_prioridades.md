@@ -237,3 +237,4 @@ Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e 
 Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.
 
 | 30/07/2026 | CI-HOTFIX | Corrigidos conflitos de integração no `main`: importações de controllers ausentes, função `sendTyping` duplicada, rotas/exportações de edição e exclusão de chat e contrato atualizado da suíte de migrations | Branch `fix/ci-chat-duplicate`; backend 36 suítes, 229/230 testes após correção (último caso de API em ajuste) | Em validação no CI |
+| 30/07/2026 | DB-05/OPS-10 | Smoke test reproduzível do Compose valida app/web saudáveis e os endpoints `/api/health`, `/health/live` e `/health/ready` | PR agrupado `infra/production-hardening`; comando `npm run ops:compose-smoke` | Parcial: executar em deploy real e automatizar restore |
