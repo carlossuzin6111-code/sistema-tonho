@@ -342,7 +342,7 @@ async function loadStudentChat() {
     else for (const message of messages) {
       const currentUser = API.getCurrentUser();
       const isMe = currentUser && String(message.sender_id) === String(currentUser.id);
-      box.appendChild(SafeDOM.chatBubble(message.message, AppDateTime.time(message.created_at), isMe ? 'sent' : 'received'));
+      box.appendChild(SafeDOM.chatBubble(message.message, AppDateTime.time(message.created_at), isMe ? 'sent' : 'received', { id: message.id, canEdit: isMe && !message.deleted_at }));
     }
     box.scrollTop = box.scrollHeight;
     document.getElementById('student-unread-badge').classList.add('hidden');
