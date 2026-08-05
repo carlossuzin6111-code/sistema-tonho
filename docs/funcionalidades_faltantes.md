@@ -205,7 +205,8 @@ O cliente agora oferece entrada de recuperação pública de senha com resposta 
 ### [BUS-07] Temporizador de Descanso e Sessão Ativa
 *   **Implementado parcialmente**: Sessões possuem `last_activity_at`, atualizado ao iniciar e registrar progresso; endpoint heartbeat autenticado mantém a sessão ativa e respeita ownership.
 * **Progresso em 29/07/2026**: O dashboard do aluno inicia, conclui ou cancela uma sessão; exibe duração, temporizador de descanso e sincroniza marcações de exercícios. O heartbeat é único, limpo ao trocar de sessão e executado a cada 30 segundos. O identificador da sessão fica em `sessionStorage` (sem credenciais) e é recuperado após recarregar a página.
-* **Pendente**: QA visual em dispositivos móveis, comportamento após expiração/offline e métricas de uso da sessão.
+* **Concluído funcionalmente em 05/08/2026**: início e heartbeat não são enfileirados; progresso e encerramento preservam identidade idempotente. A sessão exibe conectividade, quantidade pendente, repetição manual e falha definitiva, preserva encerramento pendente após recarga offline e impede ações concorrentes. Contadores operacionais registram início, progresso, heartbeat, conclusão e cancelamento.
+* **Pendente operacional**: QA em Android/iOS com suspensão prolongada e alternância real entre dispositivos.
 
 ### Grupo de resiliência da sessão ativa (30/07/2026)
 Ao retornar o dashboard do aluno ao foreground, o cliente redesenha o cronômetro e envia heartbeat imediato, reduzindo falsos abandonos após suspensão do navegador/app. O listener é removido ao concluir/cancelar a sessão, e um registro corrompido no `sessionStorage` é descartado com segurança durante a recuperação. Continua pendente a validação visual/offline em Android/iOS e a instrumentação de métricas.
@@ -216,7 +217,8 @@ Ao retornar o dashboard do aluno ao foreground, o cliente redesenha o cronômetr
     *   Envio das rotas com o cabeçalho `Idempotency-Key: <UUID>` para prevenir que reenvios causados por oscilações gerem duplicidade de treinos/pesos.
 *   **Progresso em 29/07/2026**: `frontend/js/api.js` implementa armazenamento FIFO, reenvio automático no evento `online` e chaves únicas nas mutações de sessões. A migration `202607290011_create_idempotency_keys.js` e o middleware autenticado persistem respostas 2xx para que reenvios retornem o mesmo resultado sem duplicar a operação.
 * **Progresso em 29/07/2026**: A fila agora remove itens com mais de sete dias ou acima de 100 pendências antes de enfileirar/enviar, evitando crescimento ilimitado. `API.getOfflineQueueStatus()` expõe quantidade, idade do item mais antigo/novo e limites operacionais sem revelar dados sensíveis.
-* **Pendente**: aplicar a fila a outros fluxos mutáveis e integrar a telemetria ao suporte operacional.
+* **Progresso em 05/08/2026**: a fila foi restrita às mutações recuperáveis com sessão já identificada, trata falhas de rede transitórias sem descarte, publica enviados/descartados/pendentes e alimenta o estado acessível da sessão. O servidor vincula a chave ao método, rota e corpo canônico, retorna 409 no reuso conflitante e aplica idempotência ao progresso do exercício.
+* **Pendente por domínio**: expandir para outras mutações somente após definir reconciliação e UX específicas; não enfileirar operações que dependem de uma resposta criadora com novo ID.
 
 ### [BUS-09] Chaves de Cadastro de Personais via CLI
 *   **Especificação**: Script administrativo CLI no node para emitir, auditar vigência e invalidar as chaves de acesso exigidas no cadastro de novos instrutores.
@@ -234,7 +236,8 @@ O frontend agora oferece edição e exclusão somente para mensagens próprias, 
 ### [BUS-11] Indicador de "Digitando..." via SSE
 *   **Especificação**: Evento leve `event: typing` enviado pelo Express a partir de chamadas rápidas `POST /api/chat/typing` com de-bounce.
 *   **Progresso em 29/07/2026**: endpoint autenticado valida o vínculo Personal/Aluno, limita emissões repetidas e encerra automaticamente o estado após 1,5s; o cliente escuta o evento SSE e atualiza uma região `aria-live`.
-*   **Pendente**: cobertura automatizada de uma conexão SSE real e métricas de volume/latência dos eventos.
+* **Concluído funcionalmente em 05/08/2026**: o indicador existe nos dois papéis e layouts com região acessível; uma integração HTTP mantém a stream do aluno aberta e comprova a entrega do evento enviado pelo Personal. Métricas protegidas contam conexões abertas/fechadas e eventos entregues, limitados, enviados online/offline e encerrados automaticamente.
+* **Pendente operacional**: medir latência percebida e reconexão em redes e dispositivos reais; o protocolo SSE não fornece confirmação de renderização do cliente.
 
 ### [BUS-12] Inativação e Abas de Filtragem de Alunos
 *   **Especificação**: Possibilidade de inativar alunos antigos sem deletar seu prontuário físico e separação por abas "Ativos" / "Inativos" na listagem.

@@ -81,7 +81,8 @@ const clickActions = Object.freeze({
   },
   'start-rest': () => handleStudentSessionAction('start-rest'),
   'complete-session': () => handleStudentSessionAction('complete-session'),
-  'cancel-session': () => handleStudentSessionAction('cancel-session')
+  'cancel-session': () => handleStudentSessionAction('cancel-session'),
+  'retry-session-sync': () => handleStudentSessionAction('retry-session-sync')
 });
 
 const submitHandlers = Object.freeze({

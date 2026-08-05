@@ -2,9 +2,57 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## BUS-07 + BUS-08 + BUS-11 — Resiliência da sessão, fila offline e chat em tempo real
+
+- Estado: implementado e validado localmente; aguardando PR
+- Branch: `feat/realtime-offline-resilience`
+- Pull request: pendente
+- Início: 05/08/2026
+
+### Diagnóstico
+
+- Toda mutação de sessão é considerada enfileirável: iniciar offline retorna um objeto sem ID e pode criar estado local inválido; heartbeats periódicos offline podem ocupar a fila sem valor funcional.
+- O progresso do exercício, que é o dado útil para recuperação, não possui middleware idempotente no servidor.
+- A chave idempotente não está vinculada ao método/rota/corpo e seu armazenamento assíncrono permite contratos ambíguos em reuso ou concorrência.
+- A fila remove falhas definitivas sem expor resultado operacional, e o aluno não vê se há alterações aguardando sincronização.
+- Sessões e eventos de digitação não possuem contadores operacionais específicos; a conexão SSE real está coberta apenas na abertura, não na entrega do evento de digitação.
+
+### Plano
+
+- [x] Confirmar contratos existentes e registrar as lacunas antes das alterações.
+- [x] Criar branch exclusiva a partir da `main` mergeada.
+- [x] Restringir a fila às mutações recuperáveis que já possuem identidade de sessão, sem enfileirar início ou heartbeat.
+- [x] Tornar atualização de exercício, conclusão e cancelamento idempotentes e detectar reuso conflitante da chave.
+- [x] Preservar e apresentar contadores de enviados, descartados e pendentes na sincronização offline.
+- [x] Exibir estado acessível de conectividade/sincronização durante a sessão ativa e oferecer repetição manual.
+- [x] Instrumentar início, recuperação, heartbeat, conclusão/cancelamento, conexões SSE e eventos de digitação.
+- [x] Cobrir fila e idempotência com testes funcionais e validar entrega de `typing` por uma conexão SSE real.
+- [x] Atualizar checklist e documento funcional com evidências e pendências exclusivamente operacionais.
+- [x] Executar suítes completas, audits e validações estáticas.
+- [ ] Abrir PR e acompanhar os cinco checks obrigatórios.
+
+### Critérios de aceite
+
+- Início de sessão e heartbeat falham de forma explícita quando offline e nunca geram itens inúteis na fila.
+- Atualizações de exercício e encerramento aguardam reconexão com chave estável, sem duplicar efeitos no servidor.
+- Reutilizar uma chave em requisição diferente retorna conflito; repetir a mesma requisição retorna a resposta original.
+- O aluno sabe quando está offline, quantas alterações estão pendentes e pode tentar sincronizá-las.
+- Métricas protegidas permitem observar sessões, fila/idempotência, conexões SSE e digitação sem incluir conteúdo ou identificadores pessoais.
+- Uma integração HTTP mantém uma stream aberta e comprova a entrega de evento `typing` ao parceiro autorizado.
+
+### Evidências locais
+
+- Backend focalizado: 5/5 suítes e 100/100 testes aprovados para migrations, sessões, idempotência, métricas e chat.
+- Backend completo: 42/42 suítes e 246/246 testes aprovados, sem handles abertos.
+- Frontend completo: 94/94 testes aprovados; fila offline, sessão e digitação agora fazem parte do comando raiz obrigatório.
+- Integração SSE abre conexão autenticada real, envia `typing` pelo parceiro autorizado e observa o evento na stream.
+- Repetição idêntica de progresso devolve a resposta original; mudança de corpo com a mesma chave retorna 409 e não altera o registro.
+- `npm audit` na raiz e `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+- `node --check` e `git diff --check`: aprovados.
+
 ## BUS-05 + BUS-06 + BUS-13 — Metas, progressão e periodização do aluno
 
-- Estado: implementado, validado e pronto para merge
+- Estado: concluído e mergeado
 - Branch: `feat/training-insights`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/195
 - Início: 05/08/2026

@@ -75,7 +75,8 @@ const migrations = [
   '202607290023_create_user_sessions.js',
   '202607290024_create_impersonation_events.js',
   '202607300001_create_refresh_tokens.js',
-  '202608050001_add_weekly_workout_goal.js'
+  '202608050001_add_weekly_workout_goal.js',
+  '202608050002_add_idempotency_request_identity.js'
 ];
 
 function createDatabase() {
@@ -117,6 +118,7 @@ describe('database migrations', () => {
     await expect(db.schema.hasColumn('student_profiles', 'weekly_workout_goal')).resolves.toBe(true);
     await expect(db.schema.hasTable('student_assessments')).resolves.toBe(true);
     await expect(db.schema.hasTable('idempotency_keys')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('idempotency_keys', 'request_fingerprint')).resolves.toBe(true);
     await expect(db.schema.hasColumn('workout_exercises', 'version')).resolves.toBe(true);
     await expect(db.schema.hasColumn('registration_keys', 'expires_at')).resolves.toBe(true);
     const emailIndex = await db('sqlite_master')

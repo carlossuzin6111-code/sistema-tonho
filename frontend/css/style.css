@@ -1308,6 +1308,16 @@ body.dark-theme .pedagogical-table th {
   color: var(--text-muted);
 }
 
+.session-sync-status {
+  color: var(--success, #287a45);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.session-sync-status.is-pending {
+  color: var(--warning, #9a5b00);
+}
+
 /* Action pill button for "Ver execução" */
 .btn-pill-action {
   background-color: var(--bg-tertiary);

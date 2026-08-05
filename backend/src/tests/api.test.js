@@ -1311,21 +1311,32 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(invalidTyping.statusCode).toBe(403);
     });
 
-    test('Should open real-time SSE chat connection', (done) => {
-      http.get({
-        hostname: '127.0.0.1',
-        port: server.address().port,
-        path: '/api/chat/stream',
-        headers: {
-          'Cookie': studentCookies
-        }
-      }, (res) => {
-        expect(res.statusCode).toBe(200);
-        expect(res.headers['content-type']).toContain('text/event-stream');
-        expect(res.headers['cache-control']).toBe('no-cache');
-        expect(res.headers['connection']).toBe('keep-alive');
-        res.destroy(); // Close the connection
-        setTimeout(done, 50);
+    test('Should deliver a typing event through a real SSE chat connection', async () => {
+      await new Promise((resolve, reject) => {
+        let stream;
+        const timeout = setTimeout(() => { stream?.destroy(); reject(new Error('Timed out waiting for typing SSE event')); }, 4000);
+        const personalUserId = jwt.decode(personalToken).id;
+        stream = http.get({ hostname: '127.0.0.1', port: server.address().port, path: '/api/chat/stream', headers: { Cookie: studentCookies } }, (res) => {
+          expect(res.statusCode).toBe(200);
+          expect(res.headers['content-type']).toContain('text/event-stream');
+          let payload = '';
+          let typingRequested = false;
+          res.on('data', async chunk => {
+            payload += chunk.toString();
+            if (!typingRequested && payload.includes(':ok')) {
+              typingRequested = true;
+              await new Promise(resolveDelay => setTimeout(resolveDelay, 450));
+              const response = await request(app).post('/api/chat/typing').set('Authorization', `Bearer ${personalToken}`).send({ receiverId: studentId, isTyping: true });
+              if (response.statusCode !== 200) throw new Error(`Unexpected typing status ${response.statusCode}`);
+            }
+            if (payload.includes('event: typing') && payload.includes(`\"userId\":${personalUserId}`)) {
+              clearTimeout(timeout);
+              stream.destroy();
+              resolve();
+            }
+          });
+        });
+        stream.on('error', error => { clearTimeout(timeout); reject(error); });
       });
     });
   });
