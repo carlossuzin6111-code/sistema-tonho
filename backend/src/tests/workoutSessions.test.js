@@ -203,6 +203,23 @@ describe('BUS-01: Workout Execution Sessions API', () => {
     expect(res.status).toBe(403);
   });
 
+  test('exercise progress is replayed only when the idempotency request identity matches', async () => {
+    const session = await db('workout_sessions').where({ student_id: studentUser.id, status: 'in_progress' }).first();
+    const exercise = await db('workout_session_exercises').where({ session_id: session.id }).first();
+    const endpoint = `/api/workout-sessions/${session.id}/exercises/${exercise.id}`;
+    const key = `exercise-progress-${Date.now()}`;
+    const first = await request(app).patch(endpoint).set('Authorization', `Bearer ${studentToken}`).set('Idempotency-Key', key).send({ setsCompleted: 2 });
+    const replay = await request(app).patch(endpoint).set('Authorization', `Bearer ${studentToken}`).set('Idempotency-Key', key).send({ setsCompleted: 2 });
+    const conflict = await request(app).patch(endpoint).set('Authorization', `Bearer ${studentToken}`).set('Idempotency-Key', key).send({ setsCompleted: 3 });
+
+    expect(first.status).toBe(200);
+    expect(replay.status).toBe(200);
+    expect(replay.body).toEqual(first.body);
+    expect(conflict.status).toBe(409);
+    expect(conflict.body.error).toMatch(/different request/i);
+    expect((await db('workout_session_exercises').where({ id: exercise.id }).first()).sets_completed).toBe(2);
+  });
+
   test('POST /api/workout-sessions/:id/complete - completes active workout session and calculates duration', async () => {
     const sessions = await db('workout_sessions').where({ student_id: studentUser.id, status: 'in_progress' });
     const sessionId = sessions[0].id;

@@ -57,6 +57,8 @@ const StudentSession = {
   elapsedId: null,
   restId: null,
   visibilityHandler: null,
+  connectivityBound: false,
+  syncState: { pending: 0, offline: typeof navigator !== 'undefined' && !navigator.onLine },
   storageKey() {
     const user = API.getCurrentUser();
     return user?.id ? `fitlife_active_session_${user.id}` : null;
@@ -71,7 +73,13 @@ const StudentSession = {
   },
   save() {
     const key = this.storageKey();
-    if (key && this.state) sessionStorage.setItem(key, JSON.stringify({ id: this.state.id, workoutId: this.state.workoutId }));
+    if (key && this.state) sessionStorage.setItem(key, JSON.stringify({
+      id: this.state.id,
+      workoutId: this.state.workoutId,
+      workoutName: this.state.workoutName,
+      startedAt: this.state.startedAt,
+      pendingAction: this.state.pendingAction || null
+    }));
   },
   clear() {
     this.clearTimers();
@@ -95,10 +103,52 @@ const StudentSession = {
     const elapsed = Math.floor((Date.now() - new Date(this.state.startedAt).getTime()) / 1000);
     const elapsedLabel = SafeDOM.el('strong', { text: `Sessão ativa · ${this.format(elapsed)}` });
     const restLabel = SafeDOM.el('span', { id: 'student-rest-timer', className: 'session-rest-timer', text: this.state.restUntil ? `Descanso ${this.format((this.state.restUntil - Date.now()) / 1000)}` : 'Pronto para o próximo exercício' });
-    banner.append(elapsedLabel, SafeDOM.el('span', { className: 'session-workout-name', text: this.state.workoutName || 'Treino' }), restLabel,
+    const pending = this.syncState.pending || (this.state.pendingAction ? 1 : 0);
+    const syncText = this.syncState.error ? 'Falha de sincronização · revise a sessão' : this.syncState.offline ? `Offline · ${pending} alteração(ões) pendente(s)` : pending ? `${pending} alteração(ões) aguardando sincronização` : 'Sincronizado';
+    const syncStatus = SafeDOM.el('span', { className: `session-sync-status${pending || this.syncState.offline || this.syncState.error ? ' is-pending' : ''}`, attrs: { 'aria-live': 'polite' }, text: syncText });
+    const actionDisabled = this.state.pendingAction ? { disabled: '', 'aria-disabled': 'true' } : {};
+    banner.append(elapsedLabel, SafeDOM.el('span', { className: 'session-workout-name', text: this.state.workoutName || 'Treino' }), restLabel, syncStatus,
+      ...(pending && !this.syncState.offline ? [SafeDOM.el('button', { className: 'btn btn-secondary btn-sm', attrs: { type: 'button', 'data-action': 'retry-session-sync' } }, ['Sincronizar agora'])] : []),
       SafeDOM.el('button', { className: 'btn btn-secondary btn-sm', attrs: { type: 'button', 'data-action': 'start-rest' } }, ['Iniciar descanso']),
-      SafeDOM.el('button', { className: 'btn btn-primary btn-sm', attrs: { type: 'button', 'data-action': 'complete-session' } }, ['Concluir']),
-      SafeDOM.el('button', { className: 'btn btn-danger btn-sm', attrs: { type: 'button', 'data-action': 'cancel-session' } }, ['Cancelar']));
+      SafeDOM.el('button', { className: 'btn btn-primary btn-sm', attrs: { type: 'button', 'data-action': 'complete-session', ...actionDisabled } }, ['Concluir']),
+      SafeDOM.el('button', { className: 'btn btn-danger btn-sm', attrs: { type: 'button', 'data-action': 'cancel-session', ...actionDisabled } }, ['Cancelar']));
+  },
+  bindConnectivity() {
+    if (this.connectivityBound || typeof window === 'undefined') return;
+    this.connectivityBound = true;
+    window.addEventListener('offline', () => { this.syncState.offline = true; this.render(); });
+    window.addEventListener('online', () => { this.syncState.offline = false; this.render(); });
+    window.addEventListener('fitlife:offline-queue', event => this.handleQueueStatus(event.detail || {}));
+  },
+  async refreshQueueStatus() {
+    try {
+      const status = await API.getOfflineQueueStatus();
+      this.syncState = { ...this.syncState, pending: status.pending, offline: !navigator.onLine };
+      this.render();
+    } catch (error) { console.warn('Estado da fila offline indisponível:', error.message); }
+  },
+  async handleQueueStatus(status) {
+    this.syncState = { ...this.syncState, pending: Number(status.pending) || 0, offline: !navigator.onLine };
+    if (Number(status.discarded) > 0) {
+      if (this.state) { this.state.pendingAction = null; this.save(); }
+      this.syncState.error = true;
+      this.render();
+      showToast('Uma alteração não pôde ser sincronizada. Confira a sessão antes de tentar novamente.', 'error');
+      return;
+    }
+    if (this.state?.pendingAction && this.syncState.pending === 0 && !this.syncState.offline) {
+      const action = this.state.pendingAction;
+      this.clear();
+      await loadStudentWorkouts();
+      showToast(action === 'complete' ? 'Treino sincronizado e concluído.' : 'Cancelamento sincronizado.', 'success');
+      return;
+    }
+    this.syncState.error = false;
+    this.render();
+  },
+  async retrySync() {
+    try { await API.flushOfflineQueue(); }
+    catch (error) { showToast(`Não foi possível sincronizar: ${error.message}`, 'error'); }
   },
   startTimers() {
     this.clearTimers();
@@ -113,12 +163,13 @@ const StudentSession = {
     document.addEventListener('visibilitychange', this.visibilityHandler);
   },
   async heartbeat() {
-    if (!this.state) return;
+    if (!this.state || !navigator.onLine || this.state.pendingAction) return;
     try { const result = await API.patch(`/workout-sessions/${this.state.id}/activity`, {}); this.state.lastActivityAt = result.lastActivityAt; this.save(); }
     catch (error) { console.warn('Heartbeat da sessão falhou:', error.message); }
   },
   async start(workout) {
     if (this.state) { showToast('Já existe uma sessão ativa.', 'info'); return; }
+    if (!navigator.onLine) { showToast('Conecte-se à internet para iniciar a sessão.', 'info'); return; }
     try {
       const session = await API.post('/workout-sessions/start', { workoutId: workout.id });
       this.state = { ...session, workoutId: workout.id, workoutName: workout.name, startedAt: session.started_at || new Date().toISOString() };
@@ -126,23 +177,40 @@ const StudentSession = {
     } catch (error) { showToast(error.message, 'error'); }
   },
   async recover() {
+    this.bindConnectivity();
+    await this.refreshQueueStatus();
     const key = this.storageKey();
     if (!key) return;
     let saved;
     try { saved = JSON.parse(sessionStorage.getItem(key) || 'null'); }
     catch { sessionStorage.removeItem(key); return; }
     if (!saved?.id) return;
+    if (!navigator.onLine) {
+      this.state = { ...saved, startedAt: saved.startedAt || new Date().toISOString() };
+      this.render(); this.startTimers();
+      return;
+    }
     try {
       const session = await API.get(`/workout-sessions/${saved.id}`);
       if (session.status !== 'in_progress') return this.clear();
       const workout = studentWorkouts.find(item => String(item.id) === String(session.workout_id));
       this.state = { ...session, workoutId: session.workout_id, workoutName: workout?.name || session.workout_name, startedAt: session.started_at };
       this.render(); this.startTimers();
-    } catch { this.clear(); }
+    } catch { if (navigator.onLine) this.clear(); }
   },
   async finish(action) {
     if (!this.state) return;
-    try { await API.post(`/workout-sessions/${this.state.id}/${action}`); this.clear(); await loadStudentWorkouts(); showToast(action === 'complete' ? 'Treino concluído.' : 'Sessão cancelada.', 'success'); }
+    try {
+      const result = await API.post(`/workout-sessions/${this.state.id}/${action}`);
+      if (result?.queued) {
+        this.state.pendingAction = action;
+        this.save();
+        await this.refreshQueueStatus();
+        showToast('Alteração salva no aparelho e aguardando sincronização.', 'info');
+        return;
+      }
+      this.clear(); await loadStudentWorkouts(); showToast(action === 'complete' ? 'Treino concluído.' : 'Sessão cancelada.', 'success');
+    }
     catch (error) { showToast(error.message, 'error'); }
   },
   rest(seconds = 60) {
@@ -158,6 +226,7 @@ function handleStudentSessionAction(action) {
   if (action === 'start-rest') StudentSession.rest();
   if (action === 'complete-session') StudentSession.finish('complete');
   if (action === 'cancel-session') StudentSession.finish('cancel');
+  if (action === 'retry-session-sync') StudentSession.retrySync();
 }
 
 function exerciseCheckKey(exerciseId) {
@@ -328,7 +397,9 @@ function toggleExerciseCheck(exerciseId, checkbox) {
   updateStudentWorkoutSummary();
   if (StudentSession.state) {
     const sessionExercise = (StudentSession.state.exercises || []).find(item => String(item.workout_exercise_id) === String(exerciseId));
-    if (sessionExercise) API.patch(`/workout-sessions/${StudentSession.state.id}/exercises/${sessionExercise.id}`, { completed: checkbox.checked }).catch(error => showToast(error.message, 'error'));
+    if (sessionExercise) API.patch(`/workout-sessions/${StudentSession.state.id}/exercises/${sessionExercise.id}`, { completed: checkbox.checked })
+      .then(result => { if (result?.queued) StudentSession.refreshQueueStatus(); })
+      .catch(error => showToast(error.message, 'error'));
   }
 }
 

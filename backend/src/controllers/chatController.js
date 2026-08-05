@@ -1,4 +1,5 @@
 const db = require('../database');
+const metricsService = require('../services/metricsService');
 
 // In-memory mapping of active SSE clients for real-time messaging
 // Key: userId (integer or string), Value: Set of express response objects
@@ -45,11 +46,13 @@ function notifyUser(userId, data) {
 
 function notifyTyping(userId, data) {
   const streams = activeClients.get(userId.toString());
-  if (!streams) return;
+  if (!streams) return 0;
   const payload = `event: typing\ndata: ${JSON.stringify(data)}\n\n`;
   for (const stream of streams) {
     try { stream.write(payload); } catch (error) { console.error('Typing SSE error:', error.message); }
   }
+  metricsService.increment('chat_typing_events_total', { outcome: 'delivered' });
+  return streams.size;
 }
 
 async function sendTyping(req, res) {
@@ -67,12 +70,17 @@ async function sendTyping(req, res) {
     } else return res.status(403).json({ error: 'Chat access forbidden' });
     const key = `${senderId}:${receiverId}`;
     const now = Date.now();
-    if (isTyping && now - (typingLastSent.get(key) || 0) < 400) return res.status(204).send();
+    if (isTyping && now - (typingLastSent.get(key) || 0) < 400) {
+      metricsService.increment('chat_typing_events_total', { outcome: 'debounced' });
+      return res.status(204).send();
+    }
     typingLastSent.set(key, now);
     clearTimeout(typingTimers.get(key));
-    notifyTyping(receiverId, { userId: senderId, isTyping: Boolean(isTyping) });
+    const deliveredStreams = notifyTyping(receiverId, { userId: senderId, isTyping: Boolean(isTyping) });
+    metricsService.increment('chat_typing_events_total', { outcome: deliveredStreams ? 'sent_online' : 'sent_offline' });
     if (isTyping) typingTimers.set(key, setTimeout(() => {
       notifyTyping(receiverId, { userId: senderId, isTyping: false });
+      metricsService.increment('chat_typing_events_total', { outcome: 'auto_cleared' });
       typingTimers.delete(key);
     }, 1500));
     return res.status(200).json({ sent: true });
@@ -299,12 +307,14 @@ function handleChatStream(req, res) {
     activeClients.set(userId, new Set());
   }
   activeClients.get(userId).add(res);
+  metricsService.increment('chat_sse_connections_total', { outcome: 'opened' });
 
   console.log(`User ${userId} connected to real-time chat stream. Active streams: ${activeClients.get(userId).size}`);
 
   // Handle client disconnection
   req.on('close', () => {
     clearInterval(heartbeatTimer);
+    metricsService.increment('chat_sse_connections_total', { outcome: 'closed' });
     const userStreams = activeClients.get(userId);
     if (userStreams) {
       userStreams.delete(res);

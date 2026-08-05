@@ -15,3 +15,10 @@ test('corrupted recovery state is discarded instead of breaking the student dash
   assert.match(source, /try \{ saved = JSON\.parse\(sessionStorage\.getItem\(key\) \|\| 'null'\); \}/);
   assert.match(source, /sessionStorage\.removeItem\(key\)/);
 });
+
+test('offline recovery preserves a pending terminal action until the server confirms it', () => {
+  assert.match(source, /pendingAction: this\.state\.pendingAction \|\| null/);
+  assert.match(source, /if \(!navigator\.onLine\) \{[\s\S]*this\.state = \{ \.\.\.saved/);
+  assert.match(source, /Number\(status\.discarded\) > 0/);
+  assert.match(source, /this\.state\.pendingAction = null/);
+});

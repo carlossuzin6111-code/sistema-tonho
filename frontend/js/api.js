@@ -28,6 +28,14 @@ const OFFLINE_DB_NAME = 'fitlife-offline-queue';
 const OFFLINE_STORE = 'mutations';
 const OFFLINE_MAX_ITEMS = 100;
 const OFFLINE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+let lastOfflineFlush = { sent: 0, discarded: 0, pending: 0, attemptedAt: null };
+
+function publishOfflineQueueStatus(detail) {
+  if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+    window.dispatchEvent(new CustomEvent('fitlife:offline-queue', { detail }));
+  }
+  return detail;
+}
 
 const OfflineQueue = {
   supported() {
@@ -100,10 +108,14 @@ const OfflineQueue = {
   },
 
   async flush(send) {
-    if (!this.supported() || (typeof navigator !== 'undefined' && !navigator.onLine)) return { sent: 0, pending: 0 };
+    if (!this.supported() || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+      const stats = await this.stats();
+      return publishOfflineQueueStatus({ sent: 0, discarded: 0, pending: stats.pending, attemptedAt: Date.now() });
+    }
     await this.prune();
     const pending = await this.all();
     let sent = 0;
+    let discarded = 0;
     for (const item of pending) {
       try {
         await send(item);
@@ -112,28 +124,40 @@ const OfflineQueue = {
       } catch (error) {
         if (error && error.retryable) break;
         await this.remove(item.id);
+        discarded += 1;
       }
     }
-    return { sent, pending: Math.max(0, pending.length - sent) };
+    lastOfflineFlush = { sent, discarded, pending: Math.max(0, pending.length - sent - discarded), attemptedAt: Date.now() };
+    return publishOfflineQueueStatus(lastOfflineFlush);
   }
 };
 
-API.flushOfflineQueue = () => API.offlineQueue.flush(async item => {
-  const response = await API.request(`${API_BASE_URL}${item.endpoint}`, {
-    method: item.method,
-    headers: { ...API.getHeaders({ mutating: true }), 'Idempotency-Key': item.idempotencyKey },
-    credentials: API_CREDENTIALS,
-    body: item.data === undefined ? undefined : JSON.stringify(item.data)
-  });
+async function flushOfflineQueue() {
+  return OfflineQueue.flush(async item => {
+  let response;
+  try {
+    response = await API.request(`${API_BASE_URL}${item.endpoint}`, {
+      method: item.method,
+      headers: { ...API.getHeaders({ mutating: true }), 'Idempotency-Key': item.idempotencyKey },
+      credentials: API_CREDENTIALS,
+      body: item.data === undefined ? undefined : JSON.stringify(item.data)
+    });
+  } catch (error) {
+    error.retryable = true;
+    throw error;
+  }
   if (!response.ok) {
     const error = new Error(`Erro HTTP: ${response.status}`);
     error.retryable = response.status >= 500 || response.status === 408 || response.status === 429;
     throw error;
   }
   return response;
-});
+  });
+}
 
-API.getOfflineQueueStatus = () => API.offlineQueue.stats();
+async function getOfflineQueueStatus() {
+  return { ...(await OfflineQueue.stats()), lastFlush: { ...lastOfflineFlush } };
+}
 
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => API.flushOfflineQueue().catch(error => {
@@ -146,8 +170,10 @@ localStorage.removeItem('fitlife_token');
 
 const API = {
   offlineQueue: OfflineQueue,
+  flushOfflineQueue,
+  getOfflineQueueStatus,
   isQueueable(endpoint) {
-    return /^\/workout-sessions(?:\/|$)/.test(endpoint);
+    return /^\/workout-sessions\/\d+\/(?:exercises\/\d+|complete|cancel)$/.test(endpoint);
   },
 
   createIdempotencyKey() {
@@ -276,8 +302,10 @@ const API = {
       }
       return await this.handleResponse(response);
     } catch (err) {
-      if (this.isQueueable(endpoint) && (err.retryable || !navigator.onLine) && idempotencyKey && this.offlineQueue.supported()) {
+      if (this.isQueueable(endpoint) && (err.retryable || err?.name === 'TypeError' || !navigator.onLine) && idempotencyKey && this.offlineQueue.supported()) {
         await this.offlineQueue.enqueue({ method, endpoint, data, idempotencyKey });
+        const stats = await this.getOfflineQueueStatus();
+        publishOfflineQueueStatus({ ...stats, queued: true });
         return { queued: true, idempotencyKey };
       }
       console.error(`API POST ${endpoint} failed:`, err.message);

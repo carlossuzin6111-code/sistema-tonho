@@ -56,11 +56,11 @@ Resumo: **8 implementados**, **50 parciais**, **0 não iniciados**, total de **5
 | **BUS-04** | Anamnese | **Concluído** | aba desktop/mobile, versões imutáveis, privacidade e auditoria transacional | Validação clínica dos campos permanece operacional |
 | **BUS-05** | Aderência semanal | **Concluído** | meta configurável, período inclusivo, API, UI e auditoria | Validar metas com operação real |
 | **BUS-06** | Progressão de carga | **Concluído** | volume, histórico, recordes, Epley e referência contextual | Validação profissional da referência estimada |
-| **BUS-07** | Temporizador/sessão ativa | **Parcial** | atividade, timer e recuperação mobile | QA de background, múltiplos dispositivos e expiração |
-| **BUS-08** | Offline e idempotência | **Parcial** | IndexedDB, chaves, retenção e telemetria | Cobrir todos os fluxos offline e conflitos complexos |
+| **BUS-07** | Temporizador/sessão ativa | **Concluído funcionalmente** | atividade, timer, recuperação offline, estado de sincronização e métricas | QA Android/iOS em background e múltiplos dispositivos |
+| **BUS-08** | Offline e idempotência | **Parcial** | fluxo de execução coberto por IndexedDB, identidade da requisição, conflitos, retenção e telemetria visual | Expandir por domínio somente onde houver contrato seguro de reconciliação |
 | **BUS-09** | Chaves de cadastro CLI | **Implementado** | criar, listar/revogar e testes do serviço | Governança operacional contínua |
 | **BUS-10** | Ciclo de vida do chat | **Implementado** | editar/excluir, UI e eventos SSE consolidados até PR #186 | Política de retenção pode evoluir |
-| **BUS-11** | Indicador digitando | **Parcial** | SSE, frontend, debounce e testes | QA offline/por conversa e observabilidade |
+| **BUS-11** | Indicador digitando | **Concluído funcionalmente** | SSE, frontend acessível, debounce, métricas e integração HTTP real | QA de latência percebida em rede/dispositivos reais |
 | **BUS-12** | Inativação e filtros | **Concluído** | filtros server-side, abas, confirmação acessível, estados e histórico visual de auditoria | Políticas de acesso por status permanecem em BUS-03 |
 | **BUS-13** | Periodização | **Concluído funcionalmente** | editor, auditoria, visualização do aluno e integração com progressão | QA biomecânica profissional permanece operacional |
 | **BUS-14** | Governança do catálogo | **Parcial** | escopo/customização e deduplicação inicial | Moderação global e deduplicação automática em lote |

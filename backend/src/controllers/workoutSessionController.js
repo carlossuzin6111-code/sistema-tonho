@@ -1,5 +1,10 @@
 const db = require('../database');
 const { recordAudit } = require('../services/auditService');
+const metricsService = require('../services/metricsService');
+
+function recordSessionMetric(action) {
+  metricsService.increment('workout_sessions_total', { action });
+}
 
 async function checkStudentBelongsToPersonal(studentId, personalId) {
   const profile = await db('student_profiles')
@@ -103,6 +108,7 @@ async function startSession(req, res) {
       return { session: createdSession, exercises: sessionExercises };
     });
 
+    recordSessionMetric('started');
     return res.status(201).json({ ...session, exercises });
   } catch (error) {
     console.error('Start workout session error:', error.message);
@@ -167,6 +173,7 @@ async function updateExerciseProgress(req, res) {
     }
 
     const updated = await db('workout_session_exercises').where('id', exerciseId).first();
+    recordSessionMetric('exercise_updated');
     return res.status(200).json({ ...updated, completed: Boolean(updated.completed) });
   } catch (error) {
     console.error('Update exercise progress error:', error.message);
@@ -181,6 +188,7 @@ async function keepSessionAlive(req, res) {
     if (req.user.role === 'student' && session.student_id !== req.user.id) return res.status(403).json({ error: 'Access denied' });
     if (req.user.role === 'personal' && session.personal_id !== req.user.id) return res.status(403).json({ error: 'Access denied' });
     await db('workout_sessions').where({ id: session.id, status: 'in_progress' }).update({ last_activity_at: db.fn.now(), updated_at: db.fn.now() });
+    recordSessionMetric('heartbeat');
     return res.json({ sessionId: session.id, lastActivityAt: new Date().toISOString() });
   } catch (error) {
     console.error('Keep session alive error:', error.message);
@@ -243,6 +251,7 @@ async function completeSession(req, res) {
       .where('session_id', sessionId)
       .orderBy('id', 'asc');
 
+    recordSessionMetric('completed');
     return res.status(200).json({ ...updatedSession, exercises });
   } catch (error) {
     console.error('Complete workout session error:', error.message);
@@ -294,6 +303,7 @@ async function cancelSession(req, res) {
     });
 
     const updatedSession = await db('workout_sessions').where('id', sessionId).first();
+    recordSessionMetric('cancelled');
     return res.status(200).json(updatedSession);
   } catch (error) {
     console.error('Cancel workout session error:', error.message);
