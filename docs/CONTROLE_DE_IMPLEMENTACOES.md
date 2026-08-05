@@ -59,6 +59,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 - Estado: concluído; entrega em andamento
 - Branch: `security/dependency-advisories-20260805`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/187
 - Motivo: novos advisories passaram a reprovar os audits obrigatórios da baseline `5274051`.
 
 ### Alterações
@@ -67,7 +68,8 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Preservar versões declaradas nos dois `package.json`.
 - [x] Reinstalar dependências ausentes, incluindo o AWS SDK já declarado no backend.
 - [x] Executar testes e audits completos.
-- [ ] Abrir PR e acompanhar os cinco checks.
+- [x] Abrir PR.
+- [ ] Acompanhar os cinco checks.
 
 ### Evidências
 
