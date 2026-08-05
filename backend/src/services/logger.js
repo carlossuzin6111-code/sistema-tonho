@@ -19,6 +19,12 @@ function write(level, message, context = {}) {
 
 const logger = { info: (message, context) => write('info', message, context), warn: (message, context) => write('warn', message, context), error: (message, context) => write('error', message, context), redact };
 
+function metricPath(req) {
+  const route = req.route?.path;
+  if (route) return `${req.baseUrl || ''}${route}`;
+  return 'unmatched';
+}
+
 function requestLogger(req, res, next) {
   const requestId = req.headers['x-request-id'] && /^[A-Za-z0-9._-]{1,100}$/.test(req.headers['x-request-id']) ? req.headers['x-request-id'] : crypto.randomUUID();
   const started = process.hrtime.bigint();
@@ -26,10 +32,13 @@ function requestLogger(req, res, next) {
   res.setHeader('X-Request-Id', requestId);
   res.on('finish', () => {
     const durationMs = Number(process.hrtime.bigint() - started) / 1e6;
-    require('./metricsService').increment('http_requests_total', { method: req.method, path: req.path, status: res.statusCode });
+    const metrics = require('./metricsService');
+    const labels = { method: req.method, path: metricPath(req), status: res.statusCode };
+    metrics.increment('http_requests_total', labels);
+    metrics.observe('http_request_duration_ms', durationMs, labels);
     logger.info('http_request', { requestId, method: req.method, path: req.path, status: res.statusCode, durationMs: Math.round(durationMs * 100) / 100 });
   });
   return next();
 }
 
-module.exports = { logger, redact, requestLogger };
+module.exports = { logger, metricPath, redact, requestLogger };

@@ -38,7 +38,7 @@ describe('health probes', () => {
     await ready({}, res);
 
     expect(res.status).toHaveBeenCalledWith(503);
-    expect(res.json).toHaveBeenCalledWith({ status: 'unavailable' });
+    expect(res.json).toHaveBeenCalledWith({ status: 'unavailable', reason: 'migrations_pending' });
   });
 
   test('readiness reports unavailable when the database check fails', async () => {
@@ -48,6 +48,6 @@ describe('health probes', () => {
     await ready({}, res);
 
     expect(res.status).toHaveBeenCalledWith(503);
-    expect(res.json).toHaveBeenCalledWith({ status: 'unavailable' });
+    expect(res.json).toHaveBeenCalledWith({ status: 'unavailable', reason: 'database_unavailable' });
   });
 });

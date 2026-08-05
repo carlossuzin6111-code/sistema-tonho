@@ -77,6 +77,9 @@ app.use(requestLogger);
 app.use(requireCurrentWaiver);
 app.get('/api/metrics', authenticateToken, (req, res) => {
   if (!['support', 'admin'].includes(req.user.role)) return res.status(403).json({ error: 'Support or admin role required' });
+  if (req.query.format === 'prometheus' || req.accepts(['json', 'text']) === 'text') {
+    return res.type('text/plain; version=0.0.4; charset=utf-8').send(metricsService.toPrometheus());
+  }
   return res.json({ metrics: metricsService.snapshot() });
 });
 
@@ -127,6 +130,7 @@ app.patch('/api/notifications/:id/read', authenticateToken, validateIdParam('id'
 app.get('/api/compliance/export', authenticateToken, complianceController.exportData);
 app.post('/api/compliance/delete', authenticateToken, complianceController.anonymizeAccount);
 app.get('/api/sessions', authenticateToken, sessionController.listSessions);
+app.delete('/api/sessions', authenticateToken, sessionController.revokeOtherSessions);
 app.delete('/api/sessions/:id', authenticateToken, sessionController.revokeSession);
 app.post('/api/support/impersonations', authenticateToken, impersonationController.create);
 app.get('/api/support/impersonations', authenticateToken, impersonationController.list);
@@ -229,6 +233,7 @@ app.post('/api/auth/login', loginRateLimiter, validateBody('login'), authControl
 app.post('/api/auth/refresh', loginRateLimiter, authController.refresh);
 
 app.post('/api/auth/logout', authenticateToken, authController.logout);
+app.post('/api/auth/logout-all', authenticateToken, authController.logoutAll);
 
 /**
  * @openapi

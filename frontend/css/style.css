@@ -1318,6 +1318,19 @@ body.dark-theme .pedagogical-table th {
   color: var(--warning, #9a5b00);
 }
 
+.sessions-modal { max-width: 680px; }
+.profile-sessions-list { display: grid; gap: 12px; max-height: min(52vh, 520px); overflow-y: auto; margin: 16px 0; }
+.profile-session-card { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px; border: 1px solid var(--border-passive); border-radius: var(--radius-md); }
+.profile-session-card.is-current { border-color: var(--success, #287a45); }
+.profile-session-info { display: grid; gap: 4px; min-width: 0; }
+.profile-session-info span { color: var(--text-muted); font-size: 0.85rem; overflow-wrap: anywhere; }
+.profile-session-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+@media (max-width: 600px) {
+  .profile-session-card { align-items: stretch; flex-direction: column; }
+  .profile-session-actions { flex-direction: column; }
+  .profile-session-actions .btn { width: 100%; }
+}
+
 /* Action pill button for "Ver execução" */
 .btn-pill-action {
   background-color: var(--bg-tertiary);

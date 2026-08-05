@@ -9,7 +9,7 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Beautiful styles -->
-  <link rel="stylesheet" href="css/style.css?v=20260805.4">
+  <link rel="stylesheet" href="css/style.css?v=20260805.5">
 </head>
 <body>
 
@@ -798,6 +798,19 @@
   </div>
 
   <!-- MODAL: EDITAR PERFIL (Nome, Senha, Foto) -->
+  <div id="modal-manage-sessions" class="modal-overlay">
+    <div class="modal-content glass sessions-modal">
+      <button class="modal-close" data-action="close-modal" data-modal="modal-manage-sessions" aria-label="Fechar gerenciamento de sessões"><i data-lucide="x"></i></button>
+      <div class="modal-header"><h2><i data-lucide="monitor-smartphone"></i> Sessões e dispositivos</h2><p>Revise onde sua conta está conectada e encerre acessos que não reconhecer.</p></div>
+      <div id="profile-sessions-status" role="status" aria-live="polite"></div>
+      <div id="profile-sessions-list" class="profile-sessions-list" aria-label="Sessões ativas"></div>
+      <div class="profile-session-actions">
+        <button type="button" class="btn btn-secondary" data-action="revoke-other-sessions">Encerrar outras sessões</button>
+        <button type="button" class="btn btn-danger" data-action="logout-all-sessions">Sair de todos os dispositivos</button>
+      </div>
+    </div>
+  </div>
+
   <div id="modal-edit-profile" class="modal-overlay" data-clear-form-on-close="edit-profile-name-form">
     <div class="modal-content glass modal-medium profile-modal-content">
       <button class="modal-close" data-action="close-modal" data-modal="modal-edit-profile" aria-label="Fechar edição de perfil"><i data-lucide="x"></i></button>
@@ -894,14 +907,14 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260805.4"></script>
-  <script src="js/safe-dom.js?v=20260805.4"></script>
-  <script src="js/datetime.js?v=20260805.4"></script>
-  <script src="js/app.js?v=20260805.4"></script>
-  <script src="js/personal.js?v=20260805.4"></script>
-  <script src="js/student.js?v=20260805.4"></script>
-  <script src="js/chat-actions.js?v=20260805.4"></script>
-  <script src="js/profile.js?v=20260805.4"></script>
-  <script src="js/events.js?v=20260805.4"></script>
+  <script src="js/api.js?v=20260805.5"></script>
+  <script src="js/safe-dom.js?v=20260805.5"></script>
+  <script src="js/datetime.js?v=20260805.5"></script>
+  <script src="js/app.js?v=20260805.5"></script>
+  <script src="js/personal.js?v=20260805.5"></script>
+  <script src="js/student.js?v=20260805.5"></script>
+  <script src="js/chat-actions.js?v=20260805.5"></script>
+  <script src="js/profile.js?v=20260805.5"></script>
+  <script src="js/events.js?v=20260805.5"></script>
 </body>
 </html>

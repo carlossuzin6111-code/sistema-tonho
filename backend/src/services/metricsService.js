@@ -1,8 +1,22 @@
 const counters = new Map();
 
+function keyFor(name, labels) {
+  return `${name}|${JSON.stringify(labels)}`;
+}
+
+function add(name, value, labels = {}) {
+  if (!Number.isFinite(value)) return;
+  const key = keyFor(name, labels);
+  counters.set(key, (counters.get(key) || 0) + value);
+}
+
 function increment(name, labels = {}) {
-  const key = `${name}|${JSON.stringify(labels)}`;
-  counters.set(key, (counters.get(key) || 0) + 1);
+  add(name, 1, labels);
+}
+
+function observe(name, value, labels = {}) {
+  add(`${name}_sum`, value, labels);
+  increment(`${name}_count`, labels);
 }
 
 function snapshot() {
@@ -14,4 +28,18 @@ function snapshot() {
 
 function reset() { counters.clear(); }
 
-module.exports = { increment, snapshot, reset };
+function escapeLabel(value) {
+  return String(value).replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/"/g, '\\"');
+}
+
+function toPrometheus() {
+  return snapshot().map(metric => {
+    const name = metric.name.replace(/[^a-zA-Z0-9_:]/g, '_');
+    const labels = Object.entries(metric.labels)
+      .map(([key, value]) => `${key.replace(/[^a-zA-Z0-9_]/g, '_')}="${escapeLabel(value)}"`)
+      .join(',');
+    return `${name}${labels ? `{${labels}}` : ''} ${metric.value}`;
+  }).join('\n') + '\n';
+}
+
+module.exports = { add, increment, observe, reset, snapshot, toPrometheus };

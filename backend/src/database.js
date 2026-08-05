@@ -5,6 +5,14 @@ const env = process.env.NODE_ENV || 'development';
 const db = knex(config[env]);
 const TEST_CONNECTIONS = Symbol.for('fitlife.testDatabaseConnections');
 
+function observeDatabaseError(error) {
+  if (error?.code === 'SQLITE_BUSY' || /SQLITE_BUSY/.test(error?.message || '')) {
+    require('./services/metricsService').increment('sqlite_errors_total', { code: 'SQLITE_BUSY' });
+  }
+}
+
+db.on('query-error', observeDatabaseError);
+
 if (env === 'test') {
   process[TEST_CONNECTIONS] ??= new Set();
   process[TEST_CONNECTIONS].add(db);
@@ -101,5 +109,6 @@ db.destroy = async (...args) => {
 };
 
 db.seedDefaultExercisesForPersonal = seedDefaultExercisesForPersonal;
+db.observeDatabaseError = observeDatabaseError;
 
 module.exports = db;

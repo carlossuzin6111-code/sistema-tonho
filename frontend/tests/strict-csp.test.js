@@ -188,7 +188,7 @@ test('Compose gates dependent services on API and Nginx health', () => {
   assert.match(backend, /app\.get\('\/health\/ready'/);
   assert.match(healthController, /await db\.raw\('SELECT 1'\)/);
   assert.match(healthController, /db\.migrate\.list\(\)/);
-  assert.match(compose, /fetch\('http:\/\/127\.0\.0\.1:3000\/api\/health'\)/);
+  assert.match(compose, /fetch\('http:\/\/127\.0\.0\.1:3000\/health\/ready'\)/);
   assert.match(compose, /wget.*http:\/\/127\.0\.0\.1:3000\//);
   assert.equal((compose.match(/condition: service_healthy/g) || []).length, 4);
 });
@@ -789,7 +789,7 @@ test('timestamps are parsed as UTC and formatted with the browser local timezone
   assert.doesNotMatch(personal, /toLocaleDateString|toLocaleTimeString/);
   assert.doesNotMatch(student, /toLocaleDateString|toLocaleTimeString/);
   for (const page of ['desktop.html', 'mobile.html']) {
-    assert.match(read(page), /js\/datetime\.js\?v=20260805\.4/);
+    assert.match(read(page), /js\/datetime\.js\?v=20260805\.5/);
   }
 });
 

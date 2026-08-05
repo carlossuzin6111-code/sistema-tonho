@@ -116,6 +116,7 @@ async function authenticateToken(req, res, next) {
 const STUDENT_ESSENTIAL_PATHS = [
   '/api/auth/me',
   '/api/auth/logout',
+  '/api/auth/logout-all',
   '/api/profile',
   '/api/compliance',
   '/api/sessions'
@@ -156,7 +157,7 @@ function isPasswordChangeExempt(req) {
   const path = req.path || req.originalUrl?.split('?')[0];
   return (req.method === 'PUT' && path === '/api/profile/password')
     || (req.method === 'GET' && path === '/api/auth/me')
-    || (req.method === 'POST' && path === '/api/auth/logout');
+    || (req.method === 'POST' && (path === '/api/auth/logout' || path === '/api/auth/logout-all'));
 }
 
 function safeEqual(left, right) {

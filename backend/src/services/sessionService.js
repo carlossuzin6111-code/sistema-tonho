@@ -22,6 +22,7 @@ const CSRF_COOKIE = 'fitlife_csrf';
 const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 const SESSION_IDLE_TIMEOUT_DAYS = Number(process.env.SESSION_IDLE_TIMEOUT_DAYS || 30);
 const MAX_ACTIVE_SESSIONS = Math.max(1, Number(process.env.MAX_ACTIVE_SESSIONS || 5));
+const REVOKED_SESSION_RETENTION_DAYS = Math.max(1, Number(process.env.REVOKED_SESSION_RETENTION_DAYS || 90));
 
 function parseCookies(cookieHeader = '') {
   return cookieHeader.split(';').reduce((cookies, part) => {
@@ -57,23 +58,34 @@ function serializeCookie(name, value, { httpOnly = false, maxAge = SESSION_MAX_A
 async function createSession(userId, { deviceName = 'Unknown device', userAgent = null, ipAddress = null } = {}) {
   const sessionId = crypto.randomBytes(32).toString('base64url');
   const db = require('../database');
-  await db('user_sessions').insert({ id: sessionId, user_id: userId, device_name: String(deviceName).slice(0, 120) || 'Unknown device', user_agent: userAgent ? String(userAgent).slice(0, 500) : null, ip_address: ipAddress ? String(ipAddress).slice(0, 64) : null });
-  await pruneUserSessions(userId, db);
+  const now = new Date().toISOString();
+  const result = await db.transaction(async trx => {
+    await trx('user_sessions').insert({ id: sessionId, user_id: userId, device_name: String(deviceName).slice(0, 120) || 'Unknown device', user_agent: userAgent ? String(userAgent).slice(0, 500) : null, ip_address: ipAddress ? String(ipAddress).slice(0, 64) : null, last_seen_at: now, created_at: now, updated_at: now });
+    return pruneUserSessions(userId, trx);
+  });
+  require('./metricsService').increment('device_sessions_total', { action: 'created' });
+  if (result.revoked) require('./metricsService').add('device_sessions_total', result.revoked, { action: 'pruned_active' });
+  if (result.deleted) require('./metricsService').add('device_sessions_total', result.deleted, { action: 'retention_deleted' });
   return sessionId;
 }
 
 async function pruneUserSessions(userId, database = null) {
   const db = database || require('../database');
   const cutoff = new Date(Date.now() - SESSION_IDLE_TIMEOUT_DAYS * 24 * 60 * 60 * 1000).toISOString();
-  await db('user_sessions').where({ user_id: userId, status: 'active' }).where('last_seen_at', '<', cutoff)
-    .update({ status: 'revoked', revoked_at: db.fn.now(), updated_at: db.fn.now() });
+  const idleIds = await db('user_sessions').where({ user_id: userId, status: 'active' }).where('last_seen_at', '<', cutoff).pluck('id');
+  if (idleIds.length) await db('user_sessions').whereIn('id', idleIds).update({ status: 'revoked', revoked_at: db.fn.now(), updated_at: db.fn.now() });
   const active = await db('user_sessions').where({ user_id: userId, status: 'active' })
-    .orderBy('last_seen_at', 'desc').select('id').offset(MAX_ACTIVE_SESSIONS);
+    .orderBy('last_seen_at', 'desc').orderBy('created_at', 'desc').select('id').offset(MAX_ACTIVE_SESSIONS);
+  const overflowIds = active.map(row => row.id);
   if (active.length) {
-    await db('user_sessions').whereIn('id', active.map(row => row.id))
+    await db('user_sessions').whereIn('id', overflowIds)
       .update({ status: 'revoked', revoked_at: db.fn.now(), updated_at: db.fn.now() });
   }
-  return active.length;
+  const revokedIds = [...idleIds, ...overflowIds];
+  if (revokedIds.length) await require('./refreshTokenService').revokeRefreshTokensForSessions(userId, revokedIds, db);
+  const retentionCutoff = new Date(Date.now() - REVOKED_SESSION_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  const deleted = await db('user_sessions').where({ user_id: userId, status: 'revoked' }).where('revoked_at', '<', retentionCutoff).del();
+  return { revoked: revokedIds.length, deleted };
 }
 
 function setSessionCookies(res, user, sessionId = null) {
@@ -112,6 +124,7 @@ module.exports = {
   clearSessionCookies,
   createSession,
   MAX_ACTIVE_SESSIONS,
+  REVOKED_SESSION_RETENTION_DAYS,
   pruneUserSessions,
   parseCookies,
   setSessionCookies,

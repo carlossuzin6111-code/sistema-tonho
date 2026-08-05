@@ -1,6 +1,6 @@
 const db = require('../database');
 
-const EXEMPT_PATHS = ['/api/subscription', '/api/profile/password', '/api/profile/waivers', '/api/auth/me', '/api/auth/logout'];
+const EXEMPT_PATHS = ['/api/subscription', '/api/profile/password', '/api/profile/waivers', '/api/auth/me', '/api/auth/logout', '/api/auth/logout-all'];
 
 function isExempt(req) {
   return EXEMPT_PATHS.some(path => req.path === path || req.path.startsWith(`${path}/`));

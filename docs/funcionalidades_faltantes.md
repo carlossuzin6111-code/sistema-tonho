@@ -323,12 +323,14 @@ O perfil autenticado agora oferece exportação imediata dos dados em JSON e con
 ### [OPS-10] Health Checks Liveness/Readiness
 *   **Especificação**: Endpoint `/health/live` (status do runtime) e `/health/ready` (valida conexão com SQLite e se há migrations pendentes no Knex).
 *   **Progresso em 29/07/2026**: `/health/live` responde sem tocar no banco; `/health/ready` verifica `db.ready`, `SELECT 1` e a lista de migrations pendentes; `/api/health` permanece como alias para compatibilidade.
-*   **Pendente**: conectar probes do Compose/Nginx aos novos caminhos e cobrir falhas simuladas de banco/migrations no CI.
+* **Concluído funcionalmente em 05/08/2026**: Compose usa `/health/ready`; Nginx encaminha `/health/*`; testes comprovam que liveness não toca no banco e que readiness retorna 503 com motivo estável para banco indisponível ou migrations pendentes. Resultados são contabilizados sem detalhes sensíveis.
+* **Pendente operacional**: executar exercício de indisponibilidade real no ambiente de deploy e conectar alertas do orquestrador.
 
 ### [OPS-11] Sessões por Dispositivo (`user_sessions`)
 *   **Especificação**: Tabela `user_sessions` para listar e revogar tokens de dispositivos individuais sem invalidar a chave JWT global da conta.
 *   **Progresso em 29/07/2026**: migration `202607290023_create_user_sessions.js` persiste sessão por login com ID opaco, dispositivo, user-agent/IP e last-seen; tokens novos carregam `sessionId`, middleware rejeita sessões revogadas e `/api/sessions` lista/revoga apenas dispositivos do próprio usuário.
-*   **Pendente**: expiração/limpeza agendada, limite de sessões, interface de gerenciamento, mascaramento/retensão de IP e telemetria de segurança.
+* **Concluído funcionalmente em 05/08/2026**: sessões ociosas e excedentes são revogadas junto aos refresh tokens vinculados; registros revogados possuem retenção configurável. Logout revoga a sessão atual, há encerramento das demais e logout global. A API mascara a rede e omite user-agent; o perfil oferece diálogo acessível desktop/mobile com confirmação contextual e métricas de ciclo de vida.
+* **Pendente operacional**: calibrar limites/retenção e validar nomes de dispositivos e fluxos nativos em aparelhos reais.
 
 ### [OPS-12] Backoffice de Suporte com Impersonation Seguro
 *   **Progresso em 29/07/2026**: migration `202607290024_create_impersonation_events.js` e endpoints protegidos permitem somente `support`/`admin` emitir token de 15 minutos com motivo obrigatório; cada emissão/revogação é auditada e o middleware rejeita tokens expirados ou revogados, marcando o contexto de impersonação.
@@ -337,7 +339,8 @@ O perfil autenticado agora oferece exportação imediata dos dados em JSON e con
 
 ### [OPS-13] Logs Estruturados, Métricas e Alertas
 *   **Progresso em 29/07/2026**: logger JSON adiciona timestamp, serviço, request ID, método, rota, status e duração sem registrar corpo; redaction recursivo remove chaves de senha/token/segredo; métricas de requisição ficam disponíveis a `support/admin` em `/api/metrics`.
-*   **Pendente**: exportar formato Prometheus/OpenTelemetry, persistir métricas entre réplicas, configurar alertas/SLO, retenção e correlação distribuída de workers.
+* **Progresso em 05/08/2026**: métricas HTTP registram contagem e duração agregada por método, status e template de rota, evitando IDs e tokens como labels. `/api/metrics?format=prometheus` entrega texto protegido a suporte/admin, mantendo JSON compatível; probes, sessões e `SQLITE_BUSY` possuem contadores próprios.
+* **Pendente**: coletor Prometheus/OpenTelemetry externo, persistência entre réplicas, alertas/SLO, retenção e correlação distribuída de workers.
 *   **Especificação**: Logs em formato JSON na API, redação automática de CPFs/Senhas nos payloads, métricas RED de latência e alertas sob erros `SQLITE_BUSY`.
 
 ### [OPS-14] CI/CD Obrigatória

@@ -11,16 +11,67 @@ async function exportMyData() {
   } catch (error) { showToast(error.message, 'error'); }
 }
 async function manageSessions() {
+  openModal('modal-manage-sessions');
+  await loadProfileSessions();
+}
+
+async function loadProfileSessions() {
+  const list = document.getElementById('profile-sessions-list');
+  const status = document.getElementById('profile-sessions-status');
+  if (!list || !status) return;
+  SafeDOM.clear(list);
+  status.textContent = 'Carregando sessões...';
   try {
     const sessions = await API.get('/sessions');
-    const remote = sessions.filter(item => !item.current);
-    if (!remote.length) return showToast('Não há outras sessões ativas.', 'info');
-    for (const item of remote) {
-      const label = `${item.deviceName || 'Dispositivo'} · ${item.lastSeenAt || item.createdAt || 'sem data'}`;
-      if (window.confirm(`Encerrar a sessão em ${label}?`)) await API.delete(`/sessions/${encodeURIComponent(item.id)}`);
+    status.textContent = `${sessions.length} sessão(ões) ativa(s).`;
+    for (const item of sessions) {
+      const card = SafeDOM.el('article', { className: `profile-session-card${item.current ? ' is-current' : ''}` });
+      card.append(
+        SafeDOM.el('div', { className: 'profile-session-info' }, [
+          SafeDOM.el('strong', { text: item.deviceName || 'Dispositivo não identificado' }),
+          SafeDOM.el('span', { text: item.current ? 'Este dispositivo' : `Última atividade: ${AppDateTime.dateTime(item.lastSeenAt || item.createdAt)}` }),
+          ...(item.ipAddress ? [SafeDOM.el('span', { text: `Rede aproximada: ${item.ipAddress}` })] : [])
+        ])
+      );
+      if (!item.current) card.appendChild(SafeDOM.el('button', { className: 'btn btn-danger btn-sm', attrs: { type: 'button', 'data-action': 'revoke-profile-session', 'data-session-id': item.id, 'data-device-name': item.deviceName || 'Dispositivo' } }, ['Encerrar']));
+      list.appendChild(card);
     }
-    showToast('Sessões selecionadas foram encerradas.', 'success');
-  } catch (error) { showToast(error.message, 'error'); }
+    lucide.createIcons();
+  } catch (error) {
+    status.textContent = `Não foi possível carregar as sessões: ${error.message}`;
+    status.setAttribute('role', 'alert');
+  }
+}
+
+function confirmRevokeProfileSession(element) {
+  openDestructiveConfirmation({
+    title: 'Encerrar sessão',
+    message: `O acesso em ${element.dataset.deviceName || 'outro dispositivo'} será encerrado imediatamente.`,
+    confirmLabel: 'Encerrar sessão',
+    returnModalId: 'modal-manage-sessions',
+    action: async () => { await API.delete(`/sessions/${encodeURIComponent(element.dataset.sessionId)}`); return loadProfileSessions; }
+  });
+}
+
+function confirmRevokeOtherSessions() {
+  openDestructiveConfirmation({
+    title: 'Encerrar outras sessões', message: 'Todas as sessões, exceto este dispositivo, serão encerradas.',
+    confirmLabel: 'Encerrar outras', returnModalId: 'modal-manage-sessions',
+    action: async () => { await API.delete('/sessions'); return loadProfileSessions; }
+  });
+}
+
+function confirmLogoutAllSessions() {
+  openDestructiveConfirmation({
+    title: 'Sair de todos os dispositivos', message: 'Todos os acessos, incluindo este dispositivo, serão encerrados imediatamente.',
+    confirmLabel: 'Sair de todos', returnModalId: 'modal-manage-sessions',
+    action: async () => {
+      await API.post('/auth/logout-all', {});
+      await API.clearMobileRefreshToken();
+      API.clearSession();
+      return () => { window.history.replaceState(null, '', window.location.pathname); showLoginScreen(); showToast('Todas as sessões foram encerradas.', 'info'); };
+    }
+  });
 }
 
 function profileAvatarUrl(user) {
