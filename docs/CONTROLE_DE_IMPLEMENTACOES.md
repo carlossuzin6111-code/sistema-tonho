@@ -2,6 +2,51 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## QA-01 — Encerramento limpo da suíte backend
+
+- Estado: implementado, validado e aguardando merge
+- Branch: `test/backend-clean-teardown`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/190
+- Início: 05/08/2026
+
+### Diagnóstico
+
+- `auth-config.test.js` importava `middleware/auth` somente para validar `JWT_SECRET`.
+- O middleware importava `subscriptionGuard`, que abria o banco e iniciava migrations em cada `jest.resetModules()`.
+- Promessas de inicialização sobreviviam ao teste e tentavam carregar migrations após o teardown do Jest.
+- `--forceExit` mascarava handles e encerramentos incompletos.
+- `@aws-sdk/client-s3` aparece duplicado em `backend/package.json`.
+- A execução conjunta revelou conexões Knex isoladas que não eram alcançadas pelo teardown das suítes que as carregavam indiretamente.
+
+### Plano
+
+- [x] Confirmar a causa do teardown tardio.
+- [x] Criar branch exclusiva.
+- [x] Testar a configuração JWT diretamente no módulo que a implementa.
+- [x] Remover `--forceExit` do script de testes.
+- [x] Adicionar teste que impeça a reintrodução de `forceExit`.
+- [x] Remover a dependência duplicada sem alterar sua versão.
+- [x] Registrar e encerrar conexões de teste remanescentes em um `afterAll` compartilhado.
+- [x] Executar suítes e audits completos.
+- [x] Abrir PR.
+- [x] Acompanhar os cinco checks.
+
+### Evidências locais
+
+- Backend: 41/41 suítes e 239/239 testes aprovados em 51,999 s; processo encerrado naturalmente, sem `--forceExit` e sem aviso de teardown tardio.
+- Frontend: 69/69 testes aprovados.
+- `npm audit` na raiz: 0 vulnerabilidades.
+- `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+- `git diff --check`: aprovado.
+- CI do PR #190 (execução `31032853451`): Backend, Frontend e infraestrutura, Secret scan, Migration policy e CI policy aprovados.
+
+### Critérios de aceite
+
+- Backend encerra naturalmente com `--detectOpenHandles` e código 0.
+- Nenhuma mensagem “environment has been torn down” é emitida.
+- Nenhum banco é inicializado pelos testes exclusivos de configuração JWT.
+- Todas as suítes continuam aprovadas e os audits permanecem zerados.
+
 ## Fluxo obrigatório
 
 1. Confirmar o estado da `main` e delimitar um bloco pequeno.
