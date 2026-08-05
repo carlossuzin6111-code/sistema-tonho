@@ -6,6 +6,7 @@ const app = require('../index');
 const db = require('../database');
 const http = require('http');
 const { hashAccessKey, issueAccessKey } = require('../services/accessKeyService');
+const { acceptCurrentWaiver } = require('./helpers/waiverFixture');
 const {
   CSRF_COOKIE,
   JWT_SECRET,
@@ -417,6 +418,7 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(res.body).toHaveProperty('message', 'Student account created successfully');
       expect(res.body.student).toHaveProperty('email', 'test_student@fitlife.com');
       studentId = res.body.student.id;
+      await acceptCurrentWaiver(db, studentId);
     });
 
     test('Should login successfully as the created Student', async () => {
@@ -938,6 +940,7 @@ describe('FitLife Sync API Integration Tests', () => {
         });
       expect(studentRes.statusCode).toBe(201);
       otherStudentId = studentRes.body.student.id;
+      await acceptCurrentWaiver(db, otherStudentId);
 
       const loginRes = await request(app)
         .post('/api/auth/login')

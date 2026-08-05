@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const app = require('../index');
 const db = require('../database');
 const { JWT_SECRET } = require('../services/sessionService');
+const { acceptCurrentWaiver } = require('./helpers/waiverFixture');
 
 describe('wearable integrations', () => {
   let studentId;
@@ -28,6 +29,7 @@ describe('wearable integrations', () => {
       role: 'student'
     });
     await db('student_profiles').insert({ student_id: studentId, personal_id: personalId });
+    await acceptCurrentWaiver(db, studentId);
     token = jwt.sign({ id: studentId, role: 'student', sessionVersion: 0, csrf: 'wearable-csrf' }, JWT_SECRET, { expiresIn: '1h' });
   });
 

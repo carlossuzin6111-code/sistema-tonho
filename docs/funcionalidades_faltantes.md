@@ -75,8 +75,8 @@ O cliente agora oferece entrada de recuperação pública de senha com resposta 
 
 ### [SEC-08] PAR-Q e Assinatura Eletrônica de Termos (Waivers)
 *   **Entrega atual**: tabela `signed_waivers` com FK, versão dos termos, JSON do PAR-Q, IP, data e unicidade por usuário/versão; `POST /api/profile/waivers` registra a assinatura e retorna o registro existente em reenvio idempotente.
-*   **Progresso em 29/07/2026**: `waivers.test.js` cobre criação e repetição sem duplicidade, mantendo os metadados necessários para auditoria.
-*   **Pendente**: construir a tela PAR-Q acessível, exigir a versão vigente nos fluxos necessários e criar consulta/revisão clínica com auditoria de alterações.
+*   **Progresso em 05/08/2026**: a versão vigente é controlada pelo servidor, `GET /api/profile/waivers/current` expõe o status e o middleware bloqueia rotas de negócio do aluno com `428 WAIVER_REQUIRED`. O dashboard desktop/mobile apresenta sete perguntas obrigatórias, aceite explícito, saída da conta e só inicia dados/SSE após a confirmação.
+*   **Pendente**: revisão jurídica do texto, validação clínica das perguntas, consulta pelo profissional e auditoria específica de futuras alterações.
 *   **Especificação**: Tabela `signed_waivers`:
     ```text
     - id (INTEGER, PK)

@@ -31,7 +31,7 @@ Resumo: **8 implementados**, **50 parciais**, **0 não iniciados**, total de **5
 | **SEC-05** | Verificação de e-mail | **Parcial** | migration, tokens, políticas e `emailVerification.test.js` | Entrega real, tela completa e política operacional |
 | **SEC-06** | CSRF segregado | **Parcial** | cookies, origem/referer e testes HTTP | E2E WebView/Bearer em origem pública |
 | **SEC-07** | Rate limit IP + conta | **Parcial** | chave combinada e hardening distribuído | Validar store compartilhado e múltiplas réplicas em produção |
-| **SEC-08** | PAR-Q e termos | **Parcial** | `signed_waivers`, endpoints e `waivers.test.js` | Versionamento jurídico, UI final e validação operacional |
+| **SEC-08** | PAR-Q e termos | **Parcial** | versão server-side, gate 428, UI obrigatória e testes frontend/backend | Revisão jurídica/clínica, consulta profissional e auditoria de alterações |
 | **SEC-09** | Segredos na CI | **Parcial** | Gitleaks, `.env` removido e validação de JWT | Confirmar rotação externa e secret manager |
 | **DB-01** | Persistência física | **Parcial** | volume `/app/data`; teste de restore completo | Teste periódico após recriação real de containers/host |
 | **DB-02** | WAL e busy timeout | **Implementado** | pragmas por conexão e teste de contenção | Monitorar `SQLITE_BUSY` em carga real |

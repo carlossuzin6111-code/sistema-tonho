@@ -2,6 +2,102 @@
 
 let lastModalTrigger = null;
 let pendingDestructiveAction = null;
+let appShellGeneration = 0;
+
+const PARQ_QUESTIONS = Object.freeze([
+  ['heartCondition', 'Algum médico já disse que você possui um problema cardíaco e recomendou atividade física somente sob supervisão?'],
+  ['chestPainActivity', 'Você sente dor no peito durante atividade física?'],
+  ['chestPainRest', 'No último mês, você sentiu dor no peito em repouso?'],
+  ['balanceOrConsciousness', 'Você perde o equilíbrio por tontura ou já perdeu a consciência?'],
+  ['boneOrJointProblem', 'Você possui problema ósseo ou articular que pode piorar com atividade física?'],
+  ['bloodPressureMedication', 'Algum médico prescreveu medicamento para pressão arterial ou condição cardíaca?'],
+  ['otherReason', 'Existe outro motivo pelo qual você não deveria praticar atividade física sem avaliação profissional?']
+]);
+
+function ensureWaiverModal(termsVersion) {
+  let modal = document.getElementById('modal-current-waiver');
+  if (!modal) {
+    modal = SafeDOM.el('div', {
+      id: 'modal-current-waiver',
+      className: 'modal-overlay',
+      attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'waiver-title', 'data-required-modal': 'true' }
+    });
+    const content = SafeDOM.el('section', { className: 'modal-content glass waiver-modal-content' });
+    const form = SafeDOM.el('form', { className: 'form-with-feedback waiver-form', attrs: { id: 'current-waiver-form' } });
+    form.append(
+      SafeDOM.el('h2', { id: 'waiver-title', className: 'modal-title', text: 'PAR-Q e termos de responsabilidade' }),
+      SafeDOM.el('p', { text: 'Responda com atenção. Uma resposta “Sim” indica que você deve conversar com um profissional de saúde antes de iniciar ou intensificar exercícios.' }),
+      SafeDOM.el('p', { className: 'form-help', text: `Versão vigente: ${termsVersion}` })
+    );
+    for (const [key, question] of PARQ_QUESTIONS) {
+      const fieldset = SafeDOM.el('fieldset', { className: 'waiver-question' });
+      fieldset.appendChild(SafeDOM.el('legend', { text: question }));
+      for (const [value, label] of [['false', 'Não'], ['true', 'Sim']]) {
+        const id = `waiver-${key}-${value}`;
+        const input = SafeDOM.el('input', { attrs: { id, type: 'radio', name: key, value, required: '' } });
+        fieldset.appendChild(SafeDOM.el('label', { attrs: { for: id } }, [input, ` ${label}`]));
+      }
+      form.appendChild(fieldset);
+    }
+    const acceptance = SafeDOM.el('input', { attrs: { id: 'waiver-accepted-terms', type: 'checkbox', name: 'acceptedTerms', required: '' } });
+    form.append(
+      SafeDOM.el('label', { className: 'waiver-acceptance', attrs: { for: 'waiver-accepted-terms' } }, [acceptance, ' Li as informações acima, respondi com veracidade e aceito os termos de responsabilidade desta versão.']),
+      SafeDOM.el('p', { id: 'current-waiver-form-error', className: 'form-error hidden', attrs: { role: 'alert', 'aria-live': 'assertive' } }),
+      SafeDOM.el('button', { className: 'btn btn-primary btn-full', attrs: { type: 'submit', 'data-default-label': 'Confirmar e continuar', 'data-loading-label': 'Confirmando...' } }, [SafeDOM.el('span', { attrs: { 'data-submit-label': '' }, text: 'Confirmar e continuar' })]),
+      SafeDOM.el('button', { className: 'btn btn-secondary btn-full', attrs: { type: 'button', 'data-action': 'logout' } }, ['Sair da conta'])
+    );
+    content.appendChild(form);
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+  }
+  modal.dataset.termsVersion = termsVersion;
+  modal.dataset.requiredModal = 'true';
+  const version = modal.querySelector('.form-help');
+  if (version) version.textContent = `Versão vigente: ${termsVersion}`;
+  return modal;
+}
+
+function activateStudentDashboard(user, generation = appShellGeneration) {
+  if (generation !== appShellGeneration) return;
+  switchStudentTab(tabFromDashboardRoute('student') || 'workouts', { historyMode: 'replace' });
+  connectRealTimeUpdates(user);
+}
+
+async function ensureCurrentWaiver(user, generation) {
+  try {
+    const status = await API.get('/profile/waivers/current');
+    if (generation !== appShellGeneration) return;
+    if (status.signed) return activateStudentDashboard(user, generation);
+    const modal = ensureWaiverModal(status.termsVersion);
+    openModal(modal.id);
+  } catch (error) {
+    if (generation !== appShellGeneration) return;
+    showToast(`Não foi possível verificar o PAR-Q: ${error.message}`, 'error');
+  }
+}
+
+async function submitCurrentWaiver(event) {
+  event.preventDefault();
+  const form = event.target;
+  if (form.dataset.submitting === 'true' || !form.reportValidity()) return;
+  const modal = document.getElementById('modal-current-waiver');
+  const values = new FormData(form);
+  const parqAnswers = { acceptedTerms: values.get('acceptedTerms') === 'on' };
+  for (const [key] of PARQ_QUESTIONS) parqAnswers[key] = values.get(key) === 'true';
+  clearFormError(form.id);
+  setFormSubmitting(form, true);
+  try {
+    await API.post('/profile/waivers', { termsVersion: modal.dataset.termsVersion, parqAnswers });
+    modal.dataset.requiredModal = 'false';
+    closeModal(modal.id);
+    showToast('PAR-Q e termos confirmados.', 'success');
+    activateStudentDashboard(API.getCurrentUser());
+  } catch (error) {
+    setFormError(form.id, error.message);
+  } finally {
+    setFormSubmitting(form, false);
+  }
+}
 
 const DASHBOARD_TABS = Object.freeze({
   personal: ['students', 'create', 'chat', 'exercises'],
@@ -235,7 +331,7 @@ function openModal(modalId) {
 function closeModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
-    if (modal.dataset.passwordRequired === 'true') return;
+    if (modal.dataset.passwordRequired === 'true' || modal.dataset.requiredModal === 'true') return;
     const returnModalId = modal.dataset.returnModal;
     const formId = modal.dataset.clearFormOnClose;
     modal.classList.remove('active');
@@ -308,7 +404,7 @@ document.addEventListener('keydown', event => {
 
   if (event.key === 'Escape') {
     event.preventDefault();
-    if (modal.dataset.passwordRequired === 'true') return;
+    if (modal.dataset.passwordRequired === 'true' || modal.dataset.requiredModal === 'true') return;
     closeModal(modal.id);
     return;
   }
@@ -601,6 +697,7 @@ async function checkAuthSession() {
 
 // Setup active UI based on user role
 function setupAppShell(user) {
+  const generation = ++appShellGeneration;
   document.getElementById('login-screen').classList.add('hidden');
   const appScreen = document.getElementById('app-screen');
   appScreen.classList.remove('hidden');
@@ -622,13 +719,12 @@ function setupAppShell(user) {
   if (user.role === 'personal') {
     document.getElementById('personal-dashboard').classList.remove('hidden');
     switchPersonalTab(tabFromDashboardRoute('personal') || 'students', { historyMode: 'replace' });
+    connectRealTimeUpdates(user);
   } else {
     document.getElementById('student-dashboard').classList.remove('hidden');
-    switchStudentTab(tabFromDashboardRoute('student') || 'workouts', { historyMode: 'replace' });
+    if (!user.mustChangePassword) ensureCurrentWaiver(user, generation);
   }
 
-  // Connect to the real-time chat SSE stream
-  connectRealTimeUpdates(user);
   if (user.mustChangePassword) {
     window.setTimeout(() => openRequiredPasswordChange(), 0);
   }
@@ -638,6 +734,12 @@ function setupAppShell(user) {
 }
 
 function showLoginScreen() {
+  appShellGeneration += 1;
+  const waiverModal = document.getElementById('modal-current-waiver');
+  if (waiverModal?.classList.contains('active')) {
+    waiverModal.dataset.requiredModal = 'false';
+    closeModal(waiverModal.id);
+  }
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('app-screen').classList.add('hidden');
   API.disconnectChatStream();

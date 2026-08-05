@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const knex = require('knex');
 const knexConfig = require('../../knexfile');
 const { JWT_SECRET } = require('../services/sessionService');
+const { acceptCurrentWaiver } = require('./helpers/waiverFixture');
 
 // Require app without starting listening server
 const db = require('../database');
@@ -77,6 +78,7 @@ describe('IDOR & Cross-Tenant Access Matrix (SEC-01)', () => {
       height: 170,
       target_weight: 65
     });
+    await acceptCurrentWaiver(db, sA1Id);
 
     // 2. Create Personal Trainer B & Student B1 (linked to B)
     const [pBId] = await db('users').insert({
@@ -105,6 +107,7 @@ describe('IDOR & Cross-Tenant Access Matrix (SEC-01)', () => {
       height: 180,
       target_weight: 80
     });
+    await acceptCurrentWaiver(db, sB1Id);
   });
 
   describe('1. Student Details Endpoint (GET /api/personal/students/:id)', () => {

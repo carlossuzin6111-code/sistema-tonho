@@ -1747,6 +1747,54 @@ body.dark-theme .priority-section {
   transform: scale(1);
 }
 
+.waiver-modal-content {
+  width: min(720px, calc(100% - 24px));
+  max-height: min(90vh, 860px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.waiver-form {
+  display: grid;
+  gap: 16px;
+}
+
+.waiver-question {
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--border-passive);
+  border-radius: 10px;
+}
+
+.waiver-question legend {
+  padding: 0 4px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.waiver-question label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-right: 24px;
+  cursor: pointer;
+}
+
+.waiver-question input,
+.waiver-acceptance input {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.waiver-acceptance {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
 .modal-small { max-width: 420px; }
 .modal-medium { max-width: 600px; }
 .modal-large { max-width: 850px; }
