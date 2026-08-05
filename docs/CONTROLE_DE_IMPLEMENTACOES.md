@@ -6,6 +6,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 - Estado: implementado e validado; entrega em andamento
 - Branch: `security/sec-08-current-waiver-gate`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/192
 - Início: 05/08/2026
 
 ### Diagnóstico
@@ -26,7 +27,8 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Validar respostas booleanas completas e aceite explícito.
 - [x] Adicionar cobertura backend e frontend.
 - [x] Executar suítes e audits completos.
-- [ ] Abrir PR e acompanhar os cinco checks.
+- [x] Abrir PR.
+- [ ] Acompanhar os cinco checks.
 
 ### Evidências locais
 
