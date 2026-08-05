@@ -4,7 +4,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## SEC-08 — Aceite vigente do PAR-Q e termos
 
-- Estado: implementado e validado; entrega em andamento
+- Estado: implementado, validado e aguardando merge
 - Branch: `security/sec-08-current-waiver-gate`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/192
 - Início: 05/08/2026
@@ -28,7 +28,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Adicionar cobertura backend e frontend.
 - [x] Executar suítes e audits completos.
 - [x] Abrir PR.
-- [ ] Acompanhar os cinco checks.
+- [x] Acompanhar os cinco checks.
 
 ### Evidências locais
 
@@ -38,6 +38,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
 - `node --check` e `git diff --check`: aprovados.
+- CI do PR #192 (execução `31040657281`): Backend, Frontend e infraestrutura, Secret scan, Migration policy e CI policy aprovados.
 
 ### Critérios de aceite
 
