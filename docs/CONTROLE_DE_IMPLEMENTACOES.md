@@ -30,7 +30,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Atualizar checklist e documento funcional com evidências e pendências exclusivamente operacionais.
 - [x] Executar suítes completas, audits e validações estáticas.
 - [x] Abrir PR.
-- [ ] Acompanhar os cinco checks obrigatórios.
+- [x] Acompanhar os cinco checks obrigatórios.
 
 ### Critérios de aceite
 
@@ -50,6 +50,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Repetição idêntica de progresso devolve a resposta original; mudança de corpo com a mesma chave retorna 409 e não altera o registro.
 - `npm audit` na raiz e `npm audit --omit=dev` no backend: 0 vulnerabilidades.
 - `node --check` e `git diff --check`: aprovados.
+- CI do PR #196 (execução `31048857184`): Backend, Frontend e infraestrutura, Secret scan, Migration policy e CI policy aprovados.
 
 ## BUS-05 + BUS-06 + BUS-13 — Metas, progressão e periodização do aluno
 
