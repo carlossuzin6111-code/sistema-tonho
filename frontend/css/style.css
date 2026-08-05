@@ -1024,6 +1024,23 @@ body.dark-theme .chat-thread-item:hover {
   scrollbar-gutter: stable;
 }
 
+.chat-history-load {
+  align-self: center;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid var(--border-passive);
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  color: var(--text-main);
+  font: inherit;
+  cursor: pointer;
+}
+
+.chat-history-load:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 /* Message Bubbles */
 .chat-bubble {
   max-width: min(75%, 42rem);

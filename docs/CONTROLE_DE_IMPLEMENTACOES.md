@@ -2,9 +2,54 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
-## QA-01 — Encerramento limpo da suíte backend
+## UX-01 — Histórico progressivo do chat
 
 - Estado: implementado, validado e aguardando merge
+- Branch: `feat/chat-progressive-history`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/191
+- Início: 05/08/2026
+
+### Diagnóstico
+
+- O backend já oferece paginação por cursor com `limit`, `before`, `messages` e `nextCursor`.
+- Aluno e personal ainda chamam a rota legada e carregam todo o histórico de uma vez.
+- A interface não oferece ação para buscar mensagens anteriores nem preserva a posição visual ao inserir itens no topo.
+- Mensagens recebidas por SSE precisam coexistir com páginas antigas sem duplicação.
+
+### Plano
+
+- [x] Confirmar o contrato e delimitar o fluxo para aluno e personal.
+- [x] Criar branch exclusiva.
+- [x] Consumir o primeiro lote paginado nas duas interfaces.
+- [x] Adicionar controle acessível para carregar mensagens anteriores.
+- [x] Preservar scroll, conversa ativa e mensagens SSE durante a paginação.
+- [x] Cobrir contrato, acessibilidade e integração com testes automatizados.
+- [x] Executar suítes e audits completos.
+- [x] Abrir PR.
+- [x] Acompanhar os cinco checks.
+
+### Evidências locais
+
+- Frontend: 72/72 testes aprovados, incluindo 3 cenários novos de paginação.
+- Integração da API: 80/80 testes aprovados no arquivo `api.test.js`.
+- Backend completo: 41/41 suítes e 239/239 testes aprovados.
+- `npm audit` na raiz: 0 vulnerabilidades.
+- `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+- `node --check` nos scripts alterados e `git diff --check`: aprovados.
+- CI do PR #191 (execução `31039064866`): Backend, Frontend e infraestrutura, Secret scan, Migration policy e CI policy aprovados.
+
+### Critérios de aceite
+
+- O carregamento inicial traz no máximo 50 mensagens e mantém a visualização no fim da conversa.
+- Páginas anteriores são inseridas no topo sem salto perceptível de scroll.
+- O controle desaparece quando `nextCursor` for nulo e bloqueia solicitações duplicadas.
+- Trocar de conversa não mistura cursores, respostas ou mensagens.
+- Eventos SSE não criam uma segunda bolha para uma mensagem já renderizada.
+- Desktop e mobile mantêm o histórico como única região rolável do chat.
+
+## QA-01 — Encerramento limpo da suíte backend
+
+- Estado: concluído e mergeado
 - Branch: `test/backend-clean-teardown`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/190
 - Início: 05/08/2026
