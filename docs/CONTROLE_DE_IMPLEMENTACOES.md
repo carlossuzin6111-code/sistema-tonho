@@ -4,9 +4,9 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## BUS-05 + BUS-06 + BUS-13 — Metas, progressão e periodização do aluno
 
-- Estado: implementado e validado localmente
+- Estado: implementado, validado e em revisão
 - Branch: `feat/training-insights`
-- Pull request: a abrir
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/195
 - Início: 05/08/2026
 
 ### Diagnóstico
@@ -28,7 +28,8 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Relacionar sugestões de carga à progressão sem apresentá-las como prescrição clínica automática.
 - [x] Cobrir migration, API, cálculos e interfaces.
 - [x] Executar suítes completas, audits e validações estáticas.
-- [ ] Abrir PR e acompanhar os cinco checks.
+- [x] Abrir PR.
+- [ ] Acompanhar os cinco checks.
 
 ### Evidências locais
 
