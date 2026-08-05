@@ -204,6 +204,31 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 ### Regra de interpretação
 
 “Mergeado” comprova integração do PR, não conclusão integral do requisito de negócio. Requisitos que ainda dependem de provedor externo, operação real, QA manual ou cobertura de todos os fluxos permanecem “Parcial” no checklist. “Fechado sem merge” não é contabilizado como entrega; seu conteúdo só é considerado quando reaparece em PR posterior efetivamente mergeado.
+
+## Correção emergencial de advisories — 05/08/2026
+
+- Estado: concluído e aprovado pela CI; aguardando merge do mantenedor
+- Branch: `security/dependency-advisories-20260805`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/187
+- Motivo: advisories publicados após o PR #186 passaram a reprovar os audits obrigatórios.
+
+### Alterações
+
+- [x] Atualizar somente `package-lock.json` e `backend/package-lock.json`.
+- [x] Preservar as versões declaradas nos dois `package.json`.
+- [x] Reinstalar dependências, incluindo o AWS SDK já declarado no backend.
+- [x] Executar testes e audits completos.
+- [x] Abrir PR e acompanhar os cinco checks.
+- [ ] Merge pelo mantenedor do repositório upstream.
+
+### Evidências
+
+- Frontend: 69/69 testes aprovados.
+- Backend: 237/237 testes aprovados em 40 suítes.
+- `npm audit`: 0 vulnerabilidades.
+- `npm audit --omit=dev`: 0 vulnerabilidades.
+- CI do PR #187: os cinco checks obrigatórios foram aprovados.
+- Dívida observada: Jest ainda emite aviso tardio de teardown em `auth-config.test.js`, embora finalize com código 0.
 - Gitleaks 8.30.1 no conteúdo preparado para commit: nenhuma ocorrência.
 - Imagem da CI fixada por tag e digest SHA-256 imutável.
 - O `.env` local foi preservado, mas deixou de fazer parte do índice Git.
