@@ -4,7 +4,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## UX-01 — Histórico progressivo do chat
 
-- Estado: implementado e validado; entrega em andamento
+- Estado: implementado, validado e aguardando merge
 - Branch: `feat/chat-progressive-history`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/191
 - Início: 05/08/2026
@@ -26,7 +26,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Cobrir contrato, acessibilidade e integração com testes automatizados.
 - [x] Executar suítes e audits completos.
 - [x] Abrir PR.
-- [ ] Acompanhar os cinco checks.
+- [x] Acompanhar os cinco checks.
 
 ### Evidências locais
 
@@ -36,6 +36,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
 - `node --check` nos scripts alterados e `git diff --check`: aprovados.
+- CI do PR #191 (execução `31039064866`): Backend, Frontend e infraestrutura, Secret scan, Migration policy e CI policy aprovados.
 
 ### Critérios de aceite
 
