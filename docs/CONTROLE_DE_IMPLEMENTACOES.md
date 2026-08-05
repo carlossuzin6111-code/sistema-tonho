@@ -6,6 +6,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 - Estado: implementado e validado; entrega em andamento
 - Branch: `test/backend-clean-teardown`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/190
 - Início: 05/08/2026
 
 ### Diagnóstico
@@ -27,7 +28,8 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Remover a dependência duplicada sem alterar sua versão.
 - [x] Registrar e encerrar conexões de teste remanescentes em um `afterAll` compartilhado.
 - [x] Executar suítes e audits completos.
-- [ ] Abrir PR e acompanhar os cinco checks.
+- [x] Abrir PR.
+- [ ] Acompanhar os cinco checks.
 
 ### Evidências locais
 
