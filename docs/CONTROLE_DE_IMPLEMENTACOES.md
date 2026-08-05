@@ -54,6 +54,30 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Backend: 109/109 testes aprovados após adicionar dois cenários de configuração insegura.
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+
+## Correção emergencial de advisories — 05/08/2026
+
+- Estado: concluído; entrega em andamento
+- Branch: `security/dependency-advisories-20260805`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/187
+- Motivo: novos advisories passaram a reprovar os audits obrigatórios da baseline `5274051`.
+
+### Alterações
+
+- [x] Atualizar somente `package-lock.json` e `backend/package-lock.json` por resolução segura do npm.
+- [x] Preservar versões declaradas nos dois `package.json`.
+- [x] Reinstalar dependências ausentes, incluindo o AWS SDK já declarado no backend.
+- [x] Executar testes e audits completos.
+- [x] Abrir PR.
+- [ ] Acompanhar os cinco checks.
+
+### Evidências
+
+- Frontend: 69/69 testes aprovados.
+- Backend: 237/237 testes aprovados em 40 suítes.
+- `npm audit`: 0 vulnerabilidades.
+- `npm audit --omit=dev`: 0 vulnerabilidades.
+- Dívida observada: Jest ainda emite aviso tardio de teardown em `auth-config.test.js`, embora finalize com código 0.
 - Gitleaks 8.30.1 no conteúdo preparado para commit: nenhuma ocorrência.
 - Imagem da CI fixada por tag e digest SHA-256 imutável.
 - O `.env` local foi preservado, mas deixou de fazer parte do índice Git.
@@ -440,4 +464,3 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Backend: 161/161 testes aprovados em 19 suítes.
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
-
