@@ -57,9 +57,9 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 +
 ## Reconciliação da baseline — PRs #88 a #186
 
-- Estado: concluído tecnicamente; aguardando merge do PR #187 e ação administrativa
+- Estado: concluído e mergeado; proteção da `main` aguarda ação administrativa
 - Branch: `docs/reconcile-roadmap-pr186`
-- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/188 (draft, empilhado sobre o PR #187)
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/188
 - Baseline auditada: `5274051` (merge do PR #186)
 - Data da reconciliação: 05/08/2026
 - Alterações locais anteriores preservadas em: `stash@{1}` — `backup-pre-reconciliation-2026-08-05`
@@ -84,7 +84,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [ ] Ativar proteção da branch `main` — bloqueado por permissão administrativa do repositório.
 - [x] Abrir PR documental.
 - [x] Acompanhar a CI.
-- [ ] Remover o modo draft após o merge do PR #187.
+- [x] PR #187 e PR #188 mergeados pelo mantenedor.
 
 ### Evidências da reconciliação
 
@@ -96,6 +96,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - A tentativa de configurar branch protection retornou HTTP 404 porque `DiogoCrespi` possui somente permissão `pull`; `admin`, `maintain` e `push` são falsos.
 - Política administrativa reproduzível registrada em `docs/runbooks/main-branch-protection.md`.
 - CI do PR #188: Backend, Frontend and infrastructure, Secret scan, Migration policy e CI policy aprovados.
+- Baseline reconciliada final: `43fdb3b` (merge do PR #188).
 
 ### Inventário dos PRs
 
@@ -207,7 +208,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## Correção emergencial de advisories — 05/08/2026
 
-- Estado: concluído e aprovado pela CI; aguardando merge do mantenedor
+- Estado: concluído e mergeado
 - Branch: `security/dependency-advisories-20260805`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/187
 - Motivo: advisories publicados após o PR #186 passaram a reprovar os audits obrigatórios.
@@ -219,7 +220,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Reinstalar dependências, incluindo o AWS SDK já declarado no backend.
 - [x] Executar testes e audits completos.
 - [x] Abrir PR e acompanhar os cinco checks.
-- [ ] Merge pelo mantenedor do repositório upstream.
+- [x] Merge pelo mantenedor do repositório upstream.
 
 ### Evidências
 
