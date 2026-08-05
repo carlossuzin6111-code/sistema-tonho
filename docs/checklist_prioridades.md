@@ -1,254 +1,105 @@
-# Dashboard Executivo e Matriz de Priorização (FitLife Sync)
+# Dashboard executivo e matriz de priorização — FitLife Sync
 
-Este documento atua como o painel executivo para controle de progresso e roadmap de desenvolvimento, organizando todas as lacunas identificadas por identificadores estáveis e dependências lógicas.
+**Baseline verificada:** `5274051` (PR #186), em 05/08/2026.
 
-**Data-base da validação:** 29/07/2026. Os estados refletem inspeção do `HEAD` do repositório e devem ser revistos quando código ou infraestrutura mudarem.
+Este documento contém uma única linha por requisito. O histórico detalhado dos PRs está em `CONTROLE_DE_IMPLEMENTACOES.md`.
 
-**Legenda de estado:** **Implementado** = código e evidência automatizada compatíveis com o escopo atual; **Parcial** = existe implementação útil, mas falta parte do requisito ou cobertura; **Não Iniciado** = não foi encontrada implementação verificável. As horas são estimativas iniciais, não compromissos, e devem ser recalibradas após refinamento técnico.
+## Critério de estado
 
----
+- **Implementado:** critérios centrais entregues e cobertos por evidência automatizada na baseline.
+- **Parcial:** existe fundação útil, mas falta integração externa, cobertura integral, QA operacional ou requisito relevante.
+- **Não iniciado:** nenhuma implementação verificável.
 
-## 1. Tabela de Status Executivo
+Resumo: **8 implementados**, **50 parciais**, **0 não iniciados**, total de **58 requisitos únicos**.
 
-| ID | Requisito | Prioridade | Estado | Esforço (h) | Risco | Responsável |
-|---|---|---|---|---|---|---|
-| **SEC-01** | Proteção contra IDOR | 10/10 | **Parcial** | 8h | Alto | Backend | #
-| **SEC-02** | Onboarding (`must_change_password`) | 9/10 | **Implementado** | 12h | Médio | Fullstack |
-| **SEC-03** | Convites de Aluno com Expiração | 9/10 | **Parcial** | 16h | Médio | Fullstack |
-| **SEC-04** | Reset de Senha do Personal | 8/10 | **Parcial** | 12h | Médio | Backend |
-| **SEC-05** | Verificação de E-mail | 7/10 | **Parcial** | 8h | Baixo | Backend |
-| **SEC-06** | CSRF Segregado | 9/10 | **Parcial** | 6h | Médio | Backend |
-| **SEC-07** | Rate Limit IP + Conta | 8/10 | **Parcial** | 4h | Médio | Backend |
-| **SEC-08** | PAR-Q e Assinatura Eletrônica | 8/10 | **Parcial** | 16h | Médio | Fullstack |
-| **SEC-09** | Validação/Rotação de Segredos na CI | 10/10 | **Parcial** | 8h | Alto | DevOps | #
-| **DB-01** | Persistência (Docker Volumes) | 10/10 | **Parcial** | 4h | Alto | DevOps | #
-| **DB-02** | Concorrência SQLite (WAL) | 9/10 | **Implementado** | 4h | Médio | Backend | #
-| **DB-03** | Foreign Keys sqlite (`foreign_keys=ON`) | 10/10 | **Parcial** | 4h | Alto | Backend |#
-| **DB-04** | Backup Seguro (`VACUUM INTO`) | 9/10 | **Implementado** | 8h | Médio | Backend |
-| **DB-05** | Backup Off-Site e Restore | 10/10 | **Parcial** | 16h | Alto | DevOps |
-| **DB-06** | Deploy expand/contract | 10/10 | **Parcial** | 12h | Alto | DevOps |
-| **DB-07** | Constraints e Índices | 9/10 | **Parcial** | 6h | Médio | Backend |
-| **DB-08** | transação em Cadastros Compostos | 10/10 | **Parcial** | 8h | Alto | Backend |
-| **DB-09** | Precisão e Restrições de Domínio | 8/10 | **Não Iniciado** | 12h | Médio | Backend |
-| **UX-01** | Paginação por Cursor no Chat | 8/10 | **Parcial** | 12h | Médio | Fullstack |
-| **UX-02** | Virtual Scrolling no Catálogo | 8/10 | **Parcial** | 16h | Alto | Frontend |
-| **UX-03** | Fuso Horário Local (UTC) | 9/10 | **Parcial** | 10h | Médio | Fullstack |
-| **UX-04** | Bloqueio Base64 e `fs.unlink` | 8/10 | **Parcial** | 8h | Baixo | Backend |
-| **UX-05** | Cache Nginx e Cache-Busting | 7/10 | **Parcial** | 8h | Baixo | DevOps |
-| **UX-06** | Concorrência (Optimistic Locking) | 7/10 | **Parcial** | 12h | Médio | Backend |
-| **UX-07** | Acessibilidade WCAG 2.2 AA | 8/10 | **Parcial** | 20h | Médio | Frontend |
-| **UX-08** | Hardening de Uploads / Cotas | 8/10 | **Parcial** | 8h | Alto | Backend |
-| **BUS-01** | Execução Real de Treino (Sessions) | 10/10 | **Parcial** | 24h | Alto | Fullstack |
-| **BUS-02** | Status da Ficha (Draft/Published) | 9/10 | **Parcial** | 12h | Baixo | Fullstack |
-| **BUS-03** | Ciclo de Vida do Aluno/Vínculo | 9/10 | **Parcial** | 16h | Médio | Fullstack |
-| **BUS-04** | Anamnese Clínica (`Assessments`) | 9/10 | **Parcial** | 16h | Baixo | Fullstack |
-| **BUS-05** | Aderência Semanal Analítica | 8/10 | **Parcial** | 12h | Médio | Backend |
-| **BUS-06** | Progressão de Carga e 1-RM | 7/10 | **Parcial** | 16h | Médio | Fullstack |
+## Ordem executiva recomendada
 
-| **BUS-07** | Temporizador e Sessão Ativa | 7/10 | **Não Iniciado** | 14h | Baixo | Frontend |
-| **BUS-08** | Fila IndexedDB e Idempotency | 8/10 | **Parcial** | 20h | Alto | Fullstack |
-| **BUS-07** | Temporizador e Sessão Ativa | 7/10 | **Parcial** | 14h | Baixo | Frontend |
-| **BUS-08** | Fila IndexedDB e Idempotency | 8/10 | **Não Iniciado** | 20h | Alto | Frontend |
-| **BUS-09** | Chaves de Cadastro via CLI | 10/10 | **Parcial** | 8h | Baixo | Backend |
-| **BUS-10** | Edição/Exclusão/Leitura de Chat | 8/10 | **Parcial** | 12h | Médio | Fullstack |
-| **BUS-11** | Indicador "Digitando..." via SSE | 5/10 | **Parcial** | 8h | Baixo | Fullstack |
-| **BUS-12** | Inativação e Abas de Alunos | 8/10 | **Parcial** | 8h | Baixo | Fullstack |
-| **BUS-13** | Periodização Biomecânica | 6/10 | **Parcial** | 20h | Alto | Fullstack |
-| **BUS-14** | Governança do Catálogo | 7/10 | **Parcial** | 16h | Médio | Backend |
-| **OPS-01** | Subscriptions e Bloqueio 402 | 7/10 | **Parcial** | 16h | Alto | Backend |
-| **OPS-02** | Gestão de Equipe (Head/Junior) | 6/10 | **Parcial** | 30h | Alto | Backend |
-| **OPS-03** | Acesso Multiprofissional | 5/10 | **Parcial** | 24h | Médio | Fullstack |
-| **OPS-04** | Integração com Wearables | 4/10 | **Parcial** | 40h | Alto | Fullstack |
-| **OPS-05** | Alertas CRM de Churn e NPS | 5/10 | **Parcial** | 16h | Baixo | Backend |
-| **OPS-06** | Check-ins por Geofencing | 4/10 | **Parcial** | 30h | Alto | Fullstack |
-| **OPS-07** | Check-in de Prontidão (Readiness) | 5/10 | **Parcial** | 12h | Baixo | Fullstack |
-| **BUS-11** | Indicador "Digitando..." via SSE | 5/10 | **Parcial** | 8h | Baixo | Fullstack |
-| **BUS-12** | Inativação e Abas de Alunos | 8/10 | **Não Iniciado** | 8h | Baixo | Fullstack |
-| **BUS-13** | Periodização Biomecânica | 6/10 | **Não Iniciado** | 20h | Alto | Backend |
-| **BUS-14** | Governança do Catálogo | 7/10 | **Não Iniciado** | 16h | Médio | Backend |
-| **OPS-01** | Subscriptions e Bloqueio 402 | 7/10 | **Não Iniciado** | 16h | Alto | Backend |
-| **OPS-02** | Gestão de Equipe (Head/Junior) | 6/10 | **Não Iniciado** | 30h | Alto | Backend |
-| **OPS-03** | Acesso Multiprofissional | 5/10 | **Não Iniciado** | 24h | Médio | Fullstack |
-| **OPS-04** | Integração com Wearables | 4/10 | **Não Iniciado** | 40h | Alto | Fullstack |
-| **OPS-05** | Alertas CRM de Churn e NPS | 5/10 | **Não Iniciado** | 16h | Baixo | Backend |
-| **OPS-06** | Check-ins por Geofencing | 4/10 | **Não Iniciado** | 30h | Alto | Fullstack |
-| **OPS-07** | Check-in de Prontidão (Readiness) | 5/10 | **Não Iniciado** | 12h | Baixo | Fullstack |
-| **OPS-08** | Central de Notificações | 5/10 | **Não Iniciado** | 16h | Baixo | Fullstack |
-| **OPS-09** | Exportação e Anonimização LGPD | 9/10 | **Não Iniciado** | 14h | Alto | Backend |
-| **OPS-10** | Health Checks Liveness/Readiness | 8/10 | **Parcial** | 8h | Baixo | DevOps |
-| **OPS-11** | Sessões por Dispositivo | 6/10 | **Parcial** | 18h | Médio | Backend |
-| **OPS-12** | Impersonation Auditável | 6/10 | **Parcial** | 14h | Alto | Backend |
-| **OPS-13** | Logs JSON, Redaction e Métricas | 8/10 | **Não Iniciado** | 16h | Médio | DevOps |
-| **OPS-14** | CI/CD Obrigatória | 9/10 | **Parcial** | 24h | Alto | DevOps | #
-| **MOB-01** | Wrapper Híbrido (Capacitor) | 7/10 | **Parcial** | 20h | Alto | Mobile |
-| **MOB-02** | Resolução Dinâmica Base URL | 8/10 | **Parcial** | 6h | Baixo | Mobile |
-| **MOB-03** | CORS para WebViews | 8/10 | **Parcial** | 6h | Baixo | Backend |
-| **MOB-04** | Secure Storage | 7/10 | **Parcial** | 10h | Alto | Mobile |
+1. Ativar proteção da `main` e manter os cinco checks obrigatórios.
+2. Configurar provedores reais: e-mail, backup S3/R2 e secret manager.
+3. Executar E2E dos fluxos críticos em navegador e dispositivo mobile.
+4. Fechar observabilidade, alertas e exercícios periódicos de restore.
+5. Só então promover integrações comerciais/externas: cobrança, wearables, WhatsApp e geofencing.
 
----
+## Matriz consolidada
 
-## 2. Dependências entre Tarefas (Ordem Lógica)
+| ID | Requisito | Estado | Evidência atual | Condição para concluir/evoluir |
+|---|---|---|---|---|
+| **SEC-01** | Proteção contra IDOR | **Parcial** | `idorMatrix.test.js`; ownership nos controllers | Reexecutar matriz para todas as rotas novas e padronizar 403/404 |
+| **SEC-02** | Onboarding obrigatório | **Implementado** | migration `must_change_password`; `onboarding.test.js`; bloqueio frontend | QA E2E em navegador permanece como melhoria |
+| **SEC-03** | Convites de aluno | **Parcial** | tokens expiráveis, claim e `studentInvitations.test.js` | Entrega real de e-mail, reenvio e operação ponta a ponta |
+| **SEC-04** | Reset de senha do personal | **Parcial** | tokens com hash, expiração, rate limit, UI pública e testes | Configurar provedor de e-mail e validar entrega real |
+| **SEC-05** | Verificação de e-mail | **Parcial** | migration, tokens, políticas e `emailVerification.test.js` | Entrega real, tela completa e política operacional |
+| **SEC-06** | CSRF segregado | **Parcial** | cookies, origem/referer e testes HTTP | E2E WebView/Bearer em origem pública |
+| **SEC-07** | Rate limit IP + conta | **Parcial** | chave combinada e hardening distribuído | Validar store compartilhado e múltiplas réplicas em produção |
+| **SEC-08** | PAR-Q e termos | **Parcial** | `signed_waivers`, endpoints e `waivers.test.js` | Versionamento jurídico, UI final e validação operacional |
+| **SEC-09** | Segredos na CI | **Parcial** | Gitleaks, `.env` removido e validação de JWT | Confirmar rotação externa e secret manager |
+| **DB-01** | Persistência física | **Parcial** | volume `/app/data`; teste de restore completo | Teste periódico após recriação real de containers/host |
+| **DB-02** | WAL e busy timeout | **Implementado** | pragmas por conexão e teste de contenção | Monitorar `SQLITE_BUSY` em carga real |
+| **DB-03** | Foreign keys | **Implementado** | pragma por conexão; órfãos, cascade e SET NULL testados | Reauditar cada nova migration |
+| **DB-04** | Backup seguro | **Implementado** | `VACUUM INTO`, integridade, worker e restore | Manter exercício periódico de restore |
+| **DB-05** | Backup off-site | **Parcial** | serviço criptografado, retenção, runbook e testes | Credenciais em secret manager e restore real S3/R2 agendado |
+| **DB-06** | Expand/contract | **Parcial** | política CI, script e runbook | Validar deploy em duas versões/ambientes |
+| **DB-07** | Constraints e índices | **Parcial** | índices e constraints existentes com testes | Revisar planos das consultas novas e constraints restantes |
+| **DB-08** | Transações compostas | **Implementado** | aluno/treino atômicos e testes negativos de rollback | Aplicar padrão a novos fluxos compostos |
+| **DB-09** | Precisão de domínio | **Parcial** | migration e `domainConstraints.test.js` | Eliminar floats/unidades ambíguas e migrar dados legados |
+| **UX-01** | Paginação por cursor no chat | **Parcial** | API por cursor e testes | Carregamento progressivo completo no frontend e QA extenso |
+| **UX-02** | Virtual scrolling | **Parcial** | renderização virtualizada e teste estrutural | Benchmark/QA com catálogo grande e viewports reais |
+| **UX-03** | Fuso horário | **Parcial** | módulo `datetime.js` e uso nas telas principais | Auditar todos os timestamps administrativos e legados |
+| **UX-04** | Mídias órfãs/Base64 | **Parcial** | WebP, escrita atômica, limpeza e testes | Multipart, reconciliação global agendada e quota operacional |
+| **UX-05** | Cache e cache-busting | **Parcial** | política Nginx e versionamento atual | Build com hashes de conteúdo e manifesto automático |
+| **UX-06** | Optimistic locking | **Parcial** | campo version e conflitos em recursos selecionados | Cobrir todas as mutações e integrar `If-Match` no frontend |
+| **UX-07** | WCAG 2.2 AA | **Parcial** | focus trap, teclado, reduced motion e testes | Auditoria manual de contraste, leitor de tela e fluxo completo |
+| **UX-08** | Uploads e cotas | **Parcial** | MIME/assinatura, limites e `mediaQuotaService` | Multipart e reconciliação operacional de armazenamento |
+| **BUS-01** | Sessões reais de treino | **Implementado** | sessões, progresso, status, histórico, UI e testes | Teste E2E em dispositivo e telemetria são melhorias |
+| **BUS-02** | Status da ficha | **Parcial** | draft/published/archived no backend | Controles e auditoria completos em todas as interfaces |
+| **BUS-03** | Ciclo de vida do aluno | **Parcial** | status de conta/vínculo e controllers | Aplicar todas as políticas read-only/bloqueio e UX final |
+| **BUS-04** | Anamnese | **Parcial** | migration, controller e campos privados | Tela completa, edição/versionamento e auditoria clínica |
+| **BUS-05** | Aderência semanal | **Parcial** | serviço, endpoint e testes | Metas configuráveis, gráficos e validação de negócio |
+| **BUS-06** | Progressão de carga | **Parcial** | analytics e endpoint | Sugestão na sessão e fórmula 1-RM validada |
+| **BUS-07** | Temporizador/sessão ativa | **Parcial** | atividade, timer e recuperação mobile | QA de background, múltiplos dispositivos e expiração |
+| **BUS-08** | Offline e idempotência | **Parcial** | IndexedDB, chaves, retenção e telemetria | Cobrir todos os fluxos offline e conflitos complexos |
+| **BUS-09** | Chaves de cadastro CLI | **Implementado** | criar, listar/revogar e testes do serviço | Governança operacional contínua |
+| **BUS-10** | Ciclo de vida do chat | **Implementado** | editar/excluir, UI e eventos SSE consolidados até PR #186 | Política de retenção pode evoluir |
+| **BUS-11** | Indicador digitando | **Parcial** | SSE, frontend, debounce e testes | QA offline/por conversa e observabilidade |
+| **BUS-12** | Inativação e filtros | **Parcial** | filtro server-side, abas e auditoria | Confirmação acessível e políticas completas por status |
+| **BUS-13** | Periodização | **Parcial** | microciclos e editor do personal | Visualização do aluno e validação biomecânica |
+| **BUS-14** | Governança do catálogo | **Parcial** | escopo/customização e deduplicação inicial | Moderação global e deduplicação automática em lote |
+| **OPS-01** | Subscriptions | **Parcial** | schema, guard e controller | Gateway real, webhooks idempotentes e ciclo financeiro |
+| **OPS-02** | Equipes Head/Junior | **Parcial** | schema e endpoints básicos | Convites, permissões granulares, bibliotecas e split |
+| **OPS-03** | Acesso multiprofissional | **Parcial** | consentimentos e endpoints | Convites, exames, UX e auditoria operacional |
+| **OPS-04** | Wearables | **Parcial** | foundation de ingestão e testes | OAuth real, jobs incrementais e conectores de provedores |
+| **OPS-05** | CRM/NPS | **Parcial** | serviço, controller e testes | Agendamento/entrega reais, métricas e preferências |
+| **OPS-06** | Geofencing | **Parcial** | schema, controller e testes | GPS/Wi-Fi real, antifraude, ICS e UX |
+| **OPS-07** | Readiness | **Parcial** | check-in, regras, gate e testes | Validação clínica, lembretes e acompanhamento longitudinal |
+| **OPS-08** | Notificações | **Parcial** | centro/preferências e testes frontend/backend | Workers e canais reais push/WhatsApp/e-mail |
+| **OPS-09** | LGPD | **Parcial** | exportação/anonimização e testes | Processamento assíncrono, criptografia e confirmação |
+| **OPS-10** | Liveness/readiness | **Parcial** | endpoints separados e testes | Falhas reais de banco/migrations no ambiente de deploy |
+| **OPS-11** | Sessões por dispositivo | **Parcial** | tabela, listagem/revogação e UI de perfil | Limites, expiração, logout global e telemetria |
+| **OPS-12** | Impersonation | **Parcial** | eventos auditáveis e controllers | Aprovação, escopo restrito e banner de suporte |
+| **OPS-13** | Observabilidade | **Parcial** | logs JSON, redaction e métricas protegidas | Exportador, retenção, alertas e correlação |
+| **OPS-14** | CI/CD | **Parcial** | 5 checks aprovados: backend, frontend, secrets, migrations e policy | Proteção da main, deploy/rollback e ambientes segregados |
+| **MOB-01** | Wrapper Capacitor | **Parcial** | configuração e testes de estrutura | Build assinado e validação em Android/iOS reais |
+| **MOB-02** | Base URL dinâmica | **Parcial** | resolver Capacitor e testes | Configuração por ambiente e distribuição real |
+| **MOB-03** | CORS WebView | **Parcial** | origens Capacitor permitidas com testes | Validar aparelhos, builds release e política por ambiente |
+| **MOB-04** | Secure Storage | **Parcial** | bridge, refresh token e testes | Plugin nativo real, migração e testes em dispositivo |
 
-As tarefas devem respeitar as seguintes dependências técnicas para evitar retrabalho de arquitetura:
+## Dependências críticas
 
 ```mermaid
 graph TD
-    DB-01(Docker Volumes) --> DB-05(Backup Off-site)
-    DB-02(Locks SQLite) --> BUS-01(Sessões Reais)
-    DB-03(Foreign Keys) --> BUS-01
-    SEC-01(IDOR Ownership) --> BUS-01
-    BUS-01(Execução Real/Sessões) --> BUS-05(Aderência Semanal)
-    BUS-01 --> BUS-06(Progressão e 1-RM)
-    BUS-01 --> OPS-05(CRM Churn)
-    BUS-01 --> OPS-07(Check-in de Prontidão)
-    SEC-02(must_change_password) --> SEC-03(Convites)
-    MOB-01(Capacitor APK) --> MOB-02(URL Resolver)
-    MOB-01 --> MOB-04(Secure Storage)
+  BP[Proteção da main] --> REL[Entrega confiável]
+  SEC[Segredos + sessões + CSRF] --> MOB[Mobile em produção]
+  EMAIL[Provedor de e-mail] --> INV[Convites/verificação/reset]
+  BACKUP[Backup off-site real] --> DR[Restore periódico]
+  BUS1[Sessões de treino] --> ANA[Aderência/progressão/readiness]
+  OBS[Observabilidade] --> EXT[Integrações externas]
 ```
 
----
+## Evidência de baseline
 
-## 3. Matriz de Mapeamento Técnico de Código
-
-Esta matriz correlaciona cada ID de requisito aos arquivos de implementação e testes do repositório:
-
-| ID | Arquivo Atual | Teste Atual | Teste Faltante |
-|---|---|---|---|
-| **SEC-01** | `../backend/src/controllers/studentController.js`, `workoutController.js`, `chatController.js` | `../backend/src/tests/api.test.js`, `chatController.test.js` | `Matriz IDOR negativa cobrindo toda rota com recurso de aluno` |
-| **SEC-02** | `../backend/src/db/migrations/202607290001_add_must_change_password.js`, `authController.js`, `studentController.js`, `profileController.js`, `middleware/auth.js`, `frontend/js/app.js`, `profile.js` | `../backend/src/tests/onboarding.test.js`, `api.test.js`, `passwordReset.test.js` | `Teste E2E de navegador para impedir fechamento do modal obrigatório` |
-| **SEC-03** | `../backend/src/db/migrations/202607290002_create_student_invitations.js`, `studentController.js`, `middleware/validateRequest.js`, `index.js` | `../backend/src/tests/studentInvitations.test.js`, `migrations.test.js` | `Entrega de e-mail e endpoint de aceite que cria a conta do aluno` |
-| **SEC-05** | `../backend/src/db/migrations/202607290003_add_email_verification.js`, `authController.js`, `emailDeliveryService.js`, `index.js` | `../backend/src/tests/emailVerification.test.js`, `migrations.test.js` | `Bloqueios de política no reset/onboarding e tela de confirmação` |
-| **SEC-06** | `../backend/src/middleware/auth.js`, `httpSecurity.js` | `../backend/src/tests/httpSecurity.test.js`, `api.test.js` | `Fluxo mobile/Bearer e teste E2E em origem pública` |
-| **SEC-07** | `../backend/src/middleware/httpSecurity.js` | `../backend/src/tests/httpSecurity.test.js` | `Chave combinada por IP + e-mail, inclusive múltiplos IPs` |
-| **DB-01** | `../docker-compose.yml` | - | `Checagem física de persistência pós container restart` |
-| **DB-02** | `../backend/knexfile.js` | `../backend/src/tests/auth-config.test.js` | `Teste de contenção com escritas paralelas` |
-| **DB-03** | `../backend/knexfile.js` | `../backend/src/tests/migrations.test.js` | `Confirmar pragma em cada conexão e rejeitar registro órfão` |
-| **DB-04** | `../backend/src/scripts/backupDatabase.js`, `workers/backupWorker.js` | `../backend/src/tests/backupDatabase.test.js`, `backupWorker.test.js` | `Restore periódico em ambiente isolado` |
-| **DB-05** | `../backend/src/services/offsiteBackupService.js`, `../backend/src/workers/runBackupWorker.js`, `../docker-compose.yml` | `../backend/src/tests/offsiteBackup.test.js`, `persistenceRestore.test.js` | `Credenciais no secret manager e restore periódico real em S3/R2 isolado` |
-| **DB-06** | `../.github/scripts/verify-migration-policy.sh`, `../.github/workflows/backend-tests.yml` | `../backend/src/tests/migrationPolicy.test.js`, `migrations.test.js` | `Dual-read/dual-write e execução real do deploy em dois ambientes` |
-| **DB-08** | `../backend/src/controllers/workoutController.js` | `../backend/src/tests/api.test.js` | `Rollback negativo para cada falha de exercício e auditoria transacional` |
-| **DB-07** | `../backend/src/db/migrations/202607140002_add_query_indexes.js` | `../backend/src/tests/indexes.test.js` | `Constraints de domínio e planos das consultas futuras` |
-| **UX-07** | `../frontend/desktop.html`, `mobile.html`, `css/` | `../frontend/tests/strict-csp.test.js`, `safe-dom.test.js` | `Auditoria WCAG 2.2 AA automatizada e manual` |
-| **UX-08** | `../backend/src/services/avatarService.js`, `../nginx.conf` | `../backend/src/tests/api.test.js` | `Quota por usuário/tenant e persistência/reconciliação de arquivos` |
-| **BUS-04** | `../backend/src/db/migrations/202607290009_create_student_assessments.js`, `assessmentController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Tela de anamnese, edição/versionamento e auditoria clínica` |
-| **BUS-10** | `../backend/src/db/migrations/202607290013_add_chat_message_lifecycle.js`, `../backend/src/controllers/chatController.js`, `../backend/src/index.js` | `../backend/src/tests/api.test.js`, `../backend/src/tests/migrations.test.js` | `Editar/excluir pelo frontend e histórico visual de eventos SSE` |
-| **BUS-11** | `../backend/src/controllers/chatController.js`, `../backend/src/index.js`, `../frontend/js/app.js`, `../frontend/js/events.js` | `../backend/src/tests/api.test.js`, `../frontend/tests/chat-typing.test.js` | `QA visual do indicador, estado offline e ajuste fino do debounce` |
-| **BUS-12** | `../backend/src/controllers/studentController.js`, `../frontend/js/personal.js` | `../backend/src/tests/api.test.js`, `../frontend/tests/strict-csp.test.js` | `Confirmação acessível antes de mudança de status e consulta de auditoria na interface` |
-| **BUS-13** | `../backend/src/db/migrations/202607290012_create_workout_microcycles.js`, `../backend/src/controllers/workoutController.js`, `../frontend/js/personal.js` | `../backend/src/tests/api.test.js`, `../frontend/tests/periodization.test.js` | `Sugestões automáticas, visualização para o aluno e QA biomecânico` |
-| **BUS-14** | `../backend/src/db/migrations/202607290014_add_catalog_governance.js`, `../backend/src/controllers/exerciseController.js`, `../backend/src/index.js` | `../backend/src/tests/migrations.test.js`, `../backend/src/tests/api.test.js` | `Catálogo global realmente compartilhado, moderação e deduplicação automática em lote` |
-| **OPS-01** | `../backend/src/db/migrations/202607290015_create_subscriptions.js`, `../backend/src/middleware/subscriptionGuard.js`, `../backend/src/controllers/subscriptionController.js`, `../backend/src/index.js` | `../backend/src/tests/migrations.test.js`, `../backend/src/tests/api.test.js` | `Integração com provedor de cobrança, webhooks idempotentes, renovação/cancelamento e painel administrativo` |
-| **OPS-02** | `../backend/src/db/migrations/202607290016_create_personal_team_memberships.js`, `../backend/src/controllers/teamController.js`, `../backend/src/index.js` | `../backend/src/tests/migrations.test.js`, `../backend/src/tests/api.test.js` | `Convites, bibliotecas compartilhadas, split financeiro e permissões granulares` |
-| **OPS-03** | `../backend/src/db/migrations/202607290017_create_partner_consents.js`, `../backend/src/controllers/partnerController.js`, `../backend/src/index.js` | `../backend/src/tests/migrations.test.js`, `../backend/src/tests/api.test.js` | `Convites, upload seguro de exames, interface de consentimentos e telemetria operacional` |
-| **OPS-04** | `../backend/src/db/migrations/202607290018_create_wearable_integrations.js`, `../backend/src/controllers/wearableController.js`, `../backend/src/index.js` | `../backend/src/tests/migrations.test.js`, `../backend/src/tests/wearables.test.js` | `OAuth real por provedor, jobs assíncronos, sincronização incremental e UI de autorregulação` |
-| **OPS-05** | `../backend/src/db/migrations/202607290019_create_crm_alerts_and_nps.js`, `../backend/src/services/crmService.js`, `../backend/src/controllers/crmController.js` | `../backend/src/tests/migrations.test.js`, `../backend/src/tests/crmController.test.js` | `Agendamento real, entrega de e-mail, preferências, métricas e segmentação de campanhas` |
-| **OPS-06** | `../backend/src/db/migrations/202607290020_create_geofence_checkins.js`, `../backend/src/controllers/geofenceController.js`, `../backend/src/index.js` | `../backend/src/tests/migrations.test.js`, `../backend/src/tests/geofenceController.test.js` | `GPS/Wi-Fi confiável, agendamentos ICS, antifraude e interface operacional` |
-| **OPS-07** | `../backend/src/db/migrations/202607290021_create_readiness_checkins.js`, `../backend/src/controllers/readinessController.js`, `../backend/src/services/readinessService.js` | `../backend/src/tests/migrations.test.js`, `../backend/src/tests/readinessController.test.js` | `Lembretes, bloqueio/autorregulação na ficha e validação clínica das recomendações` |
-| **OPS-08** | `../backend/src/db/migrations/202607290022_create_notification_center.js`, `../backend/src/services/notificationService.js`, `../backend/src/controllers/notificationController.js` | `../backend/src/tests/migrations.test.js`, `../backend/src/tests/notificationController.test.js` | `Workers de entrega, push/WhatsApp reais, preferências no frontend e observabilidade de falhas` |
-| **OPS-09** | `../backend/src/controllers/complianceController.js`, `../backend/src/index.js` | `../backend/src/tests/complianceController.test.js` | `Exportação assíncrona/criptografada, retenção, confirmação por e-mail e relatório de auditoria LGPD` |
-| **OPS-10** | `../backend/src/controllers/healthController.js`, `../backend/src/index.js` | `../backend/src/tests/healthController.test.js`, `../backend/src/tests/api.test.js` | `Probes independentes, banco indisponível e migrations pendentes` |
-| **OPS-11** | `../backend/src/db/migrations/202607290023_create_user_sessions.js`, `../backend/src/services/sessionService.js`, `../backend/src/controllers/sessionController.js`, `../backend/src/middleware/auth.js` | `../backend/src/tests/migrations.test.js`, `../backend/src/tests/sessionController.test.js` | `Limite de dispositivos, logout global, expiração e telemetria de sessões` |
-| **OPS-12** | `../backend/src/db/migrations/202607290024_create_impersonation_events.js`, `../backend/src/controllers/impersonationController.js`, `../backend/src/middleware/auth.js` | `../backend/src/tests/migrations.test.js`, `../backend/src/tests/impersonationController.test.js` | `Aprovação, escopo limitado, banner de suporte e relatório de auditoria` |
-| **OPS-13** | `../backend/src/services/logger.js`, `../backend/src/services/metricsService.js`, `../backend/src/index.js` | `../backend/src/tests/logger.test.js`, `../backend/src/tests/metrics.test.js` | `Exportador Prometheus/OpenTelemetry, retenção, alertas e correlação distribuída` |
-| **OPS-14** | `../.github/workflows/backend-tests.yml`, `../.github/scripts/verify-ci-policy.sh` | `../backend/src/tests/migrations.test.js`, `../package.json` | `Branch protection, deploy/rollback automatizados e ambientes segregados` |
-| **OPS-10** | `../backend/src/controllers/healthController.js`, `../backend/src/index.js` | `../backend/src/tests/api.test.js` | `Exercitar falha de readiness com banco indisponível e migration pendente em ambiente de deploy` |
-| **UX-01** | `../backend/src/controllers/chatController.js`, `../backend/src/index.js` | `../backend/src/tests/api.test.js` | `Carregar páginas anteriores no frontend e botão/scroll de histórico` |
-| **UX-02** | `../frontend/js/personal.js`, `../frontend/css/style.css`, `mobile.css` | `../frontend/tests/strict-csp.test.js` | `Medição visual de altura por viewport e QA em catálogo muito grande` |
-| **UX-03** | `../frontend/js/datetime.js`, `personal.js`, `student.js`, páginas HTML | `../frontend/tests/strict-csp.test.js` | `Normalizar respostas legadas do backend e auditoria dos demais timestamps administrativos` |
-| **UX-04** | `../backend/src/services/avatarService.js`, `profileController.js` | `../backend/src/tests/avatarService.test.js`, `api.test.js` | `Quota operacional configurável, reconciliação periódica global e upload multipart` |
-| **UX-05** | `../nginx.conf`, `../frontend/index.html`, `desktop.html`, `mobile.html` | `../frontend/tests/strict-csp.test.js` | `Build automatizado que gera hashes de conteúdo e impede referências a assets removidos` |
-| **UX-06** | `../backend/src/db/migrations/202607290006_add_optimistic_versions.js`, `profileController.js`, `exerciseController.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Aplicar If-Match a todas as mutações editáveis e enviar versão pelo frontend` |
-| **UX-07** | `../frontend/css/style.css`, `desktop.html`, `mobile.html` | `../frontend/tests/strict-csp.test.js` | `Auditoria manual com leitor de tela, contraste medido e navegação completa por teclado` |
-| **BUS-02** | `../backend/src/db/migrations/202607290007_add_workout_status.js`, `workoutController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Controles de status no frontend e auditoria de publicação` |
-| **BUS-03** | `../backend/src/db/migrations/202607290008_add_student_lifecycle_status.js`, `studentController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Aplicar políticas de acesso para contas suspensas/arquivadas e abas de status no frontend` |
-| **BUS-06** | `../backend/src/controllers/progressionController.js`, `index.js` | `../backend/src/tests/api.test.js` | `Sugestão visual no frontend e cálculo de 1-RM por fórmula validada` |
-| **BUS-12** | `../backend/src/controllers/studentController.js`, `../frontend/js/personal.js`, `desktop.html`, `mobile.html` | `../backend/src/tests/api.test.js`, `../frontend/tests/strict-csp.test.js` | `Endpoint com filtro persistido e confirmação/auditoria das transições de status` |
-| **BUS-11** | `../backend/src/controllers/chatController.js`, `index.js`, `../frontend/js/api.js`, `app.js` | `../backend/src/tests/api.test.js`, `../frontend/tests/strict-csp.test.js` | `Debounce configurável, feedback visual por conversa e observabilidade de eventos` |
-| **BUS-04** | `../backend/src/db/migrations/202607290009_create_student_assessments.js`, `assessmentController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Tela de anamnese, edição/versionamento e auditoria clínica` |
-| **BUS-08** | `../backend/src/db/migrations/202607290011_create_idempotency_keys.js`, `../backend/src/middleware/idempotency.js`, `../frontend/js/api.js` | `../backend/src/tests/migrations.test.js`, `../backend/src/tests/workoutSessions.test.js`, `../frontend/tests/strict-csp.test.js` | `Instrumentar fila para todos os fluxos offline e política de retenção/limpeza` |
-| **BUS-07** | `../backend/src/db/migrations/202607290010_add_session_activity.js`, `workoutSessionController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `workoutSessions.test.js` | `Temporizador visual e recuperação automática da sessão no frontend` |
-| **BUS-05** | `../backend/src/controllers/adherenceController.js`, `index.js` | `../backend/src/tests/api.test.js` | `Metas semanais configuráveis e gráficos no dashboard do Personal` |
-| **BUS-04** | `../backend/src/db/migrations/202607290009_create_student_assessments.js`, `assessmentController.js`, `index.js` | `../backend/src/tests/migrations.test.js`, `api.test.js` | `Tela de anamnese, edição/versionamento e auditoria clínica` |
-| **UX-08** | `../backend/src/services/avatarService.js`, `mediaQuotaService.js`, `profileController.js`, `exerciseController.js`, `nginx.conf` | `../backend/src/tests/avatarService.test.js`, `mediaQuotaService.test.js`, `httpSecurity.test.js` | `Multipart para novos uploads e reconciliação global agendada` |
-
----
-
-## 4. Critérios de Aceite para Requisitos P0 (Prioridades 9 e 10)
-
-### [SEC-01] Proteção contra IDOR
-*   *Critério 1*: Toda rota que receba ou derive `studentId`, `workoutId`, `exerciseId`, `messageId` ou `userId` deve resolver o proprietário no servidor e retornar `403 Forbidden` para acesso cruzado autenticado, sem revelar se o recurso existe.
-*   *Critério 2*: Uma matriz automatizada deve executar Personal A contra recursos do Personal B em detalhes, medidas, treinos, exercícios, chat, avatar e futuras avaliações. Eventos de segurança devem ser auditados com minimização e rate limit, sem registrar conteúdo sensível.
-
-### [SEC-02] Onboarding compulsório
-*   *Critério 1*: Login de conta com `must_change_password = true` deve redirecionar a interface SPA para a tela de alteração e travar rotas alternativas.
-*   *Critério 2*: A nova senha deve ter tamanho igual ou superior a 10 caracteres.
-
-### [DB-03] Enforce de Foreign Keys
-*   *Critério 1*: A inicialização do banco SQLite deve invocar `PRAGMA foreign_keys = ON;` para cada conexão do pool.
-*   *Critério 2*: Inserções/atualizações órfãs devem falhar; deleções devem seguir explicitamente a política `CASCADE`, `RESTRICT` ou `SET NULL` definida para cada relação e ser cobertas por teste.
-
-### [DB-08] Transação de Cadastros Compostos
-*   *Critério 1*: Falhas em inserções na tabela pivot `workout_exercises` devem restaurar o estado revertendo a criação da ficha principal na tabela `workouts` de forma atômica.
-
-### [BUS-01] Execução Real de Treino
-*   *Critério 1*: Logs de exercícios devem armazenar valores de peso, repetições e séries reais executadas pelo aluno no ginásio.
-*   *Critério 2*: Sessões de treino devem expor status `started`, `completed` e `abandoned` indexados na tabela `workout_sessions`.
-
----
-
-## 5. Registro de Progresso e Entregas
-
-| Data | Item | Entrega | Evidência | Estado/Próximo passo |
-|---|---|---|---|---|
-| 29/07/2026 | SEC-02 | Onboarding obrigatório com `must_change_password`, bloqueio `428`, modal de troca, revogação de sessão e reset integrado | PR #88; commit `dd2938e`; frontend 51/51; backend aprovado no CI | Concluído |
-| 29/07/2026 | CI | Dependências vulneráveis corrigidas, encerramento determinístico do Jest e reparo da suíte BUS-01 | PR #89; commits `1319f53`, `e51a32a`, `928d98e`; Backend 165/165 no CI | Concluído |
-| 29/07/2026 | SEC-03 | Migration e endpoint transacional de convite, hash SHA-256, expiração de 72h, substituição e auditoria | PR #90; commit `05efe29`; testes focados 8/8 | Parcial: falta envio de e-mail e aceite que cria a conta |
-| 29/07/2026 | SEC-03 | Endpoint público de aceite, criação transacional de aluno/perfil, expiração e bloqueio de replay | PR em abertura `security/sec-03-invitation-claim`; testes focados 5/5 | Parcial: falta integração de entrega via e-mail |
-| 29/07/2026 | SEC-03 | Adaptador de envio via Resend com URL configurável, sem exposição do token em produção e fallback explícito sem provedor | PR #91; testes focados 5/5 | Parcial operacional: configurar `RESEND_API_KEY`, `EMAIL_FROM` e `APP_BASE_URL` |
-| 29/07/2026 | SEC-05 | Migration de verificação, token hash de uso único/24h, emissão no cadastro pessoal e endpoint de confirmação | PR em abertura `security/sec-05-email-verification`; testes focados 6/6 | Parcial: falta bloquear políticas por e-mail não verificado e tela frontend |
-| 29/07/2026 | DB-09 | Triggers SQLite impedem peso inválido, medidas negativas e séries não positivas no nível do banco | PR em abertura `db/db-09-domain-constraints`; domínio/migrations 7/7 | Parcial: ampliar invariantes para todos os domínios e catálogo |
-| 29/07/2026 | SEC-07 | Rate limit de autenticação combina IP normalizado e conta/e-mail submetido, mantendo budgets separados por operação | PR em abertura `security/sec-07-account-rate-limit`; httpSecurity 20/20 | Parcial: armazenamento compartilhado Redis para múltiplas réplicas ainda pendente |
-| 29/07/2026 | SEC-06 | Mutação autenticada por cookie exige origem confiável além do double-submit CSRF; Bearer permanece sem CSRF por desenho | PR em abertura `security/sec-06-csrf-segregation`; API/httpSecurity 77/77 | Parcial: refresh token rotacionado para mobile ainda pendente |
-
-| 29/07/2026 | SEC-05 | Sessão e `/api/auth/me` passam a expor `emailVerified` para a interface aplicar políticas de acesso | PR #92; commit em atualização | Parcial: bloqueios e tela ainda pendentes |
-| 29/07/2026 | SEC-05 | Reset autônomo deixa de gerar token para contas não verificadas; frontend informa a necessidade de confirmação | PR em abertura `security/sec-05-email-policy`; testes backend 13/13 e frontend 51/51 | Parcial: onboarding/login e tela dedicada ainda pendentes |
-| 29/07/2026 | SEC-05 | Frontend consome token de confirmação da URL, chama `/api/auth/verify-email` e anuncia sucesso/erro | PR #93; frontend 51/51 | Parcial: políticas de login/onboarding ainda pendentes |
-| 29/07/2026 | SEC-08 | Migration `signed_waivers` e endpoint autenticado para registrar PAR-Q/termos por versão, IP e assinatura idempotente | PR em abertura `security/sec-08-waivers`; waivers/migrations 6/6 | Parcial: tela de consentimento e revisão clínica ainda pendentes |
-| 29/07/2026 | BUS-01 | Sessões persistem início, progresso por exercício, heartbeat, conclusão/cancelamento, duração, histórico e proteção IDOR; `workoutSessions.test.js` cobre 10 cenários de API | Branch `bus/bus-01-session-status`; backend focado 10/10 | Parcial: falta tela frontend de execução, RPE/logs clínicos e decidir se `in_progress/cancelled` substituem ou mapeiam `started/abandoned` da especificação |
-| 29/07/2026 | BUS-05 | Nova API `GET /api/personal/analytics/adherence` calcula treinos concluídos/publicados por semanas, valida período e ordena alunos por menor aderência/maior tempo sem treinar; cálculo puro coberto em 3/3 testes | Branch `bus/bus-05-adherence-analytics`; endpoint protegido por role `personal` | Parcial: fixture E2E, metas de frequência por aluno e integração visual no dashboard ainda pendentes |
-| 29/07/2026 | UX-01 | GET `/api/chat/:userId?before=<id>&limit=<1..50>` com consulta limitada, ordenação determinística, cursor de mensagens anteriores e compatibilidade com resposta legada sem paginação | Branch `ux/ux-01-chat-cursor`; testes API adicionados | Parcial: integrar carregamento incremental no frontend |
-| 29/07/2026 | UX-02 | Catálogo renderiza janela de até 15 cartões, usa spacers fixos sem estilos inline, mantém busca/ordenação/favoritos e layout móvel | Branch `ux/ux-02-catalog-virtual-scroll`; frontend 52/52; `git diff --check` aprovado | Parcial: validar visualmente com catálogo extenso e integrar ajustes de altura real |
-| 29/07/2026 | UX-03 | Utilitário `AppDateTime` interpreta timestamps SQLite sem fuso como UTC e formata datas/horas via `Intl.DateTimeFormat` no fuso local do navegador; cache-busting atualizado | Branch `ux/ux-03-local-timezone`; frontend 53/53; `git diff --check` aprovado | Parcial: normalizar timestamps legados no backend e cobrir telas administrativas |
-| 29/07/2026 | UX-04 | Upload normalizado mantém quota de 2 MiB por usuário, remove arquivos órfãos após troca/remoção e compensa arquivo novo quando a transação falha | Branch `ux/ux-04-upload-hardening`; backend focado 61/61 | Parcial: reconciliação global agendada e migração para multipart ainda pendentes |
-| 29/07/2026 | UX-05 | Nginx revalida HTML e aplica cache imutável de longo prazo a CSS/JS versionados; teste automatizado impede política ausente | Branch `ux/ux-05-cache-policy`; frontend 54/54; `git diff --check` aprovado | Parcial: hashing automatizado de conteúdo ainda pendente |
-| 29/07/2026 | UX-06 | Migration adiciona `version` a usuários, fichas, exercícios e itens; perfil e favoritos aceitam `If-Match` e retornam `409` em conflito | Branch `ux/ux-06-optimistic-locking`; backend 66/66; `git diff --check` aprovado | Parcial: cobrir todas as mutações e conectar o cabeçalho no frontend |
-| 29/07/2026 | UX-07 | Indicador global de foco visível para controles navegáveis foi adicionado sem remover regras específicas; teste confirma foco e `prefers-reduced-motion` | Branch `ux/ux-07-focus-accessibility`; frontend 55/55; `git diff --check` aprovado | Parcial: auditoria manual de contraste/leitor de tela ainda pendente |
-| 29/07/2026 | BUS-02 | Status `draft`/`published`/`archived` com trigger SQLite, endpoint protegido, arquivamento transacional da ficha publicada anteriormente e filtro de rascunhos para alunos | Branch `bus/bus-02-workout-status`; backend migrations/API 68/68 | Parcial: integrar controles de status na interface e auditar eventos de publicação |
-| 29/07/2026 | BUS-03 | Status de conta `active`/`suspended`/`archived` e vínculo `invited`/`active`/`paused`/`blocked`, triggers SQLite e endpoint protegido para atualização do aluno vinculado | Branch `bus/bus-03-student-lifecycle`; backend migrations/API 69/69 | Parcial: aplicar bloqueios de acesso e filtros/abas na interface |
-| 29/07/2026 | BUS-06 | Endpoint agrega volume (`séries × repetições × carga`), informa recorde de volume e última carga/repetições por exercício para sugestão de sessão | Branch `bus/bus-06-progression`; backend API 65/65; `git diff --check` aprovado | Parcial: cálculo de 1-RM e integração visual ainda pendentes |
-| 29/07/2026 | BUS-12 | Abas Ativos/Inativos/Todos no dashboard do Personal filtram vínculos sem apagar prontuário; cartões usam `account_status` e `relationship_status` | Branch `bus/bus-12-student-tabs`; frontend 55/55; `git diff --check` aprovado | Parcial: filtro server-side e auditoria/confirmacão da mudança de status ainda pendentes |
-| 29/07/2026 | BUS-04 | Tabela `student_assessments` separa campos privados do Personal e notas compartilhadas; endpoints autenticados controlam ownership e ocultam `personal_notes` do aluno | Branch `bus/bus-04-assessments`; backend migrations/API 69/69 | Parcial: integrar tela, edição/versionamento e auditoria clínica |
-| 29/07/2026 | BUS-08 | Fila IndexedDB para mutações de sessões quando offline, reenvio FIFO ao voltar a conexão, `Idempotency-Key` por operação e deduplicação de respostas 2xx no backend | Branch `bus/bus-08-offline-idempotency`; frontend 55/55; backend migrations/workout sessions 15/15; `git diff --check` aprovado | Parcial: ampliar instrumentação para demais mutações offline e adicionar limpeza/telemetria da fila |
-| 29/07/2026 | BUS-07 | Campo `last_activity_at`, atualização no início/progresso e endpoint heartbeat autenticado para sessões ativas | Branch `bus/bus-07-active-session`; migrations/workout sessions 15/15; `git diff --check` aprovado | Parcial: temporizador e recuperação automática no frontend ainda pendentes |
-
-| 29/07/2026 | BUS-05 | Endpoint calcula treinos publicados previstos, sessões concluídas no intervalo semanal, percentual de aderência e ordena alunos por menor aderência | Branch `bus/bus-05-adherence`; backend API 65/65; `git diff --check` aprovado | Parcial: metas configuráveis e visualização no dashboard ainda pendentes |
-| 29/07/2026 | BUS-04 | Tabela `student_assessments` separa campos privados do Personal e notas compartilhadas; endpoints autenticados controlam ownership e ocultam `personal_notes` do aluno | Branch `bus/bus-04-assessments`; backend migrations/API 69/69 | Parcial: integrar tela, edição/versionamento e auditoria clínica |
-| 29/07/2026 | UX-08 | Quota agregada configurável de 20 MiB para imagens Base64 de exercícios, validação de MIME/assinatura mantida e respostas `413` para excesso; avatar já possui quota e reconciliação por usuário | Branch `ux/ux-08-upload-quotas`; backend focado 82/82 | Parcial: migrar novos uploads para multipart e executar reconciliação global periódica |
-| 29/07/2026 | OPS-10 | Endpoints `/health/live` (sem dependência do banco) e `/health/ready` (SQLite + migrations), mantendo `/api/health` como alias compatível | Branch `ops/ops-10-health-checks`; testes de API adicionados | Parcial: validar probes em ambiente de deploy e simular indisponibilidade/migration pendente no CI |
-Este registro deve ser atualizado no mesmo PR de cada tópico. Nenhum item deve ser marcado como **Implementado** enquanto seus critérios de aceite e integrações essenciais permanecerem pendentes.
-
-| 30/07/2026 | CI-HOTFIX | Corrigidos conflitos de integração no `main`: importações de controllers ausentes, função `sendTyping` duplicada, rotas/exportações de edição e exclusão de chat e contrato atualizado da suíte de migrations | Branch `fix/ci-chat-duplicate`; backend 36 suítes, 229/230 testes após correção (último caso de API em ajuste) | Em validação no CI |
-| 30/07/2026 | DB-05/OPS-10 | Smoke test reproduzível do Compose valida app/web saudáveis e os endpoints `/api/health`, `/health/live` e `/health/ready` | PR agrupado `infra/production-hardening`; comando `npm run ops:compose-smoke` | Parcial: executar em deploy real e automatizar restore |
-| 30/07/2026 | OPS-11/SEC | Grupo de hardening de sessões adiciona revogação de sessões ociosas e limite configurável de sessões ativas por usuário | Branch `security/session-hardening`; variáveis `MAX_ACTIVE_SESSIONS` e `SESSION_IDLE_TIMEOUT_DAYS` | Parcial: adicionar tela de gerenciamento e telemetria de segurança |
-| 30/07/2026 | SEC-05 | Grupo de política de e-mail adiciona reenvio genérico de verificação, invalidação de tokens anteriores e entrega configurável sem enumeração de contas | Branch `security/email-verification-policy`; testes focados 8/8 | Parcial: bloquear login/onboarding não verificado e integrar tela dedicada |
-| 30/07/2026 | SEC-07 | Rate limiter aceita store compartilhado injetável e política explícita para falhas do store, preservando fallback local nos testes | Branch `security/rate-limit-distributed`; httpSecurity 22/22 | Parcial: conectar Redis gerenciado na composição de produção |
-| 30/07/2026 | SEC-06/MOB | Refresh tokens móveis com hash, TTL configurável, rotação de uso único e revogação da família em replay; novo endpoint `/api/auth/refresh` | Branch `security/refresh-token-rotation`; backend 40 suítes/237 testes | Parcial: armazenar token no Secure Storage nativo e conectar cliente mobile |
-| 30/07/2026 | MOB-04/SEC-06 | Cliente Capacitor guarda o refresh token exclusivamente na ponte `FitLifeSecureStorage`, salva após login e remove no logout; nenhum token é persistido na web | Branch `mobile/auth-refresh-storage`; frontend 58/58 | Parcial: validar plugin nativo mantido em Android/iOS |
-| 30/07/2026 | DB-05 | Comando `npm run db:verify-backup -- <diretório>` restaura um bundle em diretório temporário, valida checksum/integridade e remove o staging ao final | Branch `infra/backup-restore-hardening`; testes de persistência existentes | Parcial: executar em janela de disaster recovery real |
-| 30/07/2026 | MOB-04/SEC-06 | Cliente Capacitor usa access token Bearer em memória, renova automaticamente uma vez após `401`, roda rotação em `/auth/refresh` e apaga o refresh token quando a rotação falha; login fornece access token curto | Branch `mobile/refresh-auto-renew`; testes frontend de contrato | Parcial: validar plugin Secure Storage e fluxo em dispositivo Android/iOS real |
-| 30/07/2026 | BUS-07 | Sessão ativa atualiza heartbeat imediatamente ao retornar ao foreground, remove listeners ao encerrar e descarta estado corrompido do `sessionStorage` sem quebrar o dashboard | Branch `bus/session-resilience`; testes frontend de contrato | Parcial: QA visual/offline em dispositivos móveis e métricas de uso |
-| 30/07/2026 | OPS-07 | Dashboard do aluno exige check-in de prontidão do dia antes de carregar a ficha, com formulário acessível de quatro escalas e envio autenticado | Branch `ops/readiness-gate`; testes frontend de contrato | Parcial: lembretes, integração clínica com periodização e QA móvel |
-| 30/07/2026 | OPS-08 | Centro de notificações integrado ao desktop/mobile: contador de não lidas, listagem segura e marcação de leitura pela API autenticada | Branch `feature/wellbeing-and-notifications`; testes frontend de contrato | Parcial: preferências visuais e entrega push/e-mail permanecem pendentes |
-| 30/07/2026 | OPS-09/OPS-11 | Perfil oferece exportação LGPD em JSON e consulta das sessões ativas, usando endpoints autenticados e sem expor credenciais | Branch `feature/wellbeing-and-notifications`; testes frontend de contrato | Parcial: exclusão assistida e revogação individual precisam de confirmação visual dedicada |
-| 30/07/2026 | SEC-04/OPS-09/OPS-11 | Pacote de segurança de conta adiciona recuperação pública de senha, exportação LGPD e revogação de sessões remotas no perfil | Branch `feature/account-security-suite`; frontend 67/67 | Parcial: tela completa de redefinição via token e exclusão LGPD guiada continuam pendentes |
-| 30/07/2026 | BUS-10/UX-01 | Chat exibe controles de edição/exclusão apenas nas mensagens próprias, usa rotas autenticadas com ID codificado e mantém conteúdo textual seguro | Branch `feature/chat-and-workout-ux`; teste frontend de contrato | Parcial: paginação incremental e eventos SSE de mensagem alterada/removida continuam pendentes |
-| 30/07/2026 | BUS-10/UX-01 | Mesmo pacote trata eventos SSE `message.updated`/`message.deleted`, atualizando ou redigindo o balão existente sem HTML inseguro | Branch `feature/chat-and-workout-ux`; testes frontend 69/69 | Parcial: paginação incremental permanece pendente |
+- 36 migrations versionadas.
+- 40 arquivos de teste backend.
+- 17 arquivos de teste frontend.
+- CI do commit `5274051`: Backend, Frontend and infrastructure, Secret scan, Migration policy e CI policy aprovados.
+- Nenhum PR aberto na data da reconciliação.
+- A existência de migration/controller não é tratada como prova de operação externa; por isso a maioria dos itens permanece parcial.

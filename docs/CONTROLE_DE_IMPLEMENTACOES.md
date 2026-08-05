@@ -54,30 +54,152 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Backend: 109/109 testes aprovados após adicionar dois cenários de configuração insegura.
 - `npm audit` na raiz: 0 vulnerabilidades.
 - `npm audit --omit=dev` no backend: 0 vulnerabilidades.
++
+## Reconciliação da baseline — PRs #88 a #186
 
-## Correção emergencial de advisories — 05/08/2026
+- Estado: inventário reconstruído; validação documental em andamento
+- Branch: `docs/reconcile-roadmap-pr186`
+- Baseline auditada: `5274051` (merge do PR #186)
+- Data da reconciliação: 05/08/2026
+- Alterações locais anteriores preservadas em: `stash@{1}` — `backup-pre-reconciliation-2026-08-05`
 
-- Estado: concluído; entrega em andamento
-- Branch: `security/dependency-advisories-20260805`
-- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/187
-- Motivo: novos advisories passaram a reprovar os audits obrigatórios da baseline `5274051`.
+### Diagnóstico
 
-### Alterações
+- A cópia local estava 257 commits atrás da `main` e foi atualizada por fast-forward.
+- O controle terminava no PR #87, enquanto o repositório já continha trabalho até o PR #186.
+- Dos 99 PRs do intervalo, 75 foram mergeados e 24 foram fechados sem merge; os fechados foram substituídos, rebased ou consolidados posteriormente.
+- A baseline contém 36 migrations, 40 arquivos de teste backend e 17 arquivos de teste frontend.
+- A CI do commit `5274051` aprovou Backend, Frontend and infrastructure, Secret scan, Migration policy e CI policy.
+- Na data da reconciliação não havia PR aberto.
 
-- [x] Atualizar somente `package-lock.json` e `backend/package-lock.json` por resolução segura do npm.
-- [x] Preservar versões declaradas nos dois `package.json`.
-- [x] Reinstalar dependências ausentes, incluindo o AWS SDK já declarado no backend.
-- [x] Executar testes e audits completos.
-- [x] Abrir PR.
-- [ ] Acompanhar os cinco checks.
+### Plano de reconciliação
 
-### Evidências
+- [x] Preservar as três alterações locais pendentes.
+- [x] Sincronizar a `main` com `origin/main`.
+- [x] Criar branch documental exclusiva.
+- [x] Inventariar os PRs #88–#186 usando a API do GitHub.
+- [x] Consolidar o checklist sem IDs duplicados e com estados baseados em evidências.
+- [x] Executar testes e auditorias na baseline sincronizada.
+- [ ] Ativar proteção da branch `main` — bloqueado por permissão administrativa do repositório.
+- [ ] Abrir PR documental e acompanhar a CI.
+
+### Evidências da reconciliação
 
 - Frontend: 69/69 testes aprovados.
-- Backend: 237/237 testes aprovados em 40 suítes.
-- `npm audit`: 0 vulnerabilidades.
-- `npm audit --omit=dev`: 0 vulnerabilidades.
-- Dívida observada: Jest ainda emite aviso tardio de teardown em `auth-config.test.js`, embora finalize com código 0.
+- Backend: 237/237 testes aprovados em 40 suítes após reinstalação conforme os lockfiles.
+- Novos advisories corrigidos no PR #187; os cinco checks foram aprovados e o PR aguarda merge do mantenedor.
+- `npm audit`: 0 vulnerabilidades após a correção dos lockfiles.
+- `npm audit --omit=dev`: 0 vulnerabilidades após a correção dos lockfiles.
+- A tentativa de configurar branch protection retornou HTTP 404 porque `DiogoCrespi` possui somente permissão `pull`; `admin`, `maintain` e `push` são falsos.
+- Política administrativa reproduzível registrada em `docs/runbooks/main-branch-protection.md`.
+
+### Inventário dos PRs
+
+| PR | Resultado | Grupo | Título | Branch de origem |
+|---|---|---|---|---|
+| [#88](https://github.com/carlossuzin6111-code/sistema-tonho/pull/88) | Mergeado | Segurança/DB | feat: enforce mandatory student password onboarding | `security/sec-02-onboarding` |
+| [#89](https://github.com/carlossuzin6111-code/sistema-tonho/pull/89) | Mergeado | Segurança/DB | chore: refresh backend audited dependencies | `chore/fix-backend-audit` |
+| [#90](https://github.com/carlossuzin6111-code/sistema-tonho/pull/90) | Mergeado | Segurança/DB | feat: add expiring student invitations | `security/sec-03-student-invitations` |
+| [#91](https://github.com/carlossuzin6111-code/sistema-tonho/pull/91) | Mergeado | Segurança/DB | feat: allow students to claim invitations | `security/sec-03-invitation-claim` |
+| [#92](https://github.com/carlossuzin6111-code/sistema-tonho/pull/92) | Mergeado | Segurança/DB | feat: add email verification tokens | `security/sec-05-email-verification` |
+| [#93](https://github.com/carlossuzin6111-code/sistema-tonho/pull/93) | Mergeado | Segurança/DB | feat: enforce unverified email recovery policy | `security/sec-05-email-verification` |
+| [#94](https://github.com/carlossuzin6111-code/sistema-tonho/pull/94) | Mergeado | Segurança/DB | feat: validate cookie request origins for CSRF | `security/sec-06-csrf-segregation` |
+| [#95](https://github.com/carlossuzin6111-code/sistema-tonho/pull/95) | Mergeado | Segurança/DB | feat: rate limit authentication by account and IP | `security/sec-07-account-rate-limit` |
+| [#96](https://github.com/carlossuzin6111-code/sistema-tonho/pull/96) | Mergeado | Segurança/DB | feat: add PAR-Q waiver signatures | `security/sec-08-waivers` |
+| [#97](https://github.com/carlossuzin6111-code/sistema-tonho/pull/97) | Mergeado | Segurança/DB | feat: enforce database domain constraints | `db/db-09-domain-constraints` |
+| [#98](https://github.com/carlossuzin6111-code/sistema-tonho/pull/98) | Mergeado | UX | feat: add cursor pagination to chat history | `ux/ux-01-chat-cursor` |
+| [#99](https://github.com/carlossuzin6111-code/sistema-tonho/pull/99) | Mergeado | UX | feat: virtualize exercise catalog rendering | `ux/ux-02-catalog-virtual-scroll` |
+| [#100](https://github.com/carlossuzin6111-code/sistema-tonho/pull/100) | Mergeado | UX | feat: format API timestamps in local timezone | `ux/ux-03-local-timezone` |
+| [#101](https://github.com/carlossuzin6111-code/sistema-tonho/pull/101) | Mergeado | UX | feat: harden avatar storage and orphan cleanup | `ux/ux-04-upload-hardening` |
+| [#102](https://github.com/carlossuzin6111-code/sistema-tonho/pull/102) | Mergeado | UX | feat: add immutable asset cache policy | `ux/ux-05-cache-policy` |
+| [#103](https://github.com/carlossuzin6111-code/sistema-tonho/pull/103) | Mergeado | UX | feat: add optimistic version checks | `ux/ux-06-optimistic-locking` |
+| [#104](https://github.com/carlossuzin6111-code/sistema-tonho/pull/104) | Mergeado | UX | feat: strengthen keyboard focus accessibility | `ux/ux-07-focus-accessibility` |
+| [#105](https://github.com/carlossuzin6111-code/sistema-tonho/pull/105) | Mergeado | UX | feat: enforce exercise media quotas | `ux/ux-08-upload-quotas` |
+| [#106](https://github.com/carlossuzin6111-code/sistema-tonho/pull/106) | Mergeado | Negócio | feat: add workout draft and publication lifecycle | `bus/bus-02-workout-status` |
+| [#107](https://github.com/carlossuzin6111-code/sistema-tonho/pull/107) | Mergeado | Negócio | feat: add student lifecycle statuses | `bus/bus-03-student-lifecycle` |
+| [#108](https://github.com/carlossuzin6111-code/sistema-tonho/pull/108) | Mergeado | Negócio | feat: add private student assessments | `bus/bus-04-assessments` |
+| [#109](https://github.com/carlossuzin6111-code/sistema-tonho/pull/109) | Fechado sem merge | Negócio | feat: add weekly workout adherence analytics | `bus/bus-05-adherence` |
+| [#110](https://github.com/carlossuzin6111-code/sistema-tonho/pull/110) | Mergeado | Negócio | feat: add workout progression analytics | `bus/bus-06-progression` |
+| [#111](https://github.com/carlossuzin6111-code/sistema-tonho/pull/111) | Mergeado | Negócio | feat: keep active workout sessions alive | `bus/bus-07-active-session` |
+| [#112](https://github.com/carlossuzin6111-code/sistema-tonho/pull/112) | Mergeado | Negócio | feat: add offline session queue and idempotency | `bus/bus-08-offline-idempotency` |
+| [#113](https://github.com/carlossuzin6111-code/sistema-tonho/pull/113) | Mergeado | Negócio | feat: add weekly workout adherence analytics (rebased) | `bus/bus-05-adherence-rebased` |
+| [#114](https://github.com/carlossuzin6111-code/sistema-tonho/pull/114) | Mergeado | Negócio | feat: complete access key administration CLI | `bus/bus-09-access-key-cli` |
+| [#115](https://github.com/carlossuzin6111-code/sistema-tonho/pull/115) | Fechado sem merge | Negócio | feat: support chat message editing and deletion | `bus/bus-10-chat-edits` |
+| [#116](https://github.com/carlossuzin6111-code/sistema-tonho/pull/116) | Mergeado | Negócio | feat: add chat typing indicators over SSE | `bus/bus-11-chat-typing` |
+| [#117](https://github.com/carlossuzin6111-code/sistema-tonho/pull/117) | Mergeado | Negócio | feat: add active and inactive student tabs | `bus/bus-12-student-tabs` |
+| [#118](https://github.com/carlossuzin6111-code/sistema-tonho/pull/118) | Mergeado | Negócio | feat: add workout microcycle periodization | `bus/bus-13-periodization` |
+| [#119](https://github.com/carlossuzin6111-code/sistema-tonho/pull/119) | Fechado sem merge | Negócio | feat: add exercise catalog governance | `bus/bus-14-catalog-governance` |
+| [#120](https://github.com/carlossuzin6111-code/sistema-tonho/pull/120) | Fechado sem merge | Operações | feat: add subscription tenant gate | `ops/ops-01-subscriptions` |
+| [#121](https://github.com/carlossuzin6111-code/sistema-tonho/pull/121) | Fechado sem merge | Operações | feat: add Head/Junior team management | `ops/ops-02-team-management` |
+| [#122](https://github.com/carlossuzin6111-code/sistema-tonho/pull/122) | Fechado sem merge | Operações | feat: consented multiprofessional partner access | `ops/ops-03-partner-access` |
+| [#123](https://github.com/carlossuzin6111-code/sistema-tonho/pull/123) | Mergeado | Operações | feat: split liveness and readiness health checks | `ops/ops-10-health-checks` |
+| [#124](https://github.com/carlossuzin6111-code/sistema-tonho/pull/124) | Fechado sem merge | Operações | feat: add wearable metric ingestion foundation | `ops/ops-04-wearables` |
+| [#125](https://github.com/carlossuzin6111-code/sistema-tonho/pull/125) | Fechado sem merge | Operações | feat: add CRM churn alerts and NPS workflow | `ops/ops-05-crm-alerts` |
+| [#126](https://github.com/carlossuzin6111-code/sistema-tonho/pull/126) | Fechado sem merge | Operações | feat: add geofenced student check-ins | `ops/ops-06-geofence-checkins` |
+| [#127](https://github.com/carlossuzin6111-code/sistema-tonho/pull/127) | Fechado sem merge | Operações | feat: add daily readiness check-ins | `ops/ops-07-readiness-checkin` |
+| [#128](https://github.com/carlossuzin6111-code/sistema-tonho/pull/128) | Fechado sem merge | Operações | feat: add notification preferences center | `ops/ops-08-notification-center` |
+| [#129](https://github.com/carlossuzin6111-code/sistema-tonho/pull/129) | Fechado sem merge | Operações | feat: add LGPD export and anonymization | `ops/ops-09-lgpd-compliance` |
+| [#130](https://github.com/carlossuzin6111-code/sistema-tonho/pull/130) | Fechado sem merge | Operações | feat: add per-device session management | `ops/ops-11-device-sessions` |
+| [#131](https://github.com/carlossuzin6111-code/sistema-tonho/pull/131) | Fechado sem merge | Operações | feat: add auditable support impersonation | `ops/ops-12-impersonation-audit` |
+| [#132](https://github.com/carlossuzin6111-code/sistema-tonho/pull/132) | Fechado sem merge | Operações | feat: add structured logs and protected metrics | `ops/ops-13-observability` |
+| [#133](https://github.com/carlossuzin6111-code/sistema-tonho/pull/133) | Mergeado | Operações | ci: enforce mandatory pipeline policy | `ops/ops-14-ci-cd-policy` |
+| [#134](https://github.com/carlossuzin6111-code/sistema-tonho/pull/134) | Mergeado | Mobile | feat: add Capacitor hybrid mobile wrapper | `mob/mob-01-capacitor-wrapper` |
+| [#135](https://github.com/carlossuzin6111-code/sistema-tonho/pull/135) | Mergeado | Mobile | feat: resolve API base URL for Capacitor | `mob/mob-02-api-base-url` |
+| [#136](https://github.com/carlossuzin6111-code/sistema-tonho/pull/136) | Mergeado | Mobile | feat: allow secure Capacitor WebView origins | `mob/mob-03-webview-cors` |
+| [#137](https://github.com/carlossuzin6111-code/sistema-tonho/pull/137) | Mergeado | Mobile | feat: add secure storage bridge for native apps | `mob/mob-04-secure-storage` |
+| [#138](https://github.com/carlossuzin6111-code/sistema-tonho/pull/138) | Mergeado | Reconciliação | docs: reconcile autonomous password reset status | `security/sec-04-password-reset-audit` |
+| [#139](https://github.com/carlossuzin6111-code/sistema-tonho/pull/139) | Mergeado | Reconciliação | docs: reconcile waiver consent status | `security/sec-08-waiver-status` |
+| [#140](https://github.com/carlossuzin6111-code/sistema-tonho/pull/140) | Mergeado | Reconciliação | feat: add encrypted offsite backup retention | `db/db-05-offsite-backup` |
+| [#141](https://github.com/carlossuzin6111-code/sistema-tonho/pull/141) | Mergeado | Reconciliação | ci: enforce expand contract migration policy | `db/db-06-expand-contract` |
+| [#142](https://github.com/carlossuzin6111-code/sistema-tonho/pull/142) | Mergeado | Reconciliação | test: verify compound workout transaction rollback | `db/db-08-compound-transaction` |
+| [#143](https://github.com/carlossuzin6111-code/sistema-tonho/pull/143) | Mergeado | Reconciliação | test: cover all domain measurement constraints | `db/db-09-domain-constraints` |
+| [#144](https://github.com/carlossuzin6111-code/sistema-tonho/pull/144) | Mergeado | Reconciliação | docs: reconcile workout session roadmap status | `bus/bus-01-session-status` |
+| [#145](https://github.com/carlossuzin6111-code/sistema-tonho/pull/145) | Mergeado | Complementação | feat: add weekly adherence analytics | `bus/bus-05-adherence-analytics` |
+| [#146](https://github.com/carlossuzin6111-code/sistema-tonho/pull/146) | Mergeado | Complementação | BUS-07: sessão ativa e temporizador no frontend | `bus/bus-07-session-timer` |
+| [#147](https://github.com/carlossuzin6111-code/sistema-tonho/pull/147) | Mergeado | Complementação | BUS-08: limitar retenção e expor telemetria da fila offline | `bus/bus-08-offline-retention` |
+| [#148](https://github.com/carlossuzin6111-code/sistema-tonho/pull/148) | Mergeado | Complementação | BUS-10: editar e excluir mensagens com eventos SSE | `bus/bus-10-chat-lifecycle` |
+| [#149](https://github.com/carlossuzin6111-code/sistema-tonho/pull/149) | Mergeado | Complementação | BUS-11: indicador de digitação via SSE | `bus/bus-11-typing-indicator` |
+| [#150](https://github.com/carlossuzin6111-code/sistema-tonho/pull/150) | Mergeado | Complementação | BUS-12: filtro server-side e auditoria de status de alunos | `bus/bus-12-server-filter-audit` |
+| [#151](https://github.com/carlossuzin6111-code/sistema-tonho/pull/151) | Mergeado | Complementação | BUS-13: editor de periodização biomecânica | `bus/bus-13-periodization-editor` |
+| [#152](https://github.com/carlossuzin6111-code/sistema-tonho/pull/152) | Fechado sem merge | Complementação | BUS-14: governança, escopo e deduplicação do catálogo | `bus/bus-14-catalog-governance-next` |
+| [#153](https://github.com/carlossuzin6111-code/sistema-tonho/pull/153) | Fechado sem merge | Complementação | feat: enforce subscription tenant access | `ops/ops-01-subscriptions-next` |
+| [#154](https://github.com/carlossuzin6111-code/sistema-tonho/pull/154) | Fechado sem merge | Complementação | feat: add Head/Junior team management | `ops/ops-02-team-management-next` |
+| [#155](https://github.com/carlossuzin6111-code/sistema-tonho/pull/155) | Fechado sem merge | Complementação | feat: add consented multiprofessional partner access | `ops/ops-03-partner-access-next` |
+| [#156](https://github.com/carlossuzin6111-code/sistema-tonho/pull/156) | Mergeado | Complementação | feat: add wearable metric ingestion foundation | `ops/ops-04-wearables-next` |
+| [#157](https://github.com/carlossuzin6111-code/sistema-tonho/pull/157) | Fechado sem merge | Complementação | feat: add CRM churn alerts and NPS workflow | `ops/ops-05-crm-alerts-next` |
+| [#158](https://github.com/carlossuzin6111-code/sistema-tonho/pull/158) | Fechado sem merge | Complementação | feat: add geofenced student check-ins | `ops/ops-06-geofence-checkins-next` |
+| [#159](https://github.com/carlossuzin6111-code/sistema-tonho/pull/159) | Mergeado | Complementação | feat: add daily readiness check-ins | `ops/ops-07-readiness-checkin-next` |
+| [#160](https://github.com/carlossuzin6111-code/sistema-tonho/pull/160) | Fechado sem merge | Complementação | feat: add notification preferences center | `ops/ops-08-notification-center-next` |
+| [#161](https://github.com/carlossuzin6111-code/sistema-tonho/pull/161) | Mergeado | Complementação | feat: add LGPD export and anonymization | `ops/ops-09-lgpd-compliance-next` |
+| [#162](https://github.com/carlossuzin6111-code/sistema-tonho/pull/162) | Fechado sem merge | Complementação | feat: split liveness and readiness health checks | `ops/ops-10-health-checks-next` |
+| [#163](https://github.com/carlossuzin6111-code/sistema-tonho/pull/163) | Fechado sem merge | Complementação | feat: add per-device session management | `ops/ops-11-device-sessions-next` |
+| [#164](https://github.com/carlossuzin6111-code/sistema-tonho/pull/164) | Mergeado | Complementação | feat: add auditable support impersonation | `ops/ops-12-impersonation-audit-next` |
+| [#165](https://github.com/carlossuzin6111-code/sistema-tonho/pull/165) | Mergeado | Complementação | feat: add structured logs and protected metrics | `ops/ops-13-observability-next` |
+| [#166](https://github.com/carlossuzin6111-code/sistema-tonho/pull/166) | Mergeado | Complementação | ci: enforce mandatory pipeline policy | `ops/ops-14-ci-cd-policy-next` |
+| [#167](https://github.com/carlossuzin6111-code/sistema-tonho/pull/167) | Mergeado | Complementação | feat: add Capacitor hybrid mobile wrapper | `mob/mob-01-capacitor-wrapper-next` |
+| [#168](https://github.com/carlossuzin6111-code/sistema-tonho/pull/168) | Mergeado | Complementação | fix: restore CI after controller merge conflicts | `fix/ci-chat-duplicate` |
+| [#169](https://github.com/carlossuzin6111-code/sistema-tonho/pull/169) | Mergeado | Complementação | feat: resolve API base URL for Capacitor | `mob/mob-02-api-base-url-next` |
+| [#170](https://github.com/carlossuzin6111-code/sistema-tonho/pull/170) | Mergeado | Complementação | feat: allow secure Capacitor WebView origins | `mob/mob-03-webview-cors-next` |
+| [#171](https://github.com/carlossuzin6111-code/sistema-tonho/pull/171) | Mergeado | Hardening/consolidação | fix: make Docker proxy resilient after app restarts | `fix/docker-runtime-proxy` |
+| [#172](https://github.com/carlossuzin6111-code/sistema-tonho/pull/172) | Mergeado | Hardening/consolidação | feat: add grouped Compose production hardening checks | `infra/production-hardening` |
+| [#173](https://github.com/carlossuzin6111-code/sistema-tonho/pull/173) | Mergeado | Hardening/consolidação | feat: group session lifecycle hardening | `security/session-hardening` |
+| [#174](https://github.com/carlossuzin6111-code/sistema-tonho/pull/174) | Mergeado | Hardening/consolidação | feat: group email verification policy hardening | `security/email-verification-policy` |
+| [#175](https://github.com/carlossuzin6111-code/sistema-tonho/pull/175) | Mergeado | Hardening/consolidação | feat: group distributed rate limit hardening | `security/rate-limit-distributed` |
+| [#176](https://github.com/carlossuzin6111-code/sistema-tonho/pull/176) | Mergeado | Hardening/consolidação | feat: group mobile refresh token rotation | `security/refresh-token-rotation` |
+| [#177](https://github.com/carlossuzin6111-code/sistema-tonho/pull/177) | Mergeado | Hardening/consolidação | feat: group mobile refresh token secure storage | `mobile/auth-refresh-storage` |
+| [#178](https://github.com/carlossuzin6111-code/sistema-tonho/pull/178) | Mergeado | Hardening/consolidação | feat: group backup restore verification workflow | `infra/backup-restore-hardening` |
+| [#179](https://github.com/carlossuzin6111-code/sistema-tonho/pull/179) | Mergeado | Hardening/consolidação | feat: renovar automaticamente sessões mobile | `mobile/refresh-auto-renew` |
+| [#180](https://github.com/carlossuzin6111-code/sistema-tonho/pull/180) | Mergeado | Hardening/consolidação | fix: tornar sessão ativa resiliente ao retorno mobile | `bus/session-resilience` |
+| [#181](https://github.com/carlossuzin6111-code/sistema-tonho/pull/181) | Mergeado | Hardening/consolidação | feat: exigir check-in diário de prontidão | `ops/readiness-gate` |
+| [#182](https://github.com/carlossuzin6111-code/sistema-tonho/pull/182) | Mergeado | Hardening/consolidação | feat: consolidar bem-estar e centro de notificações | `feature/wellbeing-and-notifications` |
+| [#183](https://github.com/carlossuzin6111-code/sistema-tonho/pull/183) | Mergeado | Hardening/consolidação | feat: pacote consolidado de bem-estar, notificações e privacidade | `feature/wellbeing-and-notifications` |
+| [#184](https://github.com/carlossuzin6111-code/sistema-tonho/pull/184) | Mergeado | Hardening/consolidação | feat: pacote grande de segurança de conta | `feature/account-security-suite` |
+| [#185](https://github.com/carlossuzin6111-code/sistema-tonho/pull/185) | Mergeado | Hardening/consolidação | feat: pacote consolidado de UX do chat e treinos | `feature/chat-and-workout-ux` |
+| [#186](https://github.com/carlossuzin6111-code/sistema-tonho/pull/186) | Mergeado | Hardening/consolidação | feat: consolidar ciclo de vida e tempo real do chat | `feature/chat-and-workout-ux` |
+
+### Regra de interpretação
+
+“Mergeado” comprova integração do PR, não conclusão integral do requisito de negócio. Requisitos que ainda dependem de provedor externo, operação real, QA manual ou cobertura de todos os fluxos permanecem “Parcial” no checklist. “Fechado sem merge” não é contabilizado como entrega; seu conteúdo só é considerado quando reaparece em PR posterior efetivamente mergeado.
 - Gitleaks 8.30.1 no conteúdo preparado para commit: nenhuma ocorrência.
 - Imagem da CI fixada por tag e digest SHA-256 imutável.
 - O `.env` local foi preservado, mas deixou de fazer parte do índice Git.
@@ -420,9 +542,9 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## SEC-04 — Reset de Senha Autônomo para Personais
 
-- Estado: em andamento
+- Estado: concluído e mergeado
 - Branch: `security/sec-04-password-reset`
-- Pull request: pendente
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/87
 - Início: 20/07/2026
 - Prioridade: 8/10
 
@@ -442,8 +564,8 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Adicionar rate limiters dedicados e registrar rotas `/api/auth/forgot-password` e `/api/auth/reset-password` com documentação OpenAPI/Swagger no `backend/src/index.js`.
 - [x] Criar suíte de testes de integração `backend/src/tests/passwordReset.test.js` (7/7 testes aprovados).
 - [x] Executar suítes de testes do backend, frontend e auditorias de segurança.
-- [ ] Abrir PR e registrar link no arquivo de controle.
-- [ ] Acompanhar CI.
+- [x] Abrir PR e registrar link no arquivo de controle.
+- [x] Acompanhar CI.
 
 ### Critérios de aceite
 
