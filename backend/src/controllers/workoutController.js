@@ -22,7 +22,8 @@ async function createWorkout(req, res) {
         student_id: studentId,
         personal_id: personalId,
         name,
-        description: description || null
+        description: description || null,
+        status: 'draft'
       });
 
       if (exercises && Array.isArray(exercises)) {
@@ -92,18 +93,43 @@ async function updateWorkoutStatus(req, res) {
   const workoutId = req.params.id;
   const { status } = req.body;
   try {
-    const workout = await db('workouts').where({ id: workoutId, personal_id: req.user.id }).first();
-    if (!workout) return res.status(404).json({ error: 'Workout not found' });
-    await db.transaction(async trx => {
+    const result = await db.transaction(async trx => {
+      const workout = await trx('workouts').where({ id: workoutId, personal_id: req.user.id }).first();
+      if (!workout) return null;
+      if (workout.status === status) return { changed: false, archivedWorkoutIds: [] };
+      let automaticallyArchived = [];
       if (status === 'published') {
+        automaticallyArchived = await trx('workouts')
+          .select('id')
+          .where({ student_id: workout.student_id, personal_id: req.user.id, status: 'published' })
+          .whereNot('id', workoutId);
         await trx('workouts')
           .where({ student_id: workout.student_id, personal_id: req.user.id })
           .whereNot('id', workoutId)
+          .where('status', 'published')
           .update({ status: 'archived', updated_at: trx.fn.now() });
       }
       await trx('workouts').where({ id: workoutId, personal_id: req.user.id }).update({ status, updated_at: trx.fn.now() });
+      await recordAudit(trx, {
+        actorUserId: req.user.id,
+        action: AUDIT_ACTIONS.WORKOUT_STATUS_UPDATED,
+        targetType: 'workout',
+        targetId: workoutId,
+        metadata: {
+          studentId: workout.student_id,
+          before: workout.status,
+          after: status,
+          automaticallyArchivedWorkoutIds: automaticallyArchived.map(item => item.id)
+        }
+      });
+      return { changed: true, archivedWorkoutIds: automaticallyArchived.map(item => item.id) };
     });
-    return res.status(200).json({ message: 'Workout status updated successfully', status });
+    if (!result) return res.status(404).json({ error: 'Workout not found' });
+    return res.status(200).json({
+      message: result.changed ? 'Workout status updated successfully' : 'Workout status unchanged',
+      status,
+      ...result
+    });
   } catch (err) {
     console.error('Update workout status error:', err.message);
     return res.status(500).json({ error: 'Internal server error' });

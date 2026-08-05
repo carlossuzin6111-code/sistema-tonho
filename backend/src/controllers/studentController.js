@@ -176,7 +176,7 @@ async function updateStudentLifecycle(req, res) {
       if (relationshipStatus) await trx('student_profiles').where({ student_id: studentId, personal_id: req.user.id }).update({ relationship_status: relationshipStatus });
       await recordAudit(trx, {
         actorUserId: req.user.id,
-        action: 'student.lifecycle_updated',
+        action: AUDIT_ACTIONS.STUDENT_LIFECYCLE_UPDATED,
         targetType: 'student',
         targetId: studentId,
         metadata: { before, after: { accountStatus: accountStatus || before.account_status, relationshipStatus: relationshipStatus || before.relationship_status } }
@@ -210,7 +210,7 @@ async function getStudentDetails(req, res) {
 
     const student = await db('users as u')
       .join('student_profiles as sp', 'u.id', 'sp.student_id')
-      .select('u.id', 'u.name', 'u.email', 'u.avatar_filename', 'u.avatar_updated_at', 'sp.height', 'sp.target_weight', 'sp.birth_date', 'sp.personal_id')
+      .select('u.id', 'u.name', 'u.email', 'u.avatar_filename', 'u.avatar_updated_at', 'u.account_status', 'sp.relationship_status', 'sp.height', 'sp.target_weight', 'sp.birth_date', 'sp.personal_id')
       .where('u.id', studentId)
       .first();
 

@@ -180,7 +180,7 @@ O cliente agora oferece entrada de recuperação pública de senha com resposta 
 
 ### [BUS-02] Estados de Publicação da Ficha de Treino
 *   **Implementado parcialmente**: Fichas possuem campo `status` (`'draft'`, `'published'`, `'archived'`), protegido por triggers SQLite. O aluno só visualiza treinos publicados; ao publicar uma ficha, as anteriores do mesmo aluno/personal são arquivadas em uma transação.
-*   **Pendente**: integrar seletor/indicador de publicação no frontend e registrar auditoria específica das transições.
+*   **Concluído em 05/08/2026**: desktop e mobile exibem o estado e oferecem publicação, arquivamento e retorno a rascunho com confirmação acessível. Novas fichas nascem em rascunho; transições são idempotentes, transacionais e auditadas com as fichas arquivadas automaticamente.
 
 ### [BUS-03] Ciclo de Vida do Aluno e do Vínculo
 *   **Implementado parcialmente**: usuários possuem `account_status` (`active`, `suspended`, `archived`) e vínculos possuem `relationship_status` (`invited`, `active`, `paused`, `blocked`), ambos protegidos no SQLite. Personal pode atualizar o aluno vinculado pelo endpoint de lifecycle.
@@ -240,7 +240,7 @@ O frontend agora oferece edição e exclusão somente para mensagens próprias, 
 *   **Especificação**: Possibilidade de inativar alunos antigos sem deletar seu prontuário físico e separação por abas "Ativos" / "Inativos" na listagem.
 *   **Progresso em 29/07/2026**: o dashboard separa Ativos, Inativos e Todos usando os status de conta/vínculo já persistidos; a filtragem não remove histórico nem registros clínicos.
 * **Progresso em 29/07/2026**: `GET /api/personal/students?status=active|inactive|all` aplica o filtro no servidor e rejeita valores desconhecidos. Toda transição autorizada grava `student.lifecycle_updated` com estado anterior e novo dentro da mesma transação.
-* **Pendente**: confirmação acessível antes da transição e consulta visual do histórico de auditoria no dashboard.
+* **Concluído em 05/08/2026**: pausa, bloqueio, arquivamento e reativação possuem confirmação acessível; o detalhe consulta as transições recentes do aluno e de suas fichas. As abas mobile foram removidas do login e posicionadas na listagem correta.
 
 ### [BUS-13] Periodização Biomecânica Ondulatória
 *   **Especificação**: Suporte a templates e variações de carga/volume estruturadas em microciclos na ficha do aluno, fugindo de fichas estáticas lineares de musculação.
