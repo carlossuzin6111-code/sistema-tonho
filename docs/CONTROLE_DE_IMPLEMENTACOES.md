@@ -57,7 +57,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 +
 ## Reconciliação da baseline — PRs #88 a #186
 
-- Estado: inventário reconstruído; validação documental em andamento
+- Estado: concluído tecnicamente; aguardando merge do PR #187 e ação administrativa
 - Branch: `docs/reconcile-roadmap-pr186`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/188 (draft, empilhado sobre o PR #187)
 - Baseline auditada: `5274051` (merge do PR #186)
@@ -83,7 +83,8 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Executar testes e auditorias na baseline sincronizada.
 - [ ] Ativar proteção da branch `main` — bloqueado por permissão administrativa do repositório.
 - [x] Abrir PR documental.
-- [ ] Acompanhar a CI e remover o modo draft após o merge do PR #187.
+- [x] Acompanhar a CI.
+- [ ] Remover o modo draft após o merge do PR #187.
 
 ### Evidências da reconciliação
 
@@ -94,6 +95,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - `npm audit --omit=dev`: 0 vulnerabilidades após a correção dos lockfiles.
 - A tentativa de configurar branch protection retornou HTTP 404 porque `DiogoCrespi` possui somente permissão `pull`; `admin`, `maintain` e `push` são falsos.
 - Política administrativa reproduzível registrada em `docs/runbooks/main-branch-protection.md`.
+- CI do PR #188: Backend, Frontend and infrastructure, Secret scan, Migration policy e CI policy aprovados.
 
 ### Inventário dos PRs
 
