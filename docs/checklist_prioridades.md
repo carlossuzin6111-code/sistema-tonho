@@ -52,8 +52,8 @@ Resumo: **8 implementados**, **50 parciais**, **0 não iniciados**, total de **5
 | **UX-08** | Uploads e cotas | **Parcial** | MIME/assinatura, limites e `mediaQuotaService` | Multipart e reconciliação operacional de armazenamento |
 | **BUS-01** | Sessões reais de treino | **Implementado** | sessões, progresso, status, histórico, UI e testes | Teste E2E em dispositivo e telemetria são melhorias |
 | **BUS-02** | Status da ficha | **Concluído** | estados e controles desktop/mobile, confirmação, idempotência, transação e auditoria | Monitoramento operacional |
-| **BUS-03** | Ciclo de vida do aluno | **Parcial** | status de conta/vínculo e controllers | Aplicar todas as políticas read-only/bloqueio e UX final |
-| **BUS-04** | Anamnese | **Parcial** | migration, controller e campos privados | Tela completa, edição/versionamento e auditoria clínica |
+| **BUS-03** | Ciclo de vida do aluno | **Concluído** | estados atuais no middleware, políticas read-only/bloqueio, exceções essenciais e UX desktop/mobile | Monitorar tentativas bloqueadas e revisar políticas operacionais |
+| **BUS-04** | Anamnese | **Concluído** | aba desktop/mobile, versões imutáveis, privacidade e auditoria transacional | Validação clínica dos campos permanece operacional |
 | **BUS-05** | Aderência semanal | **Parcial** | serviço, endpoint e testes | Metas configuráveis, gráficos e validação de negócio |
 | **BUS-06** | Progressão de carga | **Parcial** | analytics e endpoint | Sugestão na sessão e fórmula 1-RM validada |
 | **BUS-07** | Temporizador/sessão ativa | **Parcial** | atividade, timer e recuperação mobile | QA de background, múltiplos dispositivos e expiração |

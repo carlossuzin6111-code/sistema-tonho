@@ -184,7 +184,7 @@ O cliente agora oferece entrada de recuperação pública de senha com resposta 
 
 ### [BUS-03] Ciclo de Vida do Aluno e do Vínculo
 *   **Implementado parcialmente**: usuários possuem `account_status` (`active`, `suspended`, `archived`) e vínculos possuem `relationship_status` (`invited`, `active`, `paused`, `blocked`), ambos protegidos no SQLite. Personal pode atualizar o aluno vinculado pelo endpoint de lifecycle.
-*   **Pendente**: bloquear autenticação/execução conforme status e integrar abas/filtros de ativos, pausados e arquivados no frontend.
+*   **Concluído em 05/08/2026**: o middleware lê os estados atuais do banco em toda autenticação; vínculos pausados mantêm histórico somente leitura sem chat/execução/escritas, enquanto conta suspensa/arquivada ou vínculo bloqueado perde acesso às rotas de negócio. Perfil, segurança, logout e LGPD permanecem disponíveis e a interface comunica cada modo.
 *   **Especificação original**:
     *   **Status da Conta**: `active`, `suspended`, `archived` (soft-deleted).
     *   **Status do Vínculo**: `invited`, `active`, `paused`, `blocked`.
@@ -192,7 +192,7 @@ O cliente agora oferece entrada de recuperação pública de senha com resposta 
 
 ### [BUS-04] Anamnese Clínica (Assessments)
 *   **Implementado parcialmente**: Tabela `student_assessments` registra nível de experiência, limitações anatômicas e lesões clínicas, separando `personal_notes` (privado) de `student_notes` (compartilhado). Endpoints autenticados validam o vínculo e nunca expõem as notas privadas ao aluno.
-*   **Pendente**: tela de anamnese, edição/versionamento e auditoria clínica.
+*   **Concluído em 05/08/2026**: o detalhe do aluno possui aba de anamnese em desktop/mobile; cada salvamento cria versão imutável, auditada transacionalmente sem conteúdo clínico nos metadados. Notas privadas continuam exclusivas do Personal e orientações compartilhadas permanecem visíveis ao aluno pela API.
 
 ### [BUS-05] Aderência Semanal e Ordenação no Dashboard
 *   **Implementado parcialmente**: Endpoint de aderência calcula `treinos concluídos / treinos publicados` no intervalo semanal, limita o percentual a 100%, informa última conclusão e ordena alunos do menor percentual ao maior.

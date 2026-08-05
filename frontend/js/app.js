@@ -59,8 +59,33 @@ function ensureWaiverModal(termsVersion) {
 
 function activateStudentDashboard(user, generation = appShellGeneration) {
   if (generation !== appShellGeneration) return;
-  switchStudentTab(tabFromDashboardRoute('student') || 'workouts', { historyMode: 'replace' });
-  connectRealTimeUpdates(user);
+  const paused = user.relationshipStatus === 'paused';
+  const requestedTab = tabFromDashboardRoute('student') || 'workouts';
+  switchStudentTab(paused && requestedTab === 'chat' ? 'workouts' : requestedTab, { historyMode: 'replace' });
+  if (!paused) connectRealTimeUpdates(user);
+}
+
+function applyStudentAccessMode(user) {
+  const dashboard = document.getElementById('student-dashboard');
+  dashboard.querySelector('[data-student-access-notice]')?.remove();
+  const blocked = user.accountStatus !== 'active' || user.relationshipStatus === 'blocked';
+  const paused = user.relationshipStatus === 'paused';
+  dashboard.classList.toggle('student-access-blocked', blocked);
+  dashboard.classList.toggle('student-read-only', paused);
+  dashboard.querySelectorAll('[data-action="open-modal"][data-modal="modal-add-measurement"]').forEach(button => { button.disabled = blocked || paused; });
+  document.getElementById('nav-s-chat')?.classList.toggle('hidden', blocked || paused);
+  if (!blocked && !paused) return { blocked, paused };
+  const notice = SafeDOM.el('div', {
+    className: `student-access-notice ${blocked ? 'access-blocked' : 'access-paused'}`,
+    attrs: { role: 'status', 'data-student-access-notice': '' }
+  }, [
+    SafeDOM.el('strong', { text: blocked ? 'Acesso de acompanhamento indisponível' : 'Acompanhamento pausado' }),
+    SafeDOM.el('p', { text: blocked
+      ? 'Sua conta ou vínculo está inativo. Perfil, segurança e exportação dos seus dados continuam disponíveis.'
+      : 'Você pode consultar seu histórico, mas novos registros, chat e execução de treinos estão temporariamente desabilitados.' })
+  ]);
+  dashboard.prepend(notice);
+  return { blocked, paused };
 }
 
 async function ensureCurrentWaiver(user, generation) {
@@ -504,6 +529,11 @@ function switchPersonalTab(tab, { historyMode = 'push' } = {}) {
 // Switch Student Tabs
 function switchStudentTab(tab, { historyMode = 'push' } = {}) {
   if (!DASHBOARD_TABS.student.includes(tab)) return;
+  const currentUser = API.getCurrentUser();
+  if (tab === 'chat' && currentUser?.relationshipStatus === 'paused') {
+    showToast('O chat fica indisponível enquanto o acompanhamento estiver pausado.', 'info');
+    return;
+  }
   const tabPaneWorkouts = document.getElementById('tab-s-workouts');
   const tabPaneMeasurements = document.getElementById('tab-s-measurements');
   const tabPaneChat = document.getElementById('tab-s-chat');
@@ -687,7 +717,9 @@ async function checkAuthSession() {
     API.saveSession(verifiedUser);
     if (!cachedUser
       || cachedUser.mustChangePassword !== verifiedUser.mustChangePassword
-      || cachedUser.emailVerified !== verifiedUser.emailVerified) setupAppShell(verifiedUser);
+      || cachedUser.emailVerified !== verifiedUser.emailVerified
+      || cachedUser.accountStatus !== verifiedUser.accountStatus
+      || cachedUser.relationshipStatus !== verifiedUser.relationshipStatus) setupAppShell(verifiedUser);
   } catch (err) {
     console.warn('Session expired or invalid.', err.message);
     API.clearSession();
@@ -722,7 +754,8 @@ function setupAppShell(user) {
     connectRealTimeUpdates(user);
   } else {
     document.getElementById('student-dashboard').classList.remove('hidden');
-    if (!user.mustChangePassword) ensureCurrentWaiver(user, generation);
+    const access = applyStudentAccessMode(user);
+    if (!user.mustChangePassword && !access.blocked) ensureCurrentWaiver(user, generation);
   }
 
   if (user.mustChangePassword) {

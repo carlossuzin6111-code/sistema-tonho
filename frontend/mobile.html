@@ -8,9 +8,9 @@
   <!-- Fixed, locally served Lucide Icons bundle -->
   <script src="vendor/lucide/lucide-1.25.0.min.js"></script>
   <!-- Base Styles (Components, Colors, Lovable) -->
-  <link rel="stylesheet" href="css/style.css?v=20260805.1">
+  <link rel="stylesheet" href="css/style.css?v=20260805.2">
   <!-- Mobile Architecture Overrides (PWA Lock) -->
-  <link rel="stylesheet" href="css/mobile.css?v=20260805.1">
+  <link rel="stylesheet" href="css/mobile.css?v=20260805.2">
 </head>
 <body>
 
@@ -361,6 +361,7 @@
       <div class="modal-subtabs modal-subtabs-spaced mobile-student-detail-tabs" role="tablist" aria-label="Detalhes do aluno">
         <button id="modal-tab-workouts" class="modal-subtab active" data-action="switch-modal-tab" data-tab="workouts">Ficha</button>
         <button id="modal-tab-metrics" class="modal-subtab" data-action="switch-modal-tab" data-tab="metrics">Medidas</button>
+        <button id="modal-tab-assessments" class="modal-subtab" data-action="switch-modal-tab" data-tab="assessments">Anamnese</button>
       </div>
 
       <div class="modal-body-scroll mobile-modal-body">
@@ -388,6 +389,21 @@
               </thead>
               <tbody id="modal-measurements-table-body"></tbody>
             </table>
+          </div>
+        </div>
+        <div id="modal-subpane-assessments" class="modal-subpane">
+          <div class="assessment-layout">
+            <form id="student-assessment-form" class="assessment-form glass">
+              <h3>Nova versão</h3><p class="form-help">O histórico anterior será preservado.</p>
+              <div class="input-group"><label for="assessment-experience">Experiência</label><select id="assessment-experience" required><option value="">Selecione</option><option value="beginner">Iniciante</option><option value="intermediate">Intermediário</option><option value="advanced">Avançado</option></select></div>
+              <div class="input-group"><label for="assessment-limitations">Limitações anatômicas</label><textarea id="assessment-limitations" maxlength="5000" rows="3"></textarea></div>
+              <div class="input-group"><label for="assessment-injuries">Lesões e condições clínicas</label><textarea id="assessment-injuries" maxlength="5000" rows="3"></textarea></div>
+              <div class="input-group sensitive-field"><label for="assessment-personal-notes">Notas privadas do Personal</label><textarea id="assessment-personal-notes" maxlength="10000" rows="3" aria-describedby="assessment-private-help"></textarea><small id="assessment-private-help">Nunca exibidas ao aluno.</small></div>
+              <div class="input-group"><label for="assessment-student-notes">Orientações para o aluno</label><textarea id="assessment-student-notes" maxlength="5000" rows="3"></textarea></div>
+              <p id="student-assessment-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
+              <button type="submit" class="btn btn-primary btn-full" data-default-label="Salvar nova versão" data-loading-label="Salvando..."><span data-submit-label>Salvar nova versão</span></button>
+            </form>
+            <section aria-labelledby="assessment-history-title"><h3 id="assessment-history-title">Histórico</h3><div id="assessment-history" class="assessment-history" aria-live="polite"></div></section>
           </div>
         </div>
       </div>
@@ -613,14 +629,14 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/api.js?v=20260805.1"></script>
-  <script src="js/safe-dom.js?v=20260805.1"></script>
-  <script src="js/datetime.js?v=20260805.1"></script>
-  <script src="js/app.js?v=20260805.1"></script>
-  <script src="js/personal.js?v=20260805.1"></script>
-  <script src="js/student.js?v=20260805.1"></script>
-  <script src="js/chat-actions.js?v=20260805.1"></script>
-  <script src="js/profile.js?v=20260805.1"></script>
-  <script src="js/events.js?v=20260805.1"></script>
+  <script src="js/api.js?v=20260805.2"></script>
+  <script src="js/safe-dom.js?v=20260805.2"></script>
+  <script src="js/datetime.js?v=20260805.2"></script>
+  <script src="js/app.js?v=20260805.2"></script>
+  <script src="js/personal.js?v=20260805.2"></script>
+  <script src="js/student.js?v=20260805.2"></script>
+  <script src="js/chat-actions.js?v=20260805.2"></script>
+  <script src="js/profile.js?v=20260805.2"></script>
+  <script src="js/events.js?v=20260805.2"></script>
 </body>
 </html>

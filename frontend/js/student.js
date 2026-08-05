@@ -212,7 +212,9 @@ async function loadStudentWorkouts() {
       const card = SafeDOM.el('div', { className: 'workout-card glass' });
       const titleBlock = SafeDOM.el('div', {}, [SafeDOM.el('span', { className: 'workout-title', text: workout.name })]);
       if (workout.description) titleBlock.appendChild(SafeDOM.el('p', { className: 'workout-desc', text: workout.description }));
-      card.appendChild(SafeDOM.el('div', { className: 'workout-header' }, [titleBlock, SafeDOM.el('button', { className: 'btn btn-primary btn-sm', attrs: { type: 'button', 'data-action': 'start-student-session', 'data-workout-id': workout.id } }, ['Iniciar treino'])]));
+      const readOnly = API.getCurrentUser()?.relationshipStatus === 'paused';
+      const startButton = SafeDOM.el('button', { className: 'btn btn-primary btn-sm', attrs: { type: 'button', 'data-action': 'start-student-session', 'data-workout-id': workout.id, ...(readOnly ? { disabled: '', 'aria-disabled': 'true' } : {}) } }, [readOnly ? 'Treino indisponível durante pausa' : 'Iniciar treino']);
+      card.appendChild(SafeDOM.el('div', { className: 'workout-header' }, [titleBlock, startButton]));
       const table = SafeDOM.el('table', { className: 'pedagogical-table' });
       table.appendChild(SafeDOM.el('thead', {}, [SafeDOM.el('tr', {}, [
         SafeDOM.el('th', { text: 'Status', className: 'workout-status-heading', attrs: { scope: 'col' } }),

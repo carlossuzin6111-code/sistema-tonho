@@ -257,8 +257,8 @@ test('authentication forms expose loading, inline error and password visibility 
   for (const page of ['desktop.html', 'mobile.html']) {
     const html = fs.readFileSync(path.join(frontendRoot, page), 'utf8');
     assert.equal((html.match(/data-action="toggle-password"/g) || []).length, 7);
-    assert.equal((html.match(/role="alert" aria-live="assertive"/g) || []).length, 11);
-    assert.equal((html.match(/data-submit-label/g) || []).length, 11);
+    assert.equal((html.match(/role="alert" aria-live="assertive"/g) || []).length, 12);
+    assert.equal((html.match(/data-submit-label/g) || []).length, 12);
   }
 
   const input = { type: 'password' };
@@ -789,7 +789,7 @@ test('timestamps are parsed as UTC and formatted with the browser local timezone
   assert.doesNotMatch(personal, /toLocaleDateString|toLocaleTimeString/);
   assert.doesNotMatch(student, /toLocaleDateString|toLocaleTimeString/);
   for (const page of ['desktop.html', 'mobile.html']) {
-    assert.match(read(page), /js\/datetime\.js\?v=20260805\.1/);
+    assert.match(read(page), /js\/datetime\.js\?v=20260805\.2/);
   }
 });
 

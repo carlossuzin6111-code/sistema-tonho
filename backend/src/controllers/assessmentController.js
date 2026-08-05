@@ -1,4 +1,5 @@
 const db = require('../database');
+const { AUDIT_ACTIONS, recordAudit } = require('../services/auditService');
 
 async function resolveAccess(req, studentId) {
   if (req.user.role === 'student') return req.user.id === studentId;
@@ -16,7 +17,7 @@ async function listAssessments(req, res) {
   const studentId = Number(req.params.id);
   try {
     if (!(await resolveAccess(req, studentId))) return res.status(403).json({ error: 'Assessment access forbidden' });
-    const rows = await db('student_assessments').where({ student_id: studentId }).orderBy('created_at', 'desc');
+    const rows = await db('student_assessments').where({ student_id: studentId }).orderBy('created_at', 'desc').orderBy('id', 'desc');
     return res.json(rows.map(row => publicAssessment(row, req.user.role === 'personal')));
   } catch (error) {
     console.error('List assessments error:', error.message);
@@ -29,7 +30,18 @@ async function createAssessment(req, res) {
   if (req.user.role !== 'personal' || !(await resolveAccess(req, studentId))) return res.status(403).json({ error: 'Assessment access forbidden' });
   const { experienceLevel, anatomicalLimitations, clinicalInjuries, personalNotes, studentNotes } = req.body;
   try {
-    const [id] = await db('student_assessments').insert({ student_id: studentId, personal_id: req.user.id, experience_level: experienceLevel, anatomical_limitations: anatomicalLimitations || null, clinical_injuries: clinicalInjuries || null, personal_notes: personalNotes || null, student_notes: studentNotes || null });
+    const id = await db.transaction(async trx => {
+      const previous = await trx('student_assessments').select('id').where({ student_id: studentId, personal_id: req.user.id }).orderBy('created_at', 'desc').orderBy('id', 'desc').first();
+      const [newId] = await trx('student_assessments').insert({ student_id: studentId, personal_id: req.user.id, experience_level: experienceLevel, anatomical_limitations: anatomicalLimitations || null, clinical_injuries: clinicalInjuries || null, personal_notes: personalNotes || null, student_notes: studentNotes || null });
+      await recordAudit(trx, {
+        actorUserId: req.user.id,
+        action: AUDIT_ACTIONS.STUDENT_ASSESSMENT_VERSION_CREATED,
+        targetType: 'student_assessment',
+        targetId: newId,
+        metadata: { studentId, previousVersionId: previous?.id || null }
+      });
+      return newId;
+    });
     const row = await db('student_assessments').where({ id }).first();
     return res.status(201).json(publicAssessment(row, true));
   } catch (error) {
