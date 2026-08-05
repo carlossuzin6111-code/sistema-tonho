@@ -6,7 +6,7 @@ const { clearSessionCookies, createSession, setSessionCookies } = require('../se
 const { isEmailUniqueConstraint, normalizeEmail } = require('../services/userIdentityService');
 const { recordAudit, AUDIT_ACTIONS } = require('../services/auditService');
 const { sendEmailVerification } = require('../services/emailDeliveryService');
-const { issueRefreshToken, rotateRefreshToken, createAccessToken } = require('../services/refreshTokenService');
+const { issueRefreshToken, revokeRefreshTokensForSessions, rotateRefreshToken, createAccessToken } = require('../services/refreshTokenService');
 
 const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 const hashVerificationToken = token => crypto.createHash('sha256').update(token).digest('hex');
@@ -130,7 +130,7 @@ async function login(req, res) {
     const sessionId = await createSession(user.id, { deviceName: req.body.deviceName, userAgent: req.get('user-agent'), ipAddress: req.ip });
     setSessionCookies(res, user, sessionId);
 
-    const refresh = await issueRefreshToken(user);
+    const refresh = await issueRefreshToken(user, { sessionId });
     const studentProfile = user.role === 'student'
       ? await db('student_profiles').select('relationship_status').where({ student_id: user.id }).first()
       : null;
@@ -164,10 +164,42 @@ async function refresh(req, res) {
   return res.json(rotated);
 }
 
-function logout(req, res) {
+async function logout(req, res) {
+  try {
+    if (req.user.sessionId) {
+      await db.transaction(async trx => {
+        await trx('user_sessions').where({ id: req.user.sessionId, user_id: req.user.id, status: 'active' })
+          .update({ status: 'revoked', revoked_at: trx.fn.now(), updated_at: trx.fn.now() });
+        await revokeRefreshTokensForSessions(req.user.id, [req.user.sessionId], trx);
+      });
+      require('../services/metricsService').increment('device_sessions_total', { action: 'logout_revoked' });
+    }
+  } catch (error) {
+    console.error('Logout revocation error:', error.message);
+    return res.status(503).json({ error: 'Session revocation unavailable' });
+  }
   clearSessionCookies(res);
   res.setHeader('Clear-Site-Data', '"cache", "cookies"');
   return res.status(200).json({ message: 'Logout successful' });
+}
+
+async function logoutAll(req, res) {
+  let sessionIds;
+  try {
+    sessionIds = await db('user_sessions').where({ user_id: req.user.id, status: 'active' }).pluck('id');
+    await db.transaction(async trx => {
+      await trx('user_sessions').where({ user_id: req.user.id, status: 'active' })
+        .update({ status: 'revoked', revoked_at: trx.fn.now(), updated_at: trx.fn.now() });
+      await revokeRefreshTokensForSessions(req.user.id, sessionIds, trx);
+    });
+  } catch (error) {
+    console.error('Logout all revocation error:', error.message);
+    return res.status(503).json({ error: 'Session revocation unavailable' });
+  }
+  require('../services/metricsService').add('device_sessions_total', sessionIds.length, { action: 'logout_all_revoked' });
+  clearSessionCookies(res);
+  res.setHeader('Clear-Site-Data', '"cache", "cookies"');
+  return res.json({ message: 'All sessions revoked', revoked: sessionIds.length });
 }
 
 async function getMe(req, res) {
@@ -351,6 +383,7 @@ module.exports = {
   login,
   refresh,
   logout,
+  logoutAll,
   getMe,
   forgotPassword,
   resetPasswordWithToken,

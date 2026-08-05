@@ -73,10 +73,10 @@ Resumo: **8 implementados**, **50 parciais**, **0 não iniciados**, total de **5
 | **OPS-07** | Readiness | **Parcial** | check-in, regras, gate e testes | Validação clínica, lembretes e acompanhamento longitudinal |
 | **OPS-08** | Notificações | **Parcial** | centro/preferências e testes frontend/backend | Workers e canais reais push/WhatsApp/e-mail |
 | **OPS-09** | LGPD | **Parcial** | exportação/anonimização e testes | Processamento assíncrono, criptografia e confirmação |
-| **OPS-10** | Liveness/readiness | **Parcial** | endpoints separados e testes | Falhas reais de banco/migrations no ambiente de deploy |
-| **OPS-11** | Sessões por dispositivo | **Parcial** | tabela, listagem/revogação e UI de perfil | Limites, expiração, logout global e telemetria |
+| **OPS-10** | Liveness/readiness | **Concluído funcionalmente** | probes separadas, falhas de banco/migrations, métricas e healthcheck canônico | Exercício de indisponibilidade no ambiente de deploy |
+| **OPS-11** | Sessões por dispositivo | **Concluído funcionalmente** | painel acessível, limite/ociosidade, retenção, IP mascarado, refresh vinculado e logout global | Monitorar políticas e validar dispositivos reais |
 | **OPS-12** | Impersonation | **Parcial** | eventos auditáveis e controllers | Aprovação, escopo restrito e banner de suporte |
-| **OPS-13** | Observabilidade | **Parcial** | logs JSON, redaction e métricas protegidas | Exportador, retenção, alertas e correlação |
+| **OPS-13** | Observabilidade | **Parcial** | logs JSON, redaction, RED por rota normalizada, SQLite busy e exportação Prometheus protegida | Coletor persistente, alertas/SLO e correlação distribuída |
 | **OPS-14** | CI/CD | **Parcial** | 5 checks aprovados: backend, frontend, secrets, migrations e policy | Proteção da main, deploy/rollback e ambientes segregados |
 | **MOB-01** | Wrapper Capacitor | **Parcial** | configuração e testes de estrutura | Build assinado e validação em Android/iOS reais |
 | **MOB-02** | Base URL dinâmica | **Parcial** | resolver Capacitor e testes | Configuração por ambiente e distribuição real |

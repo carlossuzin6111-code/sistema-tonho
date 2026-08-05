@@ -45,5 +45,24 @@ describe('protected operational metrics', () => {
     const metrics = await request(app).get('/api/metrics').set('Authorization', `Bearer ${adminToken}`);
     expect(metrics.statusCode).toBe(200);
     expect(metrics.body.metrics).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'http_requests_total', labels: expect.objectContaining({ path: '/api/health', status: 200 }), value: 1 })]));
+    expect(metrics.body.metrics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'http_request_duration_ms_count', labels: expect.objectContaining({ path: '/api/health' }), value: 1 }),
+      expect.objectContaining({ name: 'http_request_duration_ms_sum', labels: expect.objectContaining({ path: '/api/health' }) })
+    ]));
+  });
+
+  test('exports Prometheus text and uses route templates instead of resource identifiers', async () => {
+    db.observeDatabaseError(Object.assign(new Error('database is locked'), { code: 'SQLITE_BUSY' }));
+    await request(app).delete('/api/sessions/abcdefghijklmnopqrstuvwxyz123456').set('Authorization', `Bearer ${adminToken}`);
+    await request(app).get('/api/not-found-attacker-controlled-value');
+    const response = await request(app).get('/api/metrics?format=prometheus').set('Authorization', `Bearer ${adminToken}`);
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toContain('text/plain');
+    expect(response.text).toContain('http_requests_total{method="DELETE",path="/api/sessions/:id",status="404"} 1');
+    expect(response.text).toMatch(/http_request_duration_ms_(?:sum|count)\{/);
+    expect(response.text).toContain('sqlite_errors_total{code="SQLITE_BUSY"} 1');
+    expect(response.text).not.toContain('abcdefghijklmnopqrstuvwxyz123456');
+    expect(response.text).toContain('path="unmatched"');
+    expect(response.text).not.toContain('not-found-attacker-controlled-value');
   });
 });

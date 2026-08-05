@@ -2,9 +2,60 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
-## BUS-07 + BUS-08 + BUS-11 — Resiliência da sessão, fila offline e chat em tempo real
+## OPS-10 + OPS-11 + OPS-13 — Saúde, sessões e observabilidade operacional
 
 - Estado: implementado, validado e em revisão
+- Branch: `feat/operational-session-observability`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/197
+- Início: 05/08/2026
+
+### Diagnóstico
+
+- O logout remove cookies, mas não revoga a sessão por dispositivo persistida, que permanece válida até expirar ou ser removida por outra sessão.
+- A API de sessões expõe o IP completo, não remove registros revogados antigos e não oferece revogação em lote/logout global.
+- A interface percorre sessões remotas com `window.confirm`, sem visão consolidada, identificação da sessão atual ou feedback por item.
+- Métricas são somente contadores JSON em memória; requisições não registram duração agregada e caminhos com IDs podem aumentar cardinalidade.
+- As probes já separam liveness/readiness, porém o container usa o alias legado e faltam métricas explícitas de seus resultados.
+
+### Plano
+
+- [x] Confirmar contratos existentes e registrar as lacunas antes das alterações.
+- [x] Criar branch exclusiva a partir da `main` mergeada.
+- [x] Revogar a sessão atual no logout e oferecer revogação em lote das demais sessões.
+- [x] Aplicar retenção a sessões revogadas, mascarar IP e instrumentar criação, revogação e poda.
+- [x] Substituir confirmações sequenciais por painel acessível de sessões em desktop/mobile.
+- [x] Normalizar rotas das métricas HTTP e observar duração por método, rota e status.
+- [x] Disponibilizar representação Prometheus protegida, mantendo o contrato JSON existente.
+- [x] Instrumentar resultados de liveness/readiness e usar `/health/ready` no healthcheck do container.
+- [x] Cobrir falhas de banco/migrations, logout, revogação em lote, privacidade, retenção, métricas e interface.
+- [x] Atualizar checklist e inventário com evidências e pendências operacionais reais.
+- [x] Executar suítes completas, audits e validações estáticas.
+- [x] Abrir PR.
+- [x] Acompanhar os cinco checks obrigatórios.
+
+### Critérios de aceite
+
+- Logout invalida imediatamente o token da sessão atual, além de limpar cookies.
+- O usuário visualiza sessões em um diálogo acessível, encerra uma sessão ou todas as demais e nunca recebe IP completo.
+- Registros revogados além da retenção configurada são eliminados sem remover sessões ativas.
+- Métricas HTTP possuem contagem e duração agregada com rotas parametrizadas, sem IDs, conteúdo ou dados pessoais.
+- Suporte/admin obtêm JSON ou texto Prometheus; demais papéis continuam bloqueados.
+- Liveness permanece independente do banco e readiness retorna 503 para banco indisponível ou migration pendente.
+
+### Evidências locais
+
+- Backend focalizado: 4/4 suítes e 16/16 testes para migrations, sessões, refresh, health e métricas.
+- Backend completo: 42/42 suítes e 252/252 testes aprovados, sem handles abertos.
+- Frontend completo: 94/94 testes aprovados, incluindo painel acessível e ausência de `window.confirm` no fluxo.
+- Rotação de refresh reutiliza a sessão do dispositivo; replay revoga a família e limite de sessões também invalida o refresh vinculado.
+- Prometheus não contém o identificador usado na rota dinâmica e expõe contagem/duração por `/api/sessions/:id`.
+- `npm audit` na raiz e `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+- `node --check` e `git diff --check`: aprovados.
+- CI do PR #197 (execução `31050931686`): Backend, Frontend e infraestrutura, Secret scan, Migration policy e CI policy aprovados.
+
+## BUS-07 + BUS-08 + BUS-11 — Resiliência da sessão, fila offline e chat em tempo real
+
+- Estado: concluído e mergeado
 - Branch: `feat/realtime-offline-resilience`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/196
 - Início: 05/08/2026
