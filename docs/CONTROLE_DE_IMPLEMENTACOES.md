@@ -4,9 +4,9 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## BUS-02 + BUS-12 — Gestão do ciclo de fichas e alunos
 
-- Estado: implementado, validado e aguardando pull request
+- Estado: implementado, validado e em revisão
 - Branch: `feat/lifecycle-management-ui`
-- Pull request: a abrir
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/193
 - Início: 05/08/2026
 
 ### Diagnóstico
@@ -29,7 +29,8 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Exibir no detalhe as transições recentes de aluno e fichas.
 - [x] Cobrir backend e frontend com testes de regressão.
 - [x] Executar suítes completas, audits e validações estáticas.
-- [ ] Abrir PR e acompanhar os cinco checks obrigatórios.
+- [x] Abrir PR.
+- [ ] Acompanhar os cinco checks obrigatórios.
 
 ### Evidências locais
 
