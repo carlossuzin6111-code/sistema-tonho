@@ -97,6 +97,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Política administrativa reproduzível registrada em `docs/runbooks/main-branch-protection.md`.
 - CI do PR #188: Backend, Frontend and infrastructure, Secret scan, Migration policy e CI policy aprovados.
 - Baseline reconciliada final: `43fdb3b` (merge do PR #188).
+- Fechamento do controle: https://github.com/carlossuzin6111-code/sistema-tonho/pull/189
 
 ### Inventário dos PRs
 
