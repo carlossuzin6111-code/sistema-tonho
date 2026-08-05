@@ -59,6 +59,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 - Estado: inventário reconstruído; validação documental em andamento
 - Branch: `docs/reconcile-roadmap-pr186`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/188 (draft, empilhado sobre o PR #187)
 - Baseline auditada: `5274051` (merge do PR #186)
 - Data da reconciliação: 05/08/2026
 - Alterações locais anteriores preservadas em: `stash@{1}` — `backup-pre-reconciliation-2026-08-05`
@@ -81,7 +82,8 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Consolidar o checklist sem IDs duplicados e com estados baseados em evidências.
 - [x] Executar testes e auditorias na baseline sincronizada.
 - [ ] Ativar proteção da branch `main` — bloqueado por permissão administrativa do repositório.
-- [ ] Abrir PR documental e acompanhar a CI.
+- [x] Abrir PR documental.
+- [ ] Acompanhar a CI e remover o modo draft após o merge do PR #187.
 
 ### Evidências da reconciliação
 
