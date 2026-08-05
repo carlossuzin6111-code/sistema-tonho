@@ -523,6 +523,28 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(invalid.statusCode).toBe(400);
     });
 
+    test('Should enforce paused read-only and blocked student lifecycle policies immediately', async () => {
+      await request(app).patch(`/api/personal/students/${studentId}/status`).set('Authorization', `Bearer ${personalToken}`).send({ accountStatus: 'active', relationshipStatus: 'paused' });
+      const historicalRead = await request(app).get('/api/student/measurements').set('Authorization', `Bearer ${studentToken}`);
+      expect(historicalRead.statusCode).toBe(200);
+      const newMeasurement = await request(app).post('/api/student/measurements').set('Authorization', `Bearer ${studentToken}`).send({ weight: 72 });
+      expect(newMeasurement.body.code).toBe('STUDENT_READ_ONLY');
+      const chat = await request(app).get('/api/chat').set('Authorization', `Bearer ${studentToken}`);
+      expect(chat.body.code).toBe('STUDENT_READ_ONLY');
+      const execution = await request(app).post('/api/workout-sessions/start').set('Authorization', `Bearer ${studentToken}`).send({ workoutId: 1 });
+      expect(execution.body.code).toBe('STUDENT_READ_ONLY');
+
+      await request(app).patch(`/api/personal/students/${studentId}/status`).set('Authorization', `Bearer ${personalToken}`).send({ accountStatus: 'suspended', relationshipStatus: 'blocked' });
+      const business = await request(app).get('/api/student/workouts').set('Authorization', `Bearer ${studentToken}`);
+      expect(business.body).toMatchObject({ code: 'STUDENT_ACCESS_BLOCKED', accountStatus: 'suspended', relationshipStatus: 'blocked' });
+      const me = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${studentToken}`);
+      expect(me.body).toMatchObject({ accountStatus: 'suspended', relationshipStatus: 'blocked' });
+      const exportData = await request(app).get('/api/compliance/export').set('Authorization', `Bearer ${studentToken}`);
+      expect(exportData.statusCode).toBe(200);
+      const restored = await request(app).patch(`/api/personal/students/${studentId}/status`).set('Authorization', `Bearer ${personalToken}`).send({ accountStatus: 'active', relationshipStatus: 'active' });
+      expect(restored.statusCode).toBe(200);
+    });
+
     test('Should keep personal assessment notes private from the student', async () => {
       const created = await request(app)
         .post(`/api/personal/students/${studentId}/assessments`)
@@ -531,12 +553,26 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(created.statusCode).toBe(201);
       expect(created.body.personal_notes).toBe('Acompanhar com cuidado');
 
+      const versioned = await request(app)
+        .post(`/api/personal/students/${studentId}/assessments`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ experienceLevel: 'advanced', clinicalInjuries: 'Sem dor atual', personalNotes: 'Evolução clínica privada', studentNotes: 'Progressão gradual' });
+      expect(versioned.statusCode).toBe(201);
+      const personalHistory = await request(app).get(`/api/personal/students/${studentId}/assessments`).set('Authorization', `Bearer ${personalToken}`);
+      expect(personalHistory.body).toHaveLength(2);
+      expect(personalHistory.body.map(item => item.experience_level)).toEqual(['advanced', 'intermediate']);
+      const assessmentAudit = await db('audit_logs').where({ action: 'student_assessment.version_created', target_id: String(versioned.body.id) }).first();
+      const auditMetadata = JSON.parse(assessmentAudit.metadata);
+      expect(auditMetadata).toMatchObject({ studentId, previousVersionId: created.body.id });
+      expect(JSON.stringify(auditMetadata)).not.toContain('Evolução clínica privada');
+
       const studentView = await request(app)
         .get(`/api/personal/students/${studentId}/assessments`)
         .set('Authorization', `Bearer ${studentToken}`);
       expect(studentView.statusCode).toBe(200);
-      expect(studentView.body[0]).toMatchObject({ experience_level: 'intermediate', student_notes: 'Evitar impacto no início' });
+      expect(studentView.body[0]).toMatchObject({ experience_level: 'advanced', student_notes: 'Progressão gradual' });
       expect(studentView.body[0]).not.toHaveProperty('personal_notes');
+      expect(studentView.body[1]).not.toHaveProperty('personal_notes');
     });
 
     test('Should get student details (Personal Trainer)', async () => {

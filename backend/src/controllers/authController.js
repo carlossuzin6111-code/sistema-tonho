@@ -131,6 +131,9 @@ async function login(req, res) {
     setSessionCookies(res, user, sessionId);
 
     const refresh = await issueRefreshToken(user);
+    const studentProfile = user.role === 'student'
+      ? await db('student_profiles').select('relationship_status').where({ student_id: user.id }).first()
+      : null;
     res.status(200).json({
       message: 'Login successful',
       user: {
@@ -139,7 +142,9 @@ async function login(req, res) {
         email: user.email,
         role: user.role,
         mustChangePassword: Boolean(user.must_change_password),
-        emailVerified: Boolean(user.email_verified_at)
+        emailVerified: Boolean(user.email_verified_at),
+        accountStatus: user.account_status || 'active',
+        ...(user.role === 'student' ? { relationshipStatus: studentProfile?.relationship_status || 'blocked' } : {})
       },
       accessToken: createAccessToken(user, sessionId),
       refreshToken: refresh.token,
@@ -168,12 +173,15 @@ function logout(req, res) {
 async function getMe(req, res) {
   try {
     const user = await db('users')
-      .select('id', 'name', 'email', 'role', 'created_at', 'avatar_filename', 'avatar_updated_at', 'must_change_password', 'email_verified_at')
+      .select('id', 'name', 'email', 'role', 'created_at', 'avatar_filename', 'avatar_updated_at', 'must_change_password', 'email_verified_at', 'account_status')
       .where('id', req.user.id)
       .first();
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
+    const profile = user.role === 'student'
+      ? await db('student_profiles').select('relationship_status').where({ student_id: user.id }).first()
+      : null;
     res.status(200).json({
       id: user.id,
       name: user.name,
@@ -181,6 +189,8 @@ async function getMe(req, res) {
       role: user.role,
       mustChangePassword: Boolean(user.must_change_password),
       emailVerified: Boolean(user.email_verified_at),
+      accountStatus: user.account_status || 'active',
+      ...(user.role === 'student' ? { relationshipStatus: profile?.relationship_status || 'blocked' } : {}),
       ...(req.user.isImpersonation ? { impersonation: { actorUserId: req.user.impersonatedBy, eventId: req.user.impersonationId } } : {}),
       created_at: user.created_at,
       hasAvatar: Boolean(user.avatar_filename),

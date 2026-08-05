@@ -2848,3 +2848,17 @@ body.dark-theme .drag-over {
 .lifecycle-history { width: 100%; margin: .5rem 0; font-size: .78rem; color: var(--text-secondary, #667085); }
 .lifecycle-history ul { margin: .35rem 0 0; padding-left: 1.1rem; }
 .lifecycle-history li { margin-bottom: .2rem; }
+.assessment-layout { display: grid; grid-template-columns: minmax(280px, .9fr) minmax(320px, 1.1fr); gap: 1rem; align-items: start; }
+.assessment-form { padding: 1rem; }
+.assessment-history { display: grid; gap: .75rem; max-height: 60vh; overflow-y: auto; padding-right: .25rem; }
+.assessment-version { padding: .9rem; }
+.assessment-version-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem; margin-bottom: .75rem; }
+.assessment-field { margin-top: .6rem; }
+.assessment-field p { white-space: pre-wrap; margin: .2rem 0 0; }
+.sensitive-field { border-left: 3px solid var(--warning-color, #d97706); padding-left: .65rem; }
+@media (max-width: 760px) { .assessment-layout { grid-template-columns: 1fr; } .assessment-history { max-height: none; } }
+.student-access-notice { margin: 0 0 1rem; padding: .9rem 1rem; border-radius: .75rem; border: 1px solid currentColor; }
+.student-access-notice p { margin: .3rem 0 0; }
+.access-paused { color: #9a6700; background: rgba(154, 103, 0, .1); }
+.access-blocked { color: #b42318; background: rgba(180, 35, 24, .1); }
+.student-access-blocked .tab-pane { display: none; }

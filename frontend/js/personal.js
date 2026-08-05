@@ -281,7 +281,6 @@ async function openStudentDetails(studentId) {
     document.getElementById('modal-sd-height').textContent = student.height ? `${student.height} m` : '-';
     document.getElementById('modal-sd-target').textContent = student.target_weight ? `${student.target_weight} kg` : '-';
     renderStudentLifecycleControls(student);
-    await renderStudentLifecycleHistory(student.id, details.workouts);
     
     if (student.birth_date) {
       const birth = new Date(student.birth_date);
@@ -298,6 +297,11 @@ async function openStudentDetails(studentId) {
 
     // Render Measurements (Medidas e Evolução)
     renderPersonalStudentMeasurements(details.measurements);
+
+    await Promise.all([
+      renderStudentLifecycleHistory(student.id, details.workouts),
+      loadStudentAssessments(student.id)
+    ]);
 
     lucide.createIcons();
   } catch (err) {
@@ -378,24 +382,100 @@ function switchModalSubtab(subtab) {
   const tabMetrics = document.getElementById('modal-tab-metrics');
   const paneWorkouts = document.getElementById('modal-subpane-workouts');
   const paneMetrics = document.getElementById('modal-subpane-metrics');
+  const tabAssessments = document.getElementById('modal-tab-assessments');
+  const paneAssessments = document.getElementById('modal-subpane-assessments');
 
   tabWorkouts.classList.remove('active');
   tabMetrics.classList.remove('active');
   paneWorkouts.classList.remove('active');
   paneMetrics.classList.remove('active');
+  tabAssessments.classList.remove('active');
+  paneAssessments.classList.remove('active');
 
   if (subtab === 'workouts') {
     tabWorkouts.classList.add('active');
     paneWorkouts.classList.add('active');
-  } else {
+  } else if (subtab === 'metrics') {
     tabMetrics.classList.add('active');
     paneMetrics.classList.add('active');
+  } else {
+    tabAssessments.classList.add('active');
+    paneAssessments.classList.add('active');
   }
   syncTabGroup(
-    ['modal-tab-workouts', 'modal-tab-metrics'],
-    ['modal-subpane-workouts', 'modal-subpane-metrics'],
-    subtab === 'workouts' ? 'modal-tab-workouts' : 'modal-tab-metrics'
+    ['modal-tab-workouts', 'modal-tab-metrics', 'modal-tab-assessments'],
+    ['modal-subpane-workouts', 'modal-subpane-metrics', 'modal-subpane-assessments'],
+    subtab === 'workouts' ? 'modal-tab-workouts' : subtab === 'metrics' ? 'modal-tab-metrics' : 'modal-tab-assessments'
   );
+}
+
+const ASSESSMENT_EXPERIENCE_LABELS = Object.freeze({ beginner: 'Iniciante', intermediate: 'Intermediário', advanced: 'Avançado' });
+
+async function loadStudentAssessments(studentId) {
+  const history = document.getElementById('assessment-history');
+  if (!history) return;
+  document.getElementById('student-assessment-form')?.reset();
+  SafeDOM.clear(history);
+  history.appendChild(SafeDOM.el('p', { text: 'Carregando versões...' }));
+  try {
+    const assessments = await API.get(`/personal/students/${studentId}/assessments`);
+    SafeDOM.clear(history);
+    if (!assessments.length) {
+      history.appendChild(SafeDOM.el('p', { className: 'no-data-msg', text: 'Nenhuma anamnese registrada.' }));
+      return;
+    }
+    const latest = assessments[0];
+    document.getElementById('assessment-experience').value = latest.experience_level || '';
+    document.getElementById('assessment-limitations').value = latest.anatomical_limitations || '';
+    document.getElementById('assessment-injuries').value = latest.clinical_injuries || '';
+    document.getElementById('assessment-personal-notes').value = latest.personal_notes || '';
+    document.getElementById('assessment-student-notes').value = latest.student_notes || '';
+    assessments.forEach((assessment, index) => history.appendChild(createAssessmentVersionCard(assessment, index === 0)));
+  } catch (error) {
+    SafeDOM.clear(history);
+    history.appendChild(SafeDOM.errorAlert('Erro ao carregar anamnese: ', error.message));
+  }
+}
+
+function createAssessmentVersionCard(assessment, latest) {
+  const card = SafeDOM.el('article', { className: 'assessment-version glass' });
+  const heading = SafeDOM.el('div', { className: 'assessment-version-heading' }, [
+    SafeDOM.el('strong', { text: `${latest ? 'Versão atual' : 'Versão'} · ${AppDateTime.dateTime(assessment.created_at)}` }),
+    SafeDOM.el('span', { className: 'lifecycle-badge lifecycle-active', text: ASSESSMENT_EXPERIENCE_LABELS[assessment.experience_level] || assessment.experience_level })
+  ]);
+  const field = (label, value, privateField = false) => SafeDOM.el('div', { className: privateField ? 'assessment-field sensitive-field' : 'assessment-field' }, [
+    SafeDOM.el('strong', { text: label }),
+    SafeDOM.el('p', { text: value || 'Não informado' })
+  ]);
+  card.append(heading,
+    field('Limitações anatômicas', assessment.anatomical_limitations),
+    field('Lesões e condições clínicas', assessment.clinical_injuries),
+    field('Notas privadas do Personal', assessment.personal_notes, true),
+    field('Orientações compartilhadas', assessment.student_notes));
+  return card;
+}
+
+async function handleStudentAssessmentSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  if (!selectedStudentId || form.dataset.submitting === 'true') return;
+  clearFormError(form.id);
+  setFormSubmitting(form, true);
+  try {
+    await API.post(`/personal/students/${selectedStudentId}/assessments`, {
+      experienceLevel: document.getElementById('assessment-experience').value,
+      anatomicalLimitations: document.getElementById('assessment-limitations').value.trim(),
+      clinicalInjuries: document.getElementById('assessment-injuries').value.trim(),
+      personalNotes: document.getElementById('assessment-personal-notes').value.trim(),
+      studentNotes: document.getElementById('assessment-student-notes').value.trim()
+    });
+    showToast('Nova versão da anamnese salva.', 'success');
+    await loadStudentAssessments(selectedStudentId);
+  } catch (error) {
+    setFormError(form.id, error.message);
+  } finally {
+    setFormSubmitting(form, false);
+  }
 }
 
 // Render student workouts list in the details modal

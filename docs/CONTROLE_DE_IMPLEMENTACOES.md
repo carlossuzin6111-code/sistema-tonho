@@ -2,9 +2,58 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
-## BUS-02 + BUS-12 — Gestão do ciclo de fichas e alunos
+## BUS-03 + BUS-04 — Políticas do vínculo e anamnese versionada
 
 - Estado: implementado, validado e pronto para merge
+- Branch: `feat/student-lifecycle-assessments`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/194
+- Início: 05/08/2026
+
+### Diagnóstico
+
+- Os estados de conta e vínculo são persistidos e gerenciáveis, mas ainda não alteram efetivamente o acesso do aluno.
+- Um vínculo pausado deveria preservar consultas históricas em modo somente leitura e impedir chat, execução e novas escritas.
+- Contas suspensas ou arquivadas e vínculos bloqueados ainda conseguem alcançar rotas normais da aplicação.
+- A anamnese possui persistência e isolamento das notas privadas, mas não possui tela, auditoria nem fluxo explícito de versões.
+
+### Plano
+
+- [x] Confirmar contratos existentes e definir a matriz de acesso por estado.
+- [x] Registrar plano e critérios antes das alterações funcionais.
+- [x] Criar branch exclusiva a partir da `main` mergeada.
+- [x] Incluir estados atuais no contexto autenticado sem confiar no token antigo.
+- [x] Centralizar bloqueios de conta/vínculo e manter rotas essenciais acessíveis.
+- [x] Aplicar modo somente leitura ao vínculo pausado e bloquear chat/execução.
+- [x] Transformar cada gravação de anamnese em nova versão transacional e auditada.
+- [x] Criar aba acessível de anamnese em desktop e mobile, distinguindo notas privadas e compartilhadas.
+- [x] Adicionar cobertura de matriz de acesso, privacidade, versionamento e interface.
+- [x] Executar suítes completas, audits e validações estáticas.
+- [x] Abrir PR.
+- [x] Acompanhar os cinco checks obrigatórios.
+
+### Evidências locais
+
+- Integração da API: 82/82 testes aprovados, incluindo aplicação imediata dos estados no mesmo token, modo somente leitura, bloqueio e restauração.
+- Backend completo: 41/41 suítes e 243/243 testes aprovados.
+- Frontend: 81/81 testes aprovados, incluindo os novos contratos de interface e anamnese.
+- Anamnese: duas versões preservadas, ordenação determinística, notas privadas ausentes na resposta do aluno e auditoria sem conteúdo clínico.
+- `npm audit` na raiz: 0 vulnerabilidades.
+- `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+- `node --check` e `git diff --check`: aprovados.
+- CI do PR #194 (execução `31045999483`): Backend, Frontend e infraestrutura, Secret scan, Migration policy e CI policy aprovados.
+
+### Critérios de aceite
+
+- Estados são lidos do banco a cada autenticação; alterar o ciclo tem efeito sem exigir novo login.
+- Aluno pausado consulta ficha, medidas e histórico, mas não inicia/altera treino, envia chat ou cria medidas.
+- Vínculo bloqueado e conta suspensa/arquivada não acessam rotas de negócio; perfil, senha, logout e LGPD continuam disponíveis.
+- O Personal continua gerenciando os dados do aluno conforme ownership.
+- Salvar a anamnese cria uma nova versão, preserva as anteriores e registra auditoria sem copiar conteúdo clínico sensível para os metadados.
+- O aluno nunca recebe `personal_notes`; a interface do Personal identifica claramente notas privadas e compartilhadas.
+
+## BUS-02 + BUS-12 — Gestão do ciclo de fichas e alunos
+
+- Estado: concluído e mergeado
 - Branch: `feat/lifecycle-management-ui`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/193
 - Início: 05/08/2026

@@ -28,7 +28,7 @@ async function applyAuthentication(req, authentication) {
   const db = require('../database');
   const payload = verifySessionToken(authentication.token);
   const user = await db('users')
-    .select('id', 'name', 'email', 'role', 'organization_role', 'session_version', 'must_change_password')
+    .select('id', 'name', 'email', 'role', 'organization_role', 'session_version', 'must_change_password', 'account_status')
     .where('id', payload.id)
     .first();
 
@@ -58,11 +58,16 @@ async function applyAuthentication(req, authentication) {
     role: user.role,
     organizationRole: user.organization_role || 'standalone',
     mustChangePassword: Boolean(user.must_change_password),
+    accountStatus: user.account_status || 'active',
     sessionId: payload.sessionId || null,
     impersonatedBy: payload.impersonatedBy || null,
     impersonationId: payload.impersonationId || null,
     isImpersonation: Boolean(payload.impersonationId)
   };
+  if (user.role === 'student') {
+    const profile = await db('student_profiles').select('relationship_status').where({ student_id: user.id }).first();
+    req.user.relationshipStatus = profile?.relationship_status || 'blocked';
+  }
   req.authSource = authentication.source;
 }
 
@@ -86,7 +91,7 @@ async function authenticateToken(req, res, next) {
         code: 'PASSWORD_CHANGE_REQUIRED'
       });
     }
-    return subscriptionGuard(req, res, next);
+    return enforceStudentLifecycle(req, res, () => subscriptionGuard(req, res, next));
   }
 
   const authentication = extractAuthentication(req);
@@ -102,10 +107,49 @@ async function authenticateToken(req, res, next) {
         code: 'PASSWORD_CHANGE_REQUIRED'
       });
     }
-    return subscriptionGuard(req, res, next);
+    return enforceStudentLifecycle(req, res, () => subscriptionGuard(req, res, next));
   } catch {
     return res.status(403).json({ error: 'Invalid or expired token' });
   }
+}
+
+const STUDENT_ESSENTIAL_PATHS = [
+  '/api/auth/me',
+  '/api/auth/logout',
+  '/api/profile',
+  '/api/compliance',
+  '/api/sessions'
+];
+
+function isStudentEssentialPath(path) {
+  return STUDENT_ESSENTIAL_PATHS.some(prefix => path === prefix || path.startsWith(`${prefix}/`));
+}
+
+function enforceStudentLifecycle(req, res, next) {
+  if (req.user?.role !== 'student') return next();
+  const path = req.path || req.originalUrl?.split('?')[0] || '';
+  if (isStudentEssentialPath(path)) return next();
+
+  if (req.user.accountStatus !== 'active' || req.user.relationshipStatus === 'blocked') {
+    return res.status(403).json({
+      error: 'Student account or relationship is inactive',
+      code: 'STUDENT_ACCESS_BLOCKED',
+      accountStatus: req.user.accountStatus,
+      relationshipStatus: req.user.relationshipStatus
+    });
+  }
+
+  if (req.user.relationshipStatus === 'paused') {
+    const chatOrExecution = path === '/api/chat' || path.startsWith('/api/chat/') || path.startsWith('/api/workout-sessions');
+    if (chatOrExecution || !SAFE_METHODS.has(req.method)) {
+      return res.status(403).json({
+        error: 'Student relationship is paused and limited to read-only history',
+        code: 'STUDENT_READ_ONLY',
+        relationshipStatus: 'paused'
+      });
+    }
+  }
+  return next();
 }
 
 function isPasswordChangeExempt(req) {
@@ -173,5 +217,6 @@ module.exports = {
   authenticateToken,
   csrfProtection,
   optionalAuthentication,
-  requireRole
+  requireRole,
+  enforceStudentLifecycle
 };

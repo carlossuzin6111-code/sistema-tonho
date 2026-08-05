@@ -11,7 +11,7 @@ test('student shell verifies the current waiver before tabs and SSE', () => {
   assert.match(app, /API\.get\('\/profile\/waivers\/current'\)/);
   assert.match(app, /if \(status\.signed\) return activateStudentDashboard/);
   assert.match(app, /function activateStudentDashboard[\s\S]*switchStudentTab[\s\S]*connectRealTimeUpdates/);
-  assert.match(app, /if \(!user\.mustChangePassword\) ensureCurrentWaiver\(user, generation\)/);
+  assert.match(app, /if \(!user\.mustChangePassword && !access\.blocked\) ensureCurrentWaiver\(user, generation\)/);
 });
 
 test('required PAR-Q dialog is complete, explicit and cannot be dismissed', () => {
