@@ -4,7 +4,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## BUS-05 + BUS-06 + BUS-13 — Metas, progressão e periodização do aluno
 
-- Estado: implementado, validado e em revisão
+- Estado: implementado, validado e pronto para merge
 - Branch: `feat/training-insights`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/195
 - Início: 05/08/2026
@@ -29,7 +29,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Cobrir migration, API, cálculos e interfaces.
 - [x] Executar suítes completas, audits e validações estáticas.
 - [x] Abrir PR.
-- [ ] Acompanhar os cinco checks.
+- [x] Acompanhar os cinco checks.
 
 ### Evidências locais
 
@@ -39,6 +39,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Frontend: 84/84 testes aprovados, incluindo editor de periodização antes ausente da suíte raiz e novos insights.
 - `npm audit` na raiz e `npm audit --omit=dev` no backend: 0 vulnerabilidades.
 - `node --check` e `git diff --check`: aprovados.
+- CI do PR #195 (execução `31047645425`): Backend, Frontend e infraestrutura, Secret scan, Migration policy e CI policy aprovados.
 
 ### Critérios de aceite
 
