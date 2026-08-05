@@ -42,7 +42,7 @@ Resumo: **8 implementados**, **50 parciais**, **0 não iniciados**, total de **5
 | **DB-07** | Constraints e índices | **Parcial** | índices e constraints existentes com testes | Revisar planos das consultas novas e constraints restantes |
 | **DB-08** | Transações compostas | **Implementado** | aluno/treino atômicos e testes negativos de rollback | Aplicar padrão a novos fluxos compostos |
 | **DB-09** | Precisão de domínio | **Parcial** | migration e `domainConstraints.test.js` | Eliminar floats/unidades ambíguas e migrar dados legados |
-| **UX-01** | Paginação por cursor no chat | **Parcial** | API por cursor e testes | Carregamento progressivo completo no frontend e QA extenso |
+| **UX-01** | Paginação por cursor no chat | **Parcial** | API por cursor, carregamento progressivo aluno/personal e testes | QA E2E com histórico extenso em navegador e dispositivo real |
 | **UX-02** | Virtual scrolling | **Parcial** | renderização virtualizada e teste estrutural | Benchmark/QA com catálogo grande e viewports reais |
 | **UX-03** | Fuso horário | **Parcial** | módulo `datetime.js` e uso nas telas principais | Auditar todos os timestamps administrativos e legados |
 | **UX-04** | Mídias órfãs/Base64 | **Parcial** | WebP, escrita atômica, limpeza e testes | Multipart, reconciliação global agendada e quota operacional |

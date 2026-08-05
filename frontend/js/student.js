@@ -3,6 +3,21 @@ let studentWorkouts = [];
 let studentMeasurements = [];
 let personalTrainerId = null;
 let todayReadiness = null;
+const studentChatHistory = { cursor: null, loading: false };
+const CHAT_PAGE_SIZE = 50;
+
+function createChatHistoryControl(action) {
+  return SafeDOM.el('button', {
+    className: 'chat-history-load',
+    attrs: { type: 'button', 'data-action': action }
+  }, ['Carregar mensagens anteriores']);
+}
+
+function renderStudentChatBubble(message) {
+  const currentUser = API.getCurrentUser();
+  const isMe = currentUser && String(message.sender_id) === String(currentUser.id);
+  return SafeDOM.chatBubble(message.message, AppDateTime.time(message.created_at), isMe ? 'sent' : 'received', { id: message.id, canEdit: isMe && !message.deleted_at });
+}
 
 function localDateKey() {
   const now = new Date();
@@ -333,16 +348,18 @@ async function loadStudentChat() {
   SafeDOM.clear(box);
   box.appendChild(SafeDOM.el('div', { className: 'spinner', attrs: { 'aria-label': 'Carregando mensagens' } }));
   try {
-    const [messages, partner] = await Promise.all([API.get('/chat'), API.get('/chat/partner')]);
+    const [page, partner] = await Promise.all([API.get(`/chat?limit=${CHAT_PAGE_SIZE}`), API.get('/chat/partner')]);
+    const messages = page.messages;
+    studentChatHistory.cursor = page.nextCursor;
+    studentChatHistory.loading = false;
     personalTrainerId = partner.id;
     document.getElementById('student-chat-trainer-name').textContent = partner.name;
     renderUserAvatar(document.getElementById('student-chat-trainer-avatar'), partner);
     SafeDOM.clear(box);
     if (!messages.length) box.appendChild(SafeDOM.el('div', { className: 'no-data-msg chat-empty-message', text: 'Inicie o papo! Mande um alô para seu Personal Trainer aqui.' }));
-    else for (const message of messages) {
-      const currentUser = API.getCurrentUser();
-      const isMe = currentUser && String(message.sender_id) === String(currentUser.id);
-      box.appendChild(SafeDOM.chatBubble(message.message, AppDateTime.time(message.created_at), isMe ? 'sent' : 'received', { id: message.id, canEdit: isMe && !message.deleted_at }));
+    else {
+      if (studentChatHistory.cursor) box.appendChild(createChatHistoryControl('load-older-student-chat'));
+      for (const message of messages) box.appendChild(renderStudentChatBubble(message));
     }
     box.scrollTop = box.scrollHeight;
     document.getElementById('student-unread-badge').classList.add('hidden');
@@ -350,6 +367,38 @@ async function loadStudentChat() {
     SafeDOM.clear(box);
     box.appendChild(SafeDOM.el('p', { className: 'no-data-msg text-danger', text: error.message }));
     appendEmptyStateAction(box, { label: 'Tentar novamente', icon: 'refresh-cw', onClick: loadStudentChat });
+  }
+}
+
+async function loadOlderStudentChat() {
+  if (!studentChatHistory.cursor || studentChatHistory.loading) return;
+  const box = document.getElementById('student-chat-messages');
+  const control = box.querySelector('.chat-history-load');
+  const cursor = studentChatHistory.cursor;
+  const previousHeight = box.scrollHeight;
+  studentChatHistory.loading = true;
+  if (control) {
+    control.disabled = true;
+    control.textContent = 'Carregando...';
+  }
+  try {
+    const page = await API.get(`/chat?limit=${CHAT_PAGE_SIZE}&before=${encodeURIComponent(cursor)}`);
+    const firstMessage = box.querySelector('.chat-bubble');
+    const fragment = document.createDocumentFragment();
+    for (const message of page.messages) {
+      if (!box.querySelector(`[data-message-id="${String(message.id)}"]`)) fragment.appendChild(renderStudentChatBubble(message));
+    }
+    box.insertBefore(fragment, firstMessage);
+    studentChatHistory.cursor = page.nextCursor;
+    box.scrollTop += box.scrollHeight - previousHeight;
+    if (!page.nextCursor) control?.remove();
+    else if (control) control.textContent = 'Carregar mensagens anteriores';
+  } catch (error) {
+    if (control) control.textContent = 'Tentar carregar novamente';
+    showToast(error.message, 'error');
+  } finally {
+    studentChatHistory.loading = false;
+    if (control?.isConnected) control.disabled = false;
   }
 }
 
@@ -378,9 +427,10 @@ function appendStudentLiveMessage(message) {
   if (active) {
     const box = document.getElementById('student-chat-messages');
     box.querySelector('.no-data-msg')?.remove();
-    box.appendChild(SafeDOM.chatBubble(message.message, AppDateTime.time(message.created_at), isMe ? 'sent' : 'received'));
+    if (box.querySelector(`[data-message-id="${String(message.id)}"]`)) return;
+    box.appendChild(SafeDOM.chatBubble(message.message, AppDateTime.time(message.created_at), isMe ? 'sent' : 'received', { id: message.id, canEdit: isMe && !message.deleted_at }));
     box.scrollTop = box.scrollHeight;
-    if (!isMe) API.get('/chat').catch(() => {});
+    if (!isMe) API.get('/chat?limit=1').catch(() => {});
   } else if (!isMe) {
     showToast('Personal mandou uma mensagem!', 'info');
     const badge = document.getElementById('student-unread-badge');

@@ -135,8 +135,8 @@ O cliente agora oferece entrada de recuperação pública de senha com resposta 
 ## 3. Desempenho, UX e UI (Grupo UX)
 
 ### [UX-01] Paginação de Chat Baseada em Cursor
-*   **Implementado no backend**: Endpoint `/api/chat/:userId?before=<msgId>&limit=<1..50>` executa consulta limitada por ID, ordena por data/ID de forma determinística e devolve `{ messages, nextCursor }`. Sem parâmetros, mantém a resposta em array para compatibilidade com os clientes atuais.
-*   **Pendente**: integrar carregamento incremental no frontend (scroll/botão), preservando mensagens recebidas pelo SSE.
+*   **Implementado**: Endpoint `/api/chat/:userId?before=<msgId>&limit=<1..50>` executa consulta limitada e devolve `{ messages, nextCursor }`. Aluno e personal consomem lotes de 50, carregam páginas anteriores por controle acessível, preservam a posição do scroll e evitam duplicar mensagens recebidas pelo SSE.
+*   **Pendente**: QA E2E com históricos extensos em navegadores e dispositivos móveis reais.
 
 ### [UX-02] Virtual Scrolling no Catálogo
 *   **Implementado**: O catálogo mantém busca e ordenação em memória, mas monta somente uma janela de até 15 cartões por vez, com overscan de duas posições e spacers fixos para preservar a rolagem. O viewport possui rolagem própria e uma coluna no mobile.

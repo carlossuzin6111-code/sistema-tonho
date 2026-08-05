@@ -680,7 +680,7 @@ test('student flows use safe DOM, user-scoped progress and authorized partner me
   const personal = read(path.join('js', 'personal.js'));
   assert.doesNotMatch(student, /innerHTML/i);
   assert.match(student, /fitlife_chk_user_\$\{userId\}_exercise_\$\{exerciseId\}/);
-  assert.match(student, /Promise\.all\(\[API\.get\('\/chat'\), API\.get\('\/chat\/partner'\)\]\)/);
+  assert.match(student, /Promise\.all\(\[API\.get\(`\/chat\?limit=\$\{CHAT_PAGE_SIZE\}`\), API\.get\('\/chat\/partner'\)\]\)/);
   assert.match(student, /renderUserAvatar\(document\.getElementById\('student-chat-trainer-avatar'\), partner\)/);
   assert.match(student, /tableMessageRow\(`Erro ao carregar medidas:/);
   assert.match(student, /plotSvgChart\('weight-chart-container', \[\]\)/);
