@@ -332,7 +332,7 @@ test('destructive actions use an accessible contextual confirmation flow', () =>
   const personal = read(path.join('js', 'personal.js'));
   const events = read(path.join('js', 'events.js'));
   assert.doesNotMatch(personal, /\bconfirm\s*\(/);
-  assert.equal((personal.match(/openDestructiveConfirmation\(\{/g) || []).length, 3);
+  assert.equal((personal.match(/openDestructiveConfirmation\(\{/g) || []).length, 5);
   assert.match(app, /setFormError\(form\.id, err\.message\)/);
   assert.match(app, /if \(typeof afterClose === 'function'\)/);
   assert.match(events, /'destructive-confirmation-form': event => handleDestructiveConfirmationSubmit\(event\)/);
@@ -789,7 +789,7 @@ test('timestamps are parsed as UTC and formatted with the browser local timezone
   assert.doesNotMatch(personal, /toLocaleDateString|toLocaleTimeString/);
   assert.doesNotMatch(student, /toLocaleDateString|toLocaleTimeString/);
   for (const page of ['desktop.html', 'mobile.html']) {
-    assert.match(read(page), /js\/datetime\.js\?v=20260729\.20/);
+    assert.match(read(page), /js\/datetime\.js\?v=20260805\.1/);
   }
 });
 

@@ -19,6 +19,25 @@ const catalogVirtualState = { query: '', sort: 'name-asc' };
 const CATALOG_VIRTUAL_BATCH = 15;
 const CATALOG_ITEM_HEIGHT = 184;
 
+const STUDENT_LIFECYCLE_OPTIONS = Object.freeze({
+  active: { label: 'Ativo', accountStatus: 'active', relationshipStatus: 'active' },
+  paused: { label: 'Pausado', accountStatus: 'active', relationshipStatus: 'paused' },
+  blocked: { label: 'Bloqueado', accountStatus: 'suspended', relationshipStatus: 'blocked' },
+  archived: { label: 'Arquivado', accountStatus: 'archived', relationshipStatus: 'blocked' }
+});
+const WORKOUT_STATUS_LABELS = Object.freeze({ draft: 'Rascunho', published: 'Publicada', archived: 'Arquivada' });
+
+function getStudentLifecycleKey(student) {
+  if (student.account_status === 'archived') return 'archived';
+  if (student.account_status === 'suspended' || student.relationship_status === 'blocked') return 'blocked';
+  if (student.relationship_status === 'paused') return 'paused';
+  return 'active';
+}
+
+function createStatusBadge(label, status) {
+  return SafeDOM.el('span', { className: `lifecycle-badge lifecycle-${status}`, text: label, attrs: { role: 'status' } });
+}
+
 function normalizeListSearch(value) {
   return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 }
@@ -155,6 +174,8 @@ async function loadPersonalStudents() {
           SafeDOM.el('p', { text: student.email })
         ])
       ]));
+      const lifecycleKey = getStudentLifecycleKey(student);
+      card.appendChild(createStatusBadge(STUDENT_LIFECYCLE_OPTIONS[lifecycleKey].label, lifecycleKey));
 
       const stat = (label, value) => SafeDOM.el('div', { className: 'student-stat' }, [
         SafeDOM.el('span', { className: 'student-stat-title', text: label }),
@@ -259,6 +280,8 @@ async function openStudentDetails(studentId) {
     renderUserAvatar(document.getElementById('modal-sd-avatar'), student);
     document.getElementById('modal-sd-height').textContent = student.height ? `${student.height} m` : '-';
     document.getElementById('modal-sd-target').textContent = student.target_weight ? `${student.target_weight} kg` : '-';
+    renderStudentLifecycleControls(student);
+    await renderStudentLifecycleHistory(student.id, details.workouts);
     
     if (student.birth_date) {
       const birth = new Date(student.birth_date);
@@ -280,6 +303,72 @@ async function openStudentDetails(studentId) {
   } catch (err) {
     showToast(`Erro ao carregar detalhes: ${err.message}`, 'error');
     closeModal('modal-student-detail');
+  }
+}
+
+function renderStudentLifecycleControls(student) {
+  const container = document.getElementById('modal-student-lifecycle');
+  if (!container) return;
+  SafeDOM.clear(container);
+  const currentKey = getStudentLifecycleKey(student);
+  const label = SafeDOM.el('label', { attrs: { for: 'modal-student-lifecycle-select' }, text: 'Situação do aluno' });
+  const select = SafeDOM.el('select', { className: 'lifecycle-select', attrs: { id: 'modal-student-lifecycle-select' } });
+  Object.entries(STUDENT_LIFECYCLE_OPTIONS).forEach(([key, option]) => {
+    const element = SafeDOM.el('option', { attrs: { value: key }, text: option.label });
+    element.selected = key === currentKey;
+    select.appendChild(element);
+  });
+  const apply = SafeDOM.el('button', {
+    className: 'btn btn-secondary btn-sm', attrs: { type: 'button' },
+    on: { click: () => confirmStudentLifecycleChange(student, select.value) }
+  }, ['Atualizar status']);
+  container.append(label, createStatusBadge(STUDENT_LIFECYCLE_OPTIONS[currentKey].label, currentKey), select, apply);
+}
+
+function confirmStudentLifecycleChange(student, nextKey) {
+  const currentKey = getStudentLifecycleKey(student);
+  if (nextKey === currentKey) return showToast('O aluno já está com esse status.', 'info');
+  const next = STUDENT_LIFECYCLE_OPTIONS[nextKey];
+  openDestructiveConfirmation({
+    title: `Alterar aluno para ${next.label.toLowerCase()}?`,
+    message: 'Medidas, fichas, conversas e todo o histórico serão preservados. O novo estado ficará registrado na auditoria.',
+    confirmLabel: `Confirmar ${next.label.toLowerCase()}`,
+    returnModalId: 'modal-student-detail',
+    action: async () => {
+      await API.patch(`/personal/students/${student.id}/status`, { accountStatus: next.accountStatus, relationshipStatus: next.relationshipStatus });
+      showToast(`Status alterado para ${next.label}.`, 'success');
+      await loadPersonalStudents();
+      return () => openStudentDetails(student.id);
+    }
+  });
+}
+
+async function renderStudentLifecycleHistory(studentId, workouts) {
+  const container = document.getElementById('modal-lifecycle-history');
+  if (!container) return;
+  SafeDOM.clear(container);
+  container.appendChild(SafeDOM.el('strong', { text: 'Alterações recentes' }));
+  try {
+    const logs = await API.get('/audit-logs');
+    const workoutIds = new Set((workouts || []).map(workout => String(workout.id)));
+    const relevant = logs.filter(log =>
+      (log.action === 'student.lifecycle_updated' && String(log.target_id) === String(studentId)) ||
+      (log.action === 'workout.status_updated' && (workoutIds.has(String(log.target_id)) || String(log.metadata?.studentId) === String(studentId)))
+    ).slice(0, 5);
+    if (!relevant.length) {
+      container.appendChild(SafeDOM.el('p', { text: 'Nenhuma alteração de status registrada.' }));
+      return;
+    }
+    const list = SafeDOM.el('ul');
+    relevant.forEach(log => {
+      const isStudent = log.action === 'student.lifecycle_updated';
+      const before = isStudent ? log.metadata?.before?.relationship_status : log.metadata?.before;
+      const after = isStudent ? log.metadata?.after?.relationshipStatus : log.metadata?.after;
+      list.appendChild(SafeDOM.el('li', { text: `${isStudent ? 'Aluno' : 'Ficha'}: ${before || '—'} → ${after || '—'} · ${AppDateTime.dateTime(log.created_at)}` }));
+    });
+    container.appendChild(list);
+  } catch {
+    container.appendChild(SafeDOM.el('p', { text: 'Histórico temporariamente indisponível.' }));
   }
 }
 
@@ -373,7 +462,8 @@ function renderPersonalStudentWorkouts(workouts) {
     card.className = 'workout-card glass';
 
     const titleBlock = SafeDOM.el('div', {}, [
-      SafeDOM.el('span', { className: 'workout-title', text: workout.name })
+      SafeDOM.el('span', { className: 'workout-title', text: workout.name }),
+      createStatusBadge(WORKOUT_STATUS_LABELS[workout.status] || 'Rascunho', workout.status || 'draft')
     ]);
     if (workout.description) {
       titleBlock.appendChild(SafeDOM.el('p', { className: 'workout-desc', text: workout.description }));
@@ -391,9 +481,22 @@ function renderPersonalStudentWorkouts(workouts) {
       className: 'btn btn-secondary btn-sm', attrs: { type: 'button' },
       on: { click: () => openWorkoutPeriodizationEditor(workout, card) }
     }, [SafeDOM.icon('calendar-range'), ' Periodização']);
+    const statusActions = [];
+    if (workout.status !== 'published') statusActions.push(SafeDOM.el('button', {
+      className: 'btn btn-primary btn-sm', attrs: { type: 'button' },
+      on: { click: () => confirmWorkoutStatusChange(workout, 'published') }
+    }, [SafeDOM.icon('send'), workout.status === 'archived' ? ' Publicar novamente' : ' Publicar']));
+    if (workout.status !== 'draft') statusActions.push(SafeDOM.el('button', {
+      className: 'btn btn-secondary btn-sm', attrs: { type: 'button' },
+      on: { click: () => confirmWorkoutStatusChange(workout, 'draft') }
+    }, ['Tornar rascunho']));
+    if (workout.status !== 'archived') statusActions.push(SafeDOM.el('button', {
+      className: 'btn btn-secondary btn-sm', attrs: { type: 'button' },
+      on: { click: () => confirmWorkoutStatusChange(workout, 'archived') }
+    }, ['Arquivar']));
     card.appendChild(SafeDOM.el('div', { className: 'workout-header' }, [
       titleBlock,
-      SafeDOM.el('div', { className: 'inline-actions' }, [addButton, periodizationButton, deleteButton])
+      SafeDOM.el('div', { className: 'inline-actions' }, [...statusActions, addButton, periodizationButton, deleteButton])
     ]));
 
     const exercisesList = SafeDOM.el('div', { className: 'exercises-list' });
@@ -442,6 +545,24 @@ function renderPersonalStudentWorkouts(workouts) {
   });
 
   lucide.createIcons();
+}
+
+function confirmWorkoutStatusChange(workout, nextStatus) {
+  const label = WORKOUT_STATUS_LABELS[nextStatus].toLowerCase();
+  const publishing = nextStatus === 'published';
+  openDestructiveConfirmation({
+    title: `${publishing ? 'Publicar' : 'Alterar'} ficha “${workout.name}”?`,
+    message: publishing
+      ? 'Esta ficha ficará visível para o aluno. Qualquer outra ficha publicada para ele será arquivada automaticamente.'
+      : `A ficha passará para ${label}; exercícios e histórico serão preservados.`,
+    confirmLabel: publishing ? 'Publicar ficha' : `Confirmar ${label}`,
+    returnModalId: 'modal-student-detail',
+    action: async () => {
+      await API.patch(`/workouts/${workout.id}/status`, { status: nextStatus });
+      showToast(`Ficha alterada para ${WORKOUT_STATUS_LABELS[nextStatus]}.`, 'success');
+      return () => openStudentDetails(selectedStudentId);
+    }
+  });
 }
 
 // Render student measurements list and build progress chart

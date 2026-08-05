@@ -504,6 +504,14 @@ describe('FitLife Sync API Integration Tests', () => {
       expect(JSON.parse(audit.metadata)).toMatchObject({ before: expect.any(Object), after: expect.any(Object) });
     });
 
+    test('Should expose lifecycle statuses in student details', async () => {
+      const res = await request(app)
+        .get(`/api/personal/students/${studentId}`)
+        .set('Authorization', `Bearer ${personalToken}`);
+      expect(res.statusCode).toBe(200);
+      expect(res.body.student).toMatchObject({ account_status: 'active', relationship_status: 'active' });
+    });
+
     test('Should filter linked students server-side by active, inactive and all status', async () => {
       const active = await request(app).get('/api/personal/students?status=active').set('Authorization', `Bearer ${personalToken}`);
       expect(active.statusCode).toBe(200);
@@ -774,6 +782,19 @@ describe('FitLife Sync API Integration Tests', () => {
         .send({ status: 'published' });
       expect(published.statusCode).toBe(200);
 
+      const audit = await db('audit_logs').where({ action: 'workout.status_updated', target_id: String(workoutId) }).orderBy('id', 'desc').first();
+      expect(audit).toBeTruthy();
+      expect(JSON.parse(audit.metadata)).toMatchObject({ before: 'draft', after: 'published', automaticallyArchivedWorkoutIds: [] });
+
+      const auditCountBeforeReplay = await db('audit_logs').where({ action: 'workout.status_updated', target_id: String(workoutId) }).count('* as total').first();
+      const replay = await request(app)
+        .patch(`/api/workouts/${workoutId}/status`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ status: 'published' });
+      const auditCountAfterReplay = await db('audit_logs').where({ action: 'workout.status_updated', target_id: String(workoutId) }).count('* as total').first();
+      expect(replay.body).toMatchObject({ changed: false, archivedWorkoutIds: [] });
+      expect(Number(auditCountAfterReplay.total)).toBe(Number(auditCountBeforeReplay.total));
+
     });
 
     test('Should add exercise to the created workout (Personal Trainer)', async () => {
@@ -856,7 +877,11 @@ describe('FitLife Sync API Integration Tests', () => {
         .set('Authorization', `Bearer ${personalToken}`)
         .send({ status: 'published' });
       expect(published.statusCode).toBe(200);
+      expect(published.body).toMatchObject({ changed: true });
+      expect(published.body.archivedWorkoutIds).toContain(workoutId);
       await expect(db('workouts').where({ id: workoutId }).select('status').first()).resolves.toMatchObject({ status: 'archived' });
+      const audit = await db('audit_logs').where({ action: 'workout.status_updated', target_id: String(replacement.body.workoutId) }).first();
+      expect(JSON.parse(audit.metadata).automaticallyArchivedWorkoutIds).toContain(workoutId);
     });
 
     test('Should remove exercise from workout (Personal Trainer)', async () => {

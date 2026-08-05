@@ -51,7 +51,7 @@ Resumo: **8 implementados**, **50 parciais**, **0 não iniciados**, total de **5
 | **UX-07** | WCAG 2.2 AA | **Parcial** | focus trap, teclado, reduced motion e testes | Auditoria manual de contraste, leitor de tela e fluxo completo |
 | **UX-08** | Uploads e cotas | **Parcial** | MIME/assinatura, limites e `mediaQuotaService` | Multipart e reconciliação operacional de armazenamento |
 | **BUS-01** | Sessões reais de treino | **Implementado** | sessões, progresso, status, histórico, UI e testes | Teste E2E em dispositivo e telemetria são melhorias |
-| **BUS-02** | Status da ficha | **Parcial** | draft/published/archived no backend | Controles e auditoria completos em todas as interfaces |
+| **BUS-02** | Status da ficha | **Concluído** | estados e controles desktop/mobile, confirmação, idempotência, transação e auditoria | Monitoramento operacional |
 | **BUS-03** | Ciclo de vida do aluno | **Parcial** | status de conta/vínculo e controllers | Aplicar todas as políticas read-only/bloqueio e UX final |
 | **BUS-04** | Anamnese | **Parcial** | migration, controller e campos privados | Tela completa, edição/versionamento e auditoria clínica |
 | **BUS-05** | Aderência semanal | **Parcial** | serviço, endpoint e testes | Metas configuráveis, gráficos e validação de negócio |
@@ -61,7 +61,7 @@ Resumo: **8 implementados**, **50 parciais**, **0 não iniciados**, total de **5
 | **BUS-09** | Chaves de cadastro CLI | **Implementado** | criar, listar/revogar e testes do serviço | Governança operacional contínua |
 | **BUS-10** | Ciclo de vida do chat | **Implementado** | editar/excluir, UI e eventos SSE consolidados até PR #186 | Política de retenção pode evoluir |
 | **BUS-11** | Indicador digitando | **Parcial** | SSE, frontend, debounce e testes | QA offline/por conversa e observabilidade |
-| **BUS-12** | Inativação e filtros | **Parcial** | filtro server-side, abas e auditoria | Confirmação acessível e políticas completas por status |
+| **BUS-12** | Inativação e filtros | **Concluído** | filtros server-side, abas, confirmação acessível, estados e histórico visual de auditoria | Políticas de acesso por status permanecem em BUS-03 |
 | **BUS-13** | Periodização | **Parcial** | microciclos e editor do personal | Visualização do aluno e validação biomecânica |
 | **BUS-14** | Governança do catálogo | **Parcial** | escopo/customização e deduplicação inicial | Moderação global e deduplicação automática em lote |
 | **OPS-01** | Subscriptions | **Parcial** | schema, guard e controller | Gateway real, webhooks idempotentes e ciclo financeiro |

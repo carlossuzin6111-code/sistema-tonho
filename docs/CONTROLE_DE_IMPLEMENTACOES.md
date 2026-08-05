@@ -2,9 +2,58 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## BUS-02 + BUS-12 — Gestão do ciclo de fichas e alunos
+
+- Estado: implementado, validado e pronto para merge
+- Branch: `feat/lifecycle-management-ui`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/193
+- Início: 05/08/2026
+
+### Diagnóstico
+
+- O backend já persiste fichas como `draft`, `published` ou `archived`, mas o Personal não vê nem altera esses estados na interface.
+- A publicação arquiva fichas anteriores, porém a transição ainda não produz auditoria específica.
+- O ciclo do aluno já possui endpoint, filtros server-side e auditoria, mas faltam controles e confirmação acessível no dashboard.
+- No HTML mobile, as abas Ativos/Inativos/Todos foram inseridas por engano dentro do formulário de login.
+
+### Plano
+
+- [x] Confirmar contratos existentes, lacunas e pontos de integração.
+- [x] Registrar o plano e os critérios antes das alterações funcionais.
+- [x] Criar branch exclusiva a partir da `main` mergeada.
+- [x] Tornar transições de ficha transacionais, idempotentes e auditáveis.
+- [x] Expor o estado completo do aluno no detalhe autenticado.
+- [x] Adicionar estados, ações e confirmações acessíveis nas fichas.
+- [x] Adicionar estados, pausa, bloqueio, arquivamento e reativação dos alunos.
+- [x] Corrigir a posição das abas no mobile e manter paridade com desktop.
+- [x] Exibir no detalhe as transições recentes de aluno e fichas.
+- [x] Cobrir backend e frontend com testes de regressão.
+- [x] Executar suítes completas, audits e validações estáticas.
+- [x] Abrir PR.
+- [x] Acompanhar os cinco checks obrigatórios.
+
+### Evidências locais
+
+- Integração da API: 81/81 testes aprovados no arquivo `api.test.js` após validar criação em rascunho, publicação, arquivamento automático, replay idempotente e auditoria.
+- Backend completo: 41/41 suítes e 242/242 testes aprovados.
+- Frontend: 78/78 testes aprovados, incluindo regressões de posicionamento mobile, controles compartilhados e histórico de auditoria.
+- `npm audit` na raiz: 0 vulnerabilidades.
+- `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+- `node --check` nos scripts alterados e `git diff --check`: aprovados.
+- CI do PR #193 (execução `31044890173`): Backend, Frontend e infraestrutura, Secret scan, Migration policy e CI policy aprovados.
+
+### Critérios de aceite
+
+- O Personal identifica visualmente o estado de cada ficha e consegue publicar, arquivar ou devolver para rascunho.
+- Publicar uma ficha arquiva as outras publicadas do mesmo vínculo dentro da mesma transação e gera auditoria com antes/depois.
+- Repetir o estado atual é idempotente e não cria auditoria duplicada.
+- O Personal identifica o estado do aluno e confirma de forma acessível qualquer pausa, bloqueio, arquivamento ou reativação.
+- Os filtros Ativos/Inativos/Todos consultam o servidor e aparecem somente na área correta do dashboard em desktop e mobile.
+- Nenhuma transição remove prontuário, medidas, fichas ou histórico do aluno.
+
 ## SEC-08 — Aceite vigente do PAR-Q e termos
 
-- Estado: implementado, validado e aguardando merge
+- Estado: concluído e mergeado
 - Branch: `security/sec-08-current-waiver-gate`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/192
 - Início: 05/08/2026
