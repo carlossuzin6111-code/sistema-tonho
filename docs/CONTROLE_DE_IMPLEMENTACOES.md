@@ -4,9 +4,9 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## OPS-10 + OPS-11 + OPS-13 — Saúde, sessões e observabilidade operacional
 
-- Estado: implementado e validado localmente; aguardando PR
+- Estado: implementado, validado e em revisão
 - Branch: `feat/operational-session-observability`
-- Pull request: pendente
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/197
 - Início: 05/08/2026
 
 ### Diagnóstico
@@ -30,7 +30,8 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Cobrir falhas de banco/migrations, logout, revogação em lote, privacidade, retenção, métricas e interface.
 - [x] Atualizar checklist e inventário com evidências e pendências operacionais reais.
 - [x] Executar suítes completas, audits e validações estáticas.
-- [ ] Abrir PR e acompanhar os cinco checks obrigatórios.
+- [x] Abrir PR.
+- [ ] Acompanhar os cinco checks obrigatórios.
 
 ### Critérios de aceite
 
