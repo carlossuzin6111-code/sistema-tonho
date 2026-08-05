@@ -134,6 +134,9 @@ const bodySchemas = {
     accountStatus: value => ['active', 'suspended', 'archived'].includes(value) ? null : 'accountStatus must be active, suspended or archived',
     relationshipStatus: value => ['invited', 'active', 'paused', 'blocked'].includes(value) ? null : 'relationshipStatus must be invited, active, paused or blocked'
   },
+  studentTrainingGoal: {
+    weeklyWorkoutGoal: value => Number.isInteger(value) && value >= 1 && value <= 14 ? null : 'weeklyWorkoutGoal must be an integer between 1 and 14'
+  },
   assessment: {
     experienceLevel: text('experienceLevel', 50, 1),
     anatomicalLimitations: text('anatomicalLimitations', 5000),

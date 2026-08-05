@@ -2862,3 +2862,15 @@ body.dark-theme .drag-over {
 .access-paused { color: #9a6700; background: rgba(154, 103, 0, .1); }
 .access-blocked { color: #b42318; background: rgba(180, 35, 24, .1); }
 .student-access-blocked .tab-pane { display: none; }
+.training-insights { padding: 1rem; margin-bottom: 1rem; }
+.training-insights h2 { font-size: 1.1rem; margin: 0 0 .75rem; }
+.training-insight-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5rem; }
+.training-progression-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .6rem; margin-top: .75rem; }
+.progression-card { display: grid; gap: .25rem; padding: .75rem; border: 1px solid var(--border-color, #d8dee9); border-radius: .65rem; }
+.progression-history { margin: .35rem 0 0; padding-left: 1rem; font-size: .78rem; color: var(--text-secondary, #667085); }
+.exercise-load-estimate { display: block; margin-top: .35rem; color: var(--primary-color, #2563eb); }
+.student-periodization { margin-top: .8rem; padding-top: .8rem; border-top: 1px solid var(--border-color, #d8dee9); }
+.student-periodization-list { display: grid; gap: .5rem; padding-left: 1.3rem; }
+.student-periodization-list li { padding-left: .2rem; }
+.student-periodization-list span { display: block; font-size: .85rem; color: var(--text-secondary, #667085); }
+@media (max-width: 760px) { .training-insight-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

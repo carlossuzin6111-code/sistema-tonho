@@ -54,15 +54,15 @@ Resumo: **8 implementados**, **50 parciais**, **0 não iniciados**, total de **5
 | **BUS-02** | Status da ficha | **Concluído** | estados e controles desktop/mobile, confirmação, idempotência, transação e auditoria | Monitoramento operacional |
 | **BUS-03** | Ciclo de vida do aluno | **Concluído** | estados atuais no middleware, políticas read-only/bloqueio, exceções essenciais e UX desktop/mobile | Monitorar tentativas bloqueadas e revisar políticas operacionais |
 | **BUS-04** | Anamnese | **Concluído** | aba desktop/mobile, versões imutáveis, privacidade e auditoria transacional | Validação clínica dos campos permanece operacional |
-| **BUS-05** | Aderência semanal | **Parcial** | serviço, endpoint e testes | Metas configuráveis, gráficos e validação de negócio |
-| **BUS-06** | Progressão de carga | **Parcial** | analytics e endpoint | Sugestão na sessão e fórmula 1-RM validada |
+| **BUS-05** | Aderência semanal | **Concluído** | meta configurável, período inclusivo, API, UI e auditoria | Validar metas com operação real |
+| **BUS-06** | Progressão de carga | **Concluído** | volume, histórico, recordes, Epley e referência contextual | Validação profissional da referência estimada |
 | **BUS-07** | Temporizador/sessão ativa | **Parcial** | atividade, timer e recuperação mobile | QA de background, múltiplos dispositivos e expiração |
 | **BUS-08** | Offline e idempotência | **Parcial** | IndexedDB, chaves, retenção e telemetria | Cobrir todos os fluxos offline e conflitos complexos |
 | **BUS-09** | Chaves de cadastro CLI | **Implementado** | criar, listar/revogar e testes do serviço | Governança operacional contínua |
 | **BUS-10** | Ciclo de vida do chat | **Implementado** | editar/excluir, UI e eventos SSE consolidados até PR #186 | Política de retenção pode evoluir |
 | **BUS-11** | Indicador digitando | **Parcial** | SSE, frontend, debounce e testes | QA offline/por conversa e observabilidade |
 | **BUS-12** | Inativação e filtros | **Concluído** | filtros server-side, abas, confirmação acessível, estados e histórico visual de auditoria | Políticas de acesso por status permanecem em BUS-03 |
-| **BUS-13** | Periodização | **Parcial** | microciclos e editor do personal | Visualização do aluno e validação biomecânica |
+| **BUS-13** | Periodização | **Concluído funcionalmente** | editor, auditoria, visualização do aluno e integração com progressão | QA biomecânica profissional permanece operacional |
 | **BUS-14** | Governança do catálogo | **Parcial** | escopo/customização e deduplicação inicial | Moderação global e deduplicação automática em lote |
 | **OPS-01** | Subscriptions | **Parcial** | schema, guard e controller | Gateway real, webhooks idempotentes e ciclo financeiro |
 | **OPS-02** | Equipes Head/Junior | **Parcial** | schema e endpoints básicos | Convites, permissões granulares, bibliotecas e split |

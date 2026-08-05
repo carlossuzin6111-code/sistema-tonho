@@ -2,9 +2,57 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## BUS-05 + BUS-06 + BUS-13 — Metas, progressão e periodização do aluno
+
+- Estado: implementado e validado localmente
+- Branch: `feat/training-insights`
+- Pull request: a abrir
+- Início: 05/08/2026
+
+### Diagnóstico
+
+- A aderência usa a quantidade de fichas publicadas como denominador, em vez de uma meta semanal configurável.
+- O endpoint de progressão calcula volume, mas não retorna série histórica nem 1-RM estimado com fórmula documentada.
+- O Personal edita microciclos, porém o aluno não visualiza o planejamento nem sugestões relacionadas à própria evolução.
+
+### Plano
+
+- [x] Confirmar contratos e dependências existentes.
+- [x] Registrar plano e critérios antes das alterações.
+- [x] Criar branch exclusiva a partir da `main` mergeada.
+- [x] Persistir meta semanal com migration expand-only, validação e ownership.
+- [x] Calcular aderência proporcional ao período e expor meta, previsto, concluído e percentual.
+- [x] Ampliar progressão com histórico e 1-RM estimado pela fórmula de Epley.
+- [x] Integrar metas e aderência no detalhe do Personal.
+- [x] Criar visão do aluno para aderência, progressão, recordes e microciclos.
+- [x] Relacionar sugestões de carga à progressão sem apresentá-las como prescrição clínica automática.
+- [x] Cobrir migration, API, cálculos e interfaces.
+- [x] Executar suítes completas, audits e validações estáticas.
+- [ ] Abrir PR e acompanhar os cinco checks.
+
+### Evidências locais
+
+- Migration aplicada em banco vazio e schema legado; meta protegida também por triggers SQLite entre 1 e 14.
+- Integração/migrations/fórmula: 89/89 testes focalizados aprovados.
+- Backend completo: 42/42 suítes e 245/245 testes aprovados.
+- Frontend: 84/84 testes aprovados, incluindo editor de periodização antes ausente da suíte raiz e novos insights.
+- `npm audit` na raiz e `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+- `node --check` e `git diff --check`: aprovados.
+
+### Critérios de aceite
+
+- O Personal configura de 1 a 14 treinos por semana por aluno, com valor padrão seguro.
+- A aderência considera semanas do intervalo e retorna `null` quando não existe meta aplicável, sem divisão enganosa.
+- O 1-RM estimado informa fórmula e só usa repetições/carga numéricas válidas.
+- O histórico é cronológico e não mistura exercícios ou alunos.
+- O aluno visualiza sua meta, aderência, progressão e periodização publicada em desktop/mobile.
+- Sugestões são identificadas como estimativas, preservando decisão do Personal e revisão profissional.
+
 ## BUS-03 + BUS-04 — Políticas do vínculo e anamnese versionada
 
-- Estado: implementado, validado e pronto para merge
+## BUS-03 + BUS-04 — Políticas do vínculo e anamnese versionada
+
+- Estado: concluído e mergeado
 - Branch: `feat/student-lifecycle-assessments`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/194
 - Início: 05/08/2026

@@ -477,13 +477,20 @@ describe('FitLife Sync API Integration Tests', () => {
     });
 
     test('Should return weekly adherence ordered by lowest percentage first', async () => {
+      const goal = await request(app)
+        .patch(`/api/personal/students/${studentId}/training-goal`)
+        .set('Authorization', `Bearer ${personalToken}`)
+        .send({ weeklyWorkoutGoal: 4 });
+      expect(goal.body).toMatchObject({ weeklyWorkoutGoal: 4, changed: true });
       const res = await request(app)
         .get('/api/personal/students/adherence')
         .set('Authorization', `Bearer ${personalToken}`);
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveProperty('students');
       expect(Array.isArray(res.body.students)).toBe(true);
-      expect(res.body.students[0]).toEqual(expect.objectContaining({ studentId: expect.any(Number), adherence: expect.any(Number) }));
+      expect(res.body.students[0]).toEqual(expect.objectContaining({ studentId: expect.any(Number), weeklyGoal: 4, planned: expect.any(Number), completed: expect.any(Number), adherence: expect.any(Number) }));
+      const audit = await db('audit_logs').where({ action: 'student.training_goal_updated', target_id: String(studentId) }).first();
+      expect(JSON.parse(audit.metadata)).toEqual({ before: 3, after: 4 });
     });
 
     test('Should update the linked student lifecycle statuses', async () => {
@@ -882,6 +889,8 @@ describe('FitLife Sync API Integration Tests', () => {
         .set('Authorization', `Bearer ${studentToken}`);
       expect(readAsStudent.statusCode).toBe(200);
       expect(readAsStudent.body.microcycles.map(item => item.label)).toEqual(['Acúmulo', 'Intensificação', 'Deload']);
+      const audit = await db('audit_logs').where({ action: 'workout.periodization_replaced', target_id: String(workoutId) }).first();
+      expect(JSON.parse(audit.metadata)).toMatchObject({ studentId, microcycleCount: 3 });
     });
 
     test('Should reject invalid or non-sequential microcycles', async () => {
@@ -898,8 +907,9 @@ describe('FitLife Sync API Integration Tests', () => {
         .set('Authorization', `Bearer ${studentToken}`);
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveProperty('studentId', studentId);
+      expect(res.body.oneRepMaxFormula).toMatch(/Epley/);
       expect(Array.isArray(res.body.exercises)).toBe(true);
-      if (res.body.exercises.length) expect(res.body.exercises[0]).toEqual(expect.objectContaining({ exerciseName: expect.any(String), totalVolume: expect.any(Number) }));
+      if (res.body.exercises.length) expect(res.body.exercises[0]).toEqual(expect.objectContaining({ exerciseName: expect.any(String), totalVolume: expect.any(Number), history: expect.any(Array) }));
     });
 
     test('Should archive the previous published workout when replacing it', async () => {

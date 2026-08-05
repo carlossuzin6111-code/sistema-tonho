@@ -326,7 +326,20 @@ function renderStudentLifecycleControls(student) {
     className: 'btn btn-secondary btn-sm', attrs: { type: 'button' },
     on: { click: () => confirmStudentLifecycleChange(student, select.value) }
   }, ['Atualizar status']);
-  container.append(label, createStatusBadge(STUDENT_LIFECYCLE_OPTIONS[currentKey].label, currentKey), select, apply);
+  const goalLabel = SafeDOM.el('label', { attrs: { for: 'modal-student-weekly-goal' }, text: 'Meta de treinos por semana' });
+  const goalInput = SafeDOM.el('input', { className: 'lifecycle-select', attrs: { id: 'modal-student-weekly-goal', type: 'number', min: 1, max: 14, step: 1 } });
+  goalInput.value = student.weekly_workout_goal || 3;
+  const saveGoal = SafeDOM.el('button', { className: 'btn btn-secondary btn-sm', attrs: { type: 'button' }, on: { click: () => updateStudentTrainingGoal(student.id, Number(goalInput.value)) } }, ['Salvar meta']);
+  container.append(label, createStatusBadge(STUDENT_LIFECYCLE_OPTIONS[currentKey].label, currentKey), select, apply, goalLabel, goalInput, saveGoal);
+}
+
+async function updateStudentTrainingGoal(studentId, weeklyWorkoutGoal) {
+  if (!Number.isInteger(weeklyWorkoutGoal) || weeklyWorkoutGoal < 1 || weeklyWorkoutGoal > 14) return showToast('Informe uma meta entre 1 e 14 treinos.', 'error');
+  try {
+    const result = await API.patch(`/personal/students/${studentId}/training-goal`, { weeklyWorkoutGoal });
+    showToast(result.changed ? 'Meta semanal atualizada.' : 'A meta semanal já estava atualizada.', result.changed ? 'success' : 'info');
+    await loadPersonalStudents();
+  } catch (error) { showToast(error.message, 'error'); }
 }
 
 function confirmStudentLifecycleChange(student, nextKey) {
