@@ -789,7 +789,7 @@ test('timestamps are parsed as UTC and formatted with the browser local timezone
   assert.doesNotMatch(personal, /toLocaleDateString|toLocaleTimeString/);
   assert.doesNotMatch(student, /toLocaleDateString|toLocaleTimeString/);
   for (const page of ['desktop.html', 'mobile.html']) {
-    assert.match(read(page), /js\/datetime\.js\?v=20260805\.2/);
+    assert.match(read(page), /js\/datetime\.js\?v=20260805\.3/);
   }
 });
 

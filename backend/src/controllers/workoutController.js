@@ -158,6 +158,7 @@ async function replaceWorkoutPeriodization(req, res) {
         volume_multiplier: Number(item.volumeMultiplier),
         notes: item.notes ? String(item.notes).slice(0, 2000) : null
       })));
+      await recordAudit(trx, { actorUserId: req.user.id, action: AUDIT_ACTIONS.WORKOUT_PERIODIZATION_REPLACED, targetType: 'workout', targetId: workoutId, metadata: { studentId: workout.student_id, microcycleCount: microcycles.length } });
     });
     const saved = await db('workout_microcycles').where({ workout_id: workoutId }).orderBy('week_number');
     return res.status(200).json({ workoutId, microcycles: saved });

@@ -146,7 +146,7 @@ async function getStudents(req, res) {
   try {
     const query = db('users as u')
       .join('student_profiles as sp', 'u.id', 'sp.student_id')
-      .select('u.id', 'u.name', 'u.email', 'u.avatar_filename', 'u.avatar_updated_at', 'u.account_status', 'sp.relationship_status', 'sp.height', 'sp.target_weight', 'sp.birth_date')
+      .select('u.id', 'u.name', 'u.email', 'u.avatar_filename', 'u.avatar_updated_at', 'u.account_status', 'sp.relationship_status', 'sp.weekly_workout_goal', 'sp.height', 'sp.target_weight', 'sp.birth_date')
       .select(db.raw('(SELECT weight FROM measurements WHERE student_id = u.id ORDER BY recorded_at DESC LIMIT 1) as latest_weight'))
       .select(db.raw('(SELECT recorded_at FROM measurements WHERE student_id = u.id ORDER BY recorded_at DESC LIMIT 1) as latest_weight_date'))
       .select(db.raw('(SELECT COUNT(*) FROM chat_messages WHERE sender_id = u.id AND receiver_id = ? AND read_status = 0) as unread_messages', [personalId]))
@@ -190,6 +190,24 @@ async function updateStudentLifecycle(req, res) {
   }
 }
 
+async function updateStudentTrainingGoal(req, res) {
+  const studentId = Number(req.params.id);
+  const weeklyWorkoutGoal = req.body.weeklyWorkoutGoal;
+  try {
+    const profile = await db('student_profiles').where({ student_id: studentId, personal_id: req.user.id }).first();
+    if (!profile) return res.status(404).json({ error: 'Student not found' });
+    if (profile.weekly_workout_goal === weeklyWorkoutGoal) return res.json({ studentId, weeklyWorkoutGoal, changed: false });
+    await db.transaction(async trx => {
+      await trx('student_profiles').where({ student_id: studentId, personal_id: req.user.id }).update({ weekly_workout_goal: weeklyWorkoutGoal });
+      await recordAudit(trx, { actorUserId: req.user.id, action: AUDIT_ACTIONS.STUDENT_TRAINING_GOAL_UPDATED, targetType: 'student', targetId: studentId, metadata: { before: profile.weekly_workout_goal, after: weeklyWorkoutGoal } });
+    });
+    return res.json({ studentId, weeklyWorkoutGoal, changed: true });
+  } catch (error) {
+    console.error('Update student training goal error:', error.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 // Get specific student details (Personal or the Student themselves)
 async function getStudentDetails(req, res) {
   const studentId = req.params.id;
@@ -210,7 +228,7 @@ async function getStudentDetails(req, res) {
 
     const student = await db('users as u')
       .join('student_profiles as sp', 'u.id', 'sp.student_id')
-      .select('u.id', 'u.name', 'u.email', 'u.avatar_filename', 'u.avatar_updated_at', 'u.account_status', 'sp.relationship_status', 'sp.height', 'sp.target_weight', 'sp.birth_date', 'sp.personal_id')
+      .select('u.id', 'u.name', 'u.email', 'u.avatar_filename', 'u.avatar_updated_at', 'u.account_status', 'sp.relationship_status', 'sp.weekly_workout_goal', 'sp.height', 'sp.target_weight', 'sp.birth_date', 'sp.personal_id')
       .where('u.id', studentId)
       .first();
 
@@ -376,6 +394,7 @@ module.exports = {
   createStudent,
   getStudents,
   updateStudentLifecycle,
+  updateStudentTrainingGoal,
   getStudentDetails,
   addMeasurement,
   getMeasurements,

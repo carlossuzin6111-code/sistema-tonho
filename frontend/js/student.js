@@ -3,6 +3,7 @@ let studentWorkouts = [];
 let studentMeasurements = [];
 let personalTrainerId = null;
 let todayReadiness = null;
+let studentProgressionByExercise = new Map();
 const studentChatHistory = { cursor: null, loading: false };
 const CHAT_PAGE_SIZE = 50;
 
@@ -187,6 +188,7 @@ function updateStudentWorkoutSummary() {
 
 async function loadStudentWorkouts() {
   const container = document.getElementById('student-workouts-container');
+  await loadStudentTrainingInsights();
   renderLoadingSkeletons(container, { count: 3, variant: 'workout', label: 'Carregando ficha de treinos' });
   try {
     const readiness = await API.get('/student/readiness');
@@ -235,6 +237,8 @@ async function loadStudentWorkouts() {
           const name = SafeDOM.el('span', { text: exercise.name, attrs: { id: `ex-name-${exercise.id}` }, className: `exercise-name exercise-name-strong ${checked ? 'strike-completed' : ''}` });
           const nameCell = SafeDOM.el('td', { className: 'workout-exercise-main', attrs: { 'data-label': 'Exercício' } }, [name]);
           if (exercise.notes) nameCell.appendChild(SafeDOM.el('div', { className: 'exercise-notes', text: exercise.notes }));
+          const progression = studentProgressionByExercise.get(normalizeExerciseProgressionKey(exercise.name));
+          if (progression?.suggestedTrainingWeight) nameCell.appendChild(SafeDOM.el('small', { className: 'exercise-load-estimate', text: `Referência estimada: ${progression.suggestedTrainingWeight} kg (70% do 1-RM de Epley). Confirme com seu Personal.` }));
           const execution = SafeDOM.el('button', {
             className: 'btn-pill-action',
             attrs: exercise.gif_url ? { 'aria-label': `Ver execução de ${exercise.name}` } : { disabled: '', title: 'Sem GIF de execução' },
@@ -252,6 +256,7 @@ async function loadStudentWorkouts() {
       }
       table.appendChild(tbody);
       card.appendChild(SafeDOM.el('div', { className: 'pedagogical-table-wrapper' }, [table]));
+      await appendStudentPeriodization(card, workout);
       container.appendChild(card);
     }
     lucide.createIcons();
@@ -263,6 +268,56 @@ async function loadStudentWorkouts() {
     container.appendChild(SafeDOM.errorAlert('Erro ao carregar treinos: ', error.message));
     appendEmptyStateAction(container, { label: 'Tentar novamente', icon: 'refresh-cw', onClick: loadStudentWorkouts });
     lucide.createIcons();
+  }
+}
+
+async function loadStudentTrainingInsights() {
+  const adherence = document.getElementById('student-adherence-summary');
+  const progression = document.getElementById('student-progression-list');
+  if (!adherence || !progression) return;
+  SafeDOM.clear(adherence); SafeDOM.clear(progression);
+  adherence.appendChild(SafeDOM.el('p', { text: 'Calculando aderência...' }));
+  try {
+    const [adherenceData, progressionData] = await Promise.all([API.get('/personal/students/adherence'), API.get('/student/progression')]);
+    const summary = adherenceData.students?.[0];
+    SafeDOM.clear(adherence);
+    adherence.append(
+      SafeDOM.metricItem('Meta semanal', summary ? `${summary.weeklyGoal} treinos` : '-'),
+      SafeDOM.metricItem('Previstos no período', summary ? summary.planned : '-'),
+      SafeDOM.metricItem('Concluídos', summary ? summary.completed : '-'),
+      SafeDOM.metricItem('Aderência', summary?.adherence == null ? '-' : `${summary.adherence}%`)
+    );
+    studentProgressionByExercise = new Map(progressionData.exercises.map(exercise => [normalizeExerciseProgressionKey(exercise.exerciseName), exercise]));
+    SafeDOM.clear(progression);
+    if (!progressionData.exercises.length) progression.appendChild(SafeDOM.el('p', { className: 'no-data-msg', text: 'Conclua sessões com carga para visualizar estimativas de progressão.' }));
+    progressionData.exercises.slice(0, 6).forEach(exercise => progression.appendChild(SafeDOM.el('article', { className: 'progression-card' }, [
+      SafeDOM.el('strong', { text: exercise.exerciseName }),
+      SafeDOM.el('span', { text: `Volume total: ${exercise.totalVolume.toFixed(1)}` }),
+      SafeDOM.el('span', { text: exercise.estimatedOneRepMax ? `1-RM estimado (Epley): ${exercise.estimatedOneRepMax} kg` : '1-RM indisponível' }),
+      SafeDOM.el('span', { text: exercise.suggestedTrainingWeight ? `Referência estimada a 70%: ${exercise.suggestedTrainingWeight} kg` : 'Sem referência de carga' }),
+      SafeDOM.el('small', { text: 'Estimativa informativa; confirme a carga com seu Personal.' }),
+      SafeDOM.el('ul', { className: 'progression-history', attrs: { 'aria-label': `Histórico recente de ${exercise.exerciseName}` } }, exercise.history.slice(-3).map(item => SafeDOM.el('li', { text: `${AppDateTime.shortDate(item.completedAt)} · ${item.weight} kg · volume ${item.volume.toFixed(1)}` })))
+    ])));
+  } catch (error) {
+    studentProgressionByExercise = new Map();
+    SafeDOM.clear(adherence); adherence.appendChild(SafeDOM.errorAlert('Não foi possível carregar a evolução: ', error.message));
+  }
+}
+
+function normalizeExerciseProgressionKey(value) {
+  return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+async function appendStudentPeriodization(card, workout) {
+  try {
+    const data = await API.get(`/workouts/${workout.id}/periodization`);
+    if (!data.microcycles?.length) return;
+    const section = SafeDOM.el('section', { className: 'student-periodization', attrs: { 'aria-label': `Periodização de ${workout.name}` } }, [SafeDOM.el('h4', { text: 'Planejamento por microciclos' })]);
+    const list = SafeDOM.el('ol', { className: 'student-periodization-list' });
+    data.microcycles.forEach(item => list.appendChild(SafeDOM.el('li', {}, [SafeDOM.el('strong', { text: `Semana ${item.week_number}: ${item.label}` }), SafeDOM.el('span', { text: `Intensidade ${item.intensity_percent}% · Volume × ${item.volume_multiplier}` }), ...(item.notes ? [SafeDOM.el('p', { text: item.notes })] : [])])));
+    section.appendChild(list); card.appendChild(section);
+  } catch (error) {
+    card.appendChild(SafeDOM.el('p', { className: 'form-error', text: `Periodização indisponível: ${error.message}` }));
   }
 }
 

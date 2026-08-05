@@ -74,7 +74,8 @@ const migrations = [
   '202607290022_create_notification_center.js',
   '202607290023_create_user_sessions.js',
   '202607290024_create_impersonation_events.js',
-  '202607300001_create_refresh_tokens.js'
+  '202607300001_create_refresh_tokens.js',
+  '202608050001_add_weekly_workout_goal.js'
 ];
 
 function createDatabase() {
@@ -113,6 +114,7 @@ describe('database migrations', () => {
     await expect(db.schema.hasColumn('workout_sessions', 'last_activity_at')).resolves.toBe(true);
     await expect(db.schema.hasColumn('users', 'account_status')).resolves.toBe(true);
     await expect(db.schema.hasColumn('student_profiles', 'relationship_status')).resolves.toBe(true);
+    await expect(db.schema.hasColumn('student_profiles', 'weekly_workout_goal')).resolves.toBe(true);
     await expect(db.schema.hasTable('student_assessments')).resolves.toBe(true);
     await expect(db.schema.hasTable('idempotency_keys')).resolves.toBe(true);
     await expect(db.schema.hasColumn('workout_exercises', 'version')).resolves.toBe(true);

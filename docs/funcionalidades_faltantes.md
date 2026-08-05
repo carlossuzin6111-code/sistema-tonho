@@ -196,11 +196,11 @@ O cliente agora oferece entrada de recuperação pública de senha com resposta 
 
 ### [BUS-05] Aderência Semanal e Ordenação no Dashboard
 *   **Implementado parcialmente**: Endpoint de aderência calcula `treinos concluídos / treinos publicados` no intervalo semanal, limita o percentual a 100%, informa última conclusão e ordena alunos do menor percentual ao maior.
-*   **Pendente**: metas semanais configuráveis, cálculo de treinos previstos por agenda e visualização no dashboard.
+*   **Concluído em 05/08/2026**: o Personal configura meta semanal de 1 a 14; a aderência multiplica a meta pelas semanas inclusivas do intervalo e o aluno visualiza previstos, concluídos e percentual. Alterações de meta são auditadas.
 
 ### [BUS-06] Progressão de Carga e Recordes Pessoais
 *   **Implementado parcialmente**: Endpoint calcula volume acumulado (`séries × repetições × carga`) a partir de sessões concluídas, recorde de volume e última carga/repetições por exercício.
-*   **Pendente**: cálculo de 1-RM com fórmula explícita, sugestões integradas na tela de execução e visualização histórica.
+*   **Concluído em 05/08/2026**: progressão retorna histórico cronológico e 1-RM pela fórmula de Epley para séries válidas de 1 a 30 repetições. O aluno vê recordes, três registros recentes e referência estimada de 70% junto ao exercício, sempre com aviso para confirmar com o Personal.
 
 ### [BUS-07] Temporizador de Descanso e Sessão Ativa
 *   **Implementado parcialmente**: Sessões possuem `last_activity_at`, atualizado ao iniciar e registrar progresso; endpoint heartbeat autenticado mantém a sessão ativa e respeita ownership.
@@ -246,8 +246,8 @@ O frontend agora oferece edição e exclusão somente para mensagens próprias, 
 *   **Especificação**: Suporte a templates e variações de carga/volume estruturadas em microciclos na ficha do aluno, fugindo de fichas estáticas lineares de musculação.
 *   **Progresso em 29/07/2026**: migration `workout_microcycles` e endpoints autenticados `PUT/GET /api/workouts/:id/periodization` permitem até 52 semanas sequenciais, intensidade percentual, multiplicador de volume e notas; a gravação substitui o plano em uma transação e valida ownership.
 * **Progresso em 29/07/2026**: o dashboard do Personal agora oferece editor acessível para carregar, adicionar, remover e salvar microciclos, com limite visual de 52 semanas e validação server-side dos campos.
-* **Pendente**: visualização da periodização pelo aluno, sugestões automáticas de carga/volume e QA com profissionais de biomecânica.
-*   **Pendente**: editor visual, regras biomecânicas específicas por exercício e versionamento/auditoria das alterações clínicas.
+* **Concluído funcionalmente em 05/08/2026**: o aluno visualiza semanas, fase, intensidade, multiplicador de volume e notas da periodização; referências de carga usam sua progressão e toda substituição do plano é auditada.
+* **Pendente operacional**: validação das regras e referências com profissionais de biomecânica antes de uso clínico/produção.
 
 ### [BUS-14] Governança do Catálogo de Exercícios
 *   **Especificação**: Deduplicação do catálogo e separação em exercícios base globais compartilhados vs customizados criados pelos treinadores.

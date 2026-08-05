@@ -454,6 +454,7 @@ app.get('/api/personal/students/adherence', authenticateToken, adherenceControll
  */
 app.get('/api/personal/students/:id', authenticateToken, studentController.getStudentDetails);
 app.patch('/api/personal/students/:id/status', authenticateToken, requireRole('personal'), validateIdParam('id'), validateBody('studentLifecycle'), studentController.updateStudentLifecycle);
+app.patch('/api/personal/students/:id/training-goal', authenticateToken, requireRole('personal'), validateIdParam('id'), validateBody('studentTrainingGoal'), studentController.updateStudentTrainingGoal);
 
 /**
  * @openapi
