@@ -3,6 +3,12 @@ const config = require('../knexfile');
 
 const env = process.env.NODE_ENV || 'development';
 const db = knex(config[env]);
+const TEST_CONNECTIONS = Symbol.for('fitlife.testDatabaseConnections');
+
+if (env === 'test') {
+  process[TEST_CONNECTIONS] ??= new Set();
+  process[TEST_CONNECTIONS].add(db);
+}
 
 async function initializeDatabase() {
   try {
@@ -87,7 +93,11 @@ db.destroy = async (...args) => {
     // Preserve the original initialization error; destroy still releases
     // whatever resources were opened before the failure.
   }
-  return destroyConnection(...args);
+  try {
+    return await destroyConnection(...args);
+  } finally {
+    process[TEST_CONNECTIONS]?.delete(db);
+  }
 };
 
 db.seedDefaultExercisesForPersonal = seedDefaultExercisesForPersonal;

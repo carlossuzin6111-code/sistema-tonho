@@ -20,21 +20,21 @@ describe('JWT configuration', () => {
     delete process.env.JWT_SECRET;
     jest.resetModules();
 
-    expect(() => require('../middleware/auth')).toThrow('JWT_SECRET environment variable is required');
+    expect(() => require('../services/sessionService')).toThrow('JWT_SECRET environment variable is required');
   });
 
   test('fails to load when JWT_SECRET is too short', () => {
     process.env.JWT_SECRET = 'short-secret';
     jest.resetModules();
 
-    expect(() => require('../middleware/auth')).toThrow('JWT_SECRET must contain at least 32 bytes');
+    expect(() => require('../services/sessionService')).toThrow('JWT_SECRET must contain at least 32 bytes');
   });
 
   test('loads when JWT_SECRET has at least 32 bytes', () => {
     process.env.JWT_SECRET = ['test-only', 'jwt-secret', 'with-at-least-32-bytes'].join('-');
     jest.resetModules();
 
-    expect(() => require('../middleware/auth')).not.toThrow();
+    expect(() => require('../services/sessionService')).not.toThrow();
   });
 
   test('rejects placeholder secrets in production', () => {
@@ -42,7 +42,7 @@ describe('JWT configuration', () => {
     process.env.JWT_SECRET = ['replace', 'with-a-secret', 'that-is-at-least-32-bytes'].join('-');
     jest.resetModules();
 
-    expect(() => require('../middleware/auth')).toThrow('JWT_SECRET must be random and cannot use a placeholder in production');
+    expect(() => require('../services/sessionService')).toThrow('JWT_SECRET must be random and cannot use a placeholder in production');
   });
 
   test('rejects predictable repeated secrets in production', () => {
@@ -50,6 +50,6 @@ describe('JWT configuration', () => {
     process.env.JWT_SECRET = 'a'.repeat(32);
     jest.resetModules();
 
-    expect(() => require('../middleware/auth')).toThrow('JWT_SECRET must be random and cannot use a placeholder in production');
+    expect(() => require('../services/sessionService')).toThrow('JWT_SECRET must be random and cannot use a placeholder in production');
   });
 });
