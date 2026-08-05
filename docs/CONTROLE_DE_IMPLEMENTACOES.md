@@ -4,9 +4,9 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## BUS-07 + BUS-08 + BUS-11 — Resiliência da sessão, fila offline e chat em tempo real
 
-- Estado: implementado e validado localmente; aguardando PR
+- Estado: implementado, validado e em revisão
 - Branch: `feat/realtime-offline-resilience`
-- Pull request: pendente
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/196
 - Início: 05/08/2026
 
 ### Diagnóstico
@@ -29,7 +29,8 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Cobrir fila e idempotência com testes funcionais e validar entrega de `typing` por uma conexão SSE real.
 - [x] Atualizar checklist e documento funcional com evidências e pendências exclusivamente operacionais.
 - [x] Executar suítes completas, audits e validações estáticas.
-- [ ] Abrir PR e acompanhar os cinco checks obrigatórios.
+- [x] Abrir PR.
+- [ ] Acompanhar os cinco checks obrigatórios.
 
 ### Critérios de aceite
 
