@@ -177,11 +177,13 @@ async function handleUpdateProfilePassword(event) {
   try {
     await API.put('/profile/password', { currentPassword, newPassword });
     const currentUser = API.getCurrentUser();
-    API.saveSession({ ...currentUser, mustChangePassword: false });
+    const updatedUser = { ...currentUser, mustChangePassword: false };
+    API.saveSession(updatedUser);
     configurePasswordChangeModal(false);
     closeModal('modal-edit-profile');
     form.reset();
     showToast('Senha alterada; as outras sessões foram encerradas.', 'success');
+    setupAppShell(updatedUser);
   } catch (error) {
     setFormError(form.id, error.message);
   } finally {

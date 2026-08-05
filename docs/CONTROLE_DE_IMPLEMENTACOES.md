@@ -2,9 +2,53 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## SEC-08 — Aceite vigente do PAR-Q e termos
+
+- Estado: implementado e validado; entrega em andamento
+- Branch: `security/sec-08-current-waiver-gate`
+- Início: 05/08/2026
+
+### Diagnóstico
+
+- A persistência idempotente de assinaturas existe, mas o cliente define livremente `termsVersion`.
+- Não existe endpoint para consultar se o aluno aceitou a versão vigente.
+- As rotas de negócio continuam acessíveis sem assinatura atual.
+- Desktop e mobile não oferecem formulário PAR-Q nem aceite acessível.
+
+### Plano
+
+- [x] Confirmar contrato, riscos e pontos de integração.
+- [x] Criar branch exclusiva.
+- [x] Centralizar a versão vigente no servidor e rejeitar versão divergente.
+- [x] Expor status autenticado da assinatura atual.
+- [x] Bloquear rotas de negócio do aluno, mantendo autenticação, assinatura e ações essenciais acessíveis.
+- [x] Criar modal obrigatório PAR-Q/termos compartilhado por desktop e mobile.
+- [x] Validar respostas booleanas completas e aceite explícito.
+- [x] Adicionar cobertura backend e frontend.
+- [x] Executar suítes e audits completos.
+- [ ] Abrir PR e acompanhar os cinco checks.
+
+### Evidências locais
+
+- Backend: 41/41 suítes e 241/241 testes aprovados; `waivers.test.js` cobre bloqueio, versão divergente, respostas incompletas, assinatura e replay idempotente.
+- Frontend: 75/75 testes aprovados, incluindo três cenários novos do gate obrigatório.
+- Dez suítes afetadas pelo novo gate: 130/130 testes focalizados aprovados após explicitar o aceite nas fixtures.
+- `npm audit` na raiz: 0 vulnerabilidades.
+- `npm audit --omit=dev` no backend: 0 vulnerabilidades.
+- `node --check` e `git diff --check`: aprovados.
+
+### Critérios de aceite
+
+- A versão vigente nunca é escolhida pelo cliente.
+- Aluno sem assinatura recebe `428 WAIVER_REQUIRED` nas rotas de negócio.
+- O próprio status, assinatura, autenticação, logout, senha, sessões e LGPD permanecem disponíveis.
+- O dashboard só inicia dados e SSE depois da confirmação vigente.
+- O formulário exige todas as respostas e aceite explícito, funciona por teclado e não possui fechamento acidental.
+- Reenvio da mesma versão continua idempotente.
+
 ## UX-01 — Histórico progressivo do chat
 
-- Estado: implementado, validado e aguardando merge
+- Estado: concluído e mergeado
 - Branch: `feat/chat-progressive-history`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/191
 - Início: 05/08/2026

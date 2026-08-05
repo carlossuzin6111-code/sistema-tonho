@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const app = require('../index');
 const db = require('../database');
 const { JWT_SECRET } = require('../services/sessionService');
+const { acceptCurrentWaiver } = require('./helpers/waiverFixture');
 
 function generateToken(user) {
   return jwt.sign({
@@ -62,6 +63,7 @@ describe('BUS-01: Workout Execution Sessions API', () => {
       height: 1.75,
       target_weight: 70
     });
+    await acceptCurrentWaiver(db, studentId);
 
     // Personal B & Student B1
     const [otherPersonalId] = await db('users').insert({
@@ -88,6 +90,7 @@ describe('BUS-01: Workout Execution Sessions API', () => {
       height: 1.80,
       target_weight: 80
     });
+    await acceptCurrentWaiver(db, otherStudentId);
 
     // Create workout for Student A1 by Personal A
     const [wId] = await db('workouts').insert({

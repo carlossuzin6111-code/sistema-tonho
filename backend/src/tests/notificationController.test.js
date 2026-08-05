@@ -7,6 +7,7 @@ const app = require('../index');
 const db = require('../database');
 const { JWT_SECRET } = require('../services/sessionService');
 const { enqueueNotification } = require('../services/notificationService');
+const { acceptCurrentWaiver } = require('./helpers/waiverFixture');
 
 describe('notification center', () => {
   let userId;
@@ -19,6 +20,7 @@ describe('notification center', () => {
     [personalId] = await db('users').insert({ name: 'Notification Personal', email: `notification-personal-${Date.now()}@fitlife.com`, password_hash: 'not-used', role: 'personal' });
     [userId] = await db('users').insert({ name: 'Notification User', email: `notification-${Date.now()}@fitlife.com`, password_hash: 'not-used', role: 'student' });
     await db('student_profiles').insert({ student_id: userId, personal_id: personalId });
+    await acceptCurrentWaiver(db, userId);
     token = jwt.sign({ id: userId, role: 'student', sessionVersion: 0, csrf: 'notification-csrf' }, JWT_SECRET, { expiresIn: '1h' });
   });
 

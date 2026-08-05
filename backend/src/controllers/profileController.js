@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const db = require('../database');
+const { CURRENT_TERMS_VERSION, findCurrentWaiver, validateWaiverAnswers } = require('../services/waiverService');
 const { createSession, setSessionCookies } = require('../services/sessionService');
 const { AUDIT_ACTIONS, recordAudit } = require('../services/auditService');
 const { AvatarError, cleanupUserAvatars, removeAvatar, resolveAvatarPath, writeAvatar } = require('../services/avatarService');
@@ -105,6 +106,12 @@ async function updateAvatar(req, res) {
 
 async function signWaiver(req, res) {
   const { termsVersion, parqAnswers } = req.body;
+  if (termsVersion !== CURRENT_TERMS_VERSION) {
+    return res.status(409).json({ error: 'Terms version is no longer current', code: 'TERMS_VERSION_MISMATCH', termsVersion: CURRENT_TERMS_VERSION });
+  }
+  if (!validateWaiverAnswers(parqAnswers)) {
+    return res.status(400).json({ error: 'All PAR-Q answers and explicit terms acceptance are required' });
+  }
   try {
     const existing = await db('signed_waivers').where({ user_id: req.user.id, terms_version: termsVersion }).first();
     if (existing) return res.status(200).json({ id: existing.id, termsVersion: existing.terms_version, signedAt: existing.signed_at });
@@ -118,6 +125,20 @@ async function signWaiver(req, res) {
     return res.status(201).json({ id: waiver.id, termsVersion: waiver.terms_version, signedAt: waiver.signed_at });
   } catch (error) {
     console.error('Sign waiver error:', error.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function getCurrentWaiver(req, res) {
+  try {
+    const waiver = await findCurrentWaiver(req.user.id);
+    return res.json({
+      termsVersion: CURRENT_TERMS_VERSION,
+      signed: Boolean(waiver),
+      signedAt: waiver?.signed_at || null
+    });
+  } catch (error) {
+    console.error('Current waiver status error:', error.message);
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
@@ -161,4 +182,4 @@ async function getAvatar(req, res) {
   }
 }
 
-module.exports = { deleteAvatar, getAvatar, signWaiver, updateAvatar, updateName, updatePassword };
+module.exports = { deleteAvatar, getAvatar, getCurrentWaiver, signWaiver, updateAvatar, updateName, updatePassword };

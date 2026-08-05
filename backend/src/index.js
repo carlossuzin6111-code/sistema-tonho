@@ -46,6 +46,7 @@ const impersonationController = require('./controllers/impersonationController')
 const { requestLogger } = require('./services/logger');
 const metricsService = require('./services/metricsService');
 const healthController = require('./controllers/healthController');
+const { requireCurrentWaiver } = require('./middleware/waiverGuard');
 
 // Initialize database
 const db = require('./database');
@@ -73,6 +74,7 @@ app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || DEFAULT_BODY_LIMIT 
 app.use(optionalAuthentication);
 app.use(csrfProtection);
 app.use(requestLogger);
+app.use(requireCurrentWaiver);
 app.get('/api/metrics', authenticateToken, (req, res) => {
   if (!['support', 'admin'].includes(req.user.role)) return res.status(403).json({ error: 'Support or admin role required' });
   return res.json({ metrics: metricsService.snapshot() });
@@ -132,6 +134,7 @@ app.post('/api/support/impersonations/:id/revoke', authenticateToken, impersonat
 
 app.patch('/api/profile', authenticateToken, validateBody('profileName'), profileController.updateName);
 app.put('/api/profile/password', passwordChangeRateLimiter, authenticateToken, validateBody('profilePassword'), profileController.updatePassword);
+app.get('/api/profile/waivers/current', authenticateToken, profileController.getCurrentWaiver);
 app.post('/api/profile/waivers', authenticateToken, validateBody('waiver'), profileController.signWaiver);
 app.put('/api/profile/avatar', authenticateToken, validateBody('profileAvatar'), profileController.updateAvatar);
 app.delete('/api/profile/avatar', authenticateToken, profileController.deleteAvatar);

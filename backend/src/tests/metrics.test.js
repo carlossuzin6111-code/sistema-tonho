@@ -7,6 +7,7 @@ const app = require('../index');
 const db = require('../database');
 const metricsService = require('../services/metricsService');
 const { JWT_SECRET } = require('../services/sessionService');
+const { acceptCurrentWaiver } = require('./helpers/waiverFixture');
 
 describe('protected operational metrics', () => {
   let adminId;
@@ -21,6 +22,7 @@ describe('protected operational metrics', () => {
     [personalId] = await db('users').insert({ name: 'Metrics Personal', email: `metrics-personal-${Date.now()}@fitlife.com`, password_hash: 'not-used', role: 'personal' });
     [studentId] = await db('users').insert({ name: 'Metrics Student', email: `metrics-student-${Date.now()}@fitlife.com`, password_hash: 'not-used', role: 'student' });
     await db('student_profiles').insert({ student_id: studentId, personal_id: personalId });
+    await acceptCurrentWaiver(db, studentId);
     adminToken = jwt.sign({ id: adminId, role: 'admin', sessionVersion: 0, csrf: 'metrics-admin-csrf' }, JWT_SECRET, { expiresIn: '1h' });
     studentToken = jwt.sign({ id: studentId, role: 'student', sessionVersion: 0, csrf: 'metrics-student-csrf' }, JWT_SECRET, { expiresIn: '1h' });
   });

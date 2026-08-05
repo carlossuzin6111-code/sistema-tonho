@@ -98,6 +98,7 @@ const submitHandlers = Object.freeze({
   'create-catalog-exercise-form': event => handleCreateCatalogExerciseSubmit(event),
   'edit-profile-name-form': event => handleUpdateProfileName(event),
   'edit-profile-password-form': event => handleUpdateProfilePassword(event)
+  , 'current-waiver-form': event => submitCurrentWaiver(event)
   , 'student-readiness-form': event => submitStudentReadiness(event)
 });
 

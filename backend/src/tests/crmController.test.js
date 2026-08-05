@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const app = require('../index');
 const db = require('../database');
 const { JWT_SECRET } = require('../services/sessionService');
+const { acceptCurrentWaiver } = require('./helpers/waiverFixture');
 
 describe('CRM churn alerts and NPS', () => {
   let personalId;
@@ -20,6 +21,7 @@ describe('CRM churn alerts and NPS', () => {
     [personalId] = await db('users').insert({ name: 'CRM Personal', email: `crm-personal-${Date.now()}@fitlife.com`, password_hash: 'not-used', role: 'personal' });
     [studentId] = await db('users').insert({ name: 'CRM Student', email: `crm-student-${Date.now()}@fitlife.com`, password_hash: 'not-used', role: 'student', created_at: '2026-07-01 10:00:00', updated_at: '2026-07-01 10:00:00' });
     await db('student_profiles').insert({ student_id: studentId, personal_id: personalId, relationship_status: 'active' });
+    await acceptCurrentWaiver(db, studentId);
     await db('workout_sessions').insert({ student_id: studentId, personal_id: personalId, workout_name: 'Old Workout', status: 'completed', started_at: '2026-07-10 10:00:00', completed_at: '2026-07-10 10:30:00' });
     personalToken = jwt.sign({ id: personalId, role: 'personal', sessionVersion: 0, csrf: 'crm-personal-csrf' }, JWT_SECRET, { expiresIn: '1h' });
     studentToken = jwt.sign({ id: studentId, role: 'student', sessionVersion: 0, csrf: 'crm-student-csrf' }, JWT_SECRET, { expiresIn: '1h' });

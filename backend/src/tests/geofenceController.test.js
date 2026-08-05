@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const app = require('../index');
 const db = require('../database');
 const { JWT_SECRET } = require('../services/sessionService');
+const { acceptCurrentWaiver } = require('./helpers/waiverFixture');
 
 describe('geofence check-ins', () => {
   let personalId;
@@ -20,6 +21,7 @@ describe('geofence check-ins', () => {
     [personalId] = await db('users').insert({ name: 'Geofence Personal', email: `geo-personal-${Date.now()}@fitlife.com`, password_hash: 'not-used', role: 'personal' });
     [studentId] = await db('users').insert({ name: 'Geofence Student', email: `geo-student-${Date.now()}@fitlife.com`, password_hash: 'not-used', role: 'student' });
     await db('student_profiles').insert({ student_id: studentId, personal_id: personalId, relationship_status: 'active' });
+    await acceptCurrentWaiver(db, studentId);
     personalToken = jwt.sign({ id: personalId, role: 'personal', sessionVersion: 0, csrf: 'geo-personal-csrf' }, JWT_SECRET, { expiresIn: '1h' });
     studentToken = jwt.sign({ id: studentId, role: 'student', sessionVersion: 0, csrf: 'geo-student-csrf' }, JWT_SECRET, { expiresIn: '1h' });
   });
