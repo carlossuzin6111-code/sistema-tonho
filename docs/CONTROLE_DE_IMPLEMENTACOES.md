@@ -31,7 +31,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Atualizar checklist e inventário com evidências e pendências operacionais reais.
 - [x] Executar suítes completas, audits e validações estáticas.
 - [x] Abrir PR.
-- [ ] Acompanhar os cinco checks obrigatórios.
+- [x] Acompanhar os cinco checks obrigatórios.
 
 ### Critérios de aceite
 
@@ -51,6 +51,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Prometheus não contém o identificador usado na rota dinâmica e expõe contagem/duração por `/api/sessions/:id`.
 - `npm audit` na raiz e `npm audit --omit=dev` no backend: 0 vulnerabilidades.
 - `node --check` e `git diff --check`: aprovados.
+- CI do PR #197 (execução `31050931686`): Backend, Frontend e infraestrutura, Secret scan, Migration policy e CI policy aprovados.
 
 ## BUS-07 + BUS-08 + BUS-11 — Resiliência da sessão, fila offline e chat em tempo real
 
