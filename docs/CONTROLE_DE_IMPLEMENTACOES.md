@@ -4,9 +4,9 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## BUS-03 + BUS-04 — Políticas do vínculo e anamnese versionada
 
-- Estado: implementado e validado localmente
+- Estado: implementado, validado e em revisão
 - Branch: `feat/student-lifecycle-assessments`
-- Pull request: a abrir
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/194
 - Início: 05/08/2026
 
 ### Diagnóstico
@@ -28,7 +28,8 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Criar aba acessível de anamnese em desktop e mobile, distinguindo notas privadas e compartilhadas.
 - [x] Adicionar cobertura de matriz de acesso, privacidade, versionamento e interface.
 - [x] Executar suítes completas, audits e validações estáticas.
-- [ ] Abrir PR e acompanhar os cinco checks obrigatórios.
+- [x] Abrir PR.
+- [ ] Acompanhar os cinco checks obrigatórios.
 
 ### Evidências locais
 
