@@ -1018,3 +1018,17 @@ async function handleAddMeasurementSubmit(event) {
     setFormSubmitting(form, false);
   }
 }
+
+function registerServiceWorker() {
+  if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator && (typeof window !== 'undefined' && window.location && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch((err) => {
+        console.warn('Service worker registration failed:', err);
+      });
+    });
+  }
+}
+
+if (typeof document !== 'undefined') {
+  registerServiceWorker();
+}

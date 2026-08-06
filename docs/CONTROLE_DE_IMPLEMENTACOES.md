@@ -2,6 +2,44 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## MOB-01 + UX-05 — PWA Manifest, Service Worker e Cache de Assets Estáticos
+
+- Estado: implementado, validado e em revisão
+- Branch: `feat/pwa-manifest-serviceworker`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/198
+- Início: 06/08/2026
+
+### Diagnóstico
+
+- A aplicação não possuía PWA Web Manifest nem Service Worker configurado para cache offline de arquivos estáticos.
+- O Nginx tratava todos os arquivos `.js` com cache público imutável de 1 ano, o que impediria atualizações imediatas de um Service Worker (`sw.js`).
+- O navegador não oferecia experiência de instalação PWA (standalone) nem suporte a ícones nativos e cor de tema no mobile.
+
+### Plano
+
+- [x] Criar `frontend/manifest.webmanifest` com nome, cores, ícones, orientação e modo `standalone`.
+- [x] Gerar ícones PWA 192x192 e 512x512 PNG em `frontend/icons/`.
+- [x] Criar `frontend/sw.js` para pre-cache de arquivos estáticos, invalidação de caches antigos e bypass explícito de chamadas de API (`/api/`).
+- [x] Atualizar `nginx.conf` com locais específicos e cabeçalho `Service-Worker-Allowed: /` e revalidação sem cache para `sw.js` e `manifest.webmanifest`.
+- [x] Vincular o manifesto e as meta tags PWA em `index.html`, `desktop.html` e `mobile.html`.
+- [x] Implementar o registro do Service Worker em `frontend/js/app.js` de forma compatível com CSP e Node VM.
+- [x] Adicionar a suíte de testes `frontend/tests/pwa-manifest.test.js` para validar o manifesto, Service Worker, Nginx e HTML tags.
+- [x] Executar a suíte completa de testes (`npm test`, 95/95 aprovados).
+
+### Critérios de aceite
+
+- O arquivo `manifest.webmanifest` é válido e expõe o nome "FitLife Sync", ícones 192x192 e 512x512 e modo `standalone`.
+- O Service Worker pre-cacheia os assets estáticos e contorna explicitamente (`bypass`) qualquer requisição iniciada para a `/api/` (REST e SSE).
+- O Nginx entrega `sw.js` com revalidação obrigatória (`no-cache`) e autorização de escopo raiz.
+- As páginas HTML possuem links e meta tags PWA (`theme-color`, `mobile-web-app-capable`).
+- 95/95 testes frontend passam com sucesso.
+
+### Evidências locais
+
+- Frontend completo: 95/95 testes aprovados (100% sucesso).
+- `npm audit`: 0 vulnerabilidades.
+- `node --check` e `git diff --check`: aprovados.
+
 ## OPS-10 + OPS-11 + OPS-13 — Saúde, sessões e observabilidade operacional
 
 - Estado: implementado, validado e em revisão
