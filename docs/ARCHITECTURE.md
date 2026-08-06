@@ -129,7 +129,7 @@ réplicas.
   exercícios ainda ocorre no caminho síncrono do cadastro.
 - **Sessão:** JWT e CSRF usam cookies; a sessão `HttpOnly` não fica acessível ao
   JavaScript e o SSE não inclui token na URL.
-- **PWA:** não há manifest nem service worker.
+- **PWA:** implementado manifesto PWA (`manifest.webmanifest`), ícones nativos e Service Worker (`sw.js`) com cache resiliente de assets estáticos e bypass das APIs.
 - **Observabilidade:** não existe infraestrutura central de logs, métricas ou
   rastreamento distribuído.
 
