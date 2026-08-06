@@ -447,6 +447,41 @@
     </div>
   </div>
 
+  <div id="modal-autonomous-reset-password" class="modal-overlay" data-clear-form-on-close="autonomous-reset-password-form" role="dialog" aria-modal="true" aria-labelledby="autonomous-reset-title-mobile">
+    <div class="modal-content glass modal-small">
+      <button class="modal-close" data-action="close-autonomous-reset" aria-label="Cancelar redefinição"><i data-lucide="x"></i></button>
+      <div class="mobile-modal-inner">
+        <h2 id="autonomous-reset-title-mobile" class="modal-title"><i data-lucide="key-round"></i> Redefinir minha senha</h2>
+        <form id="autonomous-reset-password-form" class="form-with-feedback">
+          <p>Informe o token de recuperação enviado para o seu e-mail e escolha uma nova senha forte (mínimo de 10 caracteres).</p>
+          <div class="input-group">
+            <label for="autonomous-reset-token">Token de recuperação *</label>
+            <input type="text" id="autonomous-reset-token" required autocomplete="off" placeholder="Cole o token de recuperação aqui">
+          </div>
+          <div class="input-group">
+            <label for="autonomous-new-password">Nova senha *</label>
+            <div class="password-field">
+              <input type="password" id="autonomous-new-password" required minlength="10" maxlength="128" autocomplete="new-password" placeholder="Mínimo 10 caracteres">
+              <button type="button" class="password-toggle" data-action="toggle-password" data-target="autonomous-new-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="autonomous-confirm-password">Confirmar nova senha *</label>
+            <div class="password-field">
+              <input type="password" id="autonomous-confirm-password" required minlength="10" maxlength="128" autocomplete="new-password" placeholder="Repita a nova senha">
+              <button type="button" class="password-toggle" data-action="toggle-password" data-target="autonomous-confirm-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+            </div>
+          </div>
+          <p id="autonomous-reset-password-form-error" class="auth-form-error hidden" role="alert" aria-live="assertive"></p>
+          <button type="submit" class="btn btn-primary btn-full" data-default-label="Redefinir e salvar" data-loading-label="Redefinindo...">
+            <span data-submit-label>Redefinir e salvar</span>
+          </button>
+          <button type="button" class="btn btn-full" data-action="close-autonomous-reset">Cancelar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <div id="modal-destructive-confirmation" class="modal-overlay" data-clear-form-on-close="destructive-confirmation-form">
     <div class="modal-content glass modal-small">
       <button class="modal-close" data-action="close-destructive-confirmation" aria-label="Cancelar exclusão"><i data-lucide="x"></i></button>

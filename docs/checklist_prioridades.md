@@ -27,7 +27,7 @@ Resumo: **8 implementados**, **50 parciais**, **0 não iniciados**, total de **5
 | **SEC-01** | Proteção contra IDOR | **Parcial** | `idorMatrix.test.js`; ownership nos controllers | Reexecutar matriz para todas as rotas novas e padronizar 403/404 |
 | **SEC-02** | Onboarding obrigatório | **Implementado** | migration `must_change_password`; `onboarding.test.js`; bloqueio frontend | QA E2E em navegador permanece como melhoria |
 | **SEC-03** | Convites de aluno | **Parcial** | tokens expiráveis, claim e `studentInvitations.test.js` | Entrega real de e-mail, reenvio e operação ponta a ponta |
-| **SEC-04** | Reset de senha do personal | **Parcial** | tokens com hash, expiração, rate limit, UI pública e testes | Configurar provedor de e-mail e validar entrega real |
+| **SEC-04** | Reset de senha autônomo | **Concluído funcionalmente** | tokens com hash, expiração, rate limit, UI acessível com suporte a URL e testes | Configurar provedor de e-mail em produção |
 | **SEC-05** | Verificação de e-mail | **Parcial** | migration, tokens, políticas e `emailVerification.test.js` | Entrega real, tela completa e política operacional |
 | **SEC-06** | CSRF segregado | **Parcial** | cookies, origem/referer e testes HTTP | E2E WebView/Bearer em origem pública |
 | **SEC-07** | Rate limit IP + conta | **Parcial** | chave combinada e hardening distribuído | Validar store compartilhado e múltiplas réplicas em produção |

@@ -167,6 +167,71 @@ function openForgotPassword() {
   if (!email?.trim()) return;
   API.post('/auth/forgot-password', { email: email.trim() }).then(() => showToast('Se o e-mail existir, enviaremos instruções.', 'success')).catch(error => showToast(error.message, 'error'));
 }
+
+function openAutonomousResetModal(token = '') {
+  const modal = document.getElementById('modal-autonomous-reset-password');
+  if (!modal) return;
+  clearFormError('autonomous-reset-password-form');
+  const tokenInput = document.getElementById('autonomous-reset-token');
+  if (tokenInput && token) {
+    tokenInput.value = token;
+  }
+  openModal('modal-autonomous-reset-password');
+}
+
+function closeAutonomousResetModal() {
+  closeModal('modal-autonomous-reset-password');
+}
+
+async function handleAutonomousResetPasswordSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  clearFormError(form.id);
+
+  const token = document.getElementById('autonomous-reset-token')?.value?.trim();
+  const newPassword = document.getElementById('autonomous-new-password')?.value;
+  const confirmPassword = document.getElementById('autonomous-confirm-password')?.value;
+
+  if (!token) {
+    setFormError(form.id, 'O token de recuperação é obrigatório.');
+    return;
+  }
+  if (!newPassword || newPassword.length < 10) {
+    setFormError(form.id, 'A nova senha deve possuir pelo menos 10 caracteres.');
+    return;
+  }
+  if (newPassword !== confirmPassword) {
+    setFormError(form.id, 'As senhas informadas não conferem.');
+    return;
+  }
+
+  setFormSubmitting(form, true);
+  try {
+    await API.post('/auth/reset-password', { token, newPassword });
+    showToast('Senha redefinida com sucesso! Faça login com a nova senha.', 'success');
+    closeAutonomousResetModal();
+    form.reset();
+    if (typeof window !== 'undefined' && window.location && window.history) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('resetToken');
+      url.searchParams.delete('token');
+      window.history.replaceState({}, '', url.pathname + url.hash);
+    }
+  } catch (error) {
+    setFormError(form.id, error.message || 'Falha ao redefinir senha. Verifique o token.');
+  } finally {
+    setFormSubmitting(form, false);
+  }
+}
+
+function checkURLForResetToken() {
+  if (typeof window === 'undefined' || !window.location) return;
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('resetToken') || params.get('token');
+  if (token) {
+    openAutonomousResetModal(token);
+  }
+}
 async function saveNotificationPreferences() {
   const preferences = [...document.querySelectorAll('[data-notification-preference]')].map(input => ({ eventType: input.dataset.eventType, channel: input.dataset.channel, enabled: input.checked }));
   await API.put('/notifications/preferences', { preferences });

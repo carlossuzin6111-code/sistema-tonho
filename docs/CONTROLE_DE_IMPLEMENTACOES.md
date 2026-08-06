@@ -2,6 +2,40 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## SEC-04 — Interface Acessível e Fluxo Frontend para Redefinição Autônoma de Senha por Token
+
+- Estado: implementado, validado e em revisão
+- Branch: `feat/autonomous-password-reset-ui`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/199
+- Início: 06/08/2026
+
+### Diagnóstico
+
+- O backend já oferecia o endpoint `POST /api/auth/reset-password`, porém o frontend não possuía modal ou fluxo para consumir o token de recuperação enviado por e-mail.
+- Quando o usuário recebia um e-mail com link (`?resetToken=...` ou `?token=...`), a aplicação não identificava os parâmetros na URL nem oferecia interface para digitação/validação da nova senha.
+
+### Plano
+
+- [x] Criar o modal acessível `#modal-autonomous-reset-password` em `desktop.html` e `mobile.html` com suporte a `role="dialog"`, validação de senha (`minlength="10"`) e toggle de visibilidade.
+- [x] Registrar ações de clique (`open-autonomous-reset`, `close-autonomous-reset`) e o manipulador de formulário (`autonomous-reset-password-form`) em `events.js`.
+- [x] Implementar as funções de manipulação e detecção de parâmetro de URL (`checkURLForResetToken`, `handleAutonomousResetPasswordSubmit`) em `app.js`.
+- [x] Limpar automaticamente os parâmetros da URL (`history.replaceState`) e resetar o formulário após redefinição bem-sucedida.
+- [x] Adicionar a suíte de testes `frontend/tests/autonomous-password-reset.test.js` e atualizar `strict-csp.test.js`.
+- [x] Executar suíte completa de testes (`npm test`, 96/96 aprovados).
+
+### Critérios de aceite
+
+- Abertura da aplicação com `?resetToken=XYZ` ou `?token=XYZ` na URL abre automaticamente o modal de redefinição preenchendo o token.
+- O formulário valida senhas com no mínimo 10 caracteres e bloqueia envio quando as senhas não conferem.
+- O envio chama a API `POST /api/auth/reset-password`, remove o parâmetro da URL em caso de sucesso e exibe toast de notificação.
+- Todos os 96 testes do frontend passam com 100% de sucesso.
+
+### Evidências locais
+
+- Frontend completo: 96/96 testes aprovados (100% sucesso).
+- `npm audit`: 0 vulnerabilidades.
+- `node --check` e `git diff --check`: aprovados.
+
 ## MOB-01 + UX-05 — PWA Manifest, Service Worker e Cache de Assets Estáticos
 
 - Estado: implementado, validado e em revisão
