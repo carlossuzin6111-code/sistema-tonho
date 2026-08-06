@@ -266,6 +266,7 @@ async function loadStudentWorkouts() {
     studentWorkouts = await API.get('/student/workouts');
     finishLoadingState(container);
     updateStudentWorkoutSummary();
+    if (typeof checkPendingNPSSurvey === 'function') checkPendingNPSSurvey();
     SafeDOM.clear(container);
     if (!studentWorkouts.length) {
       container.appendChild(SafeDOM.el('div', { className: 'chat-empty-state glass empty-state-large' }, [
