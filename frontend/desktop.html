@@ -1053,7 +1053,7 @@
             <span data-submit-label>Alterar senha</span>
           </button>
         </form>
-        <div class="profile-privacy-actions"><h3>Privacidade e sessões</h3><button type="button" class="btn btn-secondary btn-sm" data-action="export-my-data">Exportar meus dados</button><button type="button" class="btn btn-secondary btn-sm" data-action="manage-sessions">Gerenciar sessões</button><button type="button" class="btn btn-secondary btn-sm" data-action="open-manage-wearables">Dispositivos & Wearables</button></div>
+        <div class="profile-privacy-actions"><h3>Privacidade e sessões</h3><button type="button" class="btn btn-secondary btn-sm" data-action="export-my-data">Exportar meus dados</button><button type="button" class="btn btn-secondary btn-sm" data-action="manage-sessions">Gerenciar sessões</button><button type="button" class="btn btn-secondary btn-sm" data-action="open-manage-wearables">Dispositivos & Wearables</button><button type="button" class="btn btn-secondary btn-sm" data-action="open-manage-geofences">Academias & Geofencing</button></div>
       </div>
 
       <!-- Panel: clinical partners -->
@@ -1197,6 +1197,109 @@
         <button type="submit" class="btn btn-primary btn-full mt-12" data-default-label="Enviar avaliação" data-loading-label="Enviando...">
           <span data-submit-label>Enviar avaliação</span>
         </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: GERENCIAMENTO DE GEOFENCING E ACADEMIAS -->
+  <div id="modal-manage-geofences" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="manage-geofences-title">
+    <div class="modal-content glass modal-medium">
+      <button class="modal-close" data-action="close-modal" data-modal="modal-manage-geofences" aria-label="Fechar gerenciamento de geofences"><i data-lucide="x"></i></button>
+      <h2 id="manage-geofences-title" class="modal-title"><i data-lucide="map-pin"></i> Academias & Geofencing</h2>
+      <p class="text-muted">Cadastre as localizações das academias para validar o check-in presencial dos alunos por GPS.</p>
+
+      <div class="grid grid-2 mt-16 mb-16">
+        <button type="button" class="btn btn-accent btn-full" data-action="open-add-geofence"><i data-lucide="plus-circle"></i> Cadastrar Academia</button>
+      </div>
+
+      <div class="geofences-sections">
+        <h3>Academias cadastradas</h3>
+        <div id="geofences-list" class="geofences-list" aria-label="Academias cadastradas">
+          <p class="text-muted">Nenhuma academia cadastrada.</p>
+        </div>
+
+        <h3 class="mt-20">Histórico de Check-ins dos Alunos</h3>
+        <div id="personal-checkins-list" class="personal-checkins-list" aria-label="Check-ins presenciais recentes">
+          <p class="text-muted">Nenhum check-in recente registrado.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CADASTRAR NOVA ACADEMIA (GEOFENCE) -->
+  <div id="modal-add-geofence" class="modal-overlay" data-clear-form-on-close="add-geofence-form" role="dialog" aria-modal="true" aria-labelledby="add-geofence-title">
+    <div class="modal-content glass modal-small">
+      <button class="modal-close" data-action="close-add-geofence" aria-label="Fechar cadastro de geofence"><i data-lucide="x"></i></button>
+      <h2 id="add-geofence-title" class="modal-title"><i data-lucide="map-pin"></i> Cadastrar Academia</h2>
+      <form id="add-geofence-form" class="form-with-feedback">
+        <div class="input-group">
+          <label for="geofence-name">Nome da Academia *</label>
+          <input type="text" id="geofence-name" required placeholder="Ex: Smart Fit Paulista" maxlength="120">
+        </div>
+        <div class="grid grid-2">
+          <div class="input-group">
+            <label for="geofence-latitude">Latitude *</label>
+            <input type="number" id="geofence-latitude" step="any" min="-90" max="90" required placeholder="-23.5505">
+          </div>
+          <div class="input-group">
+            <label for="geofence-longitude">Longitude *</label>
+            <input type="number" id="geofence-longitude" step="any" min="-180" max="180" required placeholder="-46.6333">
+          </div>
+        </div>
+        <div class="input-group">
+          <button type="button" class="btn btn-secondary btn-sm btn-full" data-action="fill-current-location"><i data-lucide="navigation"></i> Usar Minha Localização Atual</button>
+        </div>
+        <div class="input-group">
+          <label for="geofence-radius">Raio de Validação (metros) *</label>
+          <input type="number" id="geofence-radius" min="20" max="10000" value="150" required placeholder="Ex: 150">
+        </div>
+        <p id="add-geofence-form-error" class="auth-form-error hidden" role="alert" aria-live="assertive"></p>
+        <button type="submit" class="btn btn-primary btn-full" data-default-label="Cadastrar Academia" data-loading-label="Cadastrando...">
+          <span data-submit-label>Cadastrar Academia</span>
+        </button>
+        <button type="button" class="btn btn-full" data-action="close-add-geofence">Cancelar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CHECK-IN NA ACADEMIA (ALUNO) -->
+  <div id="modal-student-checkin" class="modal-overlay" data-clear-form-on-close="student-checkin-form" role="dialog" aria-modal="true" aria-labelledby="student-checkin-title">
+    <div class="modal-content glass modal-small">
+      <button class="modal-close" data-action="close-student-checkin" aria-label="Fechar check-in de aluno"><i data-lucide="x"></i></button>
+      <h2 id="student-checkin-title" class="modal-title"><i data-lucide="map-pin"></i> Check-in Presencial</h2>
+
+      <div id="active-checkin-banner" class="active-checkin-banner glass p-12 mb-16 hidden">
+        <p class="text-success"><strong>Check-in Ativo!</strong></p>
+        <p class="text-xs text-muted" id="active-checkin-info">Você está atualmente na academia.</p>
+        <button type="button" class="btn btn-sm btn-warning mt-8" data-action="checkout-geofence">Fazer Checkout</button>
+      </div>
+
+      <form id="student-checkin-form" class="form-with-feedback">
+        <p class="text-muted">Selecione a academia e confirme sua presença por GPS.</p>
+        <div class="input-group">
+          <label for="student-checkin-geofence">Academia *</label>
+          <select id="student-checkin-geofence" required>
+            <option value="">Selecione uma academia...</option>
+          </select>
+        </div>
+        <div class="grid grid-2">
+          <div class="input-group">
+            <label for="student-checkin-latitude">Latitude GPS *</label>
+            <input type="number" id="student-checkin-latitude" step="any" min="-90" max="90" required placeholder="Obtendo...">
+          </div>
+          <div class="input-group">
+            <label for="student-checkin-longitude">Longitude GPS *</label>
+            <input type="number" id="student-checkin-longitude" step="any" min="-180" max="180" required placeholder="Obtendo...">
+          </div>
+        </div>
+        <div class="input-group">
+          <button type="button" class="btn btn-secondary btn-sm btn-full" data-action="get-checkin-location"><i data-lucide="locate"></i> Obter Localização GPS</button>
+        </div>
+        <p id="student-checkin-form-error" class="auth-form-error hidden" role="alert" aria-live="assertive"></p>
+        <button type="submit" class="btn btn-primary btn-full" data-default-label="Confirmar Check-in" data-loading-label="Validando GPS...">
+          <span data-submit-label>Confirmar Check-in</span>
+        </button>
+        <button type="button" class="btn btn-full" data-action="close-student-checkin">Cancelar</button>
       </form>
     </div>
   </div>

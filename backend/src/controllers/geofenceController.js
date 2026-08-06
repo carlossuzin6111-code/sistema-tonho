@@ -70,4 +70,12 @@ async function listCheckins(req, res) {
   return res.json(await query);
 }
 
-module.exports = { createGeofence, listGeofences, checkIn, checkOut, listCheckins, distanceMeters };
+async function listStudentGeofences(req, res) {
+  if (req.user.role !== 'student') return res.status(403).json({ error: 'Student role required' });
+  const profile = await db('student_profiles').where({ student_id: req.user.id }).first();
+  if (!profile) return res.json([]);
+  const rows = await db('gym_geofences').where({ personal_id: profile.personal_id, active: 1 }).select('id', 'name', 'latitude', 'longitude', 'radius_meters as radiusMeters').orderBy('name');
+  return res.json(rows);
+}
+
+module.exports = { createGeofence, listGeofences, checkIn, checkOut, listCheckins, listStudentGeofences, distanceMeters };
