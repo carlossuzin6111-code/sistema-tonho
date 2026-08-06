@@ -2,6 +2,41 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## SEC-03 — Modal de Aceite de Convite de Aluno, Criação de Conta e Tratamento de Token na URL no Frontend
+
+- Estado: implementado, validado e em revisão
+- Branch: `feat/student-invitation-claim-ui`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/201
+- Início: 06/08/2026
+
+### Diagnóstico
+
+- O backend contava com a API `POST /api/auth/student-invitations/claim` para validar e reivindicar convites de alunos de forma transacional.
+- No entanto, o frontend não possuía modal ou interface para o aluno aceitar um convite recebido do Personal Trainer, definir seu nome/senha e criar sua conta.
+
+### Plano
+
+- [x] Criar o modal acessível `#modal-claim-invitation` em `desktop.html` e `mobile.html` com suporte a `role="dialog"`, validação de nome/senha (`minlength="10"`) e alternador de visibilidade de senha.
+- [x] Adicionar o botão "Possui um convite de aluno?" na tela inicial de login para acesso direto ao modal.
+- [x] Registrar ações de clique (`open-claim-invitation`, `close-claim-invitation`) e manipulador de formulário (`claim-invitation-form`) em `events.js`.
+- [x] Implementar as funções de manipulação e detecção de parâmetro de URL (`checkURLForInviteToken`, `handleClaimInvitationSubmit`) em `app.js`.
+- [x] Limpar automaticamente os parâmetros da URL (`history.replaceState`) e preencher o e-mail no login após submissão bem-sucedida.
+- [x] Criar a suíte de testes `frontend/tests/student-invitation-claim-ui.test.js` e atualizar `strict-csp.test.js`.
+- [x] Executar suíte completa de testes (`npm test`, 98/98 aprovados).
+
+### Critérios de aceite
+
+- Abertura da aplicação com `?inviteToken=XYZ` ou `?invitationToken=XYZ` na URL abre automaticamente o modal com o token preenchido.
+- O formulário valida nome e senha (mínimo de 10 caracteres, confirmação igual).
+- O envio chama `POST /api/auth/student-invitations/claim`, limpa os parâmetros da URL em caso de sucesso e exibe notificação por toast.
+- Todos os 98 testes do frontend passam com 100% de sucesso.
+
+### Evidências locais
+
+- Frontend completo: 98/98 testes aprovados (100% sucesso).
+- `npm audit`: 0 vulnerabilidades.
+- `node --check` e `git diff --check`: aprovados.
+
 ## SEC-05 — Banner de Verificação de E-mail, Reenvio e Confirmação Automática por Token no Frontend
 
 - Estado: implementado, validado e em revisão
