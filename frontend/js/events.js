@@ -55,6 +55,8 @@ const clickActions = Object.freeze({
   'close-modal': element => closeModal(element.dataset.modal),
   'reset-password': () => openResetPasswordModal(),
   'close-reset-password': () => closeResetPasswordModal(),
+  'open-autonomous-reset': () => openAutonomousResetModal(),
+  'close-autonomous-reset': () => closeAutonomousResetModal(),
   'close-destructive-confirmation': () => closeDestructiveConfirmation(),
   'switch-modal-tab': element => switchModalSubtab(element.dataset.tab),
   'open-workout-modal': () => openCreateWorkoutModal(),
@@ -93,6 +95,7 @@ const submitHandlers = Object.freeze({
   'register-form': event => handleRegister(event),
   'create-student-form': event => handleCreateStudent(event),
   'reset-password-form': event => handleResetPasswordSubmit(event),
+  'autonomous-reset-password-form': event => handleAutonomousResetPasswordSubmit(event),
   'destructive-confirmation-form': event => handleDestructiveConfirmationSubmit(event),
   'personal-chat-form': event => sendPersonalChatMessage(event),
   'student-chat-form': event => sendStudentChatMessage(event),
@@ -162,5 +165,11 @@ document.addEventListener('keydown', event => {
   } else if (!event.shiftKey && document.activeElement === last) {
     event.preventDefault();
     first.focus();
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof checkURLForResetToken === 'function') {
+    checkURLForResetToken();
   }
 });
