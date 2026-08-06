@@ -254,6 +254,82 @@ function updateEmailVerificationUI(user) {
   }
 }
 
+function updateImpersonationUI(user) {
+  if (typeof document === 'undefined') return;
+  const banner = document.getElementById('impersonation-warning-banner');
+  const isImpersonating = Boolean(user && (user.impersonation || user.isImpersonation));
+
+  if (banner) {
+    banner.classList.toggle('hidden', !isImpersonating);
+    if (user && user.impersonation && user.impersonation.eventId) {
+      banner.dataset.eventId = user.impersonation.eventId;
+    }
+  }
+}
+
+function openStartImpersonationModal() {
+  const modal = document.getElementById('modal-start-impersonation');
+  if (!modal) return;
+  clearFormError('start-impersonation-form');
+  openModal('modal-start-impersonation');
+}
+
+function closeStartImpersonationModal() {
+  closeModal('modal-start-impersonation');
+}
+
+async function handleStartImpersonationSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  clearFormError(form.id);
+
+  const targetUserId = document.getElementById('impersonation-target-user-id')?.value?.trim();
+  const reason = document.getElementById('impersonation-reason')?.value?.trim();
+
+  if (!targetUserId) {
+    setFormError(form.id, 'O ID do usuário de destino é obrigatório.');
+    return;
+  }
+  if (!reason || reason.length < 5) {
+    setFormError(form.id, 'Informe uma justificativa de pelo menos 5 caracteres.');
+    return;
+  }
+
+  setFormSubmitting(form, true);
+  try {
+    const result = await API.post('/support/impersonations', { targetUserId, reason });
+    if (result && result.token) {
+      API.setSessionToken(result.token);
+    }
+    showToast('Sessão de suporte iniciada com sucesso.', 'success');
+    closeStartImpersonationModal();
+    form.reset();
+    if (typeof window !== 'undefined' && window.location) {
+      window.location.reload();
+    }
+  } catch (error) {
+    setFormError(form.id, error.message || 'Falha ao iniciar sessão de suporte.');
+  } finally {
+    setFormSubmitting(form, false);
+  }
+}
+
+async function handleEndImpersonation() {
+  const currentUser = API.getCurrentUser();
+  const eventId = currentUser?.impersonation?.eventId || document.getElementById('impersonation-warning-banner')?.dataset?.eventId;
+
+  try {
+    if (eventId) {
+      await API.post('/support/impersonations/' + eventId + '/revoke', {});
+    }
+    showToast('Sessão de suporte encerrada com sucesso.', 'success');
+  } catch (error) {
+    showToast('Encerrando sessão de suporte...', 'info');
+  } finally {
+    logout();
+  }
+}
+
 async function handleResendEmailVerification() {
   try {
     await API.post('/auth/resend-verification', {});
@@ -960,6 +1036,7 @@ function setupAppShell(user) {
     window.setTimeout(() => openRequiredPasswordChange(), 0);
   }
   updateEmailVerificationUI(user);
+  updateImpersonationUI(user);
   if (user.emailVerified === false && typeof showToast === 'function') {
     showToast('Confirme seu e-mail para habilitar a recuperação de senha.', 'warning');
   }

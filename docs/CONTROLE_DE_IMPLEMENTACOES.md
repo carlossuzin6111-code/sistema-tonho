@@ -2,6 +2,41 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## OPS-12 — Banner de Sessão de Suporte/Impersonação, Controle de Auditoria e Revogação no Frontend
+
+- Estado: implementado, validado e em revisão
+- Branch: `feat/impersonation-ui`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/202
+- Início: 06/08/2026
+
+### Diagnóstico
+
+- O backend oferecia APIs de impersonação auditada para suporte (`POST /api/support/impersonations`, `POST /api/support/impersonations/:id/revoke`), mas o frontend não exibia aviso visual de segurança quando uma conta estava sendo acessada em modo de suporte.
+- Além disso, perfis de suporte/admin não possuíam interface no frontend para iniciar chamados de auditoria nem para revogar a sessão de suporte ativa.
+
+### Plano
+
+- [x] Criar o banner acessível `#impersonation-warning-banner` em `desktop.html` e `mobile.html` com suporte a `role="alert"` e botão de encerramento de sessão.
+- [x] Criar o modal acessível `#modal-start-impersonation` em `desktop.html` e `mobile.html` para solicitações auditadas com motivo obrigatório.
+- [x] Registrar ações de clique (`open-start-impersonation`, `close-start-impersonation`, `end-impersonation`) e manipulador de formulário (`start-impersonation-form`) em `events.js`.
+- [x] Implementar `updateImpersonationUI`, `handleStartImpersonationSubmit` e `handleEndImpersonation` em `app.js`.
+- [x] Garantir revogação do token no backend via `/api/support/impersonations/:id/revoke` e notificação por toast.
+- [x] Criar a suíte de testes `frontend/tests/impersonation-ui.test.js` e atualizar `strict-csp.test.js`.
+- [x] Executar suíte completa de testes (`npm test`, 99/99 aprovados).
+
+### Critérios de aceite
+
+- Sessões ativas de suporte/impersonação exibem o banner fixo de alerta `#impersonation-warning-banner` com destaque visual e `role="alert"`.
+- O formulário de início exige ID do usuário de destino e motivo detalhado de pelo menos 5 caracteres.
+- O clique em "Encerrar sessão de suporte" chama a revogação no backend, notifica por toast e encerra o acesso de auditoria.
+- Todos os 99 testes do frontend passam com 100% de sucesso.
+
+### Evidências locais
+
+- Frontend completo: 99/99 testes aprovados (100% sucesso).
+- `npm audit`: 0 vulnerabilidades.
+- `node --check` e `git diff --check`: aprovados.
+
 ## SEC-03 — Modal de Aceite de Convite de Aluno, Criação de Conta e Tratamento de Token na URL no Frontend
 
 - Estado: implementado, validado e em revisão
