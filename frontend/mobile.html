@@ -736,7 +736,7 @@
           <p class="form-help">Ao alterar, as outras sessões serão encerradas.</p>
           <button type="submit" class="btn btn-primary btn-full" data-default-label="Alterar senha" data-loading-label="Alterando..."><span data-submit-label>Alterar senha</span></button>
         </form>
-        <div class="profile-privacy-actions"><h3>Privacidade e sessões</h3><button type="button" class="btn btn-secondary btn-sm" data-action="export-my-data">Exportar meus dados</button><button type="button" class="btn btn-secondary btn-sm" data-action="manage-sessions">Gerenciar sessões</button></div>
+        <div class="profile-privacy-actions"><h3>Privacidade e sessões</h3><button type="button" class="btn btn-secondary btn-sm" data-action="export-my-data">Exportar meus dados</button><button type="button" class="btn btn-secondary btn-sm" data-action="manage-sessions">Gerenciar sessões</button><button type="button" class="btn btn-secondary btn-sm" data-action="open-manage-wearables">Dispositivos & Wearables</button></div>
       </div>
       <div id="profile-panel-partners" role="tabpanel" aria-labelledby="profile-tab-partners" hidden>
         <div class="partners-header">
@@ -776,6 +776,69 @@
             <span data-submit-label>Autorizar consentimento</span>
           </button>
           <button type="button" class="btn btn-full" data-action="close-grant-partner-consent">Cancelar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-manage-wearables" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="manage-wearables-title-mobile">
+    <div class="modal-content glass modal-medium">
+      <button class="modal-close" data-action="close-modal" data-modal="modal-manage-wearables" aria-label="Fechar gerenciamento de wearables"><i data-lucide="x"></i></button>
+      <div class="mobile-modal-inner">
+        <h2 id="manage-wearables-title-mobile" class="modal-title"><i data-lucide="watch"></i> Dispositivos & Wearables</h2>
+        <p class="text-muted">Conecte seus dispositivos de saúde para sincronizar sono e variabilidade cardíaca (HRV).</p>
+
+        <div class="grid grid-2 mt-16 mb-16">
+          <button type="button" class="btn btn-accent btn-full" data-action="open-connect-wearable"><i data-lucide="plus-circle"></i> Conectar dispositivo</button>
+        </div>
+
+        <div class="wearables-sections">
+          <h3>Dispositivos conectados</h3>
+          <div id="wearables-connections-list" class="wearables-connections-list" aria-label="Dispositivos conectados">
+            <p class="text-muted">Nenhum dispositivo conectado.</p>
+          </div>
+
+          <h3 class="mt-20">Métricas sincronizadas (Sono & HRV)</h3>
+          <div id="wearables-metrics-list" class="wearables-metrics-list" aria-label="Métricas recentes de wearables">
+            <p class="text-muted">Nenhuma métrica recente registrada.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-connect-wearable" class="modal-overlay" data-clear-form-on-close="connect-wearable-form" role="dialog" aria-modal="true" aria-labelledby="connect-wearable-title-mobile">
+    <div class="modal-content glass modal-small">
+      <button class="modal-close" data-action="close-connect-wearable" aria-label="Fechar conexão de wearable"><i data-lucide="x"></i></button>
+      <div class="mobile-modal-inner">
+        <h2 id="connect-wearable-title-mobile" class="modal-title"><i data-lucide="watch"></i> Conectar Wearable</h2>
+        <form id="connect-wearable-form" class="form-with-feedback">
+          <p>Selecione o provedor e autorize a sincronização de dados de saúde.</p>
+          <div class="input-group">
+            <label for="connect-wearable-provider">Provedor *</label>
+            <select id="connect-wearable-provider" required>
+              <option value="">Selecione um provedor...</option>
+              <option value="apple_healthkit">Apple HealthKit</option>
+              <option value="google_health_connect">Google Health Connect</option>
+              <option value="garmin">Garmin Connect</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="connect-wearable-account-id">ID do dispositivo / Conta (opcional)</label>
+            <input type="text" id="connect-wearable-account-id" placeholder="Ex: garmin-user-123" maxlength="160">
+          </div>
+          <div class="input-group">
+            <label>Escopos autorizados *</label>
+            <div class="checkbox-group">
+              <label for="m-wearable-scope-sleep"><input type="checkbox" id="m-wearable-scope-sleep" name="wearable-scope" value="sleep" checked> Monitoramento de sono</label>
+              <label for="m-wearable-scope-hrv"><input type="checkbox" id="m-wearable-scope-hrv" name="wearable-scope" value="hrv" checked> Variabilidade Cardíaca (HRV)</label>
+            </div>
+          </div>
+          <p id="connect-wearable-form-error" class="auth-form-error hidden" role="alert" aria-live="assertive"></p>
+          <button type="submit" class="btn btn-primary btn-full" data-default-label="Solicitar conexão" data-loading-label="Conectando...">
+            <span data-submit-label>Solicitar conexão</span>
+          </button>
+          <button type="button" class="btn btn-full" data-action="close-connect-wearable">Cancelar</button>
         </form>
       </div>
     </div>
