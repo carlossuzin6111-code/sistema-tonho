@@ -101,6 +101,8 @@ app.get('/api/team/members', authenticateToken, requireRole('personal'), teamCon
 app.post('/api/team/members', authenticateToken, requireRole('personal'), teamController.addTeamMember);
 app.patch('/api/team/members/:id/end', authenticateToken, requireRole('personal'), validateIdParam('id'), teamController.terminateTeamMember);
 app.post('/api/student/partner-consents', authenticateToken, partnerController.createConsent);
+app.get('/api/student/partner-consents', authenticateToken, partnerController.listConsents);
+app.get('/api/student/partners', authenticateToken, partnerController.listAvailablePartners);
 app.delete('/api/student/partner-consents/:id', authenticateToken, validateIdParam('id'), partnerController.revokeConsent);
 app.get('/api/partner/students/:studentId/summary', authenticateToken, validateIdParam('studentId'), partnerController.getStudentSummary);
 app.post('/api/wearables/connections', authenticateToken, wearableController.createConnection);

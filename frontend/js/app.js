@@ -330,6 +330,111 @@ async function handleEndImpersonation() {
   }
 }
 
+async function loadPartnerConsents() {
+  const container = document.getElementById('partner-consents-list');
+  if (!container) return;
+  try {
+    const consents = await API.get('/student/partner-consents');
+    if (!consents || !consents.length) {
+      container.innerHTML = '<p class="text-muted">Nenhum consentimento ativo ou histórico registrado.</p>';
+      return;
+    }
+    const scopeLabels = { workout_logs: 'Treinos', measurements: 'Medidas', exams: 'Exames' };
+    const html = consents.map(item => {
+      const active = item.status === 'active';
+      const badgeClass = active ? 'badge-success' : 'badge-danger';
+      const statusText = active ? 'Ativo' : 'Revogado';
+      const scopesText = (item.scopes || []).map(s => scopeLabels[s] || s).join(', ') || 'Nenhum escopo';
+
+      return `
+        <div class="partner-consent-card glass p-12 mb-8">
+          <div class="flex flex-between align-center">
+            <div>
+              <strong>${SafeDOM.escapeHTML(item.partnerName || 'Profissional')}</strong>
+              <span class="badge ${badgeClass} ml-8">${statusText}</span>
+              <p class="text-sm text-muted">${SafeDOM.escapeHTML(item.specialty || 'Saúde')} ${item.organization ? '• ' + SafeDOM.escapeHTML(item.organization) : ''}</p>
+              <p class="text-xs mt-4"><strong>Autorizado:</strong> ${SafeDOM.escapeHTML(scopesText)}</p>
+            </div>
+            ${active ? `<button type="button" class="btn btn-xs btn-danger-outline" data-action="revoke-partner-consent" data-consent-id="${item.id}">Revogar</button>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+    container.innerHTML = html;
+  } catch (error) {
+    container.innerHTML = '<p class="form-error">Erro ao carregar consentimentos profissionais.</p>';
+  }
+}
+
+async function openGrantPartnerConsentModal() {
+  const modal = document.getElementById('modal-grant-partner-consent');
+  if (!modal) return;
+  clearFormError('grant-partner-consent-form');
+  const select = document.getElementById('grant-partner-select');
+  if (select) {
+    select.innerHTML = '<option value="">Carregando parceiros...</option>';
+    try {
+      const partners = await API.get('/student/partners');
+      if (!partners || !partners.length) {
+        select.innerHTML = '<option value="">Nenhum parceiro profissional disponível</option>';
+      } else {
+        select.innerHTML = '<option value="">Selecione um profissional...</option>' +
+          partners.map(p => `<option value="${p.id}">${SafeDOM.escapeHTML(p.name)} - ${SafeDOM.escapeHTML(p.specialty || '')} (${SafeDOM.escapeHTML(p.organization || 'Clínica')})</option>`).join('');
+      }
+    } catch {
+      select.innerHTML = '<option value="">Erro ao carregar parceiros</option>';
+    }
+  }
+  openModal('modal-grant-partner-consent');
+}
+
+function closeGrantPartnerConsentModal() {
+  closeModal('modal-grant-partner-consent');
+}
+
+async function handleGrantPartnerConsentSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  clearFormError(form.id);
+
+  const partnerId = Number(document.getElementById('grant-partner-select')?.value);
+  const checkedBoxes = [...form.querySelectorAll('input[name="partner-scope"]:checked')].map(cb => cb.value);
+
+  if (!partnerId) {
+    setFormError(form.id, 'Selecione um profissional parceiro.');
+    return;
+  }
+  if (!checkedBoxes.length) {
+    setFormError(form.id, 'Selecione pelo menos um escopo de acesso.');
+    return;
+  }
+
+  setFormSubmitting(form, true);
+  try {
+    await API.post('/student/partner-consents', { partnerId, scopes: checkedBoxes });
+    showToast('Consentimento concedido com sucesso!', 'success');
+    closeGrantPartnerConsentModal();
+    form.reset();
+    loadPartnerConsents();
+  } catch (error) {
+    setFormError(form.id, error.message || 'Erro ao conceder consentimento.');
+  } finally {
+    setFormSubmitting(form, false);
+  }
+}
+
+async function handleRevokePartnerConsent(element) {
+  const consentId = element?.dataset?.consentId;
+  if (!consentId) return;
+  try {
+    await API.delete('/student/partner-consents/' + consentId);
+    showToast('Consentimento revogado com sucesso.', 'success');
+    loadPartnerConsents();
+  } catch (error) {
+    showToast(error.message || 'Erro ao revogar consentimento.', 'error');
+  }
+}
+
 async function handleResendEmailVerification() {
   try {
     await API.post('/auth/resend-verification', {});
