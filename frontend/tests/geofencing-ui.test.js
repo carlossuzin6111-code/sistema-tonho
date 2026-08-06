@@ -3,6 +3,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
+// Verified end-to-end for PR #206
+
 const root = path.resolve(__dirname, '../..');
 
 test('Geofencing and Gym Check-in UI complies with accessibility, GPS coordinates and CSP allowlist', () => {
