@@ -6,7 +6,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 - Estado: implementado, validado e pronto para revisão
 - Branch: `feat/ops-07-readiness-monitoring`
-- Pull request: a abrir após o commit
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/207
 - Início: 06/08/2026
 
 ### Diagnóstico
