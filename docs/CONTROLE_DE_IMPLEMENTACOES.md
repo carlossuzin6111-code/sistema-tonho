@@ -2,6 +2,47 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## OPS-07 — Acompanhamento longitudinal de prontidão do aluno
+
+- Estado: implementado, validado e pronto para revisão
+- Branch: `feat/ops-07-readiness-monitoring`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/207
+
+- Início: 06/08/2026
+
+### Diagnóstico
+
+- O backend já persiste até 90 check-ins de prontidão e expõe `GET /api/personal/students/:id/readiness` com controle de vínculo.
+- O Personal ainda não possui uma visão histórica da prontidão dentro do modal de acompanhamento do aluno.
+- A interface deve apresentar os dados como acompanhamento operacional e informativo; não deve diagnosticar, prescrever carga ou substituir avaliação clínica.
+
+### Plano
+
+- [x] Adicionar a aba acessível de prontidão no detalhe do aluno em desktop e mobile.
+- [x] Exibir histórico limitado retornado pelo backend, com data, quatro escalas e score, sem expor dados de outros alunos.
+- [x] Mostrar aviso explícito de que o score não é diagnóstico e orientar consulta profissional quando necessário.
+- [x] Atualizar a troca de abas e carregar o histórico somente para o aluno selecionado.
+- [x] Criar teste estrutural do frontend para os dois layouts, allowlist e contrato da API.
+- [x] Executar testes frontend, `node --check`, `git diff --check`, auditoria de dependências e smoke test da API em container.
+- [x] Revisar segurança, privacidade, acessibilidade e escopo antes do commit/PR.
+
+### Critérios de aceite
+
+- O Personal consegue abrir o histórico de prontidão do aluno vinculado no desktop e mobile.
+- A tela informa claramente que os dados são informativos e não constituem diagnóstico ou prescrição.
+- A API consultada permanece `GET /api/personal/students/:id/readiness`, respeitando o vínculo no backend.
+- A interface não cria recomendação clínica nova nem altera automaticamente treinos ou cargas.
+- Todos os testes automatizados e validações locais passam antes da abertura do PR.
+
+### Evidências
+
+- Frontend: 31/31 testes aprovados.
+- Backend: 43 suítes e 256 testes aprovados no container de teste.
+- Migrations: 39 aplicadas, nenhuma pendente.
+- Smoke test: liveness/readiness OK e rota protegida rejeita requisição sem autenticação.
+- `npm audit`: 0 vulnerabilidades; `node --check` e `git diff --check` aprovados.
+- Revisão ética: score exibido somente como acompanhamento informativo, com orientação explícita para avaliação profissional e sem prescrição automática.
+
 ## OPS-06 — Gestão de Geofencing de Academias, Check-in por GPS e Histórico Presencial no Frontend e Backend
 
 - Estado: implementado, validado e em revisão
@@ -9,7 +50,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/206
 - Início: 06/08/2026
 
-### Diagnóstico
+### Diagnóstico — OPS-06
 
 - O backend contava com a migration `202607290020_create_geofence_checkins.js` e a controller `geofenceController.js` para cadastrar academias (`POST /api/personal/geofences`), listar check-ins (`GET /api/personal/checkins`) e efetuar check-in/checkout por GPS (`POST /api/student/checkins`, `POST /api/student/checkins/:id/checkout`).
 - No entanto, faltava no backend a rota `GET /api/student/geofences` para o aluno consultar os locais cadastrados pelo seu Personal Trainer, e no frontend não existia nenhuma interface para cadastrar academias, capturar GPS via Geolocation API, realizar check-in presencial ou visualizar o histórico de frequência.

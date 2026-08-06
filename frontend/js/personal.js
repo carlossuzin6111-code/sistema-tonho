@@ -302,13 +302,59 @@ async function openStudentDetails(studentId) {
 
     await Promise.all([
       renderStudentLifecycleHistory(student.id, details.workouts),
-      loadStudentAssessments(student.id)
+      loadStudentAssessments(student.id),
+      loadStudentReadiness(student.id)
     ]);
 
     lucide.createIcons();
   } catch (err) {
     showToast(`Erro ao carregar detalhes: ${err.message}`, 'error');
     closeModal('modal-student-detail');
+  }
+}
+
+async function loadStudentReadiness(studentId) {
+  const container = document.getElementById('student-readiness-history');
+  if (!container) return;
+  SafeDOM.clear(container);
+  container.appendChild(SafeDOM.el('p', { className: 'form-help', text: 'Carregando histórico de prontidão...' }));
+  try {
+    const history = await API.get(`/personal/students/${studentId}/readiness`);
+    if (selectedStudentId !== studentId) return;
+    SafeDOM.clear(container);
+    container.appendChild(SafeDOM.el('p', {
+      className: 'form-help',
+      text: 'Acompanhamento informativo: o score não é diagnóstico nem prescrição de treino. Em caso de dor ou preocupação de saúde, encaminhe o aluno a um profissional habilitado.'
+    }));
+    if (!history.length) {
+      container.appendChild(SafeDOM.el('p', { className: 'no-data-msg', text: 'Nenhum check-in de prontidão registrado.' }));
+      return;
+    }
+
+    const latest = history[0];
+    const summary = SafeDOM.el('div', { className: 'metrics-summary glass', attrs: { 'aria-live': 'polite' } }, [
+      SafeDOM.el('strong', { text: `Último score: ${latest.score ?? '—'}/100` }),
+      SafeDOM.el('span', { text: ` · ${AppDateTime.date(latest.date)}` })
+    ]);
+    const table = SafeDOM.el('table', { className: 'data-table' });
+    table.appendChild(SafeDOM.el('caption', { className: 'table-caption', text: 'Histórico de prontidão dos últimos registros' }));
+    table.appendChild(SafeDOM.el('thead', {}, [SafeDOM.el('tr', {}, [
+      ...['Data', 'Score informativo', 'Dor muscular', 'Sono', 'Fadiga', 'Humor'].map(label => SafeDOM.el('th', { scope: 'col', text: label }))
+    ])]));
+    const body = SafeDOM.el('tbody');
+    history.forEach(item => body.appendChild(SafeDOM.el('tr', {}, [
+      SafeDOM.el('td', { text: AppDateTime.date(item.date) }),
+      SafeDOM.el('td', { text: `${item.score ?? '—'}/100` }),
+      SafeDOM.el('td', { text: `${item.doms ?? '—'}/5` }),
+      SafeDOM.el('td', { text: `${item.sleepQuality ?? '—'}/5` }),
+      SafeDOM.el('td', { text: `${item.fatigue ?? '—'}/5` }),
+      SafeDOM.el('td', { text: `${item.mood ?? '—'}/5` })
+    ])));
+    table.appendChild(body);
+    container.append(summary, SafeDOM.el('div', { className: 'table-container glass mt-4' }, [table]));
+  } catch (error) {
+    SafeDOM.clear(container);
+    container.appendChild(SafeDOM.errorAlert('Não foi possível carregar a prontidão: ', error.message));
   }
 }
 
@@ -399,6 +445,8 @@ function switchModalSubtab(subtab) {
   const paneMetrics = document.getElementById('modal-subpane-metrics');
   const tabAssessments = document.getElementById('modal-tab-assessments');
   const paneAssessments = document.getElementById('modal-subpane-assessments');
+  const tabReadiness = document.getElementById('modal-tab-readiness');
+  const paneReadiness = document.getElementById('modal-subpane-readiness');
 
   tabWorkouts.classList.remove('active');
   tabMetrics.classList.remove('active');
@@ -406,6 +454,8 @@ function switchModalSubtab(subtab) {
   paneMetrics.classList.remove('active');
   tabAssessments.classList.remove('active');
   paneAssessments.classList.remove('active');
+  tabReadiness.classList.remove('active');
+  paneReadiness.classList.remove('active');
 
   if (subtab === 'workouts') {
     tabWorkouts.classList.add('active');
@@ -413,14 +463,17 @@ function switchModalSubtab(subtab) {
   } else if (subtab === 'metrics') {
     tabMetrics.classList.add('active');
     paneMetrics.classList.add('active');
+  } else if (subtab === 'readiness') {
+    tabReadiness.classList.add('active');
+    paneReadiness.classList.add('active');
   } else {
     tabAssessments.classList.add('active');
     paneAssessments.classList.add('active');
   }
   syncTabGroup(
-    ['modal-tab-workouts', 'modal-tab-metrics', 'modal-tab-assessments'],
-    ['modal-subpane-workouts', 'modal-subpane-metrics', 'modal-subpane-assessments'],
-    subtab === 'workouts' ? 'modal-tab-workouts' : subtab === 'metrics' ? 'modal-tab-metrics' : 'modal-tab-assessments'
+    ['modal-tab-workouts', 'modal-tab-metrics', 'modal-tab-assessments', 'modal-tab-readiness'],
+    ['modal-subpane-workouts', 'modal-subpane-metrics', 'modal-subpane-assessments', 'modal-subpane-readiness'],
+    subtab === 'workouts' ? 'modal-tab-workouts' : subtab === 'metrics' ? 'modal-tab-metrics' : subtab === 'readiness' ? 'modal-tab-readiness' : 'modal-tab-assessments'
   );
 }
 
