@@ -288,6 +288,83 @@ async function checkURLForVerifyEmailToken() {
     showToast(error.message || 'Token de verificação inválido ou expirado.', 'error');
   }
 }
+
+function openClaimInvitationModal(token = '') {
+  const modal = document.getElementById('modal-claim-invitation');
+  if (!modal) return;
+  clearFormError('claim-invitation-form');
+  const tokenInput = document.getElementById('claim-invitation-token');
+  if (tokenInput && token) {
+    tokenInput.value = token;
+  }
+  openModal('modal-claim-invitation');
+}
+
+function closeClaimInvitationModal() {
+  closeModal('modal-claim-invitation');
+}
+
+async function handleClaimInvitationSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  clearFormError(form.id);
+
+  const token = document.getElementById('claim-invitation-token')?.value?.trim();
+  const name = document.getElementById('claim-student-name')?.value?.trim();
+  const password = document.getElementById('claim-student-password')?.value;
+  const confirmPassword = document.getElementById('claim-student-password-confirm')?.value;
+
+  if (!token) {
+    setFormError(form.id, 'O token de convite é obrigatório.');
+    return;
+  }
+  if (!name || name.length < 2) {
+    setFormError(form.id, 'Informe seu nome completo.');
+    return;
+  }
+  if (!password || password.length < 10) {
+    setFormError(form.id, 'A senha deve possuir pelo menos 10 caracteres.');
+    return;
+  }
+  if (password !== confirmPassword) {
+    setFormError(form.id, 'As senhas informadas não conferem.');
+    return;
+  }
+
+  setFormSubmitting(form, true);
+  try {
+    const result = await API.post('/auth/student-invitations/claim', { token, name, password });
+    showToast('Conta criada com sucesso! Você já pode acessar seu acompanhamento.', 'success');
+    closeClaimInvitationModal();
+    form.reset();
+
+    if (result && result.user && result.user.email) {
+      const loginEmail = document.getElementById('login-email');
+      if (loginEmail) loginEmail.value = result.user.email;
+    }
+
+    if (typeof window !== 'undefined' && window.location && window.history) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('inviteToken');
+      url.searchParams.delete('invitationToken');
+      url.searchParams.delete('token');
+      window.history.replaceState({}, '', url.pathname + url.hash);
+    }
+  } catch (error) {
+    setFormError(form.id, error.message || 'Convite inválido, expirado ou já utilizado.');
+  } finally {
+    setFormSubmitting(form, false);
+  }
+}
+
+function checkURLForInviteToken() {
+  if (typeof window === 'undefined' || !window.location) return;
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('inviteToken') || params.get('invitationToken') || (window.location.pathname.includes('invite') ? params.get('token') : null);
+  if (token) {
+    openClaimInvitationModal(token);
+  }
+}
 async function saveNotificationPreferences() {
   const preferences = [...document.querySelectorAll('[data-notification-preference]')].map(input => ({ eventType: input.dataset.eventType, channel: input.dataset.channel, enabled: input.checked }));
   await API.put('/notifications/preferences', { preferences });

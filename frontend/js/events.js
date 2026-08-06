@@ -58,6 +58,8 @@ const clickActions = Object.freeze({
   'close-reset-password': () => closeResetPasswordModal(),
   'open-autonomous-reset': () => openAutonomousResetModal(),
   'close-autonomous-reset': () => closeAutonomousResetModal(),
+  'open-claim-invitation': () => openClaimInvitationModal(),
+  'close-claim-invitation': () => closeClaimInvitationModal(),
   'close-destructive-confirmation': () => closeDestructiveConfirmation(),
   'switch-modal-tab': element => switchModalSubtab(element.dataset.tab),
   'open-workout-modal': () => openCreateWorkoutModal(),
@@ -97,6 +99,7 @@ const submitHandlers = Object.freeze({
   'create-student-form': event => handleCreateStudent(event),
   'reset-password-form': event => handleResetPasswordSubmit(event),
   'autonomous-reset-password-form': event => handleAutonomousResetPasswordSubmit(event),
+  'claim-invitation-form': event => handleClaimInvitationSubmit(event),
   'destructive-confirmation-form': event => handleDestructiveConfirmationSubmit(event),
   'personal-chat-form': event => sendPersonalChatMessage(event),
   'student-chat-form': event => sendStudentChatMessage(event),
@@ -175,5 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   if (typeof checkURLForVerifyEmailToken === 'function') {
     checkURLForVerifyEmailToken();
+  }
+  if (typeof checkURLForInviteToken === 'function') {
+    checkURLForInviteToken();
   }
 });

@@ -63,6 +63,7 @@
         <p id="login-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
         <button type="submit" class="btn btn-primary btn-full btn-glow" data-default-label="Acessar Painel" data-loading-label="Entrando..."><span data-submit-label>Acessar Painel</span></button>
         <button type="button" class="btn btn-link" data-action="open-forgot-password">Esqueci minha senha</button>
+        <button type="button" class="btn btn-link" data-action="open-claim-invitation">Possui um convite de aluno?</button>
       </form>
 
       <form id="register-form" class="auth-form hidden" role="tabpanel" aria-labelledby="tab-btn-register" aria-describedby="register-form-error">
@@ -484,6 +485,45 @@
             <span data-submit-label>Redefinir e salvar</span>
           </button>
           <button type="button" class="btn btn-full" data-action="close-autonomous-reset">Cancelar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-claim-invitation" class="modal-overlay" data-clear-form-on-close="claim-invitation-form" role="dialog" aria-modal="true" aria-labelledby="claim-invitation-title-mobile">
+    <div class="modal-content glass modal-small">
+      <button class="modal-close" data-action="close-claim-invitation" aria-label="Cancelar aceite"><i data-lucide="x"></i></button>
+      <div class="mobile-modal-inner">
+        <h2 id="claim-invitation-title-mobile" class="modal-title"><i data-lucide="user-check"></i> Aceitar convite de aluno</h2>
+        <form id="claim-invitation-form" class="form-with-feedback">
+          <p>Informe o token de convite fornecido pelo seu Personal Trainer para criar sua conta de aluno.</p>
+          <div class="input-group">
+            <label for="claim-invitation-token">Token de convite *</label>
+            <input type="text" id="claim-invitation-token" required autocomplete="off" placeholder="Cole o token do convite aqui">
+          </div>
+          <div class="input-group">
+            <label for="claim-student-name">Seu nome completo *</label>
+            <input type="text" id="claim-student-name" required minlength="2" maxlength="100" autocomplete="name" placeholder="Ex: Maria Oliveira">
+          </div>
+          <div class="input-group">
+            <label for="claim-student-password">Senha de acesso *</label>
+            <div class="password-field">
+              <input type="password" id="claim-student-password" required minlength="10" maxlength="128" autocomplete="new-password" placeholder="Mínimo 10 caracteres">
+              <button type="button" class="password-toggle" data-action="toggle-password" data-target="claim-student-password" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="claim-student-password-confirm">Confirmar senha *</label>
+            <div class="password-field">
+              <input type="password" id="claim-student-password-confirm" required minlength="10" maxlength="128" autocomplete="new-password" placeholder="Repita a senha">
+              <button type="button" class="password-toggle" data-action="toggle-password" data-target="claim-student-password-confirm" aria-label="Mostrar senha" aria-pressed="false"><i data-lucide="eye"></i></button>
+            </div>
+          </div>
+          <p id="claim-invitation-form-error" class="auth-form-error hidden" role="alert" aria-live="assertive"></p>
+          <button type="submit" class="btn btn-primary btn-full" data-default-label="Aceitar e criar conta" data-loading-label="Criando conta...">
+            <span data-submit-label>Aceitar e criar conta</span>
+          </button>
+          <button type="button" class="btn btn-full" data-action="close-claim-invitation">Cancelar</button>
         </form>
       </div>
     </div>
