@@ -39,6 +39,7 @@ const clickActions = Object.freeze({
   'load-older-student-chat': () => loadOlderStudentChat(),
   'load-older-personal-chat': () => loadOlderPersonalChat(),
   'open-forgot-password': () => openForgotPassword(),
+  'resend-email-verification': () => handleResendEmailVerification(),
   'export-my-data': () => exportMyData(),
   'manage-sessions': () => manageSessions(),
   'revoke-profile-session': element => confirmRevokeProfileSession(element),
@@ -171,5 +172,8 @@ document.addEventListener('keydown', event => {
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof checkURLForResetToken === 'function') {
     checkURLForResetToken();
+  }
+  if (typeof checkURLForVerifyEmailToken === 'function') {
+    checkURLForVerifyEmailToken();
   }
 });

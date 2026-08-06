@@ -2,6 +2,41 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## SEC-05 — Banner de Verificação de E-mail, Reenvio e Confirmação Automática por Token no Frontend
+
+- Estado: implementado, validado e em revisão
+- Branch: `feat/email-verification-ui`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/200
+- Início: 06/08/2026
+
+### Diagnóstico
+
+- O backend expõe `POST /api/auth/verify-email` e `POST /api/auth/resend-verification`, mas o frontend não exibia aviso nem ações visíveis para contas com e-mail não confirmado (`user.emailVerified === false`).
+- Quando um usuário acessava o link de ativação recebido por e-mail (`?verifyToken=...` ou `?token=...`), o aplicativo não processava a ativação automaticamente nem fornecia feedback ao usuário.
+
+### Plano
+
+- [x] Adicionar o banner acessível `#email-unverified-banner` em `desktop.html` e `mobile.html` com botão de reenvio de e-mail de ativação.
+- [x] Adicionar o contêiner e a badge de status `#profile-email-verification-container` no modal de perfil.
+- [x] Registrar a ação `resend-email-verification` em `events.js` chamando `API.post('/auth/resend-verification')`.
+- [x] Implementar `updateEmailVerificationUI`, `handleResendEmailVerification` e `checkURLForVerifyEmailToken` em `app.js`.
+- [x] Processar tokens de ativação recebidos por parâmetro de URL (`verifyToken`, `verifyEmailToken`, `token`) e atualizar o estado da sessão automaticamente.
+- [x] Criar a suíte de testes `frontend/tests/email-verification-ui.test.js`.
+- [x] Executar suíte completa de testes (`npm test`, 97/97 aprovados).
+
+### Critérios de aceite
+
+- Contas não verificadas exibem o banner de alerta `#email-unverified-banner` e o status pendente no perfil.
+- O clique no botão "Reenviar e-mail de ativação" chama a API `/auth/resend-verification` com feedback por toast.
+- Abertura da URL com token de confirmação executa `/auth/verify-email`, libera a conta, oculta o banner e limpa os parâmetros da URL.
+- Todos os 97 testes do frontend passam com 100% de sucesso.
+
+### Evidências locais
+
+- Frontend completo: 97/97 testes aprovados (100% sucesso).
+- `npm audit`: 0 vulnerabilidades.
+- `node --check` e `git diff --check`: aprovados.
+
 ## SEC-04 — Interface Acessível e Fluxo Frontend para Redefinição Autônoma de Senha por Token
 
 - Estado: implementado, validado e em revisão
