@@ -209,6 +209,8 @@ async function loadPersonalStudents() {
     sortPersonalStudents(document.getElementById('students-sort').value);
     filterPersonalStudents(document.getElementById('students-search').value);
     filterStudentStatus(studentStatusFilter);
+    if (typeof loadCRMAlerts === 'function') loadCRMAlerts();
+    if (typeof loadNPSMetrics === 'function') loadNPSMetrics();
   } catch (err) {
     finishLoadingState(grid);
     SafeDOM.clear(grid);

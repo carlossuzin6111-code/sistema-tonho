@@ -564,6 +564,164 @@ async function handleRevokeWearableConnection(element) {
   }
 }
 
+async function loadCRMAlerts() {
+  const list = document.getElementById('crm-alerts-list');
+  const countBadge = document.getElementById('stat-crm-alerts-count');
+  if (!list) return;
+  try {
+    const alerts = await API.get('/crm/alerts');
+    const openAlerts = (alerts || []).filter(a => a.status === 'open');
+    if (countBadge) countBadge.textContent = String(openAlerts.length);
+
+    if (!alerts || !alerts.length) {
+      list.innerHTML = '<p class="text-muted">Nenhum alerta de inatividade registrado.</p>';
+      return;
+    }
+
+    const html = alerts.map(a => {
+      const isOpen = a.status === 'open';
+      const badgeClass = isOpen ? 'badge-warning' : 'badge-success';
+      const statusText = isOpen ? 'Inativo' : 'Resolvido';
+
+      return `
+        <div class="crm-alert-card glass p-12 mb-8 flex flex-between align-center">
+          <div>
+            <strong>${SafeDOM.escapeHTML(a.studentName || 'Aluno')}</strong>
+            <span class="badge ${badgeClass} ml-8">${statusText}</span>
+            <p class="text-xs text-muted mt-4">Inativo há ${a.inactivityDays || 5} dias consecutivos sem treino</p>
+          </div>
+          ${isOpen ? `<button type="button" class="btn btn-xs btn-accent" data-action="resolve-crm-alert" data-alert-id="${a.id}">Resolver</button>` : ''}
+        </div>
+      `;
+    }).join('');
+    list.innerHTML = html;
+  } catch (error) {
+    list.innerHTML = '<p class="form-error">Erro ao carregar alertas CRM.</p>';
+  }
+}
+
+async function handleRunDailyCRM() {
+  try {
+    const res = await API.post('/crm/run-daily', { thresholdDays: 5 });
+    showToast(`Verificação concluída: ${res.createdCount || 0} novo(s) alerta(s) de inatividade.`, 'success');
+    loadCRMAlerts();
+  } catch (error) {
+    showToast(error.message || 'Erro ao executar verificação CRM.', 'error');
+  }
+}
+
+async function handleResolveCRMAlert(element) {
+  const alertId = element?.dataset?.alertId;
+  if (!alertId) return;
+  try {
+    await API.patch(`/crm/alerts/${alertId}/resolve`, {});
+    showToast('Alerta de inatividade resolvido.', 'success');
+    loadCRMAlerts();
+  } catch (error) {
+    showToast(error.message || 'Erro ao resolver alerta.', 'error');
+  }
+}
+
+async function loadNPSMetrics() {
+  const list = document.getElementById('nps-feedback-list');
+  const badge = document.getElementById('nps-score-badge');
+  const statBadge = document.getElementById('stat-nps-score');
+  if (!list) return;
+  try {
+    const responses = await API.get('/crm/nps');
+    const answered = (responses || []).filter(r => r.status === 'responded' && typeof r.score === 'number');
+
+    if (!answered.length) {
+      if (badge) badge.textContent = 'NPS: --';
+      if (statBadge) statBadge.textContent = '--';
+      list.innerHTML = '<p class="text-muted">Nenhuma resposta registrada ainda.</p>';
+      return;
+    }
+
+    const promoters = answered.filter(r => r.score >= 9).length;
+    const detractors = answered.filter(r => r.score <= 6).length;
+    const score = Math.round(((promoters - detractors) / answered.length) * 100);
+
+    const scoreText = `NPS: ${score > 0 ? '+' : ''}${score}`;
+    if (badge) badge.textContent = scoreText;
+    if (statBadge) statBadge.textContent = scoreText;
+
+    const html = answered.slice(0, 10).map(r => {
+      const scoreBadgeClass = r.score >= 9 ? 'badge-success' : (r.score <= 6 ? 'badge-danger' : 'badge-warning');
+      return `
+        <div class="nps-item glass p-10 mb-8">
+          <div class="flex flex-between align-center">
+            <strong>${SafeDOM.escapeHTML(r.studentName || 'Aluno')}</strong>
+            <span class="badge ${scoreBadgeClass}">Nota: ${r.score}/10</span>
+          </div>
+          ${r.comment ? `<p class="text-sm mt-4 text-muted">"${SafeDOM.escapeHTML(r.comment)}"</p>` : ''}
+        </div>
+      `;
+    }).join('');
+    list.innerHTML = html;
+  } catch (error) {
+    list.innerHTML = '<p class="form-error">Erro ao carregar métricas NPS.</p>';
+  }
+}
+
+async function checkPendingNPSSurvey() {
+  const modal = document.getElementById('modal-nps-survey');
+  if (!modal) return;
+  try {
+    const pending = await API.get('/student/nps');
+    if (pending && pending.length) {
+      const target = pending[0];
+      const surveyIdInput = document.getElementById('nps-survey-id');
+      if (surveyIdInput) surveyIdInput.value = target.id;
+      openModal('modal-nps-survey');
+    }
+  } catch {
+    // Ignore error silently
+  }
+}
+
+function handleSelectNPSScore(element) {
+  const score = element?.dataset?.score;
+  if (score == null) return;
+  document.getElementById('nps-selected-score').value = score;
+  document.querySelectorAll('.btn-nps').forEach(b => {
+    const selected = b.dataset.score === score;
+    b.classList.toggle('active', selected);
+    b.setAttribute('aria-selected', selected ? 'true' : 'false');
+  });
+}
+
+function closeNPSSurveyModal() {
+  closeModal('modal-nps-survey');
+}
+
+async function handleNPSSurveySubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  clearFormError(form.id);
+
+  const surveyId = document.getElementById('nps-survey-id')?.value;
+  const score = document.getElementById('nps-selected-score')?.value;
+  const comment = document.getElementById('nps-survey-comment')?.value;
+
+  if (score === '' || score == null) {
+    setFormError(form.id, 'Selecione uma nota de 0 a 10.');
+    return;
+  }
+
+  setFormSubmitting(form, true);
+  try {
+    await API.post(`/student/nps/${surveyId}/respond`, { score: Number(score), comment });
+    showToast('Obrigado pela sua avaliação! Sua opinião ajuda a melhorar nossos serviços.', 'success');
+    closeNPSSurveyModal();
+    form.reset();
+  } catch (error) {
+    setFormError(form.id, error.message || 'Erro ao enviar avaliação.');
+  } finally {
+    setFormSubmitting(form, false);
+  }
+}
+
 async function handleResendEmailVerification() {
   try {
     await API.post('/auth/resend-verification', {});

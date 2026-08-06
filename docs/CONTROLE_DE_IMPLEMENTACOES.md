@@ -2,7 +2,42 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## OPS-05 — Painel CRM de Alertas de Churn, Pesquisa NPS e Resposta do Aluno no Frontend
+
+- Estado: implementado, validado e em revisão
+- Branch: `feat/crm-nps-ui`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/205
+- Início: 06/08/2026
+
+### Diagnóstico
+
+- O backend contava com as rotas em `crmController.js` para execução de tarefas diárias (`POST /api/crm/run-daily`), listagem/resolução de alertas de inatividade (`GET /api/crm/alerts`, `PATCH /api/crm/alerts/:id/resolve`) e pesquisas NPS (`GET /api/crm/nps`, `GET /api/student/nps`, `POST /api/student/nps/:id/respond`).
+- No entanto, o frontend não oferecia nenhuma interface visual para o Personal Trainer monitorar/resolver riscos de inatividade de alunos ou acompanhar o score e comentários NPS, nem para o Aluno responder a pesquisas de satisfação pendentes.
+
+### Plano
+
+- [x] Adicionar o painel de alertas CRM `#personal-crm-alerts-container` e a métrica NPS `#personal-nps-summary` no dashboard do Personal em `desktop.html` e `mobile.html`.
+- [x] Criar o modal acessível de pesquisa NPS `#modal-nps-survey` com seleção de nota de 0 a 10 (`data-action="select-nps-score"`), comentário opcional e formulário `#nps-survey-form`.
+- [x] Registrar ações de clique (`run-crm-daily`, `resolve-crm-alert`, `select-nps-score`, `close-nps-survey`) e formulário (`nps-survey-form`) em `events.js`.
+- [x] Implementar `loadCRMAlerts`, `handleRunDailyCRM`, `handleResolveCRMAlert`, `loadNPSMetrics`, `checkPendingNPSSurvey`, `handleSelectNPSScore`, `closeNPSSurveyModal` e `handleNPSSurveySubmit` em `app.js`, integrados às rotinas em `personal.js` e `student.js`.
+- [x] Criar a suíte de testes `frontend/tests/crm-nps-ui.test.js` e atualizar `strict-csp.test.js`.
+- [x] Executar suíte completa de testes (`npm test`, 102/102 aprovados).
+
+### Critérios de aceite
+
+- O Personal Trainer visualiza os alertas de inatividade de alunos inativos há mais de 5 dias e pode resolvê-los com 1 clique.
+- O Personal Trainer visualiza o score NPS consolidado (% Promotores - % Detratores) e os comentários recebidos dos alunos.
+- O Aluno com pesquisa NPS pendente é notificado com o modal acessível para enviar nota 0-10 e feedback.
+- Todos os 102 testes do frontend passam com 100% de sucesso.
+
+### Evidências locais
+
+- Frontend completo: 102/102 testes aprovados (100% sucesso).
+- `npm audit`: 0 vulnerabilidades.
+- `node --check` e `git diff --check`: aprovados.
+
 ## OPS-04 — Gestão de Dispositivos e Wearables, Conexão, Revogação e Exibição de Métricas no Frontend
+
 
 - Estado: implementado, validado e em revisão
 - Branch: `feat/wearables-ui`

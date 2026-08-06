@@ -257,8 +257,8 @@ test('authentication forms expose loading, inline error and password visibility 
   for (const page of ['desktop.html', 'mobile.html']) {
     const html = fs.readFileSync(path.join(frontendRoot, page), 'utf8');
     assert.equal((html.match(/data-action="toggle-password"/g) || []).length, 11);
-    assert.equal((html.match(/role="alert" aria-live="assertive"/g) || []).length, 17);
-    assert.equal((html.match(/data-submit-label/g) || []).length, 17);
+    assert.equal((html.match(/role="alert" aria-live="assertive"/g) || []).length, 18);
+    assert.equal((html.match(/data-submit-label/g) || []).length, 18);
   }
 
   const input = { type: 'password' };

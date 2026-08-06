@@ -136,8 +136,10 @@
         
         <div id="tab-p-students" class="tab-pane active">
           <h1 class="section-title mobile-section-title">Alunos</h1>
-          <div class="stats-mini-grid mobile-summary-grid">
+          <div class="stats-mini-grid hide-desktop">
             <div class="stat-mini glass"><span class="stat-mini-label">Alunos</span><span class="stat-mini-value" id="stat-total-students" aria-live="polite">0</span></div>
+            <div class="stat-mini glass"><span class="stat-mini-label">Inatividade</span><span class="stat-mini-value text-danger" id="stat-crm-alerts-count" aria-live="polite">0</span></div>
+            <div class="stat-mini glass"><span class="stat-mini-label">NPS</span><span class="stat-mini-value text-accent" id="stat-nps-score" aria-live="polite">--</span></div>
             <div class="stat-mini glass"><span class="stat-mini-label">Não lidas</span><span class="stat-mini-value" id="stat-unread-messages" aria-live="polite">0</span></div>
           </div>
           <div class="list-search-toolbar">
@@ -150,6 +152,28 @@
             <div class="spinner"></div>
           </div>
           <p id="students-search-empty" class="search-empty hidden">Nenhum aluno corresponde à busca.</p>
+
+          <!-- CRM Churn Alerts Section -->
+          <div id="personal-crm-alerts-container" class="crm-alerts-container glass p-16 mt-20">
+            <div class="flex flex-between align-center mb-12">
+              <h3><i data-lucide="alert-triangle" class="text-warning"></i> Alertas de Inatividade</h3>
+              <button type="button" class="btn btn-sm btn-secondary" data-action="run-crm-daily"><i data-lucide="refresh-cw"></i> Verificar</button>
+            </div>
+            <div id="crm-alerts-list" class="crm-alerts-list" aria-label="Alertas de inatividade de alunos">
+              <p class="text-muted">Nenhum alerta pendente.</p>
+            </div>
+          </div>
+
+          <!-- NPS Feedback Summary Section -->
+          <div id="personal-nps-summary" class="nps-summary-container glass p-16 mt-20">
+            <div class="flex flex-between align-center mb-12">
+              <h3><i data-lucide="smile" class="text-accent"></i> Pesquisas NPS</h3>
+              <span id="nps-score-badge" class="badge badge-accent">NPS: --</span>
+            </div>
+            <div id="nps-feedback-list" class="nps-feedback-list" aria-label="Respostas de NPS dos alunos">
+              <p class="text-muted">Nenhuma resposta registrada.</p>
+            </div>
+          </div>
         </div>
 
         <div id="tab-p-create" class="tab-pane">
@@ -839,6 +863,45 @@
             <span data-submit-label>Solicitar conexão</span>
           </button>
           <button type="button" class="btn btn-full" data-action="close-connect-wearable">Cancelar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-nps-survey" class="modal-overlay" data-clear-form-on-close="nps-survey-form" role="dialog" aria-modal="true" aria-labelledby="nps-survey-title-mobile">
+    <div class="modal-content glass modal-medium text-center">
+      <button class="modal-close" data-action="close-nps-survey" aria-label="Fechar pesquisa de satisfação"><i data-lucide="x"></i></button>
+      <div class="mobile-modal-inner">
+        <h2 id="nps-survey-title-mobile" class="modal-title"><i data-lucide="smile"></i> Sua opinião é muito importante!</h2>
+        <p class="text-muted">Em uma escala de 0 a 10, qual a probabilidade de você recomendar nosso acompanhamento?</p>
+
+        <form id="nps-survey-form" class="form-with-feedback mt-16">
+          <input type="hidden" id="nps-survey-id">
+          <input type="hidden" id="nps-selected-score" required>
+
+          <div class="nps-score-selector flex flex-center gap-4 flex-wrap my-16" role="radiogroup" aria-label="Escala NPS de 0 a 10">
+            <button type="button" class="btn btn-nps" data-action="select-nps-score" data-score="0">0</button>
+            <button type="button" class="btn btn-nps" data-action="select-nps-score" data-score="1">1</button>
+            <button type="button" class="btn btn-nps" data-action="select-nps-score" data-score="2">2</button>
+            <button type="button" class="btn btn-nps" data-action="select-nps-score" data-score="3">3</button>
+            <button type="button" class="btn btn-nps" data-action="select-nps-score" data-score="4">4</button>
+            <button type="button" class="btn btn-nps" data-action="select-nps-score" data-score="5">5</button>
+            <button type="button" class="btn btn-nps" data-action="select-nps-score" data-score="6">6</button>
+            <button type="button" class="btn btn-nps" data-action="select-nps-score" data-score="7">7</button>
+            <button type="button" class="btn btn-nps" data-action="select-nps-score" data-score="8">8</button>
+            <button type="button" class="btn btn-nps" data-action="select-nps-score" data-score="9">9</button>
+            <button type="button" class="btn btn-nps" data-action="select-nps-score" data-score="10">10</button>
+          </div>
+
+          <div class="input-group text-left">
+            <label for="nps-survey-comment">O que motivou sua nota? (Opcional)</label>
+            <textarea id="nps-survey-comment" rows="3" maxlength="1000" placeholder="Conte-nos o que podemos melhorar..."></textarea>
+          </div>
+
+          <p id="nps-survey-form-error" class="auth-form-error hidden" role="alert" aria-live="assertive"></p>
+          <button type="submit" class="btn btn-primary btn-full mt-12" data-default-label="Enviar avaliação" data-loading-label="Enviando...">
+            <span data-submit-label>Enviar avaliação</span>
+          </button>
         </form>
       </div>
     </div>
