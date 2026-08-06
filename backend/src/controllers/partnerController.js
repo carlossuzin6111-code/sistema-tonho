@@ -60,4 +60,51 @@ async function getStudentSummary(req, res) {
   }
 }
 
-module.exports = { createConsent, getStudentSummary, revokeConsent };
+async function listConsents(req, res) {
+  if (req.user.role !== 'student') return res.status(403).json({ error: 'Only the student can list partner consents' });
+  try {
+    const rows = await db('student_partner_consents as spc')
+      .join('professional_partners as pp', 'pp.id', 'spc.partner_id')
+      .join('users as u', 'u.id', 'pp.user_id')
+      .where({ 'spc.student_id': req.user.id })
+      .select(
+        'spc.id',
+        'spc.partner_id as partnerId',
+        'u.name as partnerName',
+        'pp.specialty',
+        'pp.organization',
+        'spc.scopes',
+        'spc.status',
+        'spc.expires_at as expiresAt',
+        'spc.revoked_at as revokedAt',
+        'spc.created_at as createdAt'
+      )
+      .orderBy('spc.created_at', 'desc');
+
+    const formatted = rows.map(r => ({
+      ...r,
+      scopes: parseScopes(r.scopes)
+    }));
+
+    return res.json(formatted);
+  } catch (error) {
+    console.error('List partner consents error:', error.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function listAvailablePartners(req, res) {
+  try {
+    const rows = await db('professional_partners as pp')
+      .join('users as u', 'u.id', 'pp.user_id')
+      .where({ 'pp.status': 'active', 'u.role': 'partner' })
+      .select('pp.id', 'u.name', 'pp.specialty', 'pp.organization')
+      .orderBy('u.name', 'asc');
+    return res.json(rows);
+  } catch (error) {
+    console.error('List available partners error:', error.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+module.exports = { createConsent, getStudentSummary, revokeConsent, listConsents, listAvailablePartners };

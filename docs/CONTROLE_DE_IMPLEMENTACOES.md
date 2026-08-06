@@ -2,7 +2,43 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## OPS-03 — Gestão de Consentimento de Parceiros Clínicos, Listagem e Revogação no Frontend e Backend
+
+- Estado: implementado, validado e em revisão
+- Branch: `feat/partner-consent-ui`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/203
+- Início: 06/08/2026
+
+### Diagnóstico
+
+- O backend contava com a migration `202607290017_create_partner_consents.js` e métodos de auditoria para parceiros profissionais (`POST /api/student/partner-consents`, `DELETE /api/student/partner-consents/:id`, `GET /api/partner/students/:studentId/summary`).
+- No entanto, faltavam no backend as rotas para o aluno listar seus consentimentos ativos/históricos e consultar parceiros disponíveis, além da interface completa no frontend (aba no perfil, modal de seleção de escopos e revogação imediata).
+
+### Plano
+
+- [x] Adicionar `listConsents` e `listAvailablePartners` no `partnerController.js` e registrar `GET /api/student/partner-consents` e `GET /api/student/partners` em `backend/src/index.js`.
+- [x] Adicionar a aba `#profile-tab-partners` e painel `#profile-panel-partners` no modal de perfil em `desktop.html` e `mobile.html`.
+- [x] Criar o modal acessível `#modal-grant-partner-consent` com formulário `#grant-partner-consent-form` e seleção granular de escopos (`workout_logs`, `measurements`, `exams`).
+- [x] Registrar ações de clique (`open-grant-partner-consent`, `close-grant-partner-consent`, `revoke-partner-consent`) e submissão (`grant-partner-consent-form`) em `events.js`.
+- [x] Implementar `loadPartnerConsents`, `openGrantPartnerConsentModal`, `handleGrantPartnerConsentSubmit` e `handleRevokePartnerConsent` em `app.js`.
+- [x] Criar suítes de teste `frontend/tests/partner-consent-ui.test.js` e `backend/src/tests/partnerConsentFull.test.js`.
+- [x] Executar suíte completa de testes (`npm test`, 100/100 aprovados).
+
+### Critérios de aceite
+
+- O aluno pode visualizar sua lista de consentimentos de profissionais parceiros com status (Ativo/Revogado) e escopos concedidos.
+- O aluno pode selecionar um parceiro ativo e autorizar escopos granulares (`workout_logs`, `measurements`, `exams`).
+- O aluno pode revogar a qualquer momento o consentimento com atualização imediata no banco de dados e na interface.
+- Todos os 100 testes do frontend passam com 100% de sucesso.
+
+### Evidências locais
+
+- Frontend completo: 100/100 testes aprovados (100% sucesso).
+- `npm audit`: 0 vulnerabilidades.
+- `node --check` e `git diff --check`: aprovados.
+
 ## OPS-12 — Banner de Sessão de Suporte/Impersonação, Controle de Auditoria e Revogação no Frontend
+
 
 - Estado: implementado, validado e em revisão
 - Branch: `feat/impersonation-ui`
