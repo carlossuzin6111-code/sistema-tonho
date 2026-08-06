@@ -54,6 +54,9 @@ test('Geofencing and Gym Check-in UI complies with accessibility, GPS coordinate
   assert.match(appJs, /function getStudentCheckinLocation/);
   assert.match(appJs, /async function handleStudentCheckinSubmit/);
   assert.match(appJs, /async function handleStudentCheckout/);
+  assert.match(appJs, /activeStudentCheckinId = response\.id/);
+  assert.match(appJs, /checkoutButton\.dataset\.checkinId = String\(activeStudentCheckinId\)/);
+  assert.match(appJs, /activeStudentCheckinId = null/);
   assert.match(appJs, /API\.get\('\/personal\/geofences'/);
   assert.match(appJs, /API\.get\('\/personal\/checkins'/);
   assert.match(appJs, /API\.post\('\/personal\/geofences'/);

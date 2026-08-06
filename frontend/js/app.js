@@ -3,6 +3,7 @@
 let lastModalTrigger = null;
 let pendingDestructiveAction = null;
 let appShellGeneration = 0;
+let activeStudentCheckinId = null;
 
 const PARQ_QUESTIONS = Object.freeze([
   ['heartCondition', 'Algum médico já disse que você possui um problema cardíaco e recomendou atividade física somente sob supervisão?'],
@@ -846,6 +847,10 @@ async function handleAddGeofenceSubmit(event) {
 
 async function openStudentCheckinModal() {
   clearFormError('student-checkin-form');
+  const activeBanner = document.getElementById('active-checkin-banner');
+  const checkoutButton = activeBanner?.querySelector('[data-action="checkout-geofence"]');
+  if (activeBanner) activeBanner.classList.toggle('hidden', !activeStudentCheckinId);
+  if (checkoutButton && activeStudentCheckinId) checkoutButton.dataset.checkinId = String(activeStudentCheckinId);
   const select = document.getElementById('student-checkin-geofence');
   if (select) {
     select.innerHTML = '<option value="">Carregando academias...</option>';
@@ -905,13 +910,18 @@ async function handleStudentCheckinSubmit(event) {
 
   setFormSubmitting(form, true);
   try {
-    await API.post('/student/checkins', {
+    const response = await API.post('/student/checkins', {
       geofenceId: Number(geofenceId),
       latitude: Number(latitude),
       longitude: Number(longitude),
       clientEventId
     });
+    activeStudentCheckinId = response.id;
     showToast('Check-in confirmado com sucesso na academia!', 'success');
+    const activeBanner = document.getElementById('active-checkin-banner');
+    const checkoutButton = activeBanner?.querySelector('[data-action="checkout-geofence"]');
+    if (activeBanner) activeBanner.classList.remove('hidden');
+    if (checkoutButton) checkoutButton.dataset.checkinId = String(activeStudentCheckinId);
     closeStudentCheckinModal();
     form.reset();
   } catch (error) {
@@ -926,6 +936,9 @@ async function handleStudentCheckout(element) {
   if (!checkinId) return;
   try {
     await API.post(`/student/checkins/${checkinId}/checkout`, {});
+    activeStudentCheckinId = null;
+    const activeBanner = document.getElementById('active-checkin-banner');
+    if (activeBanner) activeBanner.classList.add('hidden');
     showToast('Checkout realizado com sucesso!', 'success');
     closeStudentCheckinModal();
   } catch (error) {
