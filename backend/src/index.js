@@ -119,6 +119,7 @@ app.post('/api/student/nps/:id/respond', authenticateToken, validateIdParam('id'
 app.post('/api/personal/geofences', authenticateToken, geofenceController.createGeofence);
 app.get('/api/personal/geofences', authenticateToken, geofenceController.listGeofences);
 app.get('/api/personal/checkins', authenticateToken, geofenceController.listCheckins);
+app.get('/api/student/geofences', authenticateToken, geofenceController.listStudentGeofences);
 app.post('/api/student/checkins', authenticateToken, geofenceController.checkIn);
 app.post('/api/student/checkins/:id/checkout', authenticateToken, validateIdParam('id'), geofenceController.checkOut);
 app.post('/api/student/readiness', authenticateToken, readinessController.save);

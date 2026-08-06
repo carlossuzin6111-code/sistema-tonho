@@ -3,6 +3,7 @@
 let lastModalTrigger = null;
 let pendingDestructiveAction = null;
 let appShellGeneration = 0;
+let activeStudentCheckinId = null;
 
 const PARQ_QUESTIONS = Object.freeze([
   ['heartCondition', 'Algum médico já disse que você possui um problema cardíaco e recomendou atividade física somente sob supervisão?'],
@@ -719,6 +720,229 @@ async function handleNPSSurveySubmit(event) {
     setFormError(form.id, error.message || 'Erro ao enviar avaliação.');
   } finally {
     setFormSubmitting(form, false);
+  }
+}
+
+async function openManageGeofencesModal() {
+  openModal('modal-manage-geofences');
+  loadGeofences();
+  loadPersonalCheckins();
+}
+
+async function loadGeofences() {
+  const container = document.getElementById('geofences-list');
+  if (!container) return;
+  try {
+    const list = await API.get('/personal/geofences');
+    if (!list || !list.length) {
+      container.innerHTML = '<p class="text-muted">Nenhuma academia cadastrada.</p>';
+      return;
+    }
+    const html = list.map(g => `
+      <div class="geofence-card glass p-12 mb-8 flex flex-between align-center">
+        <div>
+          <strong>${SafeDOM.escapeHTML(g.name)}</strong>
+          <p class="text-xs text-muted mt-4">Raio: ${g.radiusMeters}m · Lat: ${g.latitude}, Lon: ${g.longitude}</p>
+        </div>
+        <span class="badge badge-success">Ativa</span>
+      </div>
+    `).join('');
+    container.innerHTML = html;
+  } catch (error) {
+    container.innerHTML = '<p class="form-error">Erro ao carregar academias.</p>';
+  }
+}
+
+async function loadPersonalCheckins() {
+  const container = document.getElementById('personal-checkins-list');
+  if (!container) return;
+  try {
+    const checkins = await API.get('/personal/checkins');
+    if (!checkins || !checkins.length) {
+      container.innerHTML = '<p class="text-muted">Nenhum check-in recente registrado.</p>';
+      return;
+    }
+    const html = checkins.slice(0, 10).map(c => {
+      const active = c.status === 'active';
+      const badgeClass = active ? 'badge-success' : 'badge-secondary';
+      const statusText = active ? 'Em andamento' : 'Concluído';
+      const timeText = typeof formatRelativeTime === 'function' ? formatRelativeTime(c.checkedInAt) : new Date(c.checkedInAt).toLocaleString();
+
+      return `
+        <div class="checkin-card glass p-10 mb-8 flex flex-between align-center">
+          <div>
+            <strong>${SafeDOM.escapeHTML(c.studentName || 'Aluno')}</strong>
+            <span class="badge ${badgeClass} ml-8">${statusText}</span>
+            <p class="text-xs text-muted mt-4">Distância da academia: ${c.distanceMeters}m · ${SafeDOM.escapeHTML(timeText)}</p>
+          </div>
+        </div>
+      `;
+    }).join('');
+    container.innerHTML = html;
+  } catch (error) {
+    container.innerHTML = '<p class="form-error">Erro ao carregar check-ins presenciais.</p>';
+  }
+}
+
+function openAddGeofenceModal() {
+  clearFormError('add-geofence-form');
+  openModal('modal-add-geofence');
+}
+
+function closeAddGeofenceModal() {
+  closeModal('modal-add-geofence');
+}
+
+function fillGeofenceCurrentLocation() {
+  if (!navigator.geolocation) {
+    showToast('Geolocalização não suportada pelo navegador.', 'error');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const lat = document.getElementById('geofence-latitude');
+      const lon = document.getElementById('geofence-longitude');
+      if (lat) lat.value = pos.coords.latitude.toFixed(6);
+      if (lon) lon.value = pos.coords.longitude.toFixed(6);
+      showToast('Coordenadas GPS obtidas com sucesso!', 'success');
+    },
+    err => showToast(`Erro ao obter GPS: ${err.message}`, 'error'),
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+async function handleAddGeofenceSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  clearFormError(form.id);
+
+  const name = document.getElementById('geofence-name')?.value;
+  const latitude = document.getElementById('geofence-latitude')?.value;
+  const longitude = document.getElementById('geofence-longitude')?.value;
+  const radiusMeters = document.getElementById('geofence-radius')?.value;
+
+  if (!name || latitude === '' || longitude === '') {
+    setFormError(form.id, 'Preencha o nome e coordenadas de GPS.');
+    return;
+  }
+
+  setFormSubmitting(form, true);
+  try {
+    await API.post('/personal/geofences', {
+      name,
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+      radiusMeters: Number(radiusMeters || 150)
+    });
+    showToast('Academia cadastrada com sucesso!', 'success');
+    closeAddGeofenceModal();
+    form.reset();
+    loadGeofences();
+  } catch (error) {
+    setFormError(form.id, error.message || 'Erro ao cadastrar academia.');
+  } finally {
+    setFormSubmitting(form, false);
+  }
+}
+
+async function openStudentCheckinModal() {
+  clearFormError('student-checkin-form');
+  const activeBanner = document.getElementById('active-checkin-banner');
+  const checkoutButton = activeBanner?.querySelector('[data-action="checkout-geofence"]');
+  if (activeBanner) activeBanner.classList.toggle('hidden', !activeStudentCheckinId);
+  if (checkoutButton && activeStudentCheckinId) checkoutButton.dataset.checkinId = String(activeStudentCheckinId);
+  const select = document.getElementById('student-checkin-geofence');
+  if (select) {
+    select.innerHTML = '<option value="">Carregando academias...</option>';
+    try {
+      const geofences = await API.get('/student/geofences');
+      if (!geofences || !geofences.length) {
+        select.innerHTML = '<option value="">Nenhuma academia cadastrada pelo seu Personal</option>';
+      } else {
+        select.innerHTML = '<option value="">Selecione uma academia...</option>' +
+          geofences.map(g => `<option value="${g.id}">${SafeDOM.escapeHTML(g.name)} (${g.radiusMeters}m)</option>`).join('');
+      }
+    } catch {
+      select.innerHTML = '<option value="">Erro ao carregar academias</option>';
+    }
+  }
+
+  getStudentCheckinLocation();
+  openModal('modal-student-checkin');
+}
+
+function closeStudentCheckinModal() {
+  closeModal('modal-student-checkin');
+}
+
+function getStudentCheckinLocation() {
+  if (!navigator.geolocation) {
+    showToast('Geolocalização não suportada pelo navegador.', 'error');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const lat = document.getElementById('student-checkin-latitude');
+      const lon = document.getElementById('student-checkin-longitude');
+      if (lat) lat.value = pos.coords.latitude.toFixed(6);
+      if (lon) lon.value = pos.coords.longitude.toFixed(6);
+      showToast('Localização GPS atualizada!', 'success');
+    },
+    err => showToast(`Não foi possível obter GPS: ${err.message}`, 'error'),
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+async function handleStudentCheckinSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  clearFormError(form.id);
+
+  const geofenceId = document.getElementById('student-checkin-geofence')?.value;
+  const latitude = document.getElementById('student-checkin-latitude')?.value;
+  const longitude = document.getElementById('student-checkin-longitude')?.value;
+  const clientEventId = `checkin-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+
+  if (!geofenceId || latitude === '' || longitude === '') {
+    setFormError(form.id, 'Selecione a academia e obtenha sua localização GPS.');
+    return;
+  }
+
+  setFormSubmitting(form, true);
+  try {
+    const response = await API.post('/student/checkins', {
+      geofenceId: Number(geofenceId),
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+      clientEventId
+    });
+    activeStudentCheckinId = response.id;
+    showToast('Check-in confirmado com sucesso na academia!', 'success');
+    const activeBanner = document.getElementById('active-checkin-banner');
+    const checkoutButton = activeBanner?.querySelector('[data-action="checkout-geofence"]');
+    if (activeBanner) activeBanner.classList.remove('hidden');
+    if (checkoutButton) checkoutButton.dataset.checkinId = String(activeStudentCheckinId);
+    closeStudentCheckinModal();
+    form.reset();
+  } catch (error) {
+    setFormError(form.id, error.message || 'Erro ao realizar check-in.');
+  } finally {
+    setFormSubmitting(form, false);
+  }
+}
+
+async function handleStudentCheckout(element) {
+  const checkinId = element?.dataset?.checkinId;
+  if (!checkinId) return;
+  try {
+    await API.post(`/student/checkins/${checkinId}/checkout`, {});
+    activeStudentCheckinId = null;
+    const activeBanner = document.getElementById('active-checkin-banner');
+    if (activeBanner) activeBanner.classList.add('hidden');
+    showToast('Checkout realizado com sucesso!', 'success');
+    closeStudentCheckinModal();
+  } catch (error) {
+    showToast(error.message || 'Erro ao realizar checkout.', 'error');
   }
 }
 
