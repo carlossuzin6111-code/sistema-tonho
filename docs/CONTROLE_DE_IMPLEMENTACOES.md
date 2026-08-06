@@ -2,6 +2,46 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## OPS-07 — Acompanhamento longitudinal de prontidão do aluno
+
+- Estado: implementado, validado e pronto para revisão
+- Branch: `feat/ops-07-readiness-monitoring`
+- Pull request: a abrir após o commit
+- Início: 06/08/2026
+
+### Diagnóstico
+
+- O backend já persiste até 90 check-ins de prontidão e expõe `GET /api/personal/students/:id/readiness` com controle de vínculo.
+- O Personal ainda não possui uma visão histórica da prontidão dentro do modal de acompanhamento do aluno.
+- A interface deve apresentar os dados como acompanhamento operacional e informativo; não deve diagnosticar, prescrever carga ou substituir avaliação clínica.
+
+### Plano
+
+- [x] Adicionar a aba acessível de prontidão no detalhe do aluno em desktop e mobile.
+- [x] Exibir histórico limitado retornado pelo backend, com data, quatro escalas e score, sem expor dados de outros alunos.
+- [x] Mostrar aviso explícito de que o score não é diagnóstico e orientar consulta profissional quando necessário.
+- [x] Atualizar a troca de abas e carregar o histórico somente para o aluno selecionado.
+- [x] Criar teste estrutural do frontend para os dois layouts, allowlist e contrato da API.
+- [x] Executar testes frontend, `node --check`, `git diff --check`, auditoria de dependências e smoke test da API em container.
+- [x] Revisar segurança, privacidade, acessibilidade e escopo antes do commit/PR.
+
+### Critérios de aceite
+
+- O Personal consegue abrir o histórico de prontidão do aluno vinculado no desktop e mobile.
+- A tela informa claramente que os dados são informativos e não constituem diagnóstico ou prescrição.
+- A API consultada permanece `GET /api/personal/students/:id/readiness`, respeitando o vínculo no backend.
+- A interface não cria recomendação clínica nova nem altera automaticamente treinos ou cargas.
+- Todos os testes automatizados e validações locais passam antes da abertura do PR.
+
+### Evidências
+
+- Frontend: 31/31 testes aprovados.
+- Backend: 43 suítes e 256 testes aprovados no container de teste.
+- Migrations: 39 aplicadas, nenhuma pendente.
+- Smoke test: liveness/readiness OK e rota protegida rejeita requisição sem autenticação.
+- `npm audit`: 0 vulnerabilidades; `node --check` e `git diff --check` aprovados.
+- Revisão ética: score exibido somente como acompanhamento informativo, com orientação explícita para avaliação profissional e sem prescrição automática.
+
 ## OPS-05 — Painel CRM de Alertas de Churn, Pesquisa NPS e Resposta do Aluno no Frontend
 
 - Estado: implementado, validado e em revisão
