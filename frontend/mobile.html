@@ -123,6 +123,13 @@
       <button type="button" class="btn btn-secondary btn-xs" data-action="resend-email-verification">Reenviar e-mail</button>
     </div>
 
+    <!-- Support Impersonation Warning Banner -->
+    <div id="impersonation-warning-banner" class="impersonation-warning-banner hidden" role="alert">
+      <i data-lucide="shield-alert"></i>
+      <span><strong>Suporte Ativo:</strong> Acesso em auditoria.</span>
+      <button type="button" class="btn btn-secondary btn-xs" data-action="end-impersonation">Encerrar</button>
+    </div>
+
     <!-- CONTAINER PERSONAL -->
     <div id="personal-dashboard" class="mobile-dashboard-wrapper hidden">
       <div class="mobile-content-area">
@@ -524,6 +531,31 @@
             <span data-submit-label>Aceitar e criar conta</span>
           </button>
           <button type="button" class="btn btn-full" data-action="close-claim-invitation">Cancelar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-start-impersonation" class="modal-overlay" data-clear-form-on-close="start-impersonation-form" role="dialog" aria-modal="true" aria-labelledby="start-impersonation-title-mobile">
+    <div class="modal-content glass modal-small">
+      <button class="modal-close" data-action="close-start-impersonation" aria-label="Cancelar impersonação"><i data-lucide="x"></i></button>
+      <div class="mobile-modal-inner">
+        <h2 id="start-impersonation-title-mobile" class="modal-title"><i data-lucide="user-cog"></i> Iniciar suporte</h2>
+        <form id="start-impersonation-form" class="form-with-feedback">
+          <p>Acesse a conta de um usuário em modo auditado.</p>
+          <div class="input-group">
+            <label for="impersonation-target-user-id">ID do usuário *</label>
+            <input type="text" id="impersonation-target-user-id" required autocomplete="off" placeholder="Ex: usr_123456">
+          </div>
+          <div class="input-group">
+            <label for="impersonation-reason">Justificativa *</label>
+            <textarea id="impersonation-reason" required minlength="5" maxlength="255" rows="3" placeholder="Motivo do suporte"></textarea>
+          </div>
+          <p id="start-impersonation-form-error" class="auth-form-error hidden" role="alert" aria-live="assertive"></p>
+          <button type="submit" class="btn btn-accent btn-full" data-default-label="Iniciar acesso auditado" data-loading-label="Iniciando...">
+            <span data-submit-label>Iniciar acesso auditado</span>
+          </button>
+          <button type="button" class="btn btn-full" data-action="close-start-impersonation">Cancelar</button>
         </form>
       </div>
     </div>
