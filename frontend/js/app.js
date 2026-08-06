@@ -435,6 +435,135 @@ async function handleRevokePartnerConsent(element) {
   }
 }
 
+async function openManageWearablesModal() {
+  openModal('modal-manage-wearables');
+  loadWearableConnections();
+  loadWearableMetrics();
+}
+
+function closeManageWearablesModal() {
+  closeModal('modal-manage-wearables');
+}
+
+async function loadWearableConnections() {
+  const container = document.getElementById('wearables-connections-list');
+  if (!container) return;
+  try {
+    const connections = await API.get('/wearables/connections');
+    if (!connections || !connections.length) {
+      container.innerHTML = '<p class="text-muted">Nenhum dispositivo conectado.</p>';
+      return;
+    }
+    const providerNames = {
+      apple_healthkit: 'Apple HealthKit',
+      google_health_connect: 'Google Health Connect',
+      garmin: 'Garmin Connect'
+    };
+    const html = connections.map(c => {
+      const active = c.status !== 'revoked';
+      const badgeClass = active ? 'badge-success' : 'badge-danger';
+      const statusText = active ? 'Conectado' : 'Revogado';
+      const providerLabel = providerNames[c.provider] || c.provider;
+      const syncedText = c.lastSyncedAt ? formatRelativeTime(c.lastSyncedAt) : 'Sem dados sincronizados';
+
+      return `
+        <div class="wearable-card glass p-12 mb-8">
+          <div class="flex flex-between align-center">
+            <div>
+              <strong>${SafeDOM.escapeHTML(providerLabel)}</strong>
+              <span class="badge ${badgeClass} ml-8">${statusText}</span>
+              <p class="text-xs text-muted mt-4">Sincronização: ${SafeDOM.escapeHTML(syncedText)}</p>
+            </div>
+            ${active ? `<button type="button" class="btn btn-xs btn-danger-outline" data-action="revoke-wearable-connection" data-connection-id="${c.id}">Desconectar</button>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+    container.innerHTML = html;
+  } catch (error) {
+    container.innerHTML = '<p class="form-error">Erro ao carregar conexões de wearables.</p>';
+  }
+}
+
+async function loadWearableMetrics() {
+  const container = document.getElementById('wearables-metrics-list');
+  if (!container) return;
+  try {
+    const metrics = await API.get('/wearables/metrics');
+    if (!metrics || !metrics.length) {
+      container.innerHTML = '<p class="text-muted">Nenhuma métrica recente registrada.</p>';
+      return;
+    }
+    const metricLabels = { sleep: 'Sono', hrv: 'Variabilidade Cardíaca (HRV)' };
+    const html = metrics.slice(0, 10).map(m => {
+      const label = metricLabels[m.metricType] || m.metricType;
+      const formattedDate = typeof formatShortDateTime === 'function' ? formatShortDateTime(m.observedAt) : new Date(m.observedAt).toLocaleString();
+      return `
+        <div class="metric-item glass p-8 mb-4 flex flex-between align-center">
+          <div>
+            <strong>${SafeDOM.escapeHTML(label)}</strong>: <span>${m.value} ${SafeDOM.escapeHTML(m.unit)}</span>
+            <span class="text-xs text-muted block">${SafeDOM.escapeHTML(formattedDate)}</span>
+          </div>
+          <span class="badge badge-info text-xs">${SafeDOM.escapeHTML(m.provider || 'Dispositivo')}</span>
+        </div>
+      `;
+    }).join('');
+    container.innerHTML = html;
+  } catch (error) {
+    container.innerHTML = '<p class="form-error">Erro ao carregar métricas de saúde.</p>';
+  }
+}
+
+function openConnectWearableModal() {
+  clearFormError('connect-wearable-form');
+  openModal('modal-connect-wearable');
+}
+
+function closeConnectWearableModal() {
+  closeModal('modal-connect-wearable');
+}
+
+async function handleConnectWearableSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  clearFormError(form.id);
+
+  const provider = document.getElementById('connect-wearable-provider')?.value;
+  const externalAccountId = document.getElementById('connect-wearable-account-id')?.value;
+  const checkedScopes = [...form.querySelectorAll('input[name="wearable-scope"]:checked')].map(cb => cb.value);
+
+  if (!provider) {
+    setFormError(form.id, 'Selecione um provedor de wearable.');
+    return;
+  }
+
+  setFormSubmitting(form, true);
+  try {
+    await API.post('/wearables/connections', { provider, externalAccountId, scopes: checkedScopes });
+    showToast('Solicitação de conexão de wearable enviada!', 'success');
+    closeConnectWearableModal();
+    form.reset();
+    loadWearableConnections();
+  } catch (error) {
+    setFormError(form.id, error.message || 'Erro ao conectar wearable.');
+  } finally {
+    setFormSubmitting(form, false);
+  }
+}
+
+async function handleRevokeWearableConnection(element) {
+  const connectionId = element?.dataset?.connectionId;
+  if (!connectionId) return;
+  try {
+    await API.delete('/wearables/connections/' + connectionId);
+    showToast('Dispositivo desconectado com sucesso.', 'success');
+    loadWearableConnections();
+    loadWearableMetrics();
+  } catch (error) {
+    showToast(error.message || 'Erro ao desconectar dispositivo.', 'error');
+  }
+}
+
 async function handleResendEmailVerification() {
   try {
     await API.post('/auth/resend-verification', {});

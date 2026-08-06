@@ -67,7 +67,7 @@ Resumo: **8 implementados**, **50 parciais**, **0 não iniciados**, total de **5
 | **OPS-01** | Subscriptions | **Parcial** | schema, guard e controller | Gateway real, webhooks idempotentes e ciclo financeiro |
 | **OPS-02** | Equipes Head/Junior | **Parcial** | schema e endpoints básicos | Convites, permissões granulares, bibliotecas e split |
 | **OPS-03** | Acesso multiprofissional | **Concluído funcionalmente** | consentimentos, endpoints, listagem/revogação e UI de autorização granular | Exames anexados e convites automáticos |
-| **OPS-04** | Wearables | **Parcial** | foundation de ingestão e testes | OAuth real, jobs incrementais e conectores de provedores |
+| **OPS-04** | Wearables | **Concluído funcionalmente** | foundation de ingestão, controllers, gestão de dispositivos, revogação e UI de métricas | OAuth real com provedores em produção |
 | **OPS-05** | CRM/NPS | **Parcial** | serviço, controller e testes | Agendamento/entrega reais, métricas e preferências |
 | **OPS-06** | Geofencing | **Parcial** | schema, controller e testes | GPS/Wi-Fi real, antifraude, ICS e UX |
 | **OPS-07** | Readiness | **Parcial** | check-in, regras, gate e testes | Validação clínica, lembretes e acompanhamento longitudinal |

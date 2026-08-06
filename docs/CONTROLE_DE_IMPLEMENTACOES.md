@@ -2,7 +2,43 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## OPS-04 — Gestão de Dispositivos e Wearables, Conexão, Revogação e Exibição de Métricas no Frontend
+
+- Estado: implementado, validado e em revisão
+- Branch: `feat/wearables-ui`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/204
+- Início: 06/08/2026
+
+### Diagnóstico
+
+- O backend contava com a migration `202607290018_create_wearable_integrations.js` e a controller `wearableController.js` para gerenciar conexões (`POST /api/wearables/connections`, `GET /api/wearables/connections`, `DELETE /api/wearables/connections/:id`) e ingestão/listagem de métricas de saúde (`sleep` e `hrv`).
+- No entanto, o frontend não oferecia nenhuma interface para o aluno visualizar seus dispositivos de saúde (Garmin, Apple Health, Google Health Connect), solicitar novas conexões, revogar conexões existentes ou consultar as métricas recentes sincronizadas.
+
+### Plano
+
+- [x] Criar os modais acessíveis `#modal-manage-wearables` e `#modal-connect-wearable` em `desktop.html` e `mobile.html` com suporte a `role="dialog"`, formulário `#connect-wearable-form` e seleção de provedores (`apple_healthkit`, `google_health_connect`, `garmin`).
+- [x] Adicionar o botão de atalho `data-action="open-manage-wearables"` nas ações de privacidade do perfil do aluno.
+- [x] Registrar ações de clique (`open-manage-wearables`, `open-connect-wearable`, `close-connect-wearable`, `revoke-wearable-connection`) e formulário (`connect-wearable-form`) em `events.js`.
+- [x] Implementar `openManageWearablesModal`, `closeManageWearablesModal`, `loadWearableConnections`, `loadWearableMetrics`, `openConnectWearableModal`, `closeConnectWearableModal`, `handleConnectWearableSubmit` e `handleRevokeWearableConnection` em `app.js`.
+- [x] Criar a suíte de testes `frontend/tests/wearables-ui.test.js` e atualizar `strict-csp.test.js`.
+- [x] Executar suíte completa de testes (`npm test`, 101/101 aprovados).
+
+### Critérios de aceite
+
+- O aluno pode visualizar seus dispositivos conectados (Garmin, Apple HealthKit, Google Health Connect) com status e horário da última sincronização.
+- O aluno pode solicitar conexões para novos provedores especificando a conta/ID do dispositivo e os escopos autorizados (`sleep`, `hrv`).
+- O aluno pode desconectar/revogar conexões ativas a qualquer momento com atualização em tempo real.
+- O aluno pode visualizar as métricas recentes de sono e variabilidade de frequência cardíaca (HRV) sincronizadas.
+- Todos os 101 testes do frontend passam com 100% de sucesso.
+
+### Evidências locais
+
+- Frontend completo: 101/101 testes aprovados (100% sucesso).
+- `npm audit`: 0 vulnerabilidades.
+- `node --check` e `git diff --check`: aprovados.
+
 ## OPS-03 — Gestão de Consentimento de Parceiros Clínicos, Listagem e Revogação no Frontend e Backend
+
 
 - Estado: implementado, validado e em revisão
 - Branch: `feat/partner-consent-ui`
