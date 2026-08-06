@@ -7,6 +7,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Estado: implementado, validado e pronto para revisão
 - Branch: `feat/ops-07-readiness-monitoring`
 - Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/207
+
 - Início: 06/08/2026
 
 ### Diagnóstico
@@ -42,7 +43,44 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - `npm audit`: 0 vulnerabilidades; `node --check` e `git diff --check` aprovados.
 - Revisão ética: score exibido somente como acompanhamento informativo, com orientação explícita para avaliação profissional e sem prescrição automática.
 
+## OPS-06 — Gestão de Geofencing de Academias, Check-in por GPS e Histórico Presencial no Frontend e Backend
+
+- Estado: implementado, validado e em revisão
+- Branch: `feat/geofencing-ui`
+- Pull request: https://github.com/carlossuzin6111-code/sistema-tonho/pull/206
+- Início: 06/08/2026
+
+### Diagnóstico — OPS-06
+
+- O backend contava com a migration `202607290020_create_geofence_checkins.js` e a controller `geofenceController.js` para cadastrar academias (`POST /api/personal/geofences`), listar check-ins (`GET /api/personal/checkins`) e efetuar check-in/checkout por GPS (`POST /api/student/checkins`, `POST /api/student/checkins/:id/checkout`).
+- No entanto, faltava no backend a rota `GET /api/student/geofences` para o aluno consultar os locais cadastrados pelo seu Personal Trainer, e no frontend não existia nenhuma interface para cadastrar academias, capturar GPS via Geolocation API, realizar check-in presencial ou visualizar o histórico de frequência.
+
+### Plano
+
+- [x] Adicionar a rota `GET /api/student/geofences` e a função `listStudentGeofences` no backend.
+- [x] Criar os modais acessíveis `#modal-manage-geofences`, `#modal-add-geofence` e `#modal-student-checkin` em `desktop.html` e `mobile.html` com captura de GPS do navegador (`data-action="fill-current-location"`, `data-action="get-checkin-location"`).
+- [x] Adicionar o botão de atalho `data-action="open-manage-geofences"` nas opções de perfil do Personal.
+- [x] Registrar ações de clique (`open-manage-geofences`, `open-add-geofence`, `close-add-geofence`, `fill-current-location`, `open-student-checkin`, `close-student-checkin`, `get-checkin-location`, `checkout-geofence`) e formulários (`add-geofence-form`, `student-checkin-form`) em `events.js`.
+- [x] Implementar `openManageGeofencesModal`, `loadGeofences`, `loadPersonalCheckins`, `openAddGeofenceModal`, `fillGeofenceCurrentLocation`, `handleAddGeofenceSubmit`, `openStudentCheckinModal`, `getStudentCheckinLocation`, `handleStudentCheckinSubmit` e `handleStudentCheckout` em `app.js`.
+- [x] Criar a suíte de testes `frontend/tests/geofencing-ui.test.js` e atualizar `strict-csp.test.js`.
+- [x] Executar suíte completa de testes (`npm test`, 103/103 aprovados).
+
+### Critérios de aceite
+
+- O Personal Trainer pode cadastrar academias/locais com latitude, longitude e raio de tolerância em metros (ex: 150m).
+- O Personal Trainer pode visualizar o histórico de check-ins em tempo real dos seus alunos com distância em metros calculada.
+- O Aluno pode selecionar uma academia cadastrada pelo seu Personal Trainer e realizar check-in presencial via GPS antes do treino.
+- O Aluno pode realizar checkout a qualquer momento após encerrar a sessão.
+- Todos os 103 testes do frontend passam com 100% de sucesso.
+
+### Evidências locais
+
+- Frontend completo: 103/103 testes aprovados (100% sucesso).
+- `npm audit`: 0 vulnerabilidades.
+- `node --check` e `git diff --check`: aprovados.
+
 ## OPS-05 — Painel CRM de Alertas de Churn, Pesquisa NPS e Resposta do Aluno no Frontend
+
 
 - Estado: implementado, validado e em revisão
 - Branch: `feat/crm-nps-ui`

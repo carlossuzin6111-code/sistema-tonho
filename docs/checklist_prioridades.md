@@ -69,7 +69,7 @@ Resumo: **8 implementados**, **50 parciais**, **0 não iniciados**, total de **5
 | **OPS-03** | Acesso multiprofissional | **Concluído funcionalmente** | consentimentos, endpoints, listagem/revogação e UI de autorização granular | Exames anexados e convites automáticos |
 | **OPS-04** | Wearables | **Concluído funcionalmente** | foundation de ingestão, controllers, gestão de dispositivos, revogação e UI de métricas | OAuth real com provedores em produção |
 | **OPS-05** | CRM/NPS | **Concluído funcionalmente** | serviço, controller, alertas de inatividade, cálculo NPS e UI de avaliação do aluno | Agendamento/entrega por e-mail/push em produção |
-| **OPS-06** | Geofencing | **Parcial** | schema, controller e testes | GPS/Wi-Fi real, antifraude, ICS e UX |
+| **OPS-06** | Geofencing | **Concluído funcionalmente** | schema, controller, cadastro de academias, check-in/checkout por GPS e histórico presencial | Integração com antenas BLE/Wi-Fi em produção |
 | **OPS-07** | Readiness | **Parcial** | check-in, regras, gate e testes | Validação clínica, lembretes e acompanhamento longitudinal |
 | **OPS-08** | Notificações | **Parcial** | centro/preferências e testes frontend/backend | Workers e canais reais push/WhatsApp/e-mail |
 | **OPS-09** | LGPD | **Parcial** | exportação/anonimização e testes | Processamento assíncrono, criptografia e confirmação |
