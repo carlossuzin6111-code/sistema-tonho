@@ -227,9 +227,65 @@ async function handleAutonomousResetPasswordSubmit(event) {
 function checkURLForResetToken() {
   if (typeof window === 'undefined' || !window.location) return;
   const params = new URLSearchParams(window.location.search);
-  const token = params.get('resetToken') || params.get('token');
+  const token = params.get('resetToken') || (params.get('token') && !window.location.pathname.includes('verify-email') ? params.get('token') : null);
   if (token) {
     openAutonomousResetModal(token);
+  }
+}
+
+function updateEmailVerificationUI(user) {
+  if (typeof document === 'undefined') return;
+  const banner = document.getElementById('email-unverified-banner');
+  const container = document.getElementById('profile-email-verification-container');
+  const badge = document.getElementById('profile-email-status-badge');
+
+  const unverified = user && user.emailVerified === false;
+  banner?.classList.toggle('hidden', !unverified);
+  container?.classList.toggle('hidden', !user);
+
+  if (badge) {
+    if (unverified) {
+      badge.textContent = 'E-mail pendente de confirmação';
+      badge.className = 'badge badge-warning';
+    } else {
+      badge.textContent = 'E-mail verificado';
+      badge.className = 'badge badge-success';
+    }
+  }
+}
+
+async function handleResendEmailVerification() {
+  try {
+    await API.post('/auth/resend-verification', {});
+    showToast('E-mail de verificação reenviado com sucesso! Verifique sua caixa de entrada.', 'success');
+  } catch (error) {
+    showToast(error.message || 'Erro ao reenviar e-mail de verificação.', 'error');
+  }
+}
+
+async function checkURLForVerifyEmailToken() {
+  if (typeof window === 'undefined' || !window.location) return;
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('verifyToken') || params.get('verifyEmailToken') || (window.location.pathname.includes('verify-email') ? params.get('token') : null);
+  if (!token) return;
+
+  try {
+    await API.post('/auth/verify-email', { token });
+    showToast('E-mail verificado com sucesso! Todos os recursos estão liberados.', 'success');
+    const currentUser = API.getCurrentUser();
+    if (currentUser) {
+      currentUser.emailVerified = true;
+      updateEmailVerificationUI(currentUser);
+    }
+    if (typeof window !== 'undefined' && window.location && window.history) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('verifyToken');
+      url.searchParams.delete('verifyEmailToken');
+      url.searchParams.delete('token');
+      window.history.replaceState({}, '', url.pathname + url.hash);
+    }
+  } catch (error) {
+    showToast(error.message || 'Token de verificação inválido ou expirado.', 'error');
   }
 }
 async function saveNotificationPreferences() {
@@ -826,6 +882,7 @@ function setupAppShell(user) {
   if (user.mustChangePassword) {
     window.setTimeout(() => openRequiredPasswordChange(), 0);
   }
+  updateEmailVerificationUI(user);
   if (user.emailVerified === false && typeof showToast === 'function') {
     showToast('Confirme seu e-mail para habilitar a recuperação de senha.', 'warning');
   }

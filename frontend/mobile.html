@@ -115,6 +115,13 @@
       <span id="header-user-email" class="hidden"></span>
     </header>
 
+    <!-- Email Unverified Banner -->
+    <div id="email-unverified-banner" class="email-unverified-banner hidden" role="status">
+      <i data-lucide="mail-warning"></i>
+      <span>E-mail pendente de confirmação.</span>
+      <button type="button" class="btn btn-secondary btn-xs" data-action="resend-email-verification">Reenviar e-mail</button>
+    </div>
+
     <!-- CONTAINER PERSONAL -->
     <div id="personal-dashboard" class="mobile-dashboard-wrapper hidden">
       <div class="mobile-content-area">
@@ -638,6 +645,10 @@
           <div class="grid grid-2 profile-readonly-grid">
             <div class="input-group"><label for="profile-email-readonly">E-mail</label><input id="profile-email-readonly" type="email" readonly></div>
             <div class="input-group"><label for="profile-role-readonly">Tipo de conta</label><input id="profile-role-readonly" type="text" readonly></div>
+          </div>
+          <div id="profile-email-verification-container" class="profile-email-verification-container hidden">
+            <span id="profile-email-status-badge" class="badge badge-warning">E-mail pendente de confirmação</span>
+            <button type="button" class="btn btn-secondary btn-xs" data-action="resend-email-verification">Reenviar e-mail</button>
           </div>
           <p id="edit-profile-name-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
           <button type="submit" class="btn btn-primary btn-full" data-default-label="Salvar nome" data-loading-label="Salvando..."><span data-submit-label>Salvar nome</span></button>

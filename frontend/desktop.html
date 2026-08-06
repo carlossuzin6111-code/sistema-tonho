@@ -136,6 +136,13 @@
       </div>
     </header>
 
+    <!-- Email Unverified Banner -->
+    <div id="email-unverified-banner" class="email-unverified-banner hidden" role="status">
+      <i data-lucide="mail-warning"></i>
+      <span>Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada para ativar todos os recursos.</span>
+      <button type="button" class="btn btn-secondary btn-xs" data-action="resend-email-verification">Reenviar e-mail de ativação</button>
+    </div>
+
     <!-- CONTAINER PRINCIPAL DO PERSONAL -->
     <main id="personal-dashboard" class="dashboard-layout hidden">
       <!-- Sidebar / Navegação Lateral -->
@@ -901,6 +908,10 @@
           <div class="grid grid-2 profile-readonly-grid">
             <div class="input-group"><label for="profile-email-readonly">E-mail</label><input id="profile-email-readonly" type="email" readonly></div>
             <div class="input-group"><label for="profile-role-readonly">Tipo de conta</label><input id="profile-role-readonly" type="text" readonly></div>
+          </div>
+          <div id="profile-email-verification-container" class="profile-email-verification-container hidden">
+            <span id="profile-email-status-badge" class="badge badge-warning">E-mail pendente de confirmação</span>
+            <button type="button" class="btn btn-secondary btn-xs" data-action="resend-email-verification">Reenviar e-mail de ativação</button>
           </div>
           <p id="edit-profile-name-form-error" class="form-error hidden" role="alert" aria-live="assertive"></p>
           <button type="submit" class="btn btn-primary btn-full" data-default-label="Salvar nome" data-loading-label="Salvando...">
