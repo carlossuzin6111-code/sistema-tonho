@@ -59,6 +59,7 @@ const loginRateLimiter = createAuthRateLimiter({ identifier: 'login' });
 const passwordChangeRateLimiter = createAuthRateLimiter({ identifier: 'profile-password' });
 const forgotPasswordRateLimiter = createAuthRateLimiter({ identifier: 'forgot-password' });
 const resetPasswordRateLimiter = createAuthRateLimiter({ identifier: 'reset-password' });
+const metricsRateLimiter = createAuthRateLimiter({ identifier: 'metrics', windowMs: 60 * 1000, limit: 60 });
 
 // Middleware
 // The app is private on the Compose network and receives requests from exactly
@@ -77,7 +78,7 @@ app.use(optionalAuthentication);
 app.use(csrfProtection);
 app.use(requestLogger);
 app.use(requireCurrentWaiver);
-app.get('/api/metrics', authenticateToken, (req, res) => {
+app.get('/api/metrics', authenticateToken, metricsRateLimiter, (req, res) => {
   if (!['support', 'admin'].includes(req.user.role)) return res.status(403).json({ error: 'Support or admin role required' });
   if (req.query.format === 'prometheus' || req.accepts(['json', 'text']) === 'text') {
     return res.type('text/plain; version=0.0.4; charset=utf-8').send(metricsService.toPrometheus());

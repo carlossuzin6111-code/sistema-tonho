@@ -4,7 +4,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 ## OPS-13 — Observabilidade persistente, alertas e correlação de workers
 
-- Estado: planejado e em implementação
+- Estado: em implementação; correlação HTTP entregue no PR #211
 - Branch: `feat/ops-13-observability`
 - Pull request: pendente
 - Início: 08/08/2026
@@ -13,6 +13,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 
 - [x] Auditar logs e métricas já existentes e identificar lacunas de persistência e correlação.
 - [x] Adicionar request/correlation ID validado e devolvido no header das respostas HTTP.
+- [x] Incluir o correlation ID nos logs estruturados sem expor dados sensíveis.
 - [ ] Persistir métricas operacionais essenciais com retenção limitada e sem dados sensíveis.
 - [ ] Expor alertas de falha de worker, retries, SQLITE_BUSY e readiness degradado.
 - [ ] Cobrir redaction, ownership do endpoint de métricas e estabilidade dos labels.
@@ -23,6 +24,11 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - Logs e métricas não contêm tokens, senhas, mensagens privadas ou IDs de alta cardinalidade.
 - Falhas de workers e filas são observáveis por métricas agregadas e correlation ID.
 - A superfície de métricas permanece protegida por papel e compatível com Prometheus.
+
+### Evidência (08/08/2026)
+
+- PR #211 mergeado: logs HTTP agora registram `requestId` e `correlationId`.
+- Backend validado: 44 suítes e 260 testes aprovados.
 
 ## OPS-09 — LGPD assíncrona e ciclo de vida de exportações
 
