@@ -1,5 +1,6 @@
 const db = require('../database');
 const { enqueueNotification } = require('../services/notificationService');
+const metrics = require('../services/metricsService');
 
 const INTERVAL_MS = Math.max(60_000, Number(process.env.READINESS_REMINDER_INTERVAL_MS || 900_000));
 
@@ -13,6 +14,7 @@ async function runReadinessReminderCycle(dateKey = new Date().toISOString().slic
     await enqueueNotification({ userId: student.id, eventType: 'system', title: 'Check-in de prontidão', body: 'Responda seu check-in diário antes de iniciar o treino.', dedupeKey: `readiness-reminder:${dateKey}` });
     reminded += 1;
   }
+  metrics.add('readiness_reminders_total', reminded, { date: dateKey });
   return { dateKey, reminded };
 }
 
