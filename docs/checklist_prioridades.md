@@ -71,7 +71,7 @@ Resumo: **8 implementados**, **50 parciais**, **0 não iniciados**, total de **5
 | **OPS-05** | CRM/NPS | **Concluído funcionalmente** | serviço, controller, alertas de inatividade, cálculo NPS e UI de avaliação do aluno | Agendamento/entrega por e-mail/push em produção |
 | **OPS-06** | Geofencing | **Concluído funcionalmente** | schema, controller, cadastro de academias, check-in/checkout por GPS e histórico presencial | Integração com antenas BLE/Wi-Fi em produção |
 | **OPS-07** | Readiness | **Parcial** | check-in, regras, gate e testes | Validação clínica, lembretes e acompanhamento longitudinal |
-| **OPS-08** | Notificações | **Parcial** | centro/preferências e testes frontend/backend | Workers e canais reais push/WhatsApp/e-mail |
+| **OPS-08** | Notificações | **Concluído funcionalmente** | outbox persistente, worker com claim/retry/retenção, estados por canal, métricas e testes frontend/backend | Adaptadores reais push/WhatsApp/e-mail, templates e consentimento operacional |
 | **OPS-09** | LGPD | **Parcial** | exportação/anonimização e testes | Processamento assíncrono, criptografia e confirmação |
 | **OPS-10** | Liveness/readiness | **Concluído funcionalmente** | probes separadas, falhas de banco/migrations, métricas e healthcheck canônico | Exercício de indisponibilidade no ambiente de deploy |
 | **OPS-11** | Sessões por dispositivo | **Concluído funcionalmente** | painel acessível, limite/ociosidade, retenção, IP mascarado, refresh vinculado e logout global | Monitorar políticas e validar dispositivos reais |

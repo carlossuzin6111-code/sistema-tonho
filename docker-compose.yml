@@ -88,6 +88,25 @@ services:
         condition: service_healthy
     restart: always
 
+  notification-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fitlife_notification_worker
+    command: npm run worker:notifications
+    volumes:
+      - db-data:/app/data
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - DB_PATH=${DB_PATH:-/app/data/database.sqlite}
+      - NOTIFICATION_POLL_INTERVAL_MS=${NOTIFICATION_POLL_INTERVAL_MS:-5000}
+      - NOTIFICATION_MAX_ATTEMPTS=${NOTIFICATION_MAX_ATTEMPTS:-5}
+      - NOTIFICATION_RETENTION_DAYS=${NOTIFICATION_RETENTION_DAYS:-90}
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: always
+
   cloudflared:
     profiles: ["tunnel"]
     image: cloudflare/cloudflared:latest@sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d

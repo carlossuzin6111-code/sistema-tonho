@@ -48,6 +48,7 @@ describe('notification center', () => {
     expect(list.statusCode).toBe(200);
     expect(list.body).toMatchObject({ unreadCount: 1 });
     expect(list.body.items[0]).toMatchObject({ id: notificationId, channel: 'in_app', status: 'unread' });
+    expect(list.body.items[0].deliveryStatus).toBe('pending');
   });
 
   test('marks only the owner notification as read', async () => {

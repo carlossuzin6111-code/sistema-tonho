@@ -312,6 +312,9 @@ O dashboard do aluno consulta o check-in do dia e não carrega a ficha enquanto 
 ### Grupo consolidado de bem-estar e notificações (30/07/2026)
 O centro de notificações agora está integrado ao desktop e mobile, com contador de não lidas, listagem textual segura e marcação autenticada como lida. A entrega externa por push/e-mail e as preferências visuais continuam pendentes.
 
+### Progresso da entrega confiável (08/08/2026)
+Foi adicionada a outbox `notification_deliveries`, criada na mesma transação do enqueue, com idempotência, estados, tentativas e backoff. O `notification-worker` reivindica itens com lock concorrente, recupera locks abandonados, bloqueia provedores não configurados e remove notificações lidas fora da retenção. Permanecem pendentes os adaptadores reais, templates/localização e consentimento operacional por canal.
+
 ### [OPS-09] Exportação e Anonimização de Dados (LGPD)
 *   **Especificação**: Endpoints `/api/compliance/export` e `/api/compliance/delete` (anonimizando informações identificáveis na exclusão permanente).
 *   **Progresso em 29/07/2026**: `/api/compliance/export` entrega somente os dados do usuário autenticado sem `password_hash`, com `no-store`; `/api/compliance/delete` exige confirmação literal e senha atual, remove conteúdo conversacional/tokens, anonimiza a conta em transação e incrementa `session_version` para revogar sessões.

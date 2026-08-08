@@ -2,6 +2,14 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## OPS-08 — Outbox persistente e entrega confiável de notificações
+
+- Estado: implementado e validado localmente; PR pendente.
+- Backend: 44 suites / 260 testes aprovados; focused outbox: 3 suites / 12 testes.
+- Frontend: 105 testes aprovados.
+- Entregue: tabela `notification_deliveries`, idempotência, claim/locks, retry com backoff, estados por canal, worker, poda e métricas.
+- Pendente: adaptadores reais push/WhatsApp/e-mail, templates e consentimento operacional.
+
 ## OPS-07 — Acompanhamento longitudinal de prontidão do aluno
 
 - Estado: implementado, validado e pronto para revisão

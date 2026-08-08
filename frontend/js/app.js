@@ -145,11 +145,12 @@ async function openNotifications() {
     if (!data.items.length) list.appendChild(SafeDOM.el('p', { className: 'no-data-msg', text: 'Nenhuma notificação.' }));
     for (const item of data.items) {
       const row = SafeDOM.el('article', { className: `notification-item ${item.status === 'unread' ? 'notification-unread' : ''}` });
-      row.append(SafeDOM.el('strong', { text: item.title }), SafeDOM.el('p', { text: item.body }), SafeDOM.el('small', { text: item.status === 'unread' ? 'Não lida' : 'Lida' }));
+      const deliveryLabels = { pending: 'Entrega pendente', processing: 'Entregando', delivered: 'Entrega confirmada', blocked: 'Canal externo não configurado', failed: 'Falha na entrega' };
+      row.append(SafeDOM.el('strong', { text: item.title }), SafeDOM.el('p', { text: item.body }), SafeDOM.el('small', { text: item.status === 'unread' ? 'Não lida' : 'Lida' }), ...(item.deliveryStatus ? [SafeDOM.el('small', { className: 'notification-delivery-status', text: deliveryLabels[item.deliveryStatus] || 'Estado de entrega indisponível' })] : []));
       if (item.status === 'unread') row.appendChild(SafeDOM.el('button', { className: 'btn btn-secondary btn-sm', attrs: { type: 'button', 'data-action': 'mark-notification-read', 'data-notification-id': item.id } }, ['Marcar como lida']));
       list.appendChild(row);
     }
-    updateNotificationBadge(data.unread);
+    updateNotificationBadge(data.unreadCount);
     const preferences = await API.get('/notifications/preferences');
     for (const item of preferences) {
       const label = SafeDOM.el('label', { className: 'notification-preference', text: `${item.eventType} · ${item.channel}` });

@@ -16,7 +16,7 @@ flowchart LR
     A --> C[Controllers e middleware]
     C --> K[Knex]
     K --> S[(SQLite)]
-    W[Worker de tradução] --> K
+    W[Workers de tradução e notificações] --> K
     W --> G[Serviço público de tradução]
 ```
 
@@ -27,6 +27,7 @@ modular conteinerizado**:
 - `web`: Nginx para conteúdo estático e proxy reverso;
 - `app`: uma aplicação Node.js/Express única;
 - `translation-worker`: processo separado que consome a fila de traduções;
+- `notification-worker`: processo separado que reivindica a outbox, aplica retry/backoff e poda registros antigos;
 - `cloudflared`: túnel opcional para o Nginx.
 
 Separar processos em contêineres não transforma a aplicação em microsserviços.
