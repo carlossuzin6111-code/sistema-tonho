@@ -45,6 +45,8 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 - [x] Criar a persistência inicial dos jobs de exportação com estados, expiração e retenção curta.
 - [x] Processar exportações fora do request HTTP e entregar arquivo temporário sem senha/hash.
 - [x] Expor download protegido por usuário, status concluído e expiração.
+- [x] Criar worker de retenção para remover arquivos expirados automaticamente.
+- [x] Limitar tentativas de exclusão LGPD por conta.
 - [ ] Adicionar confirmação adicional e rate limit para ações destrutivas.
 - [ ] Cobrir ownership, concorrência, expiração, anonimização e ausência de dados sensíveis.
 - [ ] Atualizar frontend, inventário, testes completos e abrir PR.
