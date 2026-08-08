@@ -13,6 +13,7 @@ describe('notification center', () => {
   let userId;
   let personalId;
   let token;
+  let otherId;
   let notificationId;
 
   beforeAll(async () => {
@@ -22,11 +23,13 @@ describe('notification center', () => {
     await db('student_profiles').insert({ student_id: userId, personal_id: personalId });
     await acceptCurrentWaiver(db, userId);
     token = jwt.sign({ id: userId, role: 'student', sessionVersion: 0, csrf: 'notification-csrf' }, JWT_SECRET, { expiresIn: '1h' });
+    [otherId] = await db('users').insert({ name: 'Other Notification User', email: `notification-other-${Date.now()}@fitlife.com`, password_hash: 'not-used', role: 'personal' });
   });
 
   afterAll(async () => {
     if (userId) await db('users').where({ id: userId }).del();
     if (personalId) await db('users').where({ id: personalId }).del();
+    if (otherId) await db('users').where({ id: otherId }).del();
     await db.destroy();
   });
 
@@ -56,5 +59,12 @@ describe('notification center', () => {
     expect(marked.statusCode).toBe(200);
     const repeated = await request(app).patch(`/api/notifications/${notificationId}/read`).set('Authorization', `Bearer ${token}`).send({});
     expect(repeated.statusCode).toBe(404);
+  });
+
+  test('does not list another user notification', async () => {
+    const otherToken = jwt.sign({ id: otherId, role: 'personal', sessionVersion: 0, csrf: 'other-csrf' }, JWT_SECRET, { expiresIn: '1h' });
+    const list = await request(app).get('/api/notifications').set('Authorization', `Bearer ${otherToken}`);
+    expect(list.statusCode).toBe(200);
+    expect(list.body.items.some(item => item.id === notificationId)).toBe(false);
   });
 });
