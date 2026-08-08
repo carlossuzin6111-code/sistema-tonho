@@ -28,6 +28,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 ### Evidência (08/08/2026)
 
 - PR #211 mergeado: logs HTTP agora registram `requestId` e `correlationId`.
+- PR #212 mergeado: endpoint de métricas protegido com rate limit específico.
 - Backend validado: 44 suítes e 260 testes aprovados.
 
 ## OPS-09 — LGPD assíncrona e ciclo de vida de exportações
