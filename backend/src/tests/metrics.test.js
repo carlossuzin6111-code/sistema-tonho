@@ -45,6 +45,7 @@ describe('protected operational metrics', () => {
     const metrics = await request(app).get('/api/metrics').set('Authorization', `Bearer ${adminToken}`);
     expect(metrics.statusCode).toBe(200);
     expect(metrics.headers['cache-control']).toContain('no-store');
+    expect(metrics.headers['ratelimit']).toBeDefined();
     expect(metrics.body.generatedAt).toEqual(expect.any(String));
     expect(metrics.body.metrics).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'http_requests_total', labels: expect.objectContaining({ path: '/api/health', status: 200 }), value: 1 })]));
     expect(metrics.body.metrics).toEqual(expect.arrayContaining([
