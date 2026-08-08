@@ -47,6 +47,7 @@ const { requestLogger } = require('./services/logger');
 const metricsService = require('./services/metricsService');
 const healthController = require('./controllers/healthController');
 const { requireCurrentWaiver } = require('./middleware/waiverGuard');
+const { correlationId } = require('./middleware/correlation');
 
 // Initialize database
 const db = require('./database');
@@ -71,6 +72,7 @@ app.use(permissionsPolicy);
 app.use(preventResponseCaching);
 app.use(cors(createCorsOptions()));
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || DEFAULT_BODY_LIMIT }));
+app.use(correlationId);
 app.use(optionalAuthentication);
 app.use(csrfProtection);
 app.use(requestLogger);
