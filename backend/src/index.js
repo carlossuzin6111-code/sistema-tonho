@@ -80,10 +80,11 @@ app.use(requestLogger);
 app.use(requireCurrentWaiver);
 app.get('/api/metrics', authenticateToken, metricsRateLimiter, (req, res) => {
   if (!['support', 'admin'].includes(req.user.role)) return res.status(403).json({ error: 'Support or admin role required' });
+  res.set('Cache-Control', 'no-store');
   if (req.query.format === 'prometheus' || req.accepts(['json', 'text']) === 'text') {
     return res.type('text/plain; version=0.0.4; charset=utf-8').send(metricsService.toPrometheus());
   }
-  return res.json({ metrics: metricsService.snapshot() });
+  return res.json({ generatedAt: new Date().toISOString(), metrics: metricsService.snapshot() });
 });
 
 // Setup Swagger UI API documentation
