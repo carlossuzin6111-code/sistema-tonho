@@ -12,7 +12,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 ### Plano
 
 - [x] Confirmar os endpoints atuais de exportação e anonimização e preservar o isolamento por usuário.
-- [ ] Criar jobs de exportação com estados, expiração, tentativa única e retenção curta.
+- [x] Criar a persistência inicial dos jobs de exportação com estados, expiração e retenção curta.
 - [ ] Processar exportações fora do request HTTP e entregar arquivo temporário sem senha/hash.
 - [ ] Adicionar confirmação adicional e rate limit para ações destrutivas.
 - [ ] Cobrir ownership, concorrência, expiração, anonimização e ausência de dados sensíveis.
