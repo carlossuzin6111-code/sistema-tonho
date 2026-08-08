@@ -75,7 +75,7 @@ function createAuthRateLimiter(options = {}) {
     limit,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
-    skipSuccessfulRequests: true,
+    skipSuccessfulRequests: options.skipSuccessfulRequests ?? true,
     // A shared express-rate-limit store (Redis, Postgres, etc.) can be
     // injected by the composition root for multi-replica deployments. The
     // default remains the in-memory store for local development.

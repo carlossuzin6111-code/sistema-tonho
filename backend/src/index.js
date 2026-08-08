@@ -59,7 +59,7 @@ const loginRateLimiter = createAuthRateLimiter({ identifier: 'login' });
 const passwordChangeRateLimiter = createAuthRateLimiter({ identifier: 'profile-password' });
 const forgotPasswordRateLimiter = createAuthRateLimiter({ identifier: 'forgot-password' });
 const resetPasswordRateLimiter = createAuthRateLimiter({ identifier: 'reset-password' });
-const metricsRateLimiter = createAuthRateLimiter({ identifier: 'metrics', windowMs: 60 * 1000, limit: 60 });
+const metricsRateLimiter = createAuthRateLimiter({ identifier: 'metrics', windowMs: 60 * 1000, limit: 60, skipSuccessfulRequests: false });
 const complianceDeleteRateLimiter = createAuthRateLimiter({ identifier: 'compliance-delete', windowMs: 60 * 60 * 1000, limit: 3 });
 
 // Middleware
