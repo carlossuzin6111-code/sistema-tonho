@@ -264,6 +264,7 @@ O frontend agora oferece edição e exclusão somente para mensagens próprias, 
 ## 5. Observabilidade, Governança e Negócio (Grupo OPS)
 
 ### [OPS-01] Isolamento de Tenant (Subscriptions)
+*   **Atualização em 08/08/2026**: a base local de subscriptions já possui schema, guard, criação de trial e expiração testada. A implementação de cobrança/webhooks permanece dependente da escolha de um gateway real e de suas credenciais/contrato de assinatura.
 *   **Especificação**: Tabela `subscriptions` vinculada à conta do Personal. Middleware bloqueia acessos retornando `402 Payment Required` em caso de mensalidade da licença expirada.
 *   **Progresso em 29/07/2026**: migration `202607290015_create_subscriptions` cria histórico por Personal, semeia trial de 30 dias para contas existentes e o cadastro de novos Personals cria o trial na mesma transação.
 *   **Progresso em 29/07/2026**: `subscriptionGuard` é aplicado após autenticação, permite admins e rotas essenciais de autenticação/assinatura, resolve alunos pelo Personal vinculado e responde `402` com códigos `SUBSCRIPTION_REQUIRED`/`SUBSCRIPTION_EXPIRED`; `GET /api/subscription` expõe status, período e indicador de atividade.
