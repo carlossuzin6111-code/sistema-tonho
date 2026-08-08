@@ -21,6 +21,7 @@
     "worker:backup": "node src/workers/runBackupWorker.js",
     "worker:notifications": "node src/workers/notificationWorker.js"
     ,"worker:compliance": "node src/workers/complianceExportWorker.js"
+    ,"worker:readiness": "node src/workers/readinessReminderWorker.js"
   },
   "jest": {
     "setupFilesAfterEnv": [
