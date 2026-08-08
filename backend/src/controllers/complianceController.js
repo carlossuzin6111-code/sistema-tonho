@@ -34,6 +34,18 @@ async function exportData(req, res) {
   }
 }
 
+async function createExportJob(req, res) {
+  const { enqueueExport } = require('../services/complianceExportService');
+  const job = await enqueueExport(req.user.id);
+  return res.status(202).json({ id: job.id, status: job.status, expiresAt: job.expires_at });
+}
+
+async function getExportJob(req, res) {
+  const job = await db('compliance_export_jobs').where({ id: req.params.id, user_id: req.user.id }).first();
+  if (!job) return res.status(404).json({ error: 'Export not found' });
+  return res.json({ id: job.id, status: job.status, expiresAt: job.expires_at, completedAt: job.completed_at, error: job.status === 'failed' ? job.error_message : undefined });
+}
+
 async function anonymizeAccount(req, res) {
   if (req.body.confirmation !== 'DELETE MY ACCOUNT' || typeof req.body.currentPassword !== 'string') return res.status(400).json({ error: 'Explicit confirmation and currentPassword are required' });
   const user = await db('users').where({ id: req.user.id }).first();
@@ -57,4 +69,4 @@ async function anonymizeAccount(req, res) {
   }
 }
 
-module.exports = { exportData, anonymizeAccount, collectUserExport };
+module.exports = { exportData, createExportJob, getExportJob, anonymizeAccount, collectUserExport };

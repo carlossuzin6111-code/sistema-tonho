@@ -131,6 +131,8 @@ app.put('/api/notifications/preferences', authenticateToken, notificationControl
 app.get('/api/notifications', authenticateToken, notificationController.listNotifications);
 app.patch('/api/notifications/:id/read', authenticateToken, validateIdParam('id'), notificationController.markRead);
 app.get('/api/compliance/export', authenticateToken, complianceController.exportData);
+app.post('/api/compliance/export/jobs', authenticateToken, complianceController.createExportJob);
+app.get('/api/compliance/export/jobs/:id', authenticateToken, complianceController.getExportJob);
 app.post('/api/compliance/delete', authenticateToken, complianceController.anonymizeAccount);
 app.get('/api/sessions', authenticateToken, sessionController.listSessions);
 app.delete('/api/sessions', authenticateToken, sessionController.revokeOtherSessions);

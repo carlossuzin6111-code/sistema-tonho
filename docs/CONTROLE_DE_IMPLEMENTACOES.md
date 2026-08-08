@@ -2,6 +2,28 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## OPS-09 — LGPD assíncrona e ciclo de vida de exportações
+
+- Estado: planejado e em implementação
+- Branch: `feat/ops-09-lgpd-export-jobs`
+- Pull request: pendente
+- Início: 08/08/2026
+
+### Plano
+
+- [x] Confirmar os endpoints atuais de exportação e anonimização e preservar o isolamento por usuário.
+- [x] Criar a persistência inicial dos jobs de exportação com estados, expiração e retenção curta.
+- [ ] Processar exportações fora do request HTTP e entregar arquivo temporário sem senha/hash.
+- [ ] Adicionar confirmação adicional e rate limit para ações destrutivas.
+- [ ] Cobrir ownership, concorrência, expiração, anonimização e ausência de dados sensíveis.
+- [ ] Atualizar frontend, inventário, testes completos e abrir PR.
+
+### Critérios de aceite
+
+- Exportações grandes não bloqueiam o request e nunca ficam disponíveis a outro usuário.
+- Arquivos expiram automaticamente e não contêm `password_hash`, tokens ou segredos.
+- Exclusão permanece transacional, auditável e exige confirmação explícita.
+
 ## OPS-08 — Outbox persistente e entrega confiável de notificações
 
 - Estado: implementado e validado localmente; PR pendente.

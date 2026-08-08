@@ -33,6 +33,7 @@ const applicationTables = [
   'readiness_checkins',
   'notification_preferences',
   'notification_deliveries',
+  'compliance_export_jobs',
   'notifications',
   'user_sessions',
   'impersonation_events'
@@ -79,7 +80,8 @@ const migrations = [
   '202608050001_add_weekly_workout_goal.js',
   '202608050002_add_idempotency_request_identity.js',
   '202608050003_link_refresh_tokens_to_sessions.js',
-  '202608080001_create_notification_deliveries.js'
+  '202608080001_create_notification_deliveries.js',
+  '202608080002_create_compliance_export_jobs.js'
 ];
 
 function createDatabase() {
