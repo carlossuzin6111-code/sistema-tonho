@@ -27,6 +27,7 @@ function metricPath(req) {
 
 function requestLogger(req, res, next) {
   const requestId = req.headers['x-request-id'] && /^[A-Za-z0-9._-]{1,100}$/.test(req.headers['x-request-id']) ? req.headers['x-request-id'] : crypto.randomUUID();
+  const correlationId = req.correlationId || requestId;
   const started = process.hrtime.bigint();
   req.requestId = requestId;
   res.setHeader('X-Request-Id', requestId);
@@ -36,7 +37,7 @@ function requestLogger(req, res, next) {
     const labels = { method: req.method, path: metricPath(req), status: res.statusCode };
     metrics.increment('http_requests_total', labels);
     metrics.observe('http_request_duration_ms', durationMs, labels);
-    logger.info('http_request', { requestId, method: req.method, path: req.path, status: res.statusCode, durationMs: Math.round(durationMs * 100) / 100 });
+    logger.info('http_request', { requestId, correlationId, method: req.method, path: req.path, status: res.statusCode, durationMs: Math.round(durationMs * 100) / 100 });
   });
   return next();
 }
