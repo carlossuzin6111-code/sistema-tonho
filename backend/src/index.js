@@ -60,6 +60,7 @@ const passwordChangeRateLimiter = createAuthRateLimiter({ identifier: 'profile-p
 const forgotPasswordRateLimiter = createAuthRateLimiter({ identifier: 'forgot-password' });
 const resetPasswordRateLimiter = createAuthRateLimiter({ identifier: 'reset-password' });
 const metricsRateLimiter = createAuthRateLimiter({ identifier: 'metrics', windowMs: 60 * 1000, limit: 60 });
+const complianceDeleteRateLimiter = createAuthRateLimiter({ identifier: 'compliance-delete', windowMs: 60 * 60 * 1000, limit: 3 });
 
 // Middleware
 // The app is private on the Compose network and receives requests from exactly
@@ -138,7 +139,7 @@ app.get('/api/compliance/export', authenticateToken, complianceController.export
 app.post('/api/compliance/export/jobs', authenticateToken, complianceController.createExportJob);
 app.get('/api/compliance/export/jobs/:id', authenticateToken, complianceController.getExportJob);
 app.get('/api/compliance/export/jobs/:id/download', authenticateToken, complianceController.downloadExportJob);
-app.post('/api/compliance/delete', authenticateToken, complianceController.anonymizeAccount);
+app.post('/api/compliance/delete', authenticateToken, complianceDeleteRateLimiter, complianceController.anonymizeAccount);
 app.get('/api/sessions', authenticateToken, sessionController.listSessions);
 app.delete('/api/sessions', authenticateToken, sessionController.revokeOtherSessions);
 app.delete('/api/sessions/:id', authenticateToken, sessionController.revokeSession);
