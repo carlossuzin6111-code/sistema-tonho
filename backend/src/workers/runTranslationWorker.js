@@ -1,6 +1,7 @@
 const knex = require('knex');
 const config = require('../../knexfile');
 const { abortableDelay, runTranslationWorker } = require('./translationWorker');
+const metrics = require('../services/metricsService');
 
 const env = process.env.NODE_ENV || 'development';
 const controller = new AbortController();
@@ -46,6 +47,7 @@ async function main() {
     }
 
     console.log('[Translator] Worker started.');
+    metrics.increment('translation_worker_lifecycle_total', { outcome: 'started' });
     await runTranslationWorker(db, {
       signal: controller.signal,
       pollIntervalMs: nonNegativeInteger(process.env.TRANSLATION_POLL_INTERVAL_MS, 15000),
@@ -57,11 +59,13 @@ async function main() {
     process.removeListener('SIGINT', onSigint);
     process.removeListener('SIGTERM', onSigterm);
     await db.destroy();
+    metrics.increment('translation_worker_lifecycle_total', { outcome: 'stopped' });
     console.log('[Translator] Worker stopped.');
   }
 }
 
 main().catch(error => {
+  metrics.increment('translation_worker_lifecycle_total', { outcome: 'failed' });
   console.error('[Translator] Fatal error:', error.message);
   process.exitCode = 1;
 });
