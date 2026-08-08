@@ -176,6 +176,9 @@ function csrfProtection(req, res, next) {
   }
 
   const requestOrigin = req.headers.origin || refererOrigin(req.headers.referer);
+  if (process.env.CSRF_REQUIRE_ORIGIN === 'true' && !requestOrigin) {
+    return res.status(403).json({ error: 'Request origin required' });
+  }
   if (requestOrigin && !isTrustedOrigin(requestOrigin, req)) {
     return res.status(403).json({ error: 'Untrusted request origin' });
   }
