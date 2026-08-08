@@ -380,3 +380,8 @@ const API = {
     }
   }
 };
+
+// Expose the client explicitly for classic scripts loaded after api.js and
+// for Android WebView, where top-level lexical bindings are not properties of
+// the global object.
+globalThis.API = API;
