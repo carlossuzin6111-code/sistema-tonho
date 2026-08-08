@@ -190,7 +190,7 @@ test('Compose gates dependent services on API and Nginx health', () => {
   assert.match(healthController, /db\.migrate\.list\(\)/);
   assert.match(compose, /fetch\('http:\/\/127\.0\.0\.1:3000\/health\/ready'\)/);
   assert.match(compose, /wget.*http:\/\/127\.0\.0\.1:3000\//);
-  assert.equal((compose.match(/condition: service_healthy/g) || []).length, 5);
+  assert.equal((compose.match(/condition: service_healthy/g) || []).length, 7);
 });
 
 test('automatic backup worker shares the database volume with bounded retention', () => {
@@ -205,7 +205,7 @@ test('public Compose stack defaults application services to production', () => {
   const compose = fs.readFileSync(path.join(repositoryRoot, 'docker-compose.yml'), 'utf8');
   const productionDefaults = compose.match(/NODE_ENV=\$\{NODE_ENV:-production\}/g) || [];
 
-  assert.equal(productionDefaults.length, 4);
+  assert.equal(productionDefaults.length, 6);
   assert.doesNotMatch(compose, /NODE_ENV=\$\{NODE_ENV:-development\}/);
 });
 
