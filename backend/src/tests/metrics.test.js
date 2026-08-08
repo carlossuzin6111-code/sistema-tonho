@@ -44,11 +44,18 @@ describe('protected operational metrics', () => {
     expect(denied.statusCode).toBe(403);
     const metrics = await request(app).get('/api/metrics').set('Authorization', `Bearer ${adminToken}`);
     expect(metrics.statusCode).toBe(200);
+    expect(metrics.headers['cache-control']).toContain('no-store');
+    expect(metrics.body.generatedAt).toEqual(expect.any(String));
     expect(metrics.body.metrics).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'http_requests_total', labels: expect.objectContaining({ path: '/api/health', status: 200 }), value: 1 })]));
     expect(metrics.body.metrics).toEqual(expect.arrayContaining([
       expect.objectContaining({ name: 'http_request_duration_ms_count', labels: expect.objectContaining({ path: '/api/health' }), value: 1 }),
       expect.objectContaining({ name: 'http_request_duration_ms_sum', labels: expect.objectContaining({ path: '/api/health' }) })
     ]));
+  });
+
+  test('bounds metric cardinality', () => {
+    for (let i = 0; i < metricsService.MAX_SERIES + 100; i += 1) metricsService.increment('bounded_metric', { value: `v-${i}` });
+    expect(metricsService.snapshot().length).toBeLessThanOrEqual(metricsService.MAX_SERIES);
   });
 
   test('exports Prometheus text and uses route templates instead of resource identifiers', async () => {
