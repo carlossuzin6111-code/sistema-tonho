@@ -12,7 +12,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 ### Plano
 
 - [x] Auditar logs e métricas já existentes e identificar lacunas de persistência e correlação.
-- [ ] Adicionar request/correlation ID propagado aos workers e operações assíncronas.
+- [x] Adicionar request/correlation ID validado e devolvido no header das respostas HTTP.
 - [ ] Persistir métricas operacionais essenciais com retenção limitada e sem dados sensíveis.
 - [ ] Expor alertas de falha de worker, retries, SQLITE_BUSY e readiness degradado.
 - [ ] Cobrir redaction, ownership do endpoint de métricas e estabilidade dos labels.
