@@ -2,6 +2,12 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## MOB-01 — Primeiro release Android: preparação do build
+
+- Capacitor configurado com `br.com.fitlifesync.app`, HTTPS e frontend local.
+- TypeScript fixado em versão compatível com Capacitor CLI e projeto `android/` gerado.
+- Build validado até Gradle; bloqueio local restante: Android SDK não instalado/configurado (`ANDROID_HOME`/`sdk.dir`).
+
 ## SEC-01 — Auditoria consolidada de ownership e proteção contra IDOR
 
 - Estado: planejado e em implementação

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">FitLife Sync</string>
+    <string name="title_activity_main">FitLife Sync</string>
+    <string name="package_name">br.com.fitlifesync.app</string>
+    <string name="custom_url_scheme">br.com.fitlifesync.app</string>
+</resources>
