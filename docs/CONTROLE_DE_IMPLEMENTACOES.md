@@ -20,6 +20,7 @@ Este documento registra o planejamento, a execução, os testes e a entrega de c
 ### Evidência inicial (08/08/2026)
 
 - Matriz existente SEC-01 executada: 22 testes aprovados, cobrindo vínculos entre personals/alunos, chat, medidas e treinos.
+- PR #219 e PR #220 mergeados: isolamento de jobs LGPD e listagem de notificações entre usuários também cobertos.
 - Próxima rodada adicionará explicitamente jobs LGPD, notificações e sessões à matriz antes do fechamento do PR.
 
 ## OPS-13 — Observabilidade persistente, alertas e correlação de workers
