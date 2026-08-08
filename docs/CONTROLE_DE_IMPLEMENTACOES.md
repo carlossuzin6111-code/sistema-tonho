@@ -2,6 +2,28 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## OPS-13 — Observabilidade persistente, alertas e correlação de workers
+
+- Estado: planejado e em implementação
+- Branch: `feat/ops-13-observability`
+- Pull request: pendente
+- Início: 08/08/2026
+
+### Plano
+
+- [x] Auditar logs e métricas já existentes e identificar lacunas de persistência e correlação.
+- [ ] Adicionar request/correlation ID propagado aos workers e operações assíncronas.
+- [ ] Persistir métricas operacionais essenciais com retenção limitada e sem dados sensíveis.
+- [ ] Expor alertas de falha de worker, retries, SQLITE_BUSY e readiness degradado.
+- [ ] Cobrir redaction, ownership do endpoint de métricas e estabilidade dos labels.
+- [ ] Executar testes completos, atualizar inventário e abrir PR.
+
+### Critérios de aceite
+
+- Logs e métricas não contêm tokens, senhas, mensagens privadas ou IDs de alta cardinalidade.
+- Falhas de workers e filas são observáveis por métricas agregadas e correlation ID.
+- A superfície de métricas permanece protegida por papel e compatível com Prometheus.
+
 ## OPS-09 — LGPD assíncrona e ciclo de vida de exportações
 
 - Estado: planejado e em implementação
