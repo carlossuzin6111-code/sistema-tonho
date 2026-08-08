@@ -18,7 +18,8 @@
     "db:restore": "node src/scripts/restoreBackup.js",
     "db:verify-backup": "node src/scripts/verifyBackup.js",
     "worker:translate": "node src/workers/runTranslationWorker.js",
-    "worker:backup": "node src/workers/runBackupWorker.js"
+    "worker:backup": "node src/workers/runBackupWorker.js",
+    "worker:notifications": "node src/workers/notificationWorker.js"
   },
   "jest": {
     "setupFilesAfterEnv": [

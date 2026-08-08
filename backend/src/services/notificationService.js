@@ -30,13 +30,20 @@ async function isEnabled(userId, eventType, channel, database = db) {
 
 async function enqueueNotification({ userId, eventType, title, body, dedupeKey = null }, database = db) {
   const inserted = [];
-  for (const channel of CHANNELS) {
-    if (!(await isEnabled(userId, eventType, channel, database))) continue;
-    const existing = dedupeKey == null ? null : await database('notifications').where({ user_id: userId, channel, dedupe_key: dedupeKey }).first();
-    if (existing) { inserted.push(existing.id); continue; }
-    const [id] = await database('notifications').insert({ user_id: userId, event_type: eventType, channel, title: String(title).slice(0, 180), body: String(body), status: 'unread', dedupe_key: dedupeKey });
-    inserted.push(id);
-  }
+  await database.transaction(async trx => {
+    for (const channel of CHANNELS) {
+      if (!(await isEnabled(userId, eventType, channel, trx))) continue;
+      const existing = dedupeKey == null ? null : await trx('notifications').where({ user_id: userId, channel, dedupe_key: dedupeKey }).first();
+      if (existing) {
+        inserted.push(existing.id);
+        await trx('notification_deliveries').insert({ notification_id: existing.id, user_id: userId, channel }).onConflict('notification_id').ignore();
+        continue;
+      }
+      const [id] = await trx('notifications').insert({ user_id: userId, event_type: eventType, channel, title: String(title).slice(0, 180), body: String(body), status: 'unread', dedupe_key: dedupeKey });
+      await trx('notification_deliveries').insert({ notification_id: id, user_id: userId, channel });
+      inserted.push(id);
+    }
+  });
   return inserted;
 }
 

@@ -190,7 +190,7 @@ test('Compose gates dependent services on API and Nginx health', () => {
   assert.match(healthController, /db\.migrate\.list\(\)/);
   assert.match(compose, /fetch\('http:\/\/127\.0\.0\.1:3000\/health\/ready'\)/);
   assert.match(compose, /wget.*http:\/\/127\.0\.0\.1:3000\//);
-  assert.equal((compose.match(/condition: service_healthy/g) || []).length, 4);
+  assert.equal((compose.match(/condition: service_healthy/g) || []).length, 5);
 });
 
 test('automatic backup worker shares the database volume with bounded retention', () => {
@@ -205,7 +205,7 @@ test('public Compose stack defaults application services to production', () => {
   const compose = fs.readFileSync(path.join(repositoryRoot, 'docker-compose.yml'), 'utf8');
   const productionDefaults = compose.match(/NODE_ENV=\$\{NODE_ENV:-production\}/g) || [];
 
-  assert.equal(productionDefaults.length, 3);
+  assert.equal(productionDefaults.length, 4);
   assert.doesNotMatch(compose, /NODE_ENV=\$\{NODE_ENV:-development\}/);
 });
 
@@ -789,7 +789,7 @@ test('timestamps are parsed as UTC and formatted with the browser local timezone
   assert.doesNotMatch(personal, /toLocaleDateString|toLocaleTimeString/);
   assert.doesNotMatch(student, /toLocaleDateString|toLocaleTimeString/);
   for (const page of ['desktop.html', 'mobile.html']) {
-    assert.match(read(page), /js\/datetime\.js\?v=20260805\.5/);
+    assert.match(read(page), /js\/datetime\.js\?v=20260808\.1/);
   }
 });
 
