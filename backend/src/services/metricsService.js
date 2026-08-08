@@ -1,4 +1,5 @@
 const counters = new Map();
+const MAX_SERIES = 5000;
 
 function keyFor(name, labels) {
   return `${name}|${JSON.stringify(labels)}`;
@@ -7,6 +8,7 @@ function keyFor(name, labels) {
 function add(name, value, labels = {}) {
   if (!Number.isFinite(value)) return;
   const key = keyFor(name, labels);
+  if (!counters.has(key) && counters.size >= MAX_SERIES) return;
   counters.set(key, (counters.get(key) || 0) + value);
 }
 
@@ -42,4 +44,4 @@ function toPrometheus() {
   }).join('\n') + '\n';
 }
 
-module.exports = { add, increment, observe, reset, snapshot, toPrometheus };
+module.exports = { add, increment, observe, reset, snapshot, toPrometheus, MAX_SERIES };
