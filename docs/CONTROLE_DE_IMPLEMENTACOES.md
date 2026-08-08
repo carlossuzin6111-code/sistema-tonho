@@ -2,6 +2,26 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
+## SEC-01 — Auditoria consolidada de ownership e proteção contra IDOR
+
+- Estado: planejado e em implementação
+- Branch: `feat/sec-01-idor-audit`
+- Pull request: pendente
+- Início: 08/08/2026
+
+### Plano agrupado
+
+- [x] Inventariar rotas autenticadas e a matriz de ownership existente.
+- [ ] Cobrir rotas de exportação, notificações, sessões, chat, métricas e recursos do aluno com testes negativos.
+- [ ] Padronizar respostas de recurso inexistente/sem vínculo sem revelar existência indevida.
+- [ ] Corrigir qualquer rota que aceite IDs fora do escopo do usuário ou vínculo profissional.
+- [ ] Executar backend completo, auditoria e abrir um único PR com commits por domínio.
+
+### Evidência inicial (08/08/2026)
+
+- Matriz existente SEC-01 executada: 22 testes aprovados, cobrindo vínculos entre personals/alunos, chat, medidas e treinos.
+- Próxima rodada adicionará explicitamente jobs LGPD, notificações e sessões à matriz antes do fechamento do PR.
+
 ## OPS-13 — Observabilidade persistente, alertas e correlação de workers
 
 - Estado: em implementação; correlação HTTP entregue no PR #211
