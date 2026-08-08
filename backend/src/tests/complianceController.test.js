@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const app = require('../index');
 const db = require('../database');
 const { JWT_SECRET } = require('../services/sessionService');
+const { acceptCurrentWaiver } = require('./helpers/waiverFixture');
 
 describe('LGPD compliance endpoints', () => {
   let userId;
@@ -42,6 +43,15 @@ describe('LGPD compliance endpoints', () => {
     expect(wrong.statusCode).toBe(403);
     const missingConfirmation = await request(app).post('/api/compliance/delete').set('Authorization', `Bearer ${token}`).send({ currentPassword: password });
     expect(missingConfirmation.statusCode).toBe(400);
+  });
+
+  test('does not expose export job status across users', async () => {
+    const [jobId] = await db('compliance_export_jobs').insert({ user_id: userId, expires_at: new Date(Date.now() + 60000) });
+    const [otherId] = await db('users').insert({ name: 'Other LGPD User', email: `lgpd-other-${Date.now()}@fitlife.com`, password_hash: 'not-used', role: 'personal', must_change_password: false });
+    const otherToken = jwt.sign({ id: otherId, role: 'student', sessionVersion: 0, csrf: 'other-csrf' }, JWT_SECRET, { expiresIn: '1h' });
+    const response = await request(app).get(`/api/compliance/export/jobs/${jobId}`).set('Authorization', `Bearer ${otherToken}`);
+    expect(response.statusCode).toBe(404);
+    await db('users').where({ id: otherId }).del();
   });
 
   test('anonymizes the account and revokes the current session', async () => {
