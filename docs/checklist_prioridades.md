@@ -64,7 +64,7 @@ Resumo: **8 implementados**, **50 parciais**, **0 não iniciados**, total de **5
 | **BUS-12** | Inativação e filtros | **Concluído** | filtros server-side, abas, confirmação acessível, estados e histórico visual de auditoria | Políticas de acesso por status permanecem em BUS-03 |
 | **BUS-13** | Periodização | **Concluído funcionalmente** | editor, auditoria, visualização do aluno e integração com progressão | QA biomecânica profissional permanece operacional |
 | **BUS-14** | Governança do catálogo | **Parcial** | escopo/customização e deduplicação inicial | Moderação global e deduplicação automática em lote |
-| **OPS-01** | Subscriptions | **Parcial** | schema, guard e controller | Gateway real, webhooks idempotentes e ciclo financeiro |
+| **OPS-01** | Subscriptions | **Parcial** | schema, guard e controller; trial e expiração cobertos por testes | Escolher/configurar gateway real, contrato de webhook assinado, idempotência e ciclo financeiro operacional |
 | **OPS-02** | Equipes Head/Junior | **Parcial** | schema e endpoints básicos | Convites, permissões granulares, bibliotecas e split |
 | **OPS-03** | Acesso multiprofissional | **Concluído funcionalmente** | consentimentos, endpoints, listagem/revogação e UI de autorização granular | Exames anexados e convites automáticos |
 | **OPS-04** | Wearables | **Concluído funcionalmente** | foundation de ingestão, controllers, gestão de dispositivos, revogação e UI de métricas | OAuth real com provedores em produção |
