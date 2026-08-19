@@ -2,11 +2,11 @@
 
 Este documento registra o planejamento, a execução, os testes e a entrega de cada bloco de evolução. Ele deve ser atualizado em toda modificação relevante antes do commit e do pull request.
 
-## OPS-01 — Subscriptions: dependência externa registrada
+## MOB-01 — Primeiro release Android: preparação do build
 
-- A base local (schema, trial, guard e expiração) está implementada e coberta por testes.
-- A cobrança real, webhooks assinados/idempotentes e ciclo financeiro aguardam a escolha/configuração do gateway.
-- Não será criado contrato fictício de provedor; após a decisão, será aberto um PR agrupado com adapter, webhook, idempotência e testes.
+- Capacitor configurado com `br.com.fitlifesync.app`, HTTPS e frontend local.
+- TypeScript fixado em versão compatível com Capacitor CLI e projeto `android/` gerado.
+- Build validado até Gradle; bloqueio local restante: Android SDK não instalado/configurado (`ANDROID_HOME`/`sdk.dir`).
 
 ## SEC-01 — Auditoria consolidada de ownership e proteção contra IDOR
 

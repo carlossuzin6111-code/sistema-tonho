@@ -4,7 +4,7 @@ const isNativeCapacitor = Boolean(globalThis.Capacitor?.isNativePlatform?.());
 
 function resolveApiBaseUrl() {
   if (!isNativeCapacitor) return '/api';
-  const configured = globalThis.__FITLIFE_API_BASE_URL__;
+  const configured = globalThis.__FITLIFE_API_BASE_URL__ || 'https://tonho.personaltonho.online/api';
   if (typeof configured !== 'string' || !configured.trim()) {
     throw new Error('Configure __FITLIFE_API_BASE_URL__ antes de executar o app Capacitor.');
   }
@@ -380,3 +380,8 @@ const API = {
     }
   }
 };
+
+// Expose the client explicitly for classic scripts loaded after api.js and
+// for Android WebView, where top-level lexical bindings are not properties of
+// the global object.
+globalThis.API = API;
